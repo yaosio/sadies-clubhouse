@@ -445,11 +445,17 @@ const P = physParams({ ...DEFAULTS });
   resetGame();
   check('a fresh board has no bedrock (flat ground, the physics as before)', rockInfo.high === 0 && bedrock.melted === 0);
   rainPieces(420, U, W - U, 0.05);
-  let tooHigh = 0, sunk = 0, most = 0, heard = false, f = 0;
+  let tooHigh = 0, sunk = 0, most = 0, heard = false, f = 0, uncovered = 0, maxOut = 0;
   const { debug } = await import('../src/core/debug.js');
   for (; f < 150 * 60 && (debug.rain.length || f < 100 * 60); f++) {
-    const before = bedrock.melted, was = Array.from(rock);
+    const before = bedrock.melted, was = Array.from(rock), fossils = world.pieces.filter(p => p.fossil);
     update(dt);
+    if (bedrock.melted > before) { // what melted is completely inside the rock now: whatever rested on it rests on the rock
+      const left = new Set(world.pieces);
+      // (compared with the rock's heights on either side of each point: it's kept one height every quarter block)
+      const near = x => { const f = Math.max(0, Math.min(SURF_N - 1, x / SURF_RES)); return Math.max(rock[Math.floor(f)], rock[Math.ceil(f)]); };
+      for (const p of fossils) if (!left.has(p)) { let out = 0; for (const i of p.T.bnd) out = Math.max(out, p.y[i] - near(p.x[i])); maxOut = Math.max(maxOut, out); if (out > 0.15 * U) uncovered++; }
+    }
     most = Math.max(most, world.pieces.length);
     if (bedrock.melted > before) { // where it just rose, it's still at least 12 blocks under the pile
       for (let i = 0; i < SURF_N; i++) if (rock[i] > was[i] && rock[i] > surf[i] - MELT_DEPTH + 0.05 * U) { tooHigh++; if (tooHigh < 4) console.log('   rose to', (rock[i] / U).toFixed(2), 'under a surface at', (surf[i] / U).toFixed(2), 'at x', (i * SURF_RES / U).toFixed(2)); }
@@ -457,14 +463,26 @@ const P = physParams({ ...DEFAULTS });
     }
     if (f % 30 === 0) for (const p of world.pieces) if (!p.fixed && !p.fossil) for (const i of p.T.bnd) if (p.y[i] < rockAt(p.x[i]) - 2) sunk++;
   }
-  let steep = 0; for (let i = 1; i < SURF_N; i++) if (Math.abs(rock[i] - rock[i - 1]) > SURF_RES + 1e-6) steep++;
   const buried = world.pieces.filter(p => !p.fixed && Array.from(p.T.bnd).every(i => p.y[i] < rockAt(p.x[i]))).length;
   check('deep fossils melt into bedrock, and the board keeps fewer pieces', bedrock.melted > 50 && world.pieces.length < most,
     `${bedrock.melted} melted, ${world.pieces.length} pieces left (${most} at most), bedrock ${(rockInfo.low / U).toFixed(1)}-${(rockInfo.high / U).toFixed(1)} blocks up`);
   check('only pieces at least 12 blocks under the pile melt', tooHigh === 0);
-  check('the bedrock is never steeper than 45°, and no piece is left inside it', steep === 0 && buried === 0);
+  check('the rock rises right up to the top of whatever melts, so nothing is left hanging over a gap', uncovered === 0, `${uncovered} melted pieces stuck out of the rock, at most ${(maxOut / U).toFixed(2)} blocks`);
+  check('no piece is left inside the bedrock', buried === 0);
   check('nothing that can move sinks into the bedrock', sunk === 0, `${sunk} points found under it`);
   check('the mole notices', heard);
+  // a steep step in the bedrock: a piece slid into its side is stopped by it, not popped up on top
+  {
+    const { setBedrock } = await import('../src/core/bedrock.js');
+    const h = new Array(SURF_N).fill(0).map((_, i) => i * SURF_RES > 24 * U ? 5 * U : 0);
+    setBedrock(h, 1, []);
+    const box = makePiece('O', U, 20 * U, U, 0);
+    for (let i = 0; i < box.n; i++) box.px[i] = box.x[i] - 0.3 * U; // sliding right, toward the step
+    let top = 0, into = 0;
+    for (let k = 0; k < 120; k++) { physicsStep([box], P, 1 / 60, rock, SURF_RES); top = Math.max(top, box.maxY); into = Math.max(into, box.maxX - 24 * U); }
+    check('a piece sliding into a step in the bedrock stops against it', top < 4.5 * U && into < 0.4 * U,
+      `highest it got ${(top / U).toFixed(2)} blocks (the step is 5), ${(Math.max(0, into) / U).toFixed(2)} blocks into it`);
+  }
   // saving: the bedrock comes back exactly, and a save from before bedrock loads with none
   const s = JSON.parse(JSON.stringify(snapshot())), was = Array.from(rock), melted = bedrock.melted;
   restore(s);

@@ -81,9 +81,18 @@ tower, so only the top 8 blocks or so can wobble and topple. First step toward a
 ## Bedrock (`core/bedrock.js`)
 A fossil buried at least 12 blocks under the pile's surface (everywhere across its width) melts
 into the bedrock, as long as nothing that can still move (or the barn) reaches within half a block
-under its top. Checked every 0.5 s. It stops being a piece: the bedrock's top rises to its outline,
-then gets smoothed so it's never steeper than 45° (smoothing only lowers it, so it never pokes into
-anything). Any fossil left completely under the new top melts too. Each piece leaves flecks of its
+under its top. Checked every 0.5 s. It stops being a piece: the bedrock's top rises to exactly its
+upper outline (its height is kept every quarter block, plus each of its corner points), filling
+any cave under it. So whatever was resting on it is resting on the rock now. Any fossil left
+completely under the new top melts too.
+(Tried and dropped: smoothing the rock so it's never steeper than 45°. Wherever one spot melted
+later than its neighbors, the smoothing pulled the rock down into a big V around it, and the pieces
+that had been resting on what melted were left frozen in the air over the gap: raining 600 pieces
+left gaps averaging 27 blocks. It also kept caves in the pile from ever filling in.)
+The rock can have steep steps (one piece melts before its neighbor). A point that ends up more than
+a quarter block under the rock, or under a part steeper than 45°, has run into the side of a step:
+it's pushed out sideways to the nearest open side within 1.5 blocks, like off a wall, instead of
+being lifted on top (which flung pieces up into the air). Each piece leaves flecks of its
 color in the rock (the newest 300 are kept) and a little glimmer.
 - The bedrock is the floor: pieces, Sadie, Chooter, the ball and the barn all stand on it. Before
   anything has melted it's flat ground at 0, and the physics runs exactly as it did before.
@@ -285,8 +294,10 @@ the results are identical.)
   napping after 8 s and drops nothing while it naps, and 12 s after the game calms down it's back
   to work.
 - Bedrock (runs last, so no earlier numbers moved): a fresh board has none. Raining 420 pieces over
-  the whole board: about 290 melt into bedrock (2–19 blocks up), leaving about 190 pieces (from
+  the whole board: about 290 melt into bedrock (15–28 blocks up), leaving about 185 pieces (from
   about 360 at the most). Where the bedrock rises it's always at least 12 blocks under the pile,
-  it's never steeper than 45°, no piece is left inside it, nothing that can move sinks into it,
-  and the mole mentions it. It comes back exactly from a save (about 97 KB), and a save from
-  before bedrock loads with flat ground.
+  every piece that melts ends up completely inside the rock (so nothing that rested on it is left
+  hanging), no piece is left inside it, nothing that can move sinks into it, and the mole mentions
+  it. A box sliding fast into the side of a 5-block step in the bedrock stops against it (it
+  tumbles up to about 3.7 blocks high, never on top). It comes back exactly from a save (about
+  92 KB), and a save from before bedrock loads with flat ground.

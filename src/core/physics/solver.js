@@ -78,13 +78,40 @@ function collide(A, B, mu, wA, wB, stick) {
 }
 
 // The floor is the bedrock (a heightmap, `floor`, one height every `res` px; see core/bedrock.js),
-// or flat ground at 0 without one. Points under it are pushed straight up.
+// or flat ground at 0 without one. Points just under it are pushed straight up. A point further
+// under it than STEP, or where the bedrock is steeper than 45°, has run into the side of a step in
+// it: it's pushed out sideways to the nearest open side (within SIDE), like off a wall, instead of
+// being lifted up on top of the step (which would fling the whole piece into the air).
+const STEP = U * 0.25, SIDE = U * 1.5;
+const floorAt = (floor, res, x) => { const f = Math.min(floor.length - 1.001, Math.max(0, x / res)), k = Math.floor(f), t = f - k; return floor[k] * (1 - t) + floor[k + 1] * t; };
+// how far to go from x in direction d (+1/-1) to reach a spot where the floor is below y (Infinity if not within SIDE)
+function sideOut(floor, res, x, y, d) {
+  let prev = x;
+  for (let s = res / 2; s <= SIDE; s += res / 2) {
+    const q = x + d * s;
+    if (q < 0 || q > W) return Infinity;
+    if (floorAt(floor, res, q) <= y) {
+      let a = prev, b = q; // refine: a is inside the step, b is out
+      for (let k = 0; k < 6; k++) { const m = (a + b) / 2; if (floorAt(floor, res, m) <= y) b = m; else a = m; }
+      return Math.abs(b - x);
+    }
+    prev = q;
+  }
+  return Infinity;
+}
 function bounds(p, mu, floor, res) {
   const n = p.n, X = p.x, Y = p.y, PX = p.px, PY = p.py, gf = 1 - Math.min(1, mu * 1.1), wf = 1 - mu * 0.5, e = p.mat.bounce > 0;
-  const last = floor ? floor.length - 1.001 : 0;
   for (let i = 0; i < n; i++) {
-    let g = 0;
-    if (floor) { const f = Math.min(last, Math.max(0, X[i] / res)), k = Math.floor(f), t = f - k; g = floor[k] * (1 - t) + floor[k + 1] * t; }
+    const g = floor ? floorAt(floor, res, X[i]) : 0;
+    if (floor && Y[i] < g && (g - Y[i] > STEP || Math.abs(floorAt(floor, res, X[i] + res / 2) - floorAt(floor, res, X[i] - res / 2)) > res)) {
+      const l = sideOut(floor, res, X[i], Y[i], -1), r = sideOut(floor, res, X[i], Y[i], 1);
+      if (l < Infinity || r < Infinity) {
+        const d = l <= r ? -1 : 1;
+        X[i] += d * Math.min(l, r); PX[i] = X[i]; PY[i] = Y[i] - (Y[i] - PY[i]) * wf;
+        if (e) { p.cnx += d; p.cc++; }
+        continue;
+      }
+    }
     if (Y[i] < g) { Y[i] = g; PX[i] = X[i] - (X[i] - PX[i]) * gf; if (e) { p.cny += 1; p.cc++; } }
     if (X[i] < 0) { X[i] = 0; PY[i] = Y[i] - (Y[i] - PY[i]) * wf; if (e) { p.cnx += 1; p.cc++; } }
     else if (X[i] > W) { X[i] = W; PY[i] = Y[i] - (Y[i] - PY[i]) * wf; if (e) { p.cnx -= 1; p.cc++; } }

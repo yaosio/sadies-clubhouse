@@ -3,9 +3,10 @@
 // `rock` in core/surface.js), which the camera can't look below. That's what lets the tower grow
 // forever: however tall it gets, only the top part of it is still pieces.
 //
-// The rock's top follows the shape of what melted into it, smoothed so it's never steeper than 45°
-// (a gentle floor for anything that ever falls that far). Smoothing only ever lowers it, so it
-// never pokes up into anything above it.
+// The rock's top is exactly the shape of what melted into it (filling any cave under it), so
+// nothing is ever left hanging over a gap. It can have steep steps where one piece melted before
+// its neighbor; the solver pushes anything that bumps into one sideways off it (see bounds() in
+// physics/solver.js) rather than popping it up on top.
 //
 // Nothing random happens here, so the seeded tests stay the same until something melts.
 import { U } from '../config.js';
@@ -15,7 +16,6 @@ import { spark } from './effects.js';
 
 export const MELT_DEPTH = 12 * U;       // how far under the pile's surface a fossil must be (everywhere across it)
 const CHECK_EVERY = 0.5;                // seconds between checks
-const SLOPE = SURF_RES;                 // the rock rises at most this much per sample: 45°
 const CLEAR = 0.5 * U;                  // nothing that can still move may be this close under a melting piece
 const MAX_FLECKS = 300;                 // bits of color left in the rock by what melted
 
@@ -61,6 +61,10 @@ function traceTop(p, top) {
       const t = x1 > x0 ? (i * SURF_RES - x0) / (x1 - x0) : 0, y = y0 + (y1 - y0) * t;
       if (y > top[i]) top[i] = y;
     }
+    // and each point itself, so a pointed corner between two samples isn't lost (at most a
+    // sliver past its side, well inside the space kept clear around a melting piece)
+    const k = Math.min(SURF_N - 1, Math.max(0, Math.round(X[a] / SURF_RES)));
+    if (Y[a] > top[k]) top[k] = Y[a];
   }
 }
 const top = new Float64Array(SURF_N);
@@ -79,14 +83,16 @@ export function updateBedrock(dt) {
     if (!blocked) melt.push(p);
   }
   if (!melt.length) return;
+  // The rock rises to exactly the top of what melted, filling any cave under it, so whatever was
+  // resting on a melted piece is resting on the rock now. (Smoothing it out instead, even only
+  // where it's steep, left pieces hanging over gaps, and kept caves from ever filling in.)
   top.set(rock);
-  for (const p of melt) traceTop(p, top);
-  // pieces pressed against a wall reach it, even if their outline stops a hair short
-  top[0] = Math.max(top[0], top[1]); top[SURF_N - 1] = Math.max(top[SURF_N - 1], top[SURF_N - 2]);
-  // no steeper than 45°: the highest floor under `top` that's never steeper than that
-  for (let i = 1; i < SURF_N; i++) if (top[i] > top[i - 1] + SLOPE) top[i] = top[i - 1] + SLOPE;
-  for (let i = SURF_N - 2; i >= 0; i--) if (top[i] > top[i + 1] + SLOPE) top[i] = top[i + 1] + SLOPE;
-  for (let i = 0; i < SURF_N; i++) if (top[i] > rock[i]) rock[i] = top[i];
+  for (const p of melt) {
+    traceTop(p, top);
+    if (p.minX < SURF_RES) top[0] = Math.max(top[0], top[1]); // pressed against a wall: it reaches it,
+    if (p.maxX > (SURF_N - 2) * SURF_RES) top[SURF_N - 1] = Math.max(top[SURF_N - 1], top[SURF_N - 2]); // even if its outline stops a hair short
+  }
+  rock.set(top);
   rockLimits();
   // gone into the rock: what melted, and any fossil now completely under it
   const gone = new Set(melt);
