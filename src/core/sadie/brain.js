@@ -40,7 +40,7 @@ const MIN_HAUL = 4 * U;                // she always drags it at least this far
 const HAUL_WALK = 0.7;                 // walking speed while dragging, compared to normal
 export const TRIP_MAX = 60;            // give up (leave it where it is) after this long
 export function barnNeedsHer() { return sadie.y - barnFloor() >= LEFT_BEHIND || barnCover() >= BURIED; }
-function startTrip() {
+export function startTrip() {
   const c = sadie, bx = barnX();
   // head for the top of the pile (not counting whatever is heaped on the barn itself, which is
   // about to get shoved aside), dragging the barn at least a little way

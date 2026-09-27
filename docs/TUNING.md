@@ -130,6 +130,20 @@ Covered by the pile for 0.5 s: float up to 0.7 blocks above the surface. Pile dr
 - Moods: neutral, lookup (waiting), mad (pacing), happy (climbing), excited (ate hay or got her
   barn home), scared (falling or lurching ground), run, haul (dragging her barn).
 
+## Debug tools (`core/debug.js`, the dev sheet's Debug tab)
+For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
+- Rain 25 here: 25 random pieces within 5 blocks of the dropper. Rain 100 everywhere: across the
+  whole board. About 12 a second, each 4 blocks above the pile; a piece waits if something is still
+  falling where it would appear.
+- Build a tall pile: 110 pieces within 1 block of the dropper, one every 0.6 s, run at 8× (about 70 s
+  of game time, roughly 9 s to watch), then 4 more seconds to settle before going back to the
+  chosen speed. Makes a mound about 16–18 blocks tall.
+- Put her on top: Sadie moves to the highest point. If her barn is now far below, she'll soon go
+  back for it, as she normally would.
+- Fetch the barn now, Meet Chooter now, Zoomies, Go home, Come out: start those right away (or as
+  soon as Chooter finishes what he's doing).
+- Clear tower also stops any rain.
+
 ## What the tests expect (`tests/run.mjs`, seeded, so results repeat exactly)
 - 150-piece mixed pile: no broken numbers, deepest overlap about 0.6 px, about 140 asleep.
 - Ball dropped from 6 blocks: bounces to 3.37, 2.13, 1.52 blocks.
@@ -151,5 +165,9 @@ Covered by the pile for 0.5 s: float up to 0.7 blocks above the surface. Pile dr
 - Chooter: meets Sadie only once she's 15 blocks up. On a pile grown for 90 s, over 4 minutes he
   greets her (about 12 s, running in from the far side), has 3 bouts of zoomies knocking about 28
   pieces, brings back all 10 balls thrown for him, moves into the barn and comes back out, and
-  never gets stuck in the pile or leaves the board. This test runs last, so it doesn't change the
-  numbers of the tests before it.
+  never gets stuck in the pile or leaves the board. This test runs after the others, so it doesn't
+  change their numbers.
+- Debug tools (runs last): raining 100 pieces drops them all in about 8 s with no piece sunk into
+  another more than about 0.7 px; "Build a tall pile" peaks around 17.7 blocks and goes back to
+  normal speed; "Put her on top" puts Sadie about 16 blocks up, standing; the Sadie and Chooter
+  buttons each start what they say; clearing the tower stops any rain.

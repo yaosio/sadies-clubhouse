@@ -15,6 +15,7 @@ import { updateFossils } from './fossil.js';
 import { resetBarn, updateBarn } from './barn.js';
 import { resetChooter, updateChooter } from './friends/chooter.js';
 import { toy, updateToy } from './toys.js';
+import { updateDebug, stopRain } from './debug.js';
 
 export const timing = { physMs: 0 }; // read by the performance overlay
 
@@ -27,7 +28,7 @@ export function resetGame() {
     trip: null, lastTrip: world.gameTime, heave: false });
   world.emotes = [];
   resetHay(sadie.x);
-  resetChooter(); toy.state = 'none';
+  resetChooter(); toy.state = 'none'; stopRain();
   spawn();
   emit('reset');
 }
@@ -60,4 +61,5 @@ export function update(dt) {
   world.gameTime += dt;
   updateEffects(dt);
   updateDropper(dt);
+  updateDebug(dt);
 }
