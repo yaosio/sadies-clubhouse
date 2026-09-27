@@ -1,0 +1,15 @@
+{
+  "name": "sadies-dropper-world",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "A cozy physics toy: jelly pieces pile up and Sadie climbs them to collect stars.",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "test": "node tests/run.mjs",
+    "unpack": "node tools/unpack.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
