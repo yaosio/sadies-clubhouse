@@ -1,22 +1,11 @@
-// On-screen buttons (move, rotate, drop, follow Sadie) and keyboard shortcuts.
+// The Follow Sadie button and keyboard shortcuts. (On screen, the dropper is moved by tapping the
+// board: see pointer.js.)
 import { U } from '../config.js';
 import { moveHeld, rotateHeld, dropHeld } from '../core/dropper.js';
 import { cam, vp, clampCam, setFollow } from '../render/view.js';
 import { isSheetOpen, closeSheet } from '../ui/devPanel.js';
 import { prof, setPerf } from '../ui/perf.js';
 
-function holdRepeat(btn, fn) {
-  let t1 = null, t2 = null;
-  const stop = () => { clearTimeout(t1); clearInterval(t2); btn.classList.remove('held'); };
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); fn(); btn.classList.add('held'); t1 = setTimeout(() => { t2 = setInterval(fn, 70); }, 240); });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
-  btn.addEventListener('click', e => { if (e.detail === 0) fn(); }); // keyboard activation
-}
-holdRepeat(document.getElementById('leftBtn'), () => moveHeld(-U / 2));
-holdRepeat(document.getElementById('rightBtn'), () => moveHeld(U / 2));
-document.getElementById('ccwBtn').addEventListener('click', () => rotateHeld(1));
-document.getElementById('cwBtn').addEventListener('click', () => rotateHeld(-1));
-document.getElementById('dropBtn').addEventListener('click', () => dropHeld(false));
 document.getElementById('topBtn').addEventListener('click', () => setFollow(true));
 
 window.addEventListener('keydown', e => {

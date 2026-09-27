@@ -57,13 +57,13 @@ tell the screen something, it emits an event (below).
 | `render/dropperView.js` | Draws the drone, or an edge marker when it's off screen. |
 | `render/color.js` | Color helpers. |
 | **ui/ and input/** | |
-| `ui/hud.js` | Height, hay eaten, supply pips, next-piece preview, tip, toasts. Listens to simulation events. |
+| `ui/hud.js` | The first-run tip and toasts. Listens to simulation events. It's a toy, so there's no score, height, supply or next-piece display on screen (the numbers still exist in the world for saves and tests). |
 | `ui/minimap.js` | The map strip; tap to send the dropper and look there. |
 | `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board to throw it. |
 | `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, keys). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
 | `ui/perf.js` | Performance overlay (P key or the dev sheet). |
 | `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom, or throw a toy picked from the toy box. |
-| `input/controls.js` | On-screen buttons and keyboard shortcuts. |
+| `input/controls.js` | The Follow Sadie button and keyboard shortcuts. There are no on-screen move/rotate/drop buttons: on screen you tap or drag the board to move the dropper and tap the piece to spin it (`input/pointer.js`), and the dropper lets go by itself when the supply is full. |
 
 ## Events
 
@@ -78,7 +78,7 @@ tell the screen something, it emits an event (below).
 | `ballBack` | friends/chooter | hud (toast) |
 | `hayStolen` (bundle) | friends/chooter | hud (toast), sadie/brain ("hey!") |
 | `toyThrown` (kind) | toys | nobody yet |
-| `nextChanged` (type) | dropper | hud (preview) |
+| `nextChanged` (type) | dropper | nobody right now (the next-piece preview was removed) |
 | `playerActed` | dropper | hud (hides the first-run tip) |
 | `reset` | game | main (camera follows Sadie again) |
 | `followChanged` (on/off) | render/view | hud (Follow Sadie button look) |
