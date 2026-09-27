@@ -1,9 +1,10 @@
 // Performance overlay: frame-time graph and a breakdown of where time goes each frame.
-// Toggle from the Dev tuning sheet or with the P key.
+// Toggle from the dev sheet's Info tab.
 import { store } from '../platform/storage.js';
 import { world } from '../core/world.js';
 import { PSTATS } from '../core/physics/solver.js';
 import { timing } from '../core/game.js';
+import { mole } from '../core/mole.js';
 import { vp } from '../render/view.js';
 
 const perfEl = document.getElementById('perf'), perfList = document.getElementById('perfList'), pcv = document.getElementById('perfCv'), pctx = pcv.getContext('2d');
@@ -27,6 +28,7 @@ function reportPerf(now) {
     ['Pair checks', Math.round(prof.pairs / n) + ' per frame'],
     ['Touching pairs', Math.round(prof.touching / n) + ' per frame'],
     ['Slow frames', prof.slow + ' over 20 ms'],
+    ['Mole', `sim takes ${Math.round(mole.strain * 100)}% of the time, tired ${Math.round(mole.feel.tired * 100)}%${mole.napping ? ', napping' : ''}`],
   ];
   perfList.innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
   Object.assign(prof, { frames: 0, sumFrame: 0, sumWork: 0, sumPhys: 0, sumLogic: 0, sumDraw: 0, steps: 0, pairs: 0, touching: 0 });

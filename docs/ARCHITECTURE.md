@@ -20,7 +20,7 @@ tell the screen something, it emits an event (below).
 | File | What it does |
 |---|---|
 | `main.js` | Boots everything: sizes the canvas, applies tuning, loads the saved game (or starts a board), saves every 5 s and when the page is hidden or closed, starts the loop. Also exposes `window.__jellyDebug()` for browser tests. |
-| `loop.js` | Fixed 1/60 s simulation steps (max 3 catch-up steps, each run 1–8 times over at the dev sheet's speed setting), then camera, draw, HUD, perf recording. |
+| `loop.js` | Fixed 1/60 s simulation steps (max 3 catch-up steps, each run 1–8 times over at the dev sheet's speed setting), then tells the mole how much of the time the simulation took (`feelStrain`; not while sped up), then camera, draw, HUD, perf recording. |
 | `config.js` | Board size (`U` = 30 px per block, 48 blocks wide), solver constants, dev-panel defaults, and the live `tuning` object (`tuning.set` = panel values, `tuning.P` = solver numbers). |
 | `platform/storage.js` | Safe localStorage wrapper (get, set, remove; never throws). The one place that touches browser storage, so a different home for saves (itch.io, a desktop app) only changes this file. |
 | **core/** | |
@@ -31,15 +31,16 @@ tell the screen something, it emits an event (below).
 | `core/physics/templates.js` | Builds each type's rest shape (point lattice per block, or rings for the ball). |
 | `core/physics/body.js` | Creates a live piece; bounding boxes. |
 | `core/physics/solver.js` | The soft-body solver: integration, shape matching, finding nearby pairs (sleeper grid), collisions, friction, floor/walls, bounce, sleeping, and fixed pieces (the barn) that only move when told to. Pure math. |
-| `core/surface.js` | Reading the pile: heightmap `surf` (minimap, hay, dropper) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). |
+| `core/surface.js` | Reading the pile: heightmap `surf` (minimap, hay, the mole's hover height) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). |
 | `core/fossil.js` | Turns pieces buried deep in the pile into fossils: permanent ground that never wakes. |
 | `core/friends/chooter.js` | Chooter, Sadie's first friend: feelings (energy, tired, missing), activities (`greet`, `play`, `zoom` knocking pieces aside, `fetch` the ball, `home` to rest in the barn), his body (trot, leap, fall). Meets Sadie at 15 blocks. Offers `friend` once met. |
 | `core/toys.js` | Toys the player throws for the friends (a ball so far): one out at a time, bounces off the pile without pushing it, vanishes once played with. |
 | `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
 | `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). Offers `food`. Can be picked up (`pickUpHay`, it goes where the carrier puts it) and put down (`putDownHay`, drops onto the pile). |
-| `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
-| `core/save.js` | Saving and loading: `snapshot()` turns the board, Sadie, barn, hay, dropper and Chooter into plain data; `restore()` puts it back (throws on a save it can't read, and `loadGame()` then starts fresh). `clearTower()` (keeps friends and bests) and `startOver()` (forgets everything). Saved under `sadies-dropper-world.save`, format `SAVE_VERSION`. |
-| `core/debug.js` | Dev-sheet helpers (for us, not players): game speed, raining lots of pieces, building a tall pile fast, putting Sadie on top, and making Sadie and Chooter do things right now. Uses no random numbers unless a button was pressed. |
+| `core/dropper.js` | The piece the mole carries and the supply: flying to a spot (`flyTo`), hover height, letting go (`dropHeld`, only with a full supply), the piece bag. No decisions: the mole makes those. |
+| `core/mole.js` | The mole, who drops the pieces: its feeling (`tired`, from how hard the game is working: `feelStrain`), activities (`bury` anyone restless, `barn`, `nap`), where it aims and when it lets go, its thoughts. |
+| `core/save.js` | Saving and loading: `snapshot()` turns the board, Sadie, barn, hay, the mole's piece and Chooter into plain data; `restore()` puts it back (throws on a save it can't read, and `loadGame()` then starts fresh). `clearTower()` (keeps friends and bests) and `startOver()` (forgets everything). Saved under `sadies-dropper-world.save`, format `SAVE_VERSION`. |
+| `core/debug.js` | Dev-sheet helpers (for us, not players): game speed, raining lots of pieces, building a tall pile fast, putting Sadie on top, and making Sadie, Chooter and the mole do things right now (wearing the mole out: `tireMoleNow`). Uses no random numbers unless a button was pressed. |
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
 | `core/mind/feelings.js` | Feelings: 0–1 numbers on each character that drift over time and get nudged by events. |
 | `core/mind/offers.js` | Offers: things register what they're good for (`food`, `home`, `fetch`, `friend`); characters look for offers, not particular things. |
@@ -49,23 +50,23 @@ tell the screen something, it emits an event (below).
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
 | **render/** | |
 | `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. |
-| `render/scene.js` | Draws a frame back to front: sky, ruler, walls, ground, hay, drop lane, barn, pieces, Sadie's rope, Sadie, held piece, dropper, particles. Skips pieces and hay that are off screen. |
+| `render/scene.js` | Draws a frame back to front: sky, ruler, walls, ground, hay, drop lane, barn, pieces, Sadie's rope, Sadie, held piece, the mole, particles. Skips pieces and hay that are off screen. |
 | `render/barnView.js` | Draws Sadie's barn and the rope she drags it with. |
 | `render/chooterView.js` | Draws Chooter in every mood, and his face in the barn's hayloft window while he's home. |
 | `render/toyView.js` | Draws the toys (the tennis ball). |
 | `render/jelly.js` | Draws one jelly piece (smooth outline, shine, material decorations). |
 | `render/sadieView.js` | Draws Sadie in every mood, and her emotes. |
-| `render/dropperView.js` | Draws the drone, or an edge marker when it's off screen. |
+| `render/moleView.js` | Draws the mole (squinting, drooping when tired, snoozing when napping) holding its piece, or an edge marker when it's off screen. |
 | `render/color.js` | Color helpers. |
 | **ui/ and input/** | |
-| `ui/hud.js` | The first-run tip and the one pop-up left (a new friend). Listens to simulation events. It's a toy, so there's no score, height, supply or next-piece display on screen (the numbers still exist in the world for saves and tests). |
-| `ui/thoughts.js` | The thought bubble: tap Sadie or Chooter (his face in the hayloft window while he's home) to see what they're doing, why, and how they feel. Follows them each frame; a tap anywhere else closes it (and doesn't move the dropper). |
-| `ui/minimap.js` | The map strip; tap to send the dropper and look there. |
-| `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board to throw it. |
+| `ui/hud.js` | The first-run tip (gone at the first touch of the board) and the one pop-up left (a new friend). Listens to simulation events. It's a toy, so there's no score, height, supply or next-piece display on screen (the numbers still exist in the world for saves and tests). |
+| `ui/thoughts.js` | The thought bubble: tap Sadie, Chooter (his face in the hayloft window while he's home) or the mole to see what they're doing, why, and how they feel. Follows them each frame; a tap anywhere else closes it. |
+| `ui/minimap.js` | The map strip; tap or drag to look there. |
+| `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board; the mole throws it there. |
 | `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, piece count, mouse help). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
-| `ui/perf.js` | Performance overlay (the dev sheet's Info tab). |
-| `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom, throw a toy picked from the toy box, or tap a character for their thought bubble. |
-| `input/controls.js` | The Follow Sadie button, and Escape to close the dev sheet. No keyboard controls and no on-screen move/rotate/drop buttons: on screen you tap or drag the board to move the dropper and tap the piece to spin it (`input/pointer.js`), and the dropper lets go by itself when the supply is full. |
+| `ui/perf.js` | Performance overlay (the dev sheet's Info tab), including how busy the simulation keeps the mole and how tired it is. |
+| `input/pointer.js` | Touch/mouse on the board: pan, pinch, wheel zoom, throw a toy picked from the toy box, or tap a character for their thought bubble. Nothing steers the mole. |
+| `input/controls.js` | The Follow Sadie button, and Escape to close the dev sheet. No keyboard controls, and no way to move, spin or drop pieces: the mole decides all that. |
 
 ## Events
 
@@ -81,7 +82,6 @@ tell the screen something, it emits an event (below).
 | `hayStolen` (bundle) | friends/chooter | sadie/brain ("hey!") |
 | `toyThrown` (kind) | toys | nobody yet |
 | `nextChanged` (type) | dropper | nobody right now (the next-piece preview was removed) |
-| `playerActed` | dropper | hud (hides the first-run tip) |
 | `reset` | game | main (camera follows Sadie again) |
 | `followChanged` (on/off) | render/view | hud (Follow Sadie button look) |
 
@@ -89,7 +89,7 @@ tell the screen something, it emits an event (below).
 
 physics → piece bookkeeping (rest time, age, smoothed speed, top heights) → surface heightmap →
 hay rides the pile → fossils → Sadie's brain → barn (dragged or dropping) → Chooter → toys → Sadie's mood → Sadie's best height → particles and emotes →
-dropper (supply refill, hover, autodrop, spawn) → debug rain. The camera and drawing happen after all steps in
+the mole (tiredness, what to bury, flying there, letting go) → dropper (supply refill, hover, flying, spawn) → debug rain. The camera and drawing happen after all steps in
 `loop.js`.
 
 ## Common changes

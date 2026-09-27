@@ -1,10 +1,10 @@
 // All of the game's changing state lives here, so every system reads and writes the same thing.
-// (Sadie's own state is in sadie/brain.js, the dropper's in dropper.js.)
+// (Sadie's own state is in sadie/brain.js, the mole's in mole.js and dropper.js.)
 import { store } from '../platform/storage.js';
 
 export const world = {
   pieces: [],          // every piece on the board
-  held: null,          // the piece hanging from the dropper
+  held: null,          // the piece the mole is carrying
   nextType: null,      // the piece after that
   bag: [],             // shuffled piece types still to come
   hay: [],             // Sadie's hay bundles (core/hay.js)
@@ -13,9 +13,7 @@ export const world = {
   emotes: [],          // Sadie's floating notes, hearts, steam
   supply: 0,           // pieces ready to drop (fractional while refilling)
   gameTime: 0,
-  lastInteract: -99,   // when the player last touched the dropper
   spawnTimer: 0,
-  holdingDropper: false, // player is dragging the dropper right now (set by input)
   topAll: 0,           // highest point of any piece
   topSettled: 0,       // highest point of settled pieces
   fossils: 0,          // pieces buried deep enough to be permanent ground (core/fossil.js)

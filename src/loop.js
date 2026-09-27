@@ -9,6 +9,7 @@ import { drawMini } from './ui/minimap.js';
 import { drawThoughts } from './ui/thoughts.js';
 import { recordFrame } from './ui/perf.js';
 import { gameSpeed } from './core/debug.js';
+import { feelStrain } from './core/mole.js';
 
 const STEP = 1 / 60; let acc = 0, lastT = performance.now();
 export function frame(t) {
@@ -21,6 +22,8 @@ export function frame(t) {
   while (acc >= STEP && steps < maxSteps) { for (let k = 0; k < speed; k++) update(STEP); acc -= STEP; steps++; }
   if (steps === maxSteps) acc = 0;
   const t1 = performance.now();
+  // how much of the time the simulation is taking: too much and the mole gets tired (sped up in the dev sheet doesn't count)
+  if (speed === 1 && frameGap > 0) feelStrain((t1 - t0) / frameGap, dt);
   updateCamera(STEP * steps);
   draw(t); drawMini(t); drawThoughts();
   const t2 = performance.now();

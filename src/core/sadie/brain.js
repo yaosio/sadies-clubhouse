@@ -6,6 +6,9 @@
 //              wears off over a minute. Once it's gone, a barn left far below her or buried
 //              under the pile worries her (cows live in barns; she can't live in a buried one),
 //              and she goes and drags it up.
+//   impatient - builds while she waits or paces under hay she can't reach; goes away when she
+//              eats, and slowly while she's getting somewhere. (The mole sees her fidgeting and
+//              thinks she wants to be buried. She doesn't. It helps her anyway.)
 //   scared   - pieces lurching under her feet, or falling (kept as `scared`, read by mood.js).
 // Her activities: eat (walk, run and climb to the nearest hay; wait under it if it's out of
 // reach, then pace, further each lap; if her hay is being carried off, she runs after it) and fetchBarn (rush to the barn, grab the rope, drag it up
@@ -27,11 +30,13 @@ export const REACH = 1.6 * U, WALK = 1.7 * U, CLIMB = 0.8 * U, WALL = 0.55 * U;
 // running: starts when the hay is far away sideways, stops once she's close (the gap stops her flickering between the two)
 const RUN_START = 6 * U, RUN_STOP = 2.5 * U, RUN_BOOST = 1.5;
 export const sadie = { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, doing: null, feel: freshFeelings() };
-export function freshFeelings() { return { hunger: 0.5, settled: 1 }; }
+export function freshFeelings() { return { hunger: 0.5, settled: 1, impatient: 0 }; }
 
 // ---------- feelings ----------
 const HUNGER_RISE = 1 / 90;         // per second: hungry again about a minute and a half after a bundle
 const HUNGER_EAT = 0.5;             // how much one bundle helps
+const FIDGET = 1 / 12;              // per second waiting or pacing under hay she can't reach: fed up in 12 s
+const CALM = 1 / 25;                // per second otherwise
 export const HOME_GAP = 60;         // seconds for the feeling of being settled to wear off after a trip
 export const LEFT_BEHIND = 6 * U;   // the barn worries her once she's this far above its floor...
 export const BURIED = 1 * U;        // ...or once the pile is this deep over its roof
@@ -39,8 +44,9 @@ export const BURIED = 1 * U;        // ...or once the pile is this deep over its
 export function barnWorry() { return Math.max((sadie.y - barnFloor()) / LEFT_BEHIND, barnCover() / BURIED); }
 export function barnNeedsHer() { return barnWorry() >= 1; }
 
-// Sadie is a friend (Chooter comes to play near her).
-offersFrom(() => [{ kind: 'friend', thing: sadie, x: sadie.x, y: sadie.y }]);
+// Sadie is a friend (Chooter comes to play near her). And when she's impatient, she's restless.
+offersFrom(() => [{ kind: 'friend', thing: sadie, x: sadie.x, y: sadie.y },
+  { kind: 'restless', thing: sadie, name: 'Sadie', x: sadie.x, y: sadie.y, how: sadie.feel.impatient }]);
 
 // ---------- eat ----------
 // Keeps going for the same bundle until it's gone, then picks the nearest one, up or down.
@@ -54,7 +60,7 @@ export function pickTarget() {
   sadie.target = best;
 }
 function munch(s) {
-  eatHay(s); sadie.cheer = 1.1; nudge(sadie.feel, 'hunger', -HUNGER_EAT); emit('hayEaten', s);
+  eatHay(s); sadie.cheer = 1.1; nudge(sadie.feel, 'hunger', -HUNGER_EAT); nudge(sadie.feel, 'impatient', -1); emit('hayEaten', s);
   for (let k = 0; k < 5; k++) emote('♥', '#ff4f86', sadie.x + (Math.random() - 0.5) * U, sadie.y + 1.3 * U, (Math.random() - 0.5) * 40, 50 + Math.random() * 40);
   for (let k = 0; k < 26; k++) { const a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 120;
     spark(s.x, s.y, Math.cos(a) * v, Math.sin(a) * v, 2 + Math.random() * 3, 1, k % 2 ? '#f2cf63' : '#c9a23a'); } // bits of straw
@@ -171,6 +177,7 @@ function sadieThinks() {
     { label: "I'm hungry", value: c.feel.hunger },
     { label: 'I feel at home', value: c.feel.settled },
     { label: "I'm worried about my barn", value: clamp01(barnWorry()) },
+    { label: "I'm impatient", value: c.feel.impatient },
   ] };
 }
 mindsFrom(() => [{ who: sadie, name: 'Sadie', x: sadie.x, y: sadie.y, h: 1.3 * U, think: sadieThinks }]);
@@ -180,7 +187,8 @@ export function sadieDo(name) { if (sadie.doing !== name) switchTo(sadie, SADIE_
 // ---------- each tick ----------
 export function updateSadie(dt) {
   const c = sadie;
-  drift(c.feel, { hunger: HUNGER_RISE, settled: -1 / HOME_GAP }, dt);
+  const stuck = !c.trip && c.doing === 'eat' && (c.pace || c.state === 'wait');
+  drift(c.feel, { hunger: HUNGER_RISE, settled: -1 / HOME_GAP, impatient: stuck ? FIDGET : -CALM }, dt);
   if (c.trip && c.trip.phase === 'haul') haulBarn(c.x - c.trip.side * HITCH, c.y); // the barn follows along behind her
   c.cheer = Math.max(0, c.cheer - dt);
   // she never walks past hay she can reach (unless she's busy with her barn)

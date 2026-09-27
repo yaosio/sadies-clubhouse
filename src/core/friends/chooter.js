@@ -61,8 +61,9 @@ export const chooter = {
   feel: freshFeelings(), windUp: 1 / 55, outFor: 95, restFor: 35,
   actT: 0, spotT: 0, spot: 0, stuckT: 0, doorT: 0, doorIn: false, doorX: 0, barkT: 0, hopT: 0, pant: 0,
 };
-// once they've met, Chooter is a friend too
-offersFrom(() => chooter.met && chooter.place === 'out' ? [{ kind: 'friend', thing: chooter, x: chooter.x, y: chooter.y }] : []);
+// once they've met, Chooter is a friend too; and wanting attention makes him restless
+offersFrom(() => chooter.met && chooter.place === 'out' ? [{ kind: 'friend', thing: chooter, x: chooter.x, y: chooter.y },
+  { kind: 'restless', thing: chooter, name: 'Chooter', x: chooter.x, y: chooter.y, how: chooter.feel.ignored }] : []);
 
 function landDust(n) { for (let k = 0; k < n; k++) spark(chooter.x + (Math.random() - 0.5) * 0.8 * U, chooter.y + 0.05 * U, (Math.random() - 0.5) * 90, 20 + Math.random() * 40, 2 + Math.random() * 2.5, 0.6, 'rgba(210,190,170,0.8)'); }
 function hearts(x, y, n) { for (let k = 0; k < n; k++) emote('♥', '#ff4f86', x + (Math.random() - 0.5) * U, y + 1.4 * U, (Math.random() - 0.5) * 50, 50 + Math.random() * 40); }

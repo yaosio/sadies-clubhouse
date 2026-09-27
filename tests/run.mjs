@@ -14,7 +14,6 @@ const { physicsStep } = await import('../src/core/physics/solver.js');
 const { world } = await import('../src/core/world.js');
 const { resetGame, update } = await import('../src/core/game.js');
 const { groundAt } = await import('../src/core/surface.js');
-const { sendHeldTo } = await import('../src/core/dropper.js');
 const { sadie } = await import('../src/core/sadie/brain.js');
 const { HAY_OUT, STEP_MIN, STEP_MAX } = await import('../src/core/hay.js');
 const { REACH } = await import('../src/core/sadie/brain.js');
@@ -94,7 +93,7 @@ const P = physParams({ ...DEFAULTS });
   check('70 pieces on one spot form a mound', peak > 8 && peak < 17, `peak ${peak.toFixed(1)} blocks, expected about 12`);
 }
 
-// 4. Two minutes of real play: Sadie, the dropper, hay and her barn, all together
+// 4. Two minutes of real play: Sadie, the mole, hay and her barn, all together (nobody steers the mole)
 {
   resetGame();
   let maxRise = 0, sunkFrames = 0, longestSunk = 0, hayBelowStart = 0, prevY = sadie.y;
@@ -104,7 +103,6 @@ const P = physParams({ ...DEFAULTS });
   noteHay();
   const dt = 1 / 60;
   for (let f = 0; f < 120 * 60; f++) {
-    if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); // a helpful player nudging the dropper
     update(dt);
     maxRise = Math.max(maxRise, (sadie.y - prevY) / U); prevY = sadie.y;
     // buried inside the pile without climbing out (a single frame can happen as she steps onto a ledge)
@@ -126,7 +124,7 @@ const P = physParams({ ...DEFAULTS });
   check('there are always 3 hay bundles out', hayOut);
   check('each new bundle is 10-18 blocks from the last one', badGap === 0, `${placed.length} bundles placed`);
   check('new hay always starts out of reach, so Sadie needs help', inReach === 0);
-  check('with a little help, Sadie eats hay', got >= 4, `${got} bundles, ${world.pieces.length} pieces`);
+  check('with the mole burying her, Sadie eats hay', got >= 4, `${got} bundles, ${world.pieces.length} pieces`);
   check('Sadie never waits too long for her next snack', longestWait < 40, `longest wait ${longestWait.toFixed(0)} s`);
 }
 
@@ -161,9 +159,8 @@ const P = physParams({ ...DEFAULTS });
   on('homeRush', () => { trips++; floor0 = barn.piece.minY; });
   on('barnHome', () => { home++; });
   const dt = 1 / 60, bx0 = barnX();
-  // the player keeps dropping right on top of the barn, then leaves the dropper there
+  // the mole buries the barn by itself
   for (let f = 0; f < 150 * 60 && !home; f++) {
-    if (f % 120 === 0) sendHeldTo(bx0 + (Math.random() - 0.5) * 3 * U);
     update(dt);
     if (!sadie.trip) buriedMax = Math.max(buriedMax, barnCover());
     else tripSecs += dt;
@@ -201,14 +198,13 @@ const P = physParams({ ...DEFAULTS });
   check('Sadie meets Chooter the first time she stands 15 blocks up', early === 0 && met === 1 && chooter.met);
   chooter.met = false;
   resetGame();
-  for (let f = 0; f < 90 * 60; f++) { if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); update(dt); } // grow a pile first
+  for (let f = 0; f < 90 * 60; f++) update(dt); // let the mole grow a pile first
   meetChooter();
   let greeted = null, zooms = 0, kicked = new Set(), balls = 0, back = 0, movedIn = 0, cameOut = false, sunk = 0, longestSunk = 0, outside = 0, stuckToy = 0;
   on('zoomies', () => zooms++); on('ballBack', () => back++); on('friendMovedIn', () => movedIn++);
   let wasHome = false, toyT = 0;
   for (let f = 0; f < 240 * 60; f++) {
     const t = f * dt;
-    if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U);
     // throw him a ball a little way off, whenever there isn't one out
     if (t > 45 && f % 600 === 0 && toy.state === 'none' && chooter.place === 'out' && chooter.doing === 'play') {
       const x = Math.min(W - 2 * U, Math.max(2 * U, chooter.x + 4 * U * (chooter.x < W / 2 ? 1 : -1)));
@@ -278,7 +274,7 @@ const P = physParams({ ...DEFAULTS });
   const { drp } = await import('../src/core/dropper.js');
   const dt = 1 / 60;
   resetGame();
-  for (let f = 0; f < 60 * 60; f++) { if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); update(dt); }
+  for (let f = 0; f < 60 * 60; f++) update(dt);
   meetChooter();
   for (let f = 0; f < 10 * 60; f++) update(dt); // save with some pieces still moving
   const before = { n: world.pieces.length, awake: world.pieces.filter(p => !p.asleep).length, sx: sadie.x, sy: sadie.y, cx: chooter.x, bx: barnX(), by: barn.piece.minY,
@@ -312,14 +308,13 @@ const P = physParams({ ...DEFAULTS });
   const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
   const dt = 1 / 60;
   resetGame();
-  for (let f = 0; f < 90 * 60; f++) { if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); update(dt); } // grow a pile
+  for (let f = 0; f < 90 * 60; f++) update(dt); // let the mole grow a pile
   meetChooter();
   let stolen = 0, caught = 0, dropped = 0, chaseSecs = 0, longest = 0, ranAfter = 0, hayOut = true, sunk = 0, longestSunk = 0;
   on('hayStolen', () => stolen++);
   let loot = null, t0 = 0, firstSteal = null, flips = 0, lastC = 0, lastS = 0;
   for (let f = 0; f < 240 * 60; f++) {
     const t = f * dt;
-    if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U);
     update(dt);
     if (chooter.loot && !loot) { loot = chooter.loot; t0 = t; if (firstSteal === null) firstSteal = t; }
     if (loot) {
@@ -363,8 +358,8 @@ const P = physParams({ ...DEFAULTS });
   check('...and Sadie gets her hay', got !== null, got === null ? 'never' : `after ${got.toFixed(1)} s`);
 }
 
-// 12. Thought bubbles: tapping Sadie or Chooter always has something sensible to say, and reading
-// their thoughts never changes the game.
+// 12. Thought bubbles: tapping Sadie, Chooter or the mole always has something sensible to say, and
+// reading their thoughts never changes the game.
 {
   const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
   const { minds } = await import('../src/core/mind/thoughts.js');
@@ -383,8 +378,58 @@ const P = physParams({ ...DEFAULTS });
       if (!isFinite(m.x) || !isFinite(m.y)) bad = `${m.name} is nowhere`;
     }
   }
-  check('Sadie and Chooter always have a thought, with feelings from 0 to 1', !bad && reads > 0, bad || `${said.size} different things over 4 minutes`);
-  check('both of them can be tapped once Chooter is met', minds().length === 2);
+  check('Sadie, Chooter and the mole always have a thought, with feelings from 0 to 1', !bad && reads > 0, bad || `${said.size} different things over 4 minutes`);
+  check('all three can be tapped once Chooter is met', minds().length === 3);
+}
+
+// 13. The mole decides where pieces go: on anyone restless (it thinks they want to be buried),
+// otherwise on the barn. Never faster than one piece every 1.5 s, and a struggling game tires it:
+// slower, then a nap with no pieces at all, then back to work once things calm down.
+{
+  const { mole } = await import('../src/core/mole.js');
+  const { REGEN } = await import('../src/core/dropper.js');
+  const { chooter } = await import('../src/core/friends/chooter.js');
+  const dt = 1 / 60;
+  chooter.met = false; resetGame();
+  let n = world.pieces.length, last = -9, minGap = Infinity, onSadie = 0, onChooter = 0, onBarn = 0, stray = 0, drops = 0, ignored = 0;
+  const dropped = t => { const g = t - last; last = t; drops++; return g; };
+  for (let f = 0; f < 180 * 60; f++) {
+    const was = { doing: mole.doing, who: mole.who, wx: mole.who && mole.who.x, bx: barnX() };
+    update(dt);
+    if (sadie.feel.impatient >= 0.5 && mole.doing !== 'bury') ignored++; // she's restless: it should be on its way
+    if (world.pieces.length > n) {
+      const p = world.pieces[world.pieces.length - 1], x = (p.minX + p.maxX) / 2;
+      minGap = Math.min(minGap, dropped(f * dt));
+      if (was.doing === 'bury' && Math.abs(x - was.wx) < 1.5 * U) { if (was.who === sadie) onSadie++; else onChooter++; }
+      else if (was.doing === 'barn' && Math.abs(x - was.bx) < BARN_HALF + 1.5 * U) onBarn++;
+      else stray++;
+    }
+    n = world.pieces.length;
+  }
+  check('the mole drops pieces on whoever is restless, and on the barn otherwise', onSadie > 5 && onBarn > 5 && stray === 0 && ignored === 0,
+    `${drops} pieces in 3 minutes: ${onSadie} on Sadie, ${onChooter} on Chooter once he came, ${onBarn} on the barn, ${stray} elsewhere`);
+  check('never faster than one piece every 1.5 s', minGap >= REGEN - 0.02, `closest two ${minGap.toFixed(2)} s apart`);
+  // a struggling game: the simulation takes 80% of every second
+  let napAt = null, dropsTired = 0, slowGap = 0, dropsNapping = 0, wokeAt = null, after = 0;
+  last = -9;
+  for (let f = 0; f < 60 * 60; f++) {
+    const t = f * dt, strained = t < 25;
+    mole.strain = strained ? 0.8 : 0;
+    update(dt);
+    if (mole.napping && napAt === null) napAt = t;
+    if (!mole.napping && napAt !== null && wokeAt === null) wokeAt = t;
+    if (world.pieces.length > n) {
+      const g = dropped(t);
+      if (napAt === null) { dropsTired++; if (dropsTired > 1) slowGap = Math.max(slowGap, g); }
+      else if (wokeAt === null) dropsNapping++;
+      else after++;
+    }
+    n = world.pieces.length;
+  }
+  check('a struggling game wears the mole out: it slows down, then naps', napAt !== null && napAt < 10 && slowGap > 2 * REGEN && dropsNapping === 0,
+    `slowest gap ${slowGap.toFixed(1)} s, napping after ${napAt === null ? '-' : napAt.toFixed(0)} s, ${dropsNapping} pieces while napping`);
+  check('...and gets back to work once things calm down', wokeAt !== null && after >= 5, `awake again ${wokeAt === null ? 'never' : (wokeAt - 25).toFixed(0) + ' s after'}, ${after} pieces since`);
+  mole.strain = 0; mole.feel.tired = 0; mole.napping = false;
 }
 
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');

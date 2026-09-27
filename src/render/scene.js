@@ -1,5 +1,5 @@
 // Draws one frame of the world, back to front: sky, ruler, walls, ground, hay, drop lane, barn,
-// pieces, Sadie's rope, Sadie's friends, Sadie, toys, the held piece, the dropper, particles.
+// pieces, Sadie's rope, Sadie's friends, Sadie, toys, the held piece, the mole, particles.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
 import { COLORS } from '../core/physics/pieceTypes.js';
@@ -7,7 +7,7 @@ import { drp, heldOffsets } from '../core/dropper.js';
 import { sadie } from '../core/sadie/brain.js';
 import { ctx, cam, vp, sxf, syf, toWorld } from './view.js';
 import { drawJelly } from './jelly.js';
-import { drawDropper } from './dropperView.js';
+import { drawMole } from './moleView.js';
 import { drawSadie, drawEmotes } from './sadieView.js';
 import { drawBarn, drawRope } from './barnView.js';
 import { drawChooter } from './chooterView.js';
@@ -134,7 +134,7 @@ export function draw(time) {
   drawToy();
   drawEmotes();
   if (heldReady) drawJelly(world.held.T, heldX, heldY, COLORS[world.held.type], world.supply < 1 ? 0.35 : 0.82 + 0.12 * Math.sin(time * 0.006), time);
-  drawDropper(time);
+  drawMole(time);
 
   // particles
   for (const q of world.particles) {

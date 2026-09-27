@@ -10,7 +10,8 @@ import { wake } from '../core/physics/solver.js';
 import { drp } from '../core/dropper.js';
 import { chooter } from '../core/friends/chooter.js';
 import { sadie } from '../core/sadie/brain.js';
-import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, zoomiesNow, goHomeNow, comeOutNow, teaseNow } from '../core/debug.js';
+import { mole } from '../core/mole.js';
+import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, zoomiesNow, goHomeNow, comeOutNow, teaseNow, tireMoleNow } from '../core/debug.js';
 import { camState } from '../render/view.js';
 import { clearTower, startOver } from '../core/save.js';
 
@@ -94,6 +95,7 @@ act('zoomies', zoomiesNow);
 act('goHome', goHomeNow);
 act('comeOut', comeOutNow);
 act('tease', teaseNow);
+act('tireMole', tireMoleNow);
 // These can't be undone, so each needs a second tap within a few seconds.
 function confirmTap(id, label, fn) {
   const b = $(id); let armed = 0;
@@ -113,13 +115,14 @@ function refresh() {
   for (const b of speedSeg.children) b.setAttribute('aria-pressed', String(+b.dataset.speed === sp));
   $('stopRain').disabled = !debug.rain.length && !debug.boost;
   $('rainNote').textContent = debug.rain.length ? `${debug.rain.length} pieces still to come${debug.boost ? ', running at 8×' : ''}.`
-    : debug.boost ? 'Letting the pile settle at 8×…' : '"Here" means around the dropper. A tall pile runs at 8× until it settles.';
+    : debug.boost ? 'Letting the pile settle at 8×…' : '"Here" means around the mole. A tall pile runs at 8× until it settles.';
   $('fetchBarn').disabled = !!sadie.trip;
   $('meetChooter').disabled = chooter.met;
   $('zoomies').disabled = !chooter.met || chooter.doing === 'zoom';
   $('goHome').disabled = !chooter.met || chooter.place !== 'out' || chooter.doing === 'home';
   $('comeOut').disabled = !chooter.met || chooter.place !== 'home';
   $('tease').disabled = !chooter.met || chooter.feel.ignored >= 1 || chooter.doing === 'tease';
+  $('tireMole').disabled = mole.napping;
   $('pieceCount').textContent = `${world.pieces.length} pieces on the board, ${world.fossils} of them fossils.`;
 }
 setInterval(refresh, 400);

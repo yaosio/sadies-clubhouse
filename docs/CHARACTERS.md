@@ -22,6 +22,7 @@ not from rules that name two characters.
   | `home` | the barn (`barn.js`) |
   | `fetch` | a thrown ball nobody's played with yet (`toys.js`) |
   | `friend` | Sadie, and Chooter once met (their own files) |
+  | `restless` (with `how`, 0–1) | Sadie (how impatient she is), Chooter once met and out (how much he wants attention) |
 
 - **Thinking** (`think.js`): each character has a set of **activities**. Every tick each activity
   says how much the character wants to do it (its `want`, from feelings and offers). The biggest
@@ -44,8 +45,8 @@ not from rules that name two characters.
    that thing. If they need a new way to act, add an activity.
 3. Let the wants decide. Avoid rules like "if Chooter is near Sadie and Sadie is eating": use
    feelings and offers so it works with every character and thing, including future ones.
-4. The design pillars still win: Sadie is a character with moods, not a cursor, and the dropper
-   never moves on its own to help her.
+4. The design pillars still win: Sadie is a character with moods, not a cursor, and the mole never
+   means to help her (it only ever does by accident).
 
 Example (built): Chooter feels ignored, so he takes the hay Sadie wants (to him it's play). Hay he
 carries still offers `food`, so Sadie's hunger sends her after it, and to him being chased is the
@@ -63,6 +64,10 @@ The owner's late cat. A cat who thinks she's a cow.
 - **She drags the barn up the tower because she can't live in it if it's buried.** (`settled`:
   how at home she feels after her last trip, 1 right after, gone in 60 s. Once it's gone, a barn
   6+ blocks below her or buried 1+ block deep makes `fetchBarn` want 3, more than even hay.)
+- **Impatient** when the hay is out of reach (`impatient`: fills in 12 s of waiting or pacing under
+  it, gone the moment she eats, and fades over 25 s while she's getting somewhere). She's restless,
+  so the mole thinks she wants to be buried, and drops pieces on her. That's how the pile grows
+  under her hay. She has no idea it's trying to bury her; the mole has no idea it's helping.
 - **Scared** by pieces lurching under her feet, or by falling (`scared`, a short-lived fear).
 - **Her food getting away is not okay.** If the hay she's after is being carried off, she doesn't
   wait or pace: she runs after it, and eats it the moment she can reach it (even out of Chooter's
@@ -89,15 +94,34 @@ up.
   bouncing in place, facing her, when she falls behind. Backed into a wall, he's caught and
   happy about it. It ends when she eats it out of his mouth, or after 20 s when he gets bored and
   drops it. Either way he's satisfied and `ignored` goes back to 0.) He can snatch hay up to about
-  3.9 blocks above the pile with a leap.
+  3.9 blocks above the pile with a leap. Wanting attention makes him restless, and
+  the mole, seeing that, drops pieces on him (he wriggles out on top, delighted).
 - **Gets tired** (`tired`: worn out after 70–120 s out, twice as fast in the zoomies). Then he goes
   home to the barn, rests 25–45 s, and comes back out. A thrown ball gets him out right away.
 - Activities: `greet` (want 4), `fetch` (3, busy while carrying), `tease` (2.5, busy while he
   has the hay), `zoom` (2, busy until his energy is used up; not when worn out), `home` (1.5, busy
   once inside), `play` (1).
 
-## The dropper (future)
+## The mole (`src/core/mole.js`)
 
-The owner sees the dropper drone as a character too. What it's like and why it does what it does
-is still to be decided. Until then it stays exactly as it is: it stays where the player puts it
-and never moves on its own to help Sadie.
+It drops the pieces. It lives up in the sky, in a propeller beanie, and nobody knows why (that's the
+joke). The player doesn't steer it: it decides where every piece goes, for its own reasons.
+
+- **Everything belongs underground.** It's a mole. It can't imagine anyone wanting otherwise.
+- **Thinks everyone else wants to be buried too.** Anyone restless (any `restless` offer at 0.3 or
+  more) must be wishing they were underground, so `bury` wants 1 + 2 × how restless they are, and
+  it drops pieces on the most restless one: Sadie waiting impatiently under hay she can't reach,
+  or Chooter fidgeting for attention. Burying Sadie builds the pile up under her, so she climbs to
+  her hay. It never means to help.
+- **The barn is a home, and homes belong underground.** When nobody's restless, `barn` (want 1):
+  it drops pieces all over the barn. Sadie drags it back out, of course, and it starts again.
+- **Gets tired** (`tired`). This is the game looking after itself. The screen tells it how much of
+  each second the physics takes (`feelStrain`). Over half, it tires (worn out in 8 s); under 35%,
+  it rests (fully in 20 s). Tired, it waits up to 4× as long between pieces and flies slower. Once
+  it's worn out it `nap`s (no pieces at all, little z's) until it's down to 40%. On a quick
+  device it never tires; on a slow one, or with a huge tower, it slows or stops the tower growing.
+- Always drops with a full supply, so never faster than one piece every 1.5 s (the same top speed
+  as before the mole).
+- Activities: `bury` (want 1 + 2 × restless), `barn` (1), `nap` (10, busy until rested).
+- The player's thing to do with the mole: tap it to see what it's thinking. (The owner is still
+  thinking about something more.)
