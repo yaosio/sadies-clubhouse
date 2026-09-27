@@ -77,10 +77,15 @@ function collide(A, B, mu, wA, wB, stick) {
   }
 }
 
-function bounds(p, mu) {
+// The floor is the bedrock (a heightmap, `floor`, one height every `res` px; see core/bedrock.js),
+// or flat ground at 0 without one. Points under it are pushed straight up.
+function bounds(p, mu, floor, res) {
   const n = p.n, X = p.x, Y = p.y, PX = p.px, PY = p.py, gf = 1 - Math.min(1, mu * 1.1), wf = 1 - mu * 0.5, e = p.mat.bounce > 0;
+  const last = floor ? floor.length - 1.001 : 0;
   for (let i = 0; i < n; i++) {
-    if (Y[i] < 0) { Y[i] = 0; PX[i] = X[i] - (X[i] - PX[i]) * gf; if (e) { p.cny += 1; p.cc++; } }
+    let g = 0;
+    if (floor) { const f = Math.min(last, Math.max(0, X[i] / res)), k = Math.floor(f), t = f - k; g = floor[k] * (1 - t) + floor[k + 1] * t; }
+    if (Y[i] < g) { Y[i] = g; PX[i] = X[i] - (X[i] - PX[i]) * gf; if (e) { p.cny += 1; p.cc++; } }
     if (X[i] < 0) { X[i] = 0; PY[i] = Y[i] - (Y[i] - PY[i]) * wf; if (e) { p.cnx += 1; p.cc++; } }
     else if (X[i] > W) { X[i] = W; PY[i] = Y[i] - (Y[i] - PY[i]) * wf; if (e) { p.cnx -= 1; p.cc++; } }
   }
@@ -148,7 +153,8 @@ function findPairs(pieces, nAwake, ce) {
   pairBuf.subarray(0, n).sort();
   return n;
 }
-export function physicsStep(pieces, P, dt) {
+// floor/res: the bedrock heightmap (leave out for flat ground at 0)
+export function physicsStep(pieces, P, dt, floor = null, res = 1) {
   const h = dt / SUBSTEPS, gh = P.g * h * h, maxV = U * 0.4, maxV2 = maxV * maxV;
   const N = pieces.length;
   // wake sleepers touched by moving neighbours (a fixed piece being moved counts as moving)
@@ -204,7 +210,7 @@ export function physicsStep(pieces, P, dt) {
         const last = it === ITERS - 1, mu = last ? Math.min(1, P.mu * Math.sqrt(A.mat.grip * B.mat.grip)) : 0, st = last ? P.stick : 0;
         collide(A, B, mu, wa, wb, st); collide(B, A, mu, wb, wa, st);
       }
-      for (let a = 0; a < N; a++) if (!pieces[a].asleep) bounds(pieces[a], it === ITERS - 1 ? Math.min(1, P.mu * Math.sqrt(pieces[a].mat.grip)) : 0);
+      for (let a = 0; a < N; a++) if (!pieces[a].asleep) bounds(pieces[a], it === ITERS - 1 ? Math.min(1, P.mu * Math.sqrt(pieces[a].mat.grip)) : 0, floor, res);
     }
     // bouncy pieces: if they hit something this substep, send the whole body back out
     for (let a = 0; a < N; a++) {

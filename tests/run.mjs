@@ -433,5 +433,47 @@ const P = physParams({ ...DEFAULTS });
   mole.strain = 0; mole.feel.tired = 0; mole.napping = false;
 }
 
+// 14. Bedrock: fossils buried 12 blocks deep melt into the floor, so the tower can grow forever
+// without the number of pieces growing with it. (Runs last, so no earlier numbers moved.)
+{
+  const { rock, rockAt, rockInfo, surf, SURF_N, SURF_RES } = await import('../src/core/surface.js');
+  const { bedrock, MELT_DEPTH } = await import('../src/core/bedrock.js');
+  const { rainPieces } = await import('../src/core/debug.js');
+  const { snapshot, restore } = await import('../src/core/save.js');
+  const { minds } = await import('../src/core/mind/thoughts.js');
+  const dt = 1 / 60;
+  resetGame();
+  check('a fresh board has no bedrock (flat ground, the physics as before)', rockInfo.high === 0 && bedrock.melted === 0);
+  rainPieces(420, U, W - U, 0.05);
+  let tooHigh = 0, sunk = 0, most = 0, heard = false, f = 0;
+  const { debug } = await import('../src/core/debug.js');
+  for (; f < 150 * 60 && (debug.rain.length || f < 100 * 60); f++) {
+    const before = bedrock.melted, was = Array.from(rock);
+    update(dt);
+    most = Math.max(most, world.pieces.length);
+    if (bedrock.melted > before) { // where it just rose, it's still at least 12 blocks under the pile
+      for (let i = 0; i < SURF_N; i++) if (rock[i] > was[i] && rock[i] > surf[i] - MELT_DEPTH + 0.05 * U) { tooHigh++; if (tooHigh < 4) console.log('   rose to', (rock[i] / U).toFixed(2), 'under a surface at', (surf[i] / U).toFixed(2), 'at x', (i * SURF_RES / U).toFixed(2)); }
+      heard = heard || minds().some(m => m.name === 'Mole' && m.think().why.includes('bedrock'));
+    }
+    if (f % 30 === 0) for (const p of world.pieces) if (!p.fixed && !p.fossil) for (const i of p.T.bnd) if (p.y[i] < rockAt(p.x[i]) - 2) sunk++;
+  }
+  let steep = 0; for (let i = 1; i < SURF_N; i++) if (Math.abs(rock[i] - rock[i - 1]) > SURF_RES + 1e-6) steep++;
+  const buried = world.pieces.filter(p => !p.fixed && Array.from(p.T.bnd).every(i => p.y[i] < rockAt(p.x[i]))).length;
+  check('deep fossils melt into bedrock, and the board keeps fewer pieces', bedrock.melted > 50 && world.pieces.length < most,
+    `${bedrock.melted} melted, ${world.pieces.length} pieces left (${most} at most), bedrock ${(rockInfo.low / U).toFixed(1)}-${(rockInfo.high / U).toFixed(1)} blocks up`);
+  check('only pieces at least 12 blocks under the pile melt', tooHigh === 0);
+  check('the bedrock is never steeper than 45°, and no piece is left inside it', steep === 0 && buried === 0);
+  check('nothing that can move sinks into the bedrock', sunk === 0, `${sunk} points found under it`);
+  check('the mole notices', heard);
+  // saving: the bedrock comes back exactly, and a save from before bedrock loads with none
+  const s = JSON.parse(JSON.stringify(snapshot())), was = Array.from(rock), melted = bedrock.melted;
+  restore(s);
+  const same = was.every((v, i) => Math.abs(v - rock[i]) < 0.01) && bedrock.melted === melted;
+  check('the bedrock is saved and comes back', same, `save is ${(JSON.stringify(s).length / 1024).toFixed(0)} KB`);
+  restore({ ...s, bedrock: null });
+  check('a save from before bedrock loads with flat ground', rockInfo.high === 0);
+  resetGame();
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
 process.exit(failed ? 1 : 0);

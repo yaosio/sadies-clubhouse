@@ -5,7 +5,7 @@ import { store } from '../platform/storage.js';
 import { world } from './world.js';
 import { emit } from './events.js';
 import { physicsStep } from './physics/solver.js';
-import { surf, computeSurface, groundAt } from './surface.js';
+import { surf, computeSurface, groundAt, rock, rockInfo, SURF_RES } from './surface.js';
 import { resetHay, updateHay } from './hay.js';
 import { drp, SUPPLY_MAX, drawFromBag, spawn, updateDropper } from './dropper.js';
 import { sadie, updateSadie, freshFeelings } from './sadie/brain.js';
@@ -17,13 +17,14 @@ import { resetChooter, updateChooter } from './friends/chooter.js';
 import { toy, updateToy } from './toys.js';
 import { updateDebug, stopRain } from './debug.js';
 import { resetMole, updateMole } from './mole.js';
+import { resetBedrock, updateBedrock } from './bedrock.js';
 
 export const timing = { physMs: 0 }; // read by the performance overlay
 
 export function resetGame() {
   world.pieces = []; world.held = null; world.bag = []; world.nextType = drawFromBag();
   drp.x = drp.tX = W / 2; drp.y = 3 * U; drp.claw = 0; world.spawnTimer = 0; world.particles = [];
-  world.topAll = world.topSettled = 0; world.fossils = 0; world.supply = SUPPLY_MAX; surf.fill(0);
+  world.topAll = world.topSettled = 0; world.fossils = 0; world.supply = SUPPLY_MAX; resetBedrock(); surf.fill(0);
   resetBarn(W / 2 - 4.5 * U);
   Object.assign(sadie, { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, pace: null, waitT: 0, scared: 0, mood: 'neutral', run: 0, running: false,
     trip: null, heave: false, doing: null, feel: freshFeelings() });
@@ -37,7 +38,7 @@ export function resetGame() {
 export function update(dt) {
   const now = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now();
   const tp = now();
-  physicsStep(world.pieces, tuning.P, dt);
+  physicsStep(world.pieces, tuning.P, dt, rockInfo.high > 0 ? rock : null, SURF_RES);
   timing.physMs += now() - tp;
   world.topAll = 0; world.topSettled = 0;
   for (const p of world.pieces) {
@@ -52,6 +53,7 @@ export function update(dt) {
   computeSurface();
   updateHay(dt);
   updateFossils(dt);
+  updateBedrock(dt);
   updateSadie(dt);
   updateBarn(dt);
   updateChooter(dt);

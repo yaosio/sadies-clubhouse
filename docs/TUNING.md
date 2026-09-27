@@ -4,7 +4,7 @@ These numbers are what make the game feel the way it does. Change them on purpos
 and re-run `npm test`. Units: 1 block = 30 world px, y points up in the simulation.
 
 ## World
-Board 48 blocks wide, walls at both edges, ground at y = 0. The camera's default zoom fits about
+Board 48 blocks wide, walls at both edges, ground at y = 0 (until the bedrock rises over it). The camera's default zoom fits about
 13 blocks across the screen.
 
 ## Solver (`core/physics/solver.js`)
@@ -64,13 +64,35 @@ and lets go within 0.5 blocks of where it's aiming. New pieces spawn at a random
   a step, 220 about 2.3 ms, 370 about 5 ms (30% of each second at 60 steps). The mole drops about
   37 pieces a minute on its own, so on a device like that it starts slowing down somewhere past
   10–15 minutes of building. Raining 400 pieces in a headless browser here wore it out in about
-  17 s.
+  17 s. With bedrock, a 60-minute test game stays around 150 pieces and 3 ms a step the whole way
+  (before bedrock it was about 700 pieces and 7.3 ms by 30 minutes, and still climbing).
 
 ## Fossils (`core/fossil.js`)
 A piece that has been at rest for 3 s and is buried at least 8 blocks under the pile's surface
 (everywhere across its width) becomes a fossil: it stays asleep forever and still holds the pile up.
-Checked every 0.5 s. This keeps a landing piece from waking a long chain of pieces deep in a tall
+Checked every 0.5 s. Two more ways in, so nothing deep stays awake forever: a piece at least 8
+blocks down that's been barely moving (under 0.12 px per substep) for 10 s without quite falling
+asleep (jammed in, jiggling just too much to count as still), and anything at least 16 blocks down,
+however it's moving. Both are stopped where they are. (A long test game found pieces like that
+jiggling or creeping for 15 minutes or more, 12 to 35 blocks down, costing time every frame and
+keeping the bedrock from forming above them.) This keeps a landing piece from waking a long chain of pieces deep in a tall
 tower, so only the top 8 blocks or so can wobble and topple. First step toward an endless tower.
+
+## Bedrock (`core/bedrock.js`)
+A fossil buried at least 12 blocks under the pile's surface (everywhere across its width) melts
+into the bedrock, as long as nothing that can still move (or the barn) reaches within half a block
+under its top. Checked every 0.5 s. It stops being a piece: the bedrock's top rises to its outline,
+then gets smoothed so it's never steeper than 45° (smoothing only lowers it, so it never pokes into
+anything). Any fossil left completely under the new top melts too. Each piece leaves flecks of its
+color in the rock (the newest 300 are kept) and a little glimmer.
+- The bedrock is the floor: pieces, Sadie, Chooter, the ball and the barn all stand on it. Before
+  anything has melted it's flat ground at 0, and the physics runs exactly as it did before.
+- The camera never looks more than 2 blocks below its lowest point. The map strip starts a block
+  under its lowest point. Heights (the ruler, bests) still count from the real ground.
+- It's saved as its height every quarter block (193 numbers) plus the flecks, so a save stays small
+  however tall the tower gets. Saves from before bedrock load with none.
+- Why: only the top 12–20 blocks of the tower stay as pieces, so the game costs about the same
+  after an hour as after 10 minutes.
 
 ## Sadie's barn (`core/barn.js`, trips in `core/sadie/brain.js`)
 4 blocks wide, walls 2.4 blocks tall, roof peak 3.9 blocks. Starts on the ground 4.5 blocks left of
@@ -181,8 +203,9 @@ For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
 Saved in the browser every 5 s, and when the page is hidden or closed, under the key
 `sadies-dropper-world.save` (a name no other game on a shared site like itch.io will use). Each
 browser and device keeps its own game. Piece positions are kept to 1/100 px; a 50-piece board is
-about 24 KB, so even a very tall tower stays far under the browser's ~5 MB limit.
-What comes back exactly: every piece (squish, speed, asleep, fossil), the barn, the hay and the
+about 24 KB. The bedrock keeps the board to a couple of hundred pieces however tall the tower
+gets (about 100 KB), far under the browser's ~5 MB limit.
+What comes back exactly: every piece (squish, speed, asleep, fossil), the bedrock, the barn, the hay and the
 hay trail, the mole's spot and the piece it holds, the supply, Sadie and Chooter. What starts over:
 any trip home Sadie was on, the hay she was heading for, what the mole was doing (and how tired it
 was), a thrown ball, particles, and the debug
@@ -191,6 +214,14 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
 (keeps the dev sheet's physics settings). Both need a second tap within 3 s.
 
 ## What the tests expect (`tests/run.mjs`, seeded, so results repeat exactly)
+(Numbers from the Chooter test onward moved a little when deep pieces that never quite fall asleep
+started turning into fossils too, see Fossils: a longer game's pile settles a little differently,
+and the tests share one stream of random numbers. Chooter now brings back 5 of 5 balls (was 7),
+the debug pile peaks around 17.5 blocks (was 18), the save test's game is 39 pieces (was 41), the
+teasing test has Sadie catch him both times (was: he dropped it both times), the mole test puts 32
+pieces on Sadie and 14 on Chooter (was 27 and 17) and its slowest tired gap is about 4.6 s (was
+3.7). The rules they check are the same. Bedrock itself moves nothing: with melting switched off
+the results are identical.)
 - 150-piece mixed pile: no broken numbers, deepest overlap about 0.6 px, about 140 asleep.
 - Ball dropped from 6 blocks: bounces to 3.37, 2.13, 1.52 blocks.
 - 70 pieces on one spot: a mound peaking around 12.5 blocks.
@@ -217,14 +248,14 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   make a different trip. Everything before this test came out exactly the same.)
 - Chooter: meets Sadie only once she's 15 blocks up. On a pile the mole grew for 90 s, over 4
   minutes he greets her (about 15 s, running in from the far side), has 3 bouts of zoomies knocking
-  about 26 pieces, brings back all 7 balls thrown for him, moves into the barn and comes back out, and
+  about 26 pieces, brings back all 5 balls thrown for him, moves into the barn and comes back out, and
   never gets stuck in the pile or leaves the board. This test runs after the others, so it doesn't
   change their numbers.
 - Debug tools (runs after the play tests): raining 100 pieces drops them all in about 8 s with no
-  piece sunk into another more than about 1 px; "Build a tall pile" peaks around 18 blocks and goes
-  back to normal speed; "Put her on top" puts Sadie about 18 blocks up, standing; the Sadie and Chooter
+  piece sunk into another more than about 1 px; "Build a tall pile" peaks around 17.5 blocks and goes
+  back to normal speed; "Put her on top" puts Sadie about 17.5 blocks up, standing; the Sadie and Chooter
   buttons each start what they say; clearing the tower stops any rain.
-- Saving: a game saved after 70 s of play (41 pieces, 19 still moving, Chooter met) comes back the
+- Saving: a game saved after 70 s of play (39 pieces, 20 still moving, Chooter met) comes back the
   same after a JSON round trip, then plays on for 20 s with Sadie never stuck in the pile and no
   piece sunk into another more than about 0.6 px; a save from another version is
   refused; Clear tower keeps Chooter; Start over forgets him.
@@ -234,8 +265,9 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   tease Sadie, for the same reason plus the time he spends teasing. And again when the mole took
   over the dropping: it builds a different pile than the pretend player did.)
 - Teasing: on a pile the mole grew for 90 s, over 4 minutes, Chooter snatches Sadie's hay twice
-  (first after about 24 s), she runs after it most of the time, he drops it at 20 s both times,
-  nobody turns back and forth more than about twice a second (22 turns in 40 s), there are always
+  (first after about 22 s), she runs after it most of the time and catches him both times (it can also
+  end with him dropping it at 20 s),
+  nobody turns back and forth more than about twice a second (21 turns in 23 s), there are always
   3 bundles out, and he never gets stuck in the pile. (Before the fix for sticking to one way to
   run this caught him twice; the fix changed when random numbers get used, so the run differs.)
 - Cornered: Chooter carrying the hay near the right wall with Sadie 2.5 blocks behind
@@ -246,9 +278,15 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   feeling bars, every feeling bar is between 0 and 1, and reading thoughts
   never uses a random number (so tapping a character can't change what happens next).
 - The mole (runs last, so no earlier numbers moved): 3 minutes of a fresh game. Every piece lands
-  either within 1.5 blocks of whoever it's burying (27 on Sadie, 17 on Chooter once she met him)
+  either within 1.5 blocks of whoever it's burying (32 on Sadie, 14 on Chooter once she met him)
   or on the barn (64), none anywhere else, and whenever Sadie is at least half impatient the mole
   is burying someone. Never two pieces closer than 1.5 s. Then a pretend struggling game (the
-  simulation taking 80% of each second): the gaps between pieces stretch to about 3.7 s, it's
+  simulation taking 80% of each second): the gaps between pieces stretch to about 4.6 s, it's
   napping after 8 s and drops nothing while it naps, and 12 s after the game calms down it's back
   to work.
+- Bedrock (runs last, so no earlier numbers moved): a fresh board has none. Raining 420 pieces over
+  the whole board: about 290 melt into bedrock (2–19 blocks up), leaving about 190 pieces (from
+  about 360 at the most). Where the bedrock rises it's always at least 12 blocks under the pile,
+  it's never steeper than 45°, no piece is left inside it, nothing that can move sinks into it,
+  and the mole mentions it. It comes back exactly from a save (about 97 KB), and a save from
+  before bedrock loads with flat ground.

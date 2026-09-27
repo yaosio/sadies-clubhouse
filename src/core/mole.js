@@ -25,6 +25,7 @@ import { drift } from './mind/feelings.js';
 import { offers } from './mind/offers.js';
 import { think, switchTo } from './mind/think.js';
 import { mindsFrom } from './mind/thoughts.js';
+import { bedrock } from './bedrock.js';
 
 export const NOTICE = 0.3;               // how restless someone has to be before the mole notices
 export const FLY = 6 * U;                // flying speed (half that when it's worn out)
@@ -112,6 +113,7 @@ function moleThinks() {
   else if (barn.piece && barn.hauling) { doing = "I'm burying the barn again!"; why = 'Somebody keeps digging it up. It\'s a home, and homes belong underground.'; }
   else if (barn.piece && barnCover() >= 0) { doing = "I'm tucking the barn in deeper."; why = "It's nicely buried. A little deeper can't hurt."; }
   else { doing = "I'm burying the barn."; why = "It's a home, and homes belong underground."; }
+  if (!c.napping && world.gameTime - bedrock.lastMelt < 20) why += ' And some of the deep ones just turned into bedrock. Lucky things.';
   if (!c.napping && t > 0.3) why += " I'm getting tired, though, so I'm taking it slow.";
   const feelings = [{ label: "I'm tired", value: t }];
   if (barn.piece) feelings.push({ label: 'The barn needs burying', value: clamp01(-barnCover() / ROOF) });

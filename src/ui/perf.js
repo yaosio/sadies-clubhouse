@@ -5,6 +5,9 @@ import { world } from '../core/world.js';
 import { PSTATS } from '../core/physics/solver.js';
 import { timing } from '../core/game.js';
 import { mole } from '../core/mole.js';
+import { bedrock } from '../core/bedrock.js';
+import { rockInfo } from '../core/surface.js';
+import { U } from '../config.js';
 import { vp } from '../render/view.js';
 
 const perfEl = document.getElementById('perf'), perfList = document.getElementById('perfList'), pcv = document.getElementById('perfCv'), pctx = pcv.getContext('2d');
@@ -25,6 +28,7 @@ function reportPerf(now) {
     ['Drawing', (prof.sumDraw / n).toFixed(1) + ' ms'],
     ['Physics steps', (prof.steps / n).toFixed(1) + ' per frame'],
     ['Pieces', world.pieces.length + ' (' + awake + ' awake, ' + world.fossils + ' fossil)'],
+    ['Bedrock', bedrock.melted ? `${bedrock.melted} pieces melted in, top ${(rockInfo.low / U).toFixed(1)}–${(rockInfo.high / U).toFixed(1)} blocks up` : 'none yet'],
     ['Pair checks', Math.round(prof.pairs / n) + ' per frame'],
     ['Touching pairs', Math.round(prof.touching / n) + ' per frame'],
     ['Slow frames', prof.slow + ' over 20 ms'],

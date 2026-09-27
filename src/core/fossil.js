@@ -1,5 +1,6 @@
-// Fossils: pieces buried deep inside the pile that have been asleep a while turn into
-// permanent ground. They still hold the pile up and look the same, but nothing can wake them.
+// Fossils: pieces buried deep inside the pile that have been asleep a while (or barely moving for
+// longer: jammed in so they never quite sleep; or buried so deep it doesn't matter how they're
+// moving) turn into permanent ground. They still hold the pile up and look the same, but nothing can wake them.
 // That keeps a landing piece from waking a long chain of pieces deep in a tall tower: only the
 // top few blocks of the pile stay alive and wobbly.
 import { U } from '../config.js';
@@ -8,6 +9,8 @@ import { surf, SURF_N, SURF_RES } from './surface.js';
 
 export const FOSSIL_DEPTH = 8 * U;   // how far under the pile's surface a piece must be
 export const FOSSIL_REST = 3;        // seconds it must have been at rest first
+const CREEP_REST = 10;               // ...or this long barely moving, for a piece jammed in so it never quite sleeps
+export const DEEP = 16 * U;          // buried this deep, it turns to fossil however it's moving (nothing that deep can go anywhere)
 const CHECK_EVERY = 0.5;             // seconds between checks (nothing here needs to be instant)
 let checkT = 0;
 
@@ -32,8 +35,12 @@ export function updateFossils(dt, force = false) {
   const B = world.pieces.find(p => p.fixed);
   for (const p of world.pieces) {
     if (p.fossil) { n++; continue; }
-    if (p.fixed || !p.asleep || p.rest < FOSSIL_REST || overFixed(p, B)) continue;
-    if (coverAbove(p) - p.maxY >= FOSSIL_DEPTH) { p.fossil = true; n++; }
+    if (p.fixed || overFixed(p, B)) continue;
+    const depth = coverAbove(p) - p.maxY;
+    if (depth >= DEEP || (depth >= FOSSIL_DEPTH && p.rest >= (p.asleep ? FOSSIL_REST : CREEP_REST))) {
+      if (!p.asleep) { p.asleep = true; p.speed = 0; for (let i = 0; i < p.n; i++) { p.px[i] = p.x[i]; p.py[i] = p.y[i]; } } // stop it where it is
+      p.fossil = true; n++;
+    }
   }
   world.fossils = n;
 }

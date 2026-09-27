@@ -1,13 +1,29 @@
 // Reading the shape of the pile: a heightmap (for the minimap, hay and dropper) and exact
 // solid spans in a vertical slice (so Sadie can tell a floor from an overhang above her head).
+// Also the top of the bedrock (core/bedrock.js melts the deepest pieces into it): the real floor.
 import { U, W } from '../config.js';
 import { world } from './world.js';
 
 // ---------- surface (top outline of the pile) ----------
 export const SURF_RES = U / 4, SURF_N = Math.ceil(W / SURF_RES) + 1;
 export const surf = new Float64Array(SURF_N);
+// ---------- bedrock (the floor: 0 everywhere until pieces start melting into it) ----------
+export const rock = new Float64Array(SURF_N);
+export const rockInfo = { low: 0, high: 0 }; // its lowest and highest points (bedrock.js keeps these up to date)
+export function rockAt(x) {
+  const f = Math.min(SURF_N - 1.001, Math.max(0, x / SURF_RES)), i = Math.floor(f), t = f - i;
+  return rock[i] * (1 - t) + rock[i + 1] * t;
+}
+// highest point of the bedrock between x0 and x1
+export function rockTop(x0, x1) {
+  if (rockInfo.high === 0) return 0;
+  const i0 = Math.max(0, Math.floor(x0 / SURF_RES)), i1 = Math.min(SURF_N - 1, Math.ceil(x1 / SURF_RES));
+  let h = 0; for (let i = i0; i <= i1; i++) if (rock[i] > h) h = rock[i];
+  return h;
+}
+
 export function computeSurface() {
-  surf.fill(0);
+  surf.set(rock);
   for (const p of world.pieces) {
     if (!isGround(p)) continue; // pieces still moving (falling, bouncing) don't count as ground yet
     const b = p.T.bnd, m = b.length, X = p.x, Y = p.y;
@@ -34,7 +50,7 @@ export const STEP_UP = 0.5 * U;
 // Ground = settled or just jiggling. Uses a smoothed speed so a ball pausing at the top of a bounce doesn't count.
 export function isGround(p) { return p.asleep || (p.age > 0.4 && p.avgSpeed < 0.6); }
 export function column(x) {
-  const iv = [[-1e9, 0]];
+  const iv = [[-1e9, rockInfo.high === 0 ? 0 : rockAt(x)]];
   for (const p of world.pieces) {
     if (x < p.minX || x > p.maxX || !isGround(p)) continue;
     const b = p.T.bnd, m = b.length, X = p.x, Y = p.y, ys = [];
