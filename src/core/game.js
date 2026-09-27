@@ -11,6 +11,7 @@ import { drp, SUPPLY_MAX, drawFromBag, spawn, updateDropper } from './dropper.js
 import { sadie, updateSadie } from './sadie/brain.js';
 import { updateMood } from './sadie/mood.js';
 import { updateEffects } from './effects.js';
+import { updateFossils } from './fossil.js';
 
 export const timing = { physMs: 0 }; // read by the performance overlay
 
@@ -18,7 +19,7 @@ export function resetGame() {
   world.pieces = []; world.held = null; world.bag = []; world.nextType = drawFromBag();
   world.stars = makeStars();
   drp.x = drp.tX = W / 2; drp.y = 3 * U; drp.claw = 0; world.spawnTimer = 0; world.particles = [];
-  world.topAll = world.topSettled = 0; world.supply = SUPPLY_MAX; surf.fill(0);
+  world.topAll = world.topSettled = 0; world.fossils = 0; world.supply = SUPPLY_MAX; surf.fill(0);
   Object.assign(sadie, { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, pace: null, waitT: 0, scared: 0, mood: 'neutral', run: 0, running: false });
   world.emotes = [];
   spawn();
@@ -42,6 +43,7 @@ export function update(dt) {
 
   updateStars(dt);
   computeSurface();
+  updateFossils(dt);
   updateSadie(dt);
   updateMood(dt);
   const standing = sadie.state !== 'climb' && Math.abs(sadie.y - groundAt(sadie.x, sadie.y)) < 0.1 * U;

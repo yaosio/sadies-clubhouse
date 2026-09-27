@@ -51,6 +51,12 @@ Up to 5 pieces, one refills every 1.5 s. Autodrops when the supply is full and t
 touched the dropper for 1.2 s. Hovers 2.5 blocks above the highest point under it (±0.6 blocks).
 New pieces spawn at a random 90° rotation.
 
+## Fossils (`core/fossil.js`)
+A piece that has been at rest for 3 s and is buried at least 8 blocks under the pile's surface
+(everywhere across its width) becomes a fossil: it stays asleep forever and still holds the pile up.
+Checked every 0.5 s. This keeps a landing piece from waking a long chain of pieces deep in a tall
+tower, so only the top 8 blocks or so can wobble and topple. First step toward an endless tower.
+
 ## What counts as ground (`core/surface.js`)
 Asleep, or older than 0.4 s with a smoothed speed under 0.6. The smoothing stops a ball at the top
 of its bounce from counting.
@@ -78,3 +84,5 @@ blocks above the surface. Pile drops away for 0.5 s: sink back, never below the 
 - Two minutes of play with the dropper kept near Sadie: she never rises faster than about 4 blocks
   per second, never stays buried, stars never sink below their start, and she collects about 11 of
   the 20 stars.
+- 110 pieces on one spot (peak about 17 blocks): 16 become fossils, all buried at least 8 blocks,
+  and a boulder landing on top wakes none of them.

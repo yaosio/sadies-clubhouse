@@ -90,7 +90,7 @@ function bounds(p, mu) {
 // solid ground until something moving bumps into them. Keeps big towers fast.
 const SLEEP_SPEED = 0.07, SLEEP_TIME = 1.2, WAKE_SPEED = 0.2;
 export const PSTATS = { pairs: 0, touching: 0 }; // profiling counters, reset by the game each frame
-export function wake(p) { if (p.asleep) { p.asleep = false; p.still = 0; } }
+export function wake(p) { if (p.asleep && !p.fossil) { p.asleep = false; p.still = 0; } } // fossils never wake (core/fossil.js)
 
 // Finding pairs that might touch. Sleepers don't move during a step, so they go into a grid
 // once per step, and each awake piece only looks in the grid cells around it. The pairs are
@@ -146,7 +146,7 @@ export function physicsStep(pieces, P, dt) {
     const A = pieces[a]; if (A.asleep || A.speed < WAKE_SPEED) continue;
     const m = U * 0.3;
     for (let b = 0; b < N; b++) {
-      const B = pieces[b]; if (!B.asleep) continue;
+      const B = pieces[b]; if (!B.asleep || B.fossil) continue;
       if (A.maxX + m < B.minX || B.maxX + m < A.minX || A.maxY + m < B.minY || B.maxY + m < A.minY) continue;
       wake(B);
     }

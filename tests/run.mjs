@@ -16,6 +16,8 @@ const { resetGame, update } = await import('../src/core/game.js');
 const { groundAt } = await import('../src/core/surface.js');
 const { sendHeldTo } = await import('../src/core/dropper.js');
 const { sadie } = await import('../src/core/sadie/brain.js');
+const { computeSurface, surfAt } = await import('../src/core/surface.js');
+const { updateFossils, FOSSIL_DEPTH } = await import('../src/core/fossil.js');
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -107,6 +109,30 @@ const P = physParams({ ...DEFAULTS });
   check('Sadie never stays stuck inside the pile', longestSunk <= 3, `longest ${longestSunk} frame(s) inside before climbing out`);
   check('stars never drop below where they started', starsBelowStart === 0);
   check('with a little help, Sadie collects stars', got >= 4, `${got} of ${world.stars.length} stars, ${world.pieces.length} pieces`);
+}
+
+// 5. Deep in a tall pile, settled pieces become fossils: permanent ground that nothing wakes
+{
+  const types = Object.keys(SHAPES), pieces = [], cx = W / 2;
+  for (let k = 0; k < 110; k++) {
+    let top = 0; for (const p of pieces) if (p.maxX > cx - 2 * U && p.minX < cx + 2 * U) top = Math.max(top, p.maxY);
+    pieces.push(makePiece(types[Math.floor(Math.random() * 7)], U, cx + (Math.random() - 0.5) * 2 * U, top + 3.5 * U, Math.floor(Math.random() * 4) * Math.PI / 2));
+    for (let f = 0; f < 50; f++) physicsStep(pieces, P, 1 / 60);
+  }
+  for (let f = 0; f < 600; f++) physicsStep(pieces, P, 1 / 60);
+  world.pieces = pieces;
+  for (const p of pieces) { p.rest = p.asleep ? 10 : 0; p.age = 99; p.avgSpeed = p.speed; }
+  computeSurface(); updateFossils(0, true);
+  const fossils = pieces.filter(p => p.fossil);
+  const deepEnough = fossils.every(p => surfAt((p.minX + p.maxX) / 2) - p.maxY >= FOSSIL_DEPTH - 0.01);
+  check('deep settled pieces turn into fossils', fossils.length >= 5, `${fossils.length} of ${pieces.length} pieces, pile peak ${(Math.max(...pieces.map(p => p.maxY)) / U).toFixed(1)} blocks`);
+  check('only pieces buried at least 8 blocks become fossils', deepEnough);
+  const peak = pieces.reduce((a, p) => p.maxY > a.maxY ? p : a);
+  pieces.push(makePiece('boulder', U, (peak.minX + peak.maxX) / 2, peak.maxY + 6 * U, 0)); // a boulder lands on top
+  let woke = 0;
+  for (let f = 0; f < 240; f++) { physicsStep(pieces, P, 1 / 60); woke += fossils.filter(p => !p.asleep).length; }
+  check('a boulder landing on top never wakes a fossil', woke === 0);
+  world.pieces = [];
 }
 
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');

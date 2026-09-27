@@ -32,6 +32,7 @@ tell the screen something, it emits an event (below).
 | `core/physics/body.js` | Creates a live piece; bounding boxes. |
 | `core/physics/solver.js` | The soft-body solver: integration, shape matching, finding nearby pairs (sleeper grid), collisions, friction, floor/walls, bounce, sleeping. Pure math. |
 | `core/surface.js` | Reading the pile: heightmap `surf` (minimap, stars, dropper) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). |
+| `core/fossil.js` | Turns pieces buried deep in the pile into fossils: permanent ground that never wakes. |
 | `core/stars.js` | Star layout and stars riding the pile up/down (never below their start). |
 | `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
@@ -65,7 +66,7 @@ tell the screen something, it emits an event (below).
 ## Tick order (`core/game.js`)
 
 physics → piece bookkeeping (rest time, age, smoothed speed, top heights) → stars ride the pile →
-surface heightmap → Sadie's brain → Sadie's mood → Sadie's best height → particles and emotes →
+surface heightmap → fossils → Sadie's brain → Sadie's mood → Sadie's best height → particles and emotes →
 dropper (supply refill, hover, autodrop, spawn). The camera and drawing happen after all steps in
 `loop.js`.
 
