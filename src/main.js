@@ -1,7 +1,9 @@
-// Starting point: load the UI pieces, size the canvas, start a board, run the loop.
+// Starting point: load the UI pieces, size the canvas, pick up the saved game (or start a board),
+// keep saving it, run the loop.
 import { U } from './config.js';
 import { world } from './core/world.js';
 import { resetGame } from './core/game.js';
+import { loadGame, saveGame } from './core/save.js';
 import { surfAt, groundAt } from './core/surface.js';
 import { sadie } from './core/sadie/brain.js';
 import { chooter } from './core/friends/chooter.js';
@@ -22,9 +24,16 @@ window.addEventListener('resize', resize);
 resize();
 cam.z = camState.fitZ;
 applySettings();
-resetGame();
+if (!loadGame()) resetGame();
 cam.y = (vp.vh / 2 - 120) / cam.z;
+cam.x = sadie.x; cam.y = Math.max(cam.y, sadie.y); // start looking at Sadie, wherever she was left
 requestAnimationFrame(frame);
+
+// Save every few seconds, and whenever the page is hidden or closed (switching apps on a phone
+// counts, and is often the last chance).
+setInterval(saveGame, 5000);
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
+window.addEventListener('pagehide', saveGame);
 
 // For automated testing in a browser.
 window.__jellyDebug = () => ({ cx: sadie.x / U, cy: sadie.y / U, ground: groundAt(sadie.x, sadie.y) / U, state: sadie.state, mood: sadie.mood,

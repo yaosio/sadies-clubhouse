@@ -144,6 +144,18 @@ For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
   soon as Chooter finishes what he's doing).
 - Clear tower also stops any rain.
 
+## Saving (`core/save.js`)
+Saved in the browser every 5 s, and when the page is hidden or closed, under the key
+`sadies-dropper-world.save` (a name no other game on a shared site like itch.io will use). Each
+browser and device keeps its own game. Piece positions are kept to 1/100 px; a 50-piece board is
+about 24 KB, so even a very tall tower stays far under the browser's ~5 MB limit.
+What comes back exactly: every piece (squish, speed, asleep, fossil), the barn, the hay and the
+hay trail, the dropper and the piece it holds, the supply, Sadie and Chooter. What starts over:
+any trip home Sadie was on, the hay she was heading for, a thrown ball, particles, and the debug
+speed and rain.
+Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save, bests and friends
+(keeps the dev sheet's physics settings). Both need a second tap within 3 s.
+
 ## What the tests expect (`tests/run.mjs`, seeded, so results repeat exactly)
 - 150-piece mixed pile: no broken numbers, deepest overlap about 0.6 px, about 140 asleep.
 - Ball dropped from 6 blocks: bounces to 3.37, 2.13, 1.52 blocks.
@@ -167,7 +179,11 @@ For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
   pieces, brings back all 10 balls thrown for him, moves into the barn and comes back out, and
   never gets stuck in the pile or leaves the board. This test runs after the others, so it doesn't
   change their numbers.
-- Debug tools (runs last): raining 100 pieces drops them all in about 8 s with no piece sunk into
+- Debug tools (runs after the play tests): raining 100 pieces drops them all in about 8 s with no piece sunk into
   another more than about 0.7 px; "Build a tall pile" peaks around 17.7 blocks and goes back to
   normal speed; "Put her on top" puts Sadie about 16 blocks up, standing; the Sadie and Chooter
   buttons each start what they say; clearing the tower stops any rain.
+- Saving (runs last): a game saved after 70 s of play (47 pieces, 14 still moving, Chooter met)
+  comes back the same after a JSON round trip, then plays on for 20 s with Sadie never stuck in the
+  pile and no piece sunk into another more than about 0.7 px; a save from another version is
+  refused; Clear tower keeps Chooter; Start over forgets him.
