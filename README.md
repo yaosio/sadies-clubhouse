@@ -2,8 +2,9 @@
 
 A cozy physics toy. Squishy jelly pieces drop from a little drone and pile up; Sadie (the owner's
 late cat, drawn from a photo) climbs the piles to eat bundles of hay (she thought she was a cow), and
-every so often drags her barn back up to the top of the pile. The player watches and helps. It's a
-toy, not a game to win.
+every so often drags her barn back up to the top of the pile. High up she makes friends who move
+into the barn: the first is Chooter, a black lab/pitbull mix who gets the zoomies and fetches the
+ball you throw him from the toy box. The player watches and helps. It's a toy, not a game to win.
 
 The owner doesn't code and installs nothing. Claude does all the building.
 
@@ -50,6 +51,6 @@ the backup inside the published page.
 
 ## Parked ideas (not now)
 
-Sadie batting pieces around, upgrading Sadie's barn, friends she meets moving into the barn, sky
-zones with different physics, unlocking piece types, prestige by melting the tower, a desktop-toy
-version.
+Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building
+things out of dropped pieces, sky zones with different physics, unlocking piece types, prestige by
+melting the tower, a desktop-toy version.

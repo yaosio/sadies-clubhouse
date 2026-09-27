@@ -5,13 +5,14 @@ import { U } from '../config.js';
 import { barn, OUTLINE, BARN_HALF } from '../core/barn.js';
 import { sadie } from '../core/sadie/brain.js';
 import { ctx, cam, vp, sxf, syf } from './view.js';
+import { drawChooterInWindow } from './chooterView.js';
 
 const C = { red: '#c8463d', door: '#a8373a', plank: 'rgba(80,16,30,0.22)', trim: '#fff6ea', roof: '#8f8a9b', white: '#fffaf3',
   pink: '#f4a7b6', ink: '#3a2658', glow: '#ffd98a', hay: '#f2cf63', hayDark: '#c9a23a', rope: '#b5523b', flap: '#6b3040' };
 
 function poly(pts) { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); }
 
-export function drawBarn() {
+export function drawBarn(time) {
   const p = barn.piece; if (!p) return;
   const S = U * cam.z, ox = sxf((p.minX + p.maxX) / 2), oy = syf(p.minY);
   if (ox + 3.2 * S < 0 || ox - 3.2 * S > vp.vw || oy < -10 || oy - 4.6 * S > vp.vh) return;
@@ -85,6 +86,7 @@ export function drawBarn() {
   };
   head(); ctx.fillStyle = C.glow; ctx.fill();
   ctx.save(); head(); ctx.clip();
+  drawChooterInWindow(time); // a friend at home pokes his head up over the hay
   ctx.fillStyle = C.hay; ctx.fillRect(-0.4, 2.5, 0.8, 0.2);
   ctx.strokeStyle = C.hayDark; ctx.lineWidth = 0.035; ctx.beginPath();
   for (let k = -3; k <= 3; k++) { ctx.moveTo(k * 0.1, 2.56); ctx.lineTo(k * 0.12 + 0.03, 2.74); }

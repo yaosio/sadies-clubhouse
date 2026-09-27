@@ -4,6 +4,7 @@ import { U } from '../config.js';
 import { world } from '../core/world.js';
 import { drp, heldOffsets, NO_PIECE, clampHeld, touchPiece, rotateHeld, sendHeldTo } from '../core/dropper.js';
 import { cv, cam, toWorld, clampCam, setFollow } from '../render/view.js';
+import { isAiming, throwAt } from '../ui/toybox.js';
 
 const pointers = new Map();
 let mode = null, dragOff = 0, pinch = null, pieceTap = null, panTap = null;
@@ -17,7 +18,7 @@ cv.addEventListener('pointerdown', e => {
   const p = localXY(e); pointers.set(e.pointerId, { x: p.x, y: p.y });
   if (pointers.size === 1) {
     const w = toWorld(p.x, p.y);
-    if (hitHeld(w)) { mode = 'piece'; world.holdingDropper = true; dragOff = drp.tX - w.x; pieceTap = { x: p.x, y: p.y, t: performance.now(), moved: false }; }
+    if (hitHeld(w) && !isAiming()) { mode = 'piece'; world.holdingDropper = true; dragOff = drp.tX - w.x; pieceTap = { x: p.x, y: p.y, t: performance.now(), moved: false }; }
     else { mode = 'pan'; cv.classList.add('dragging'); panTap = { x: p.x, y: p.y, t: performance.now(), moved: false }; }
   } else if (pointers.size === 2) {
     const [a, b] = [...pointers.values()];
@@ -54,7 +55,10 @@ function endPointer(e) {
   if (!pointers.has(e.pointerId)) return;
   pointers.delete(e.pointerId);
   if (mode === 'piece' && pieceTap && !pieceTap.moved && performance.now() - pieceTap.t < 350) rotateHeld(-1);
-  if (mode === 'pan' && panTap && !panTap.moved && performance.now() - panTap.t < 350 && pointers.size === 0) sendHeldTo(toWorld(panTap.x, panTap.y).x);
+  if (mode === 'pan' && panTap && !panTap.moved && performance.now() - panTap.t < 350 && pointers.size === 0) {
+    const w = toWorld(panTap.x, panTap.y);
+    if (isAiming()) throwAt(w.x, w.y); else sendHeldTo(w.x); // a toy picked from the toy box gets thrown there
+  }
   if (pointers.size === 1 && mode === 'pinch') { mode = 'pan'; }
   if (pointers.size === 0) { mode = null; pieceTap = null; world.holdingDropper = false; cv.classList.remove('dragging'); }
 }

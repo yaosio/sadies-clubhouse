@@ -13,6 +13,8 @@ import { updateMood } from './sadie/mood.js';
 import { updateEffects } from './effects.js';
 import { updateFossils } from './fossil.js';
 import { resetBarn, updateBarn } from './barn.js';
+import { resetChooter, updateChooter } from './friends/chooter.js';
+import { toy, updateToy } from './toys.js';
 
 export const timing = { physMs: 0 }; // read by the performance overlay
 
@@ -25,6 +27,7 @@ export function resetGame() {
     trip: null, lastTrip: world.gameTime, heave: false });
   world.emotes = [];
   resetHay(sadie.x);
+  resetChooter(); toy.state = 'none';
   spawn();
   emit('reset');
 }
@@ -49,6 +52,8 @@ export function update(dt) {
   updateFossils(dt);
   updateSadie(dt);
   updateBarn(dt);
+  updateChooter(dt);
+  updateToy(dt);
   updateMood(dt);
   const standing = sadie.state !== 'climb' && Math.abs(sadie.y - groundAt(sadie.x, sadie.y)) < 0.1 * U;
   if (standing && sadie.y / U > world.climbBest + 0.05) { world.climbBest = sadie.y / U; store.set('jellystack.climbBest', +world.climbBest.toFixed(2)); }
