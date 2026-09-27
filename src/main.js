@@ -26,4 +26,4 @@ requestAnimationFrame(frame);
 // For automated testing in a browser.
 window.__jellyDebug = () => ({ cx: sadie.x / U, cy: sadie.y / U, ground: groundAt(sadie.x, sadie.y) / U, state: sadie.state, mood: sadie.mood,
   tx: sadie.target ? sadie.target.x / U : null, ty: sadie.target ? sadie.target.y / U : null, follow: camState.follow, camx: cam.x / U,
-  supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten });
+  supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, trip: sadie.trip ? sadie.trip.phase : null });

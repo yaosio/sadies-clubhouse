@@ -50,6 +50,8 @@ function hideTip() { if (tipShown) { tipShown = false; tipEl.classList.add('hide
 
 const MUNCH = ['Munch munch!', 'Nom nom!', 'Moo!', 'Tasty hay!'];
 on('hayEaten', () => toast(MUNCH[Math.floor(Math.random() * MUNCH.length)]));
+on('homeRush', () => toast('Sadie is off to fetch her barn!'));
+on('barnHome', () => toast('Home sweet home!'));
 on('nextChanged', () => drawNext());
 on('playerActed', hideTip);
 on('followChanged', v => topBtn.classList.toggle('following', v));

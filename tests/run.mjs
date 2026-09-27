@@ -20,6 +20,9 @@ const { HAY_OUT, STEP_MIN, STEP_MAX } = await import('../src/core/hay.js');
 const { REACH } = await import('../src/core/sadie/brain.js');
 const { computeSurface, surfAt } = await import('../src/core/surface.js');
 const { updateFossils, FOSSIL_DEPTH } = await import('../src/core/fossil.js');
+const { barn, barnX, barnCover, BARN_HALF } = await import('../src/core/barn.js');
+const { BURIED } = await import('../src/core/sadie/brain.js');
+const { on } = await import('../src/core/events.js');
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -91,7 +94,7 @@ const P = physParams({ ...DEFAULTS });
   check('70 pieces on one spot form a mound', peak > 8 && peak < 17, `peak ${peak.toFixed(1)} blocks, expected about 12`);
 }
 
-// 4. Two minutes of real play: Sadie, the dropper, stars, all together
+// 4. Two minutes of real play: Sadie, the dropper, hay and her barn, all together
 {
   resetGame();
   let maxRise = 0, sunkFrames = 0, longestSunk = 0, hayBelowStart = 0, prevY = sadie.y;
@@ -110,6 +113,7 @@ const P = physParams({ ...DEFAULTS });
     for (const h of world.hay) if (!h.eaten && h.y < h.y0 - 0.01) hayBelowStart++;
     noteHay();
     if (world.hay.filter(h => !h.eaten).length !== HAY_OUT) hayOut = false;
+    if (sadie.trip) lastMeal += dt; // fetching her barn isn't waiting for a snack
     if (world.hayEaten > eaten) { eaten = world.hayEaten; longestWait = Math.max(longestWait, f / 60 - lastMeal); lastMeal = f / 60; }
   }
   longestWait = Math.max(longestWait, 120 - lastMeal);
@@ -148,6 +152,39 @@ const P = physParams({ ...DEFAULTS });
   for (let f = 0; f < 240; f++) { physicsStep(pieces, P, 1 / 60); woke += fossils.filter(p => !p.asleep).length; }
   check('a boulder landing on top never wakes a fossil', woke === 0);
   world.pieces = [];
+}
+
+// 6. Sadie's barn: bury it, and she rushes back and drags it up to the top of the pile
+{
+  resetGame();
+  let trips = 0, home = 0, buriedMax = 0, maxRise = 0, prevY = sadie.y, outside = 0, coverAfter = null, tripSecs = 0, floor0 = 0, roofGap = 0;
+  on('homeRush', () => { trips++; floor0 = barn.piece.minY; });
+  on('barnHome', () => { home++; });
+  const dt = 1 / 60, bx0 = barnX();
+  // the player keeps dropping right on top of the barn, then leaves the dropper there
+  for (let f = 0; f < 150 * 60 && !home; f++) {
+    if (f % 120 === 0) sendHeldTo(bx0 + (Math.random() - 0.5) * 3 * U);
+    update(dt);
+    if (!sadie.trip) buriedMax = Math.max(buriedMax, barnCover());
+    else tripSecs += dt;
+    maxRise = Math.max(maxRise, (sadie.y - prevY) / U); prevY = sadie.y;
+    const B = barn.piece; if (B.minX < -0.01 || B.maxX > W + 0.01 || B.minY < -0.01) outside++;
+    if (home && coverAfter === null) { // just got home: how does it sit compared to the pile around it?
+      computeSurface(); coverAfter = barnCover();
+      let top = 0; for (let x = barn.piece.minX - 3 * U; x <= barn.piece.maxX + 3 * U; x += U / 4) top = Math.max(top, surfAt(x));
+      roofGap = top - barn.piece.maxY;
+    }
+  }
+  const others = world.pieces.filter(p => p !== barn.piece);
+  const pen = penetration([barn.piece, ...others.filter(p => p.maxX > barn.piece.minX - U && p.minX < barn.piece.maxX + U)]);
+  check('a pile over the barn buries it', buriedMax >= BURIED, `pile ${(buriedMax / U).toFixed(1)} blocks over its roof`);
+  check('Sadie rushes back and drags it home', trips === 1 && home === 1, `${trips} trip(s), ${home} finished, took ${tripSecs.toFixed(0)} s`);
+  check('afterwards the barn is on top of the pile, not buried', coverAfter !== null && coverAfter < 0 && roofGap < 2 * U && barn.piece.minY - floor0 > 3 * U,
+    `raised ${((barn.piece.minY - floor0) / U).toFixed(1)} blocks; ${roofGap > 0.01 ? `the pile beside it is ${(roofGap / U).toFixed(1)} blocks above its roof` : 'nothing near it is higher than its roof'}`);
+  check('the barn stays inside the walls and above the ground', outside === 0);
+  check('pieces never sink into the barn', pen < 2.5, `deepest ${pen.toFixed(2)} px`);
+  check('no broken numbers while dragging it', !hasNaN(world.pieces) && isFinite(sadie.x) && isFinite(sadie.y));
+  check('Sadie never teleports upward during the trip', maxRise < 0.1, `fastest rise ${(maxRise * 60).toFixed(1)} blocks/s`);
 }
 
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
