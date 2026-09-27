@@ -30,6 +30,13 @@ not from rules that name two characters.
 - **Bodies**: how a character gets around stays their own. Sadie walks and climbs; Chooter trots
   and leaps. Activities only say where to go.
 
+- **Thoughts** (`thoughts.js`): tap a character and a bubble shows what they're doing, why, and
+  their feelings as bars, all in their own voice, in first person ("I'm hungry", "I love
+  absolutely everybody!"), true to who they are in this file. Each character writes its own
+  `think()` next to its activities. When you add an activity or a feeling, add its line there too,
+  so the bubble never says something that isn't true. This replaced the old pop-up messages
+  ("Munch munch!", "Zoomies!"); only a new friend still gets one.
+
 ### Adding an interaction
 
 1. Ask why the character would do it, in their own terms (see below).

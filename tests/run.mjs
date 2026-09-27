@@ -363,5 +363,29 @@ const P = physParams({ ...DEFAULTS });
   check('...and Sadie gets her hay', got !== null, got === null ? 'never' : `after ${got.toFixed(1)} s`);
 }
 
+// 12. Thought bubbles: tapping Sadie or Chooter always has something sensible to say, and reading
+// their thoughts never changes the game.
+{
+  const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
+  const { minds } = await import('../src/core/mind/thoughts.js');
+  const dt = 1 / 60;
+  resetGame(); chooter.met = false; meetChooter();
+  let bad = null, reads = 0; const said = new Set();
+  for (let f = 0; f < 240 * 60 && !bad; f++) {
+    update(dt);
+    if (f % 30) continue;
+    for (const m of minds()) {
+      const before = Math.random; Math.random = () => { bad = `${m.name}'s thoughts used a random number`; return before(); };
+      const t = m.think(); Math.random = before; reads++;
+      said.add(m.name + ': ' + t.doing);
+      if (!t.doing || !t.why) bad = `${m.name} had nothing to say`;
+      for (const x of t.feelings) if (!(x.value >= 0 && x.value <= 1)) bad = `${m.name}'s "${x.label}" is ${x.value}`;
+      if (!isFinite(m.x) || !isFinite(m.y)) bad = `${m.name} is nowhere`;
+    }
+  }
+  check('Sadie and Chooter always have a thought, with feelings from 0 to 1', !bad && reads > 0, bad || `${said.size} different things over 4 minutes`);
+  check('both of them can be tapped once Chooter is met', minds().length === 2);
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
 process.exit(failed ? 1 : 0);

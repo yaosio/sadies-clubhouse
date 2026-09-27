@@ -215,6 +215,10 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   nobody turns back and forth more than about twice a second (13 turns in 20 s), there are always
   3 bundles out, and he never gets stuck in the pile. (Before the fix for sticking to one way to
   run this caught him twice; the fix changed when random numbers get used, so the run differs.)
-- Cornered (runs last): Chooter carrying the hay near the right wall with Sadie 2.5 blocks behind
+- Cornered: Chooter carrying the hay near the right wall with Sadie 2.5 blocks behind
   on a flat board. Neither jitters (he turns twice, she doesn't turn), and she gets the hay in
   about 0.6 s. Before the fix they flipped back and forth over 800 times and she never got it.
+- Thought bubbles (runs last, so no earlier numbers moved): 4 minutes with Chooter just met,
+  reading both of their thoughts every half second. They always have something to say (19
+  different "doing" lines come up), every feeling bar is between 0 and 1, and reading thoughts
+  never uses a random number (so tapping a character can't change what happens next).

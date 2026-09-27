@@ -32,6 +32,7 @@ import { pickUpHay, putDownHay } from '../hay.js';
 import { drift, nudge } from '../mind/feelings.js';
 import { offers, offersFrom } from '../mind/offers.js';
 import { think, switchTo, done } from '../mind/think.js';
+import { mindsFrom } from '../mind/thoughts.js';
 
 export const MEET_AT = 15 * U;                   // Sadie meets him the first time she stands this high
 const TROT = 2.2 * U, RUN = 4.2 * U, ZOOM = 6.5 * U;
@@ -350,6 +351,33 @@ const home = {
 };
 
 export const CHOOTER_DOES = { greet, play, zoom, fetch: fetchBall, tease, home };
+
+// ---------- what he's thinking (the bubble you get by tapping him) ----------
+function chooterThinks() {
+  const c = chooter, f = c.feel;
+  let doing, why;
+  if (c.place === 'home') { doing = "I'm napping in the barn."; why = "I'm all worn out. I'll come out once I'm rested, or if someone throws a ball!"; }
+  else if (c.place === 'dig') { doing = "I'm digging down into the barn!"; why = "The door's buried, so I'm making my own way in."; }
+  else if (c.place === 'door') { doing = c.doorIn ? "I'm going in for a nap." : "I'm coming out to play!"; why = c.doorIn ? "I'm all worn out." : "I'm rested and ready for anything!"; }
+  else if (c.doing === 'greet') { doing = "I'm running over to say hi to Sadie!"; why = 'I love absolutely everybody!'; }
+  else if (c.doing === 'zoom') { doing = 'ZOOMIES!'; why = 'I have too much energy to hold in!'; }
+  else if (c.doing === 'fetch') { doing = c.carrying ? "I'm bringing the ball to Sadie!" : "I'm chasing the ball!"; why = c.carrying ? 'I want to share it with my friend.' : 'Balls are the best thing ever!'; }
+  else if (c.doing === 'tease') { doing = c.loot ? "I'm playing keep-away with Sadie's hay!" : "I'm going after Sadie's hay."; why = c.loot ? "It's a game! And now she's finally paying attention to me!" : "She's been ignoring me. This'll get her attention!"; }
+  else if (c.doing === 'home') { doing = "I'm heading home for a nap."; why = "I'm all worn out."; }
+  else if (c.doing === 'play') { doing = "I'm playing near Sadie!"; why = f.ignored > 0.6 ? "She hasn't paid me any attention. Not even a little." : 'I love being near my friend!'; }
+  else { doing = "I'm sniffing around."; why = 'Everything is interesting!'; }
+  const feelings = [
+    { label: "I've got energy", value: f.energy },
+    { label: "I'm tired", value: f.tired },
+    { label: 'I want attention', value: f.ignored },
+  ];
+  if (f.missing > 0) feelings.push({ label: 'I want to say hi', value: f.missing });
+  return { doing, why, feelings };
+}
+// While he's home, tap his face in the hayloft window.
+mindsFrom(() => !chooter.met ? [] : chooter.place === 'home'
+  ? [{ who: chooter, name: 'Chooter', x: barnX(), y: barnFloor() + 2.3 * U, h: 1.2 * U, think: chooterThinks }]
+  : [{ who: chooter, name: 'Chooter', x: chooter.x, y: chooter.y, h: 1.2 * U, think: chooterThinks }]);
 // Start an activity right now (the dev sheet's buttons).
 export function chooterDo(name) { if (chooter.met && chooter.doing !== name) switchTo(chooter, CHOOTER_DOES, name); }
 

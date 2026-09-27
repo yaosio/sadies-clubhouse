@@ -20,6 +20,7 @@ import { BARN_HALF, barnX, barnFloor, barnCover, freeBarn, haulBarn, releaseBarn
 import { drift, nudge } from '../mind/feelings.js';
 import { offers, offersFrom } from '../mind/offers.js';
 import { think, switchTo, done } from '../mind/think.js';
+import { mindsFrom } from '../mind/thoughts.js';
 
 // ---------- climber ----------
 export const REACH = 1.6 * U, WALK = 1.7 * U, CLIMB = 0.8 * U, WALL = 0.55 * U;
@@ -104,7 +105,7 @@ function startTrip() {
   let side = Math.sign(px - bx) || (c.x >= bx ? 1 : -1);
   let dest = Math.abs(px - bx) < MIN_HAUL ? bx + side * MIN_HAUL : px;
   if (dest < 0.5 * U || dest > W - 0.5 * U) { side = -side; dest = bx + side * MIN_HAUL; }
-  c.trip = { phase: 'rush', side, dest: Math.min(W - 0.5 * U, Math.max(0.5 * U, dest)), time: 0 };
+  c.trip = { phase: 'rush', side, dest: Math.min(W - 0.5 * U, Math.max(0.5 * U, dest)), time: 0, buried: barnCover() >= BURIED };
   c.pace = null; c.waitT = 0; c.target = null; c.heave = false;
   emote('!', '#ff4f86', c.x, c.y + 1.5 * U, 0, 40);
   emit('homeRush');
@@ -149,6 +150,30 @@ const fetchBarn = {
 };
 
 export const SADIE_DOES = { eat, fetchBarn };
+
+// ---------- what she's thinking (the bubble you get by tapping her) ----------
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+function sadieThinks() {
+  const c = sadie, T = c.target;
+  let doing, why;
+  if (c.trip) {
+    doing = c.trip.phase === 'rush' ? "I'm rushing back to my barn!" : "I'm dragging my barn up the pile.";
+    why = c.trip.buried ? "It's getting buried, and a cow can't live in a buried barn." : "I've climbed so far above it. A cow's barn should be close by.";
+  } else if (c.scared > 0) { doing = 'Eek!'; why = 'The pile is wobbling under my paws.'; }
+  else if (c.cheer > 0) { doing = "I'm so happy!"; why = 'I just got what I wanted.'; }
+  else if (c.doing !== 'eat' || !T) { doing = "I'm looking around for hay."; why = "I'm a cow, after all."; }
+  else if (T.carried) { doing = "I'm chasing my hay!"; why = 'Somebody took it. My food getting away is NOT okay.'; }
+  else if (c.pace) { doing = "I'm pacing back and forth."; why = "The hay is just out of reach. I'm looking for a way up."; }
+  else if (c.state === 'wait') { doing = "I'm waiting under the hay."; why = "It's just out of reach. If only the pile were a bit taller..."; }
+  else if (c.state === 'climb') { doing = "I'm climbing up."; why = "There's hay up there!"; }
+  else { doing = c.running ? "I'm running for the hay!" : "I'm heading for the hay."; why = c.feel.hunger > 0.7 ? "I'm SO hungry." : "I love hay. I'm a cow."; }
+  return { doing, why, feelings: [
+    { label: "I'm hungry", value: c.feel.hunger },
+    { label: 'I feel at home', value: c.feel.settled },
+    { label: "I'm worried about my barn", value: clamp01(barnWorry()) },
+  ] };
+}
+mindsFrom(() => [{ who: sadie, name: 'Sadie', x: sadie.x, y: sadie.y, h: 1.3 * U, think: sadieThinks }]);
 // Start an activity right now (the dev sheet's buttons).
 export function sadieDo(name) { if (sadie.doing !== name) switchTo(sadie, SADIE_DOES, name); }
 

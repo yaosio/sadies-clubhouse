@@ -43,6 +43,7 @@ tell the screen something, it emits an event (below).
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
 | `core/mind/feelings.js` | Feelings: 0–1 numbers on each character that drift over time and get nudged by events. |
 | `core/mind/offers.js` | Offers: things register what they're good for (`food`, `home`, `fetch`, `friend`); characters look for offers, not particular things. |
+| `core/mind/thoughts.js` | What each character is thinking, in plain words, for the thought bubble: characters register `{ who, name, x, y, h, think() }` (`mindsFrom`); `think()` returns what they're doing, why, and their feelings as 0–1 bars. Reading it never changes anything. |
 | `core/mind/think.js` | Choosing: each tick every activity says how much the character wants it; the biggest want wins (small bonus for the current one; `busy` activities can't be interrupted). |
 | `core/sadie/brain.js` | Sadie (`sadie` object): feelings (hunger, settled), activities (`eat`: nearest hay, wait, pace; `fetchBarn`: drag the barn up), her body (walk, run, climb, fall). Offers `friend`. |
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
@@ -57,26 +58,27 @@ tell the screen something, it emits an event (below).
 | `render/dropperView.js` | Draws the drone, or an edge marker when it's off screen. |
 | `render/color.js` | Color helpers. |
 | **ui/ and input/** | |
-| `ui/hud.js` | The first-run tip and toasts. Listens to simulation events. It's a toy, so there's no score, height, supply or next-piece display on screen (the numbers still exist in the world for saves and tests). |
+| `ui/hud.js` | The first-run tip and the one pop-up left (a new friend). Listens to simulation events. It's a toy, so there's no score, height, supply or next-piece display on screen (the numbers still exist in the world for saves and tests). |
+| `ui/thoughts.js` | The thought bubble: tap Sadie or Chooter (his face in the hayloft window while he's home) to see what they're doing, why, and how they feel. Follows them each frame; a tap anywhere else closes it (and doesn't move the dropper). |
 | `ui/minimap.js` | The map strip; tap to send the dropper and look there. |
 | `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board to throw it. |
-| `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, keys). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
-| `ui/perf.js` | Performance overlay (P key or the dev sheet). |
-| `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom, or throw a toy picked from the toy box. |
+| `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, piece count, mouse help). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
+| `ui/perf.js` | Performance overlay (the dev sheet's Info tab). |
+| `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom, throw a toy picked from the toy box, or tap a character for their thought bubble. |
 | `input/controls.js` | The Follow Sadie button, and Escape to close the dev sheet. No keyboard controls and no on-screen move/rotate/drop buttons: on screen you tap or drag the board to move the dropper and tap the piece to spin it (`input/pointer.js`), and the dropper lets go by itself when the supply is full. |
 
 ## Events
 
 | Event | Sent by | Heard by |
 |---|---|---|
-| `hayEaten` (bundle) | sadie/brain | hud (toast) |
-| `homeRush` | sadie/brain | hud (toast) |
-| `barnHome` | sadie/brain | hud (toast) |
+| `hayEaten` (bundle) | sadie/brain | nobody right now (pop-ups other than a new friend were removed) |
+| `homeRush` | sadie/brain | nobody right now (pop-ups other than a new friend were removed) |
+| `barnHome` | sadie/brain | nobody right now (pop-ups other than a new friend were removed) |
 | `friendMet` (name) | friends/chooter | hud (toast), toybox (shows the Toys button) |
-| `friendMovedIn` (name) | friends/chooter | hud (toast) |
-| `zoomies` | friends/chooter | hud (toast) |
-| `ballBack` | friends/chooter | hud (toast) |
-| `hayStolen` (bundle) | friends/chooter | hud (toast), sadie/brain ("hey!") |
+| `friendMovedIn` (name) | friends/chooter | nobody right now |
+| `zoomies` | friends/chooter | nobody right now (pop-ups other than a new friend were removed) |
+| `ballBack` | friends/chooter | nobody right now (pop-ups other than a new friend were removed) |
+| `hayStolen` (bundle) | friends/chooter | sadie/brain ("hey!") |
 | `toyThrown` (kind) | toys | nobody yet |
 | `nextChanged` (type) | dropper | nobody right now (the next-piece preview was removed) |
 | `playerActed` | dropper | hud (hides the first-run tip) |
@@ -101,7 +103,8 @@ dropper (supply refill, hover, autodrop, spawn) → debug rain. The camera and d
   look, add a mood (`core/sadie/mood.js`, drawn in `render/sadieView.js`; Chooter's in
   `render/chooterView.js`).
 - **New friend:** a module in `core/friends/` like `chooter.js` (a height to meet them at, their
-  feelings and activities using `core/mind/`, their offers, a reset), called from `core/game.js`;
+  feelings and activities using `core/mind/`, their offers, their thoughts for the bubble via
+  `mindsFrom`, a reset), called from `core/game.js`;
   add them to `docs/CHARACTERS.md`; a drawing in `render/`; their toy in `ui/toybox.js`'s
   `TOYS` list and `core/toys.js`. Anything random they do must wait until they've been met, so the
   seeded tests before the meeting stay the same. A friend can move pieces the way Chooter's zoomies
