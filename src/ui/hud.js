@@ -1,4 +1,4 @@
-// Everything on screen that isn't the world: height and stars, supply pips on the Drop button,
+// Everything on screen that isn't the world: height and hay eaten, supply pips on the Drop button,
 // the next-piece preview, the first-run tip, and toasts. Reacts to events from the simulation.
 import { U } from '../config.js';
 import { world } from '../core/world.js';
@@ -28,19 +28,19 @@ function drawNext() {
 
 const tipEl = document.getElementById('tip'), toastEl = document.getElementById('toast'), topBtn = document.getElementById('topBtn');
 const dropBtn = document.getElementById('dropBtn');
-const hEl = document.getElementById('hVal'), bestEl = document.getElementById('bestVal'), starEl = document.getElementById('starVal');
+const hEl = document.getElementById('hVal'), bestEl = document.getElementById('bestVal'), hayEl = document.getElementById('hayVal');
 let lastHud = '';
 const pipBox = document.getElementById('pips');
 const pipEls = Array.from({ length: SUPPLY_MAX }, () => { const d = document.createElement('span'); d.className = 'pip'; d.appendChild(document.createElement('i')); pipBox.appendChild(d); return d.firstChild; });
 export function updateHud() {
-  const h = sadie.y / U, got = world.stars.filter(s => s.got).length;
+  const h = sadie.y / U, got = world.hayEaten;
   const key = h.toFixed(1) + '|' + world.climbBest.toFixed(1) + '|' + got + '|' + Math.floor(world.supply * 20);
   if (key === lastHud) return; lastHud = key;
   hEl.textContent = h.toFixed(1);
   bestEl.textContent = 'Best ' + world.climbBest.toFixed(1);
   for (let i = 0; i < SUPPLY_MAX; i++) pipEls[i].style.setProperty('--f', Math.round(Math.min(1, Math.max(0, world.supply - i)) * 100) + '%');
   dropBtn.classList.toggle('empty', world.supply < 1);
-  starEl.textContent = `${got} of ${world.stars.length} stars`;
+  hayEl.textContent = `${got} hay eaten`;
 }
 let toastTimer = null;
 export function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600); }
@@ -48,7 +48,8 @@ export function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('s
 let tipShown = true;
 function hideTip() { if (tipShown) { tipShown = false; tipEl.classList.add('hide'); } }
 
-on('starCollected', () => toast('Sadie got a star!'));
+const MUNCH = ['Munch munch!', 'Nom nom!', 'Moo!', 'Tasty hay!'];
+on('hayEaten', () => toast(MUNCH[Math.floor(Math.random() * MUNCH.length)]));
 on('nextChanged', () => drawNext());
 on('playerActed', hideTip);
 on('followChanged', v => topBtn.classList.toggle('following', v));

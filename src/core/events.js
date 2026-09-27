@@ -1,4 +1,4 @@
-// A tiny event bus so the simulation can announce things (a star was collected, the next piece
+// A tiny event bus so the simulation can announce things (Sadie ate some hay, the next piece
 // changed...) without knowing anything about the screen. UI and rendering listen.
 const handlers = new Map();
 export function on(name, fn) {

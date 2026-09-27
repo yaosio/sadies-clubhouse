@@ -111,7 +111,7 @@ export function drawSadie(time) {
     }
   }
 
-  // how much higher the pile needs to be, while she's stuck under a star
+  // how much higher the pile needs to be, while she's stuck under some hay
   if ((c.state === 'wait' || c.pace) && c.target && c.target.y > c.y + REACH) {
     const need = Math.max(0, (c.target.y - REACH - c.y) / U);
     const txt = '\u2191 ' + need.toFixed(1);

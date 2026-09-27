@@ -28,7 +28,7 @@ export function clampCam() {
 }
 export function setFollow(v) { camState.follow = v; emit('followChanged', v); }
 
-// Camera follows Sadie (leaning toward her star) unless the player has taken over.
+// Camera follows Sadie (leaning toward her hay) unless the player has taken over.
 export function updateCamera(dt) {
   if (camState.follow) {
     const minY = (vp.vh / 2 - 120) / cam.z;

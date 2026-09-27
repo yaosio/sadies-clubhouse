@@ -1,7 +1,7 @@
 # Sadie's Dropper World
 
 A cozy physics toy. Squishy jelly pieces drop from a little drone and pile up; Sadie (the owner's
-late cat, drawn from a photo) climbs the piles to collect stars. The player watches and helps. It's a
+late cat, drawn from a photo) climbs the piles to eat bundles of hay (she thought she was a cow). The player watches and helps. It's a
 toy, not a game to win.
 
 The owner doesn't code and installs nothing. Claude does all the building.

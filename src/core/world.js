@@ -7,7 +7,8 @@ export const world = {
   held: null,          // the piece hanging from the dropper
   nextType: null,      // the piece after that
   bag: [],             // shuffled piece types still to come
-  stars: [],
+  hay: [],             // Sadie's hay bundles (core/hay.js)
+  hayEaten: 0,
   particles: [],       // sparkles, dust
   emotes: [],          // Sadie's floating notes, hearts, steam
   supply: 0,           // pieces ready to drop (fractional while refilling)

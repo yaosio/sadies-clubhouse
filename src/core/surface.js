@@ -1,4 +1,4 @@
-// Reading the shape of the pile: a heightmap (for the minimap, stars and dropper) and exact
+// Reading the shape of the pile: a heightmap (for the minimap, hay and dropper) and exact
 // solid spans in a vertical slice (so Sadie can tell a floor from an overhang above her head).
 import { U, W } from '../config.js';
 import { world } from './world.js';
