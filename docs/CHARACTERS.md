@@ -78,8 +78,9 @@ up.
 - **Wants Sadie's attention.** (`ignored`: builds over about 75 s of playing next to her, since she
   never pays him any mind, and a bit more each time she's unimpressed with the ball. Once it's
   full and he can reach the hay she's going for, `tease` wants 2.5: he snatches it and plays
-  keep-away, darting off when she's within 3 blocks and bouncing in place, facing her, when she
-  falls behind. It ends when she eats it out of his mouth, or after 20 s when he gets bored and
+  keep-away, darting off when she's within 3 blocks (picking a way to run and sticking to it) and
+  bouncing in place, facing her, when she falls behind. Backed into a wall, he's caught and
+  happy about it. It ends when she eats it out of his mouth, or after 20 s when he gets bored and
   drops it. Either way he's satisfied and `ignored` goes back to 0.) He can snatch hay up to about
   3.9 blocks above the pile with a leap.
 - **Gets tired** (`tired`: worn out after 70–120 s out, twice as fast in the zoomies). Then he goes

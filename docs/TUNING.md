@@ -104,8 +104,10 @@ he stays met (saved in the browser), even after clearing the tower.
 
 - Teasing Sadie: fed up after about 75 s of playing beside her (sooner if she's unimpressed with
   his ball: each "…" counts for about 19 s), he snatches the hay she's going for if it's within
-  3.9 blocks of the pile, leaping up for it. Keep-away: darts 4 blocks away at 3.1 blocks/s when
-  she's within 3 blocks, bounces facing her otherwise; drops it after 20 s. Sadie runs after hay
+  3.9 blocks of the pile, leaping up for it. Keep-away: when she comes within 3 blocks he picks a
+  way to run and keeps going that way (4 blocks at a time, 3.1 blocks/s) until she's more than 4
+  blocks behind, then bounces facing her. Backed into a wall, he's caught: he turns to her with
+  the hay. Drops it after 20 s. Sadie runs after hay
   that's being carried, and eats it once it's within her reach.
 
 ## Toys (`core/toys.js`)
@@ -208,7 +210,11 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   feelings: Chooter now draws his random numbers at different moments, and the tests share one
   stream of random numbers. His behavior's rules are the same. (They moved again when he learned to
   tease Sadie, for the same reason plus the time he spends teasing.)
-- Teasing (runs last): on a pile grown for 90 s, over 4 minutes with a helpful player, Chooter
-  snatches Sadie's hay twice (first after about 46 s), she runs after it nearly the whole time, one
-  chase ends with her catching him and one with him dropping it at 20 s, there are always 3 bundles
-  out, and he never gets stuck in the pile.
+- Teasing: on a pile grown for 90 s, over 4 minutes with a helpful player, Chooter snatches
+  Sadie's hay once (after about 135 s), she runs after it the whole time, he drops it at 20 s,
+  nobody turns back and forth more than about twice a second (13 turns in 20 s), there are always
+  3 bundles out, and he never gets stuck in the pile. (Before the fix for sticking to one way to
+  run this caught him twice; the fix changed when random numbers get used, so the run differs.)
+- Cornered (runs last): Chooter carrying the hay near the right wall with Sadie 2.5 blocks behind
+  on a flat board. Neither jitters (he turns twice, she doesn't turn), and she gets the hay in
+  about 0.6 s. Before the fix they flipped back and forth over 800 times and she never got it.

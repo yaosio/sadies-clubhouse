@@ -273,7 +273,7 @@ const herHay = () => { // the hay Sadie's after, if he could get it
 const tease = {
   want: c => c.feel.ignored >= 1 && herHay() ? 2.5 : 0,
   busy: c => !!c.loot,
-  start(c) { c.hay = herHay(); c.actT = 12; c.stuckT = 0; },
+  start(c) { c.hay = herHay(); c.actT = 12; c.stuckT = 0; c.flee = 0; },
   stop(c) { if (c.loot) putDownHay(c.loot); c.loot = c.hay = null; },
   step(c, dt) {
     c.actT -= dt;
@@ -294,9 +294,14 @@ const tease = {
     if (h.eaten) { c.loot = null; c.feel.ignored = 0; hearts(c.x, c.y, 4); c.spotT = 1; done(c); return 'there'; } // she got him! best game ever
     let res = 'there';
     const d = c.x - sadie.x;
-    if (Math.abs(d) < 3 * U) { // she's close: dart away
-      const away = Math.sign(d) || c.dir, goal = Math.min(W - U, Math.max(U, c.x + away * 4 * U));
-      res = walk(goal, TROT * 1.4, JUMP_MAX, dt);
+    // She's close: pick a way to run and stick to it until he's well clear (deciding afresh every
+    // moment makes him flip back and forth when she's right on top of him).
+    if (!c.flee && Math.abs(d) < 3 * U) c.flee = Math.sign(d) || c.dir;
+    else if (c.flee && Math.abs(d) > 4 * U) c.flee = 0;
+    if (c.flee) {
+      const goal = Math.min(W - U, Math.max(U, c.x + c.flee * 4 * U));
+      if (Math.abs(goal - c.x) < 0.5 * U) { c.dir = -c.flee; c.phase += dt * 3; } // backed into the wall: caught! he turns to her, wagging
+      else res = walk(goal, TROT * 1.4, JUMP_MAX, dt);
     } else if (!c.air) { // she's behind: face her and bounce, come on!
       c.dir = Math.sign(-d) || c.dir; c.hopT -= dt;
       if (c.hopT <= 0) { jump(0, 0); c.hopT = 0.7 + Math.random() * 0.8; }
