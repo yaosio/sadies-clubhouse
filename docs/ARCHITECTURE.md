@@ -33,15 +33,18 @@ tell the screen something, it emits an event (below).
 | `core/physics/solver.js` | The soft-body solver: integration, shape matching, finding nearby pairs (sleeper grid), collisions, friction, floor/walls, bounce, sleeping, and fixed pieces (the barn) that only move when told to. Pure math. |
 | `core/surface.js` | Reading the pile: heightmap `surf` (minimap, hay, dropper) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). |
 | `core/fossil.js` | Turns pieces buried deep in the pile into fossils: permanent ground that never wakes. |
-| `core/friends/chooter.js` | Chooter, Sadie's first friend (a black lab/pitbull mix): meeting him at 15 blocks, playing near Sadie, the zoomies (knocks pieces out of his way), fetching the ball, going home to the barn and back out. Walks on top of the pile like Sadie, but leaps up ledges instead of climbing. |
+| `core/friends/chooter.js` | Chooter, Sadie's first friend: feelings (energy, tired, missing), activities (`greet`, `play`, `zoom` knocking pieces aside, `fetch` the ball, `home` to rest in the barn), his body (trot, leap, fall). Meets Sadie at 15 blocks. Offers `friend` once met. |
 | `core/toys.js` | Toys the player throws for the friends (a ball so far): one out at a time, bounces off the pile without pushing it, vanishes once played with. |
 | `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
-| `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). |
+| `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). Offers `food`. Can be picked up (`pickUpHay`, it goes where the carrier puts it) and put down (`putDownHay`, drops onto the pile). |
 | `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
 | `core/save.js` | Saving and loading: `snapshot()` turns the board, Sadie, barn, hay, dropper and Chooter into plain data; `restore()` puts it back (throws on a save it can't read, and `loadGame()` then starts fresh). `clearTower()` (keeps friends and bests) and `startOver()` (forgets everything). Saved under `sadies-dropper-world.save`, format `SAVE_VERSION`. |
 | `core/debug.js` | Dev-sheet helpers (for us, not players): game speed, raining lots of pieces, building a tall pile fast, putting Sadie on top, and making Sadie and Chooter do things right now. Uses no random numbers unless a button was pressed. |
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
-| `core/sadie/brain.js` | Sadie's behavior (`sadie` object): target the nearest hay, walk/run/climb, wait, pace, and trips home to drag her barn up. |
+| `core/mind/feelings.js` | Feelings: 0–1 numbers on each character that drift over time and get nudged by events. |
+| `core/mind/offers.js` | Offers: things register what they're good for (`food`, `home`, `fetch`, `friend`); characters look for offers, not particular things. |
+| `core/mind/think.js` | Choosing: each tick every activity says how much the character wants it; the biggest want wins (small bonus for the current one; `busy` activities can't be interrupted). |
+| `core/sadie/brain.js` | Sadie (`sadie` object): feelings (hunger, settled), activities (`eat`: nearest hay, wait, pace; `fetchBarn`: drag the barn up), her body (walk, run, climb, fall). Offers `friend`. |
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
 | **render/** | |
 | `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. |
@@ -73,6 +76,7 @@ tell the screen something, it emits an event (below).
 | `friendMovedIn` (name) | friends/chooter | hud (toast) |
 | `zoomies` | friends/chooter | hud (toast) |
 | `ballBack` | friends/chooter | hud (toast) |
+| `hayStolen` (bundle) | friends/chooter | hud (toast), sadie/brain ("hey!") |
 | `toyThrown` (kind) | toys | nobody yet |
 | `nextChanged` (type) | dropper | hud (preview) |
 | `playerActed` | dropper | hud (hides the first-run tip) |
@@ -91,11 +95,14 @@ dropper (supply refill, hover, autodrop, spawn) → debug rain. The camera and d
 - **New piece type:** add it to `SHAPES`, `COLORS`, `NAMES` and `MATERIALS` in
   `core/physics/pieceTypes.js`. It joins the bag automatically. Optional decoration: add a flag in
   `templates.js` and draw it in `render/jelly.js`.
-- **New Sadie behavior:** state and movement in `core/sadie/brain.js`; if it needs a new mood, add
-  it in `core/sadie/mood.js` and draw it in `render/sadieView.js` (ears, eyes, mouth, tail and
-  emotes all switch on `mood`).
-- **New friend:** a module in `core/friends/` like `chooter.js` (a height to meet them at, what they
-  do, a reset), called from `core/game.js`; a drawing in `render/`; their toy in `ui/toybox.js`'s
+- **New behavior or interaction:** read `docs/CHARACTERS.md` first. Work out why the character
+  would do it, then add a feeling, an offer on the thing they'd want, or an activity (in
+  `SADIE_DOES` / `CHOOTER_DOES`), rather than a rule naming another character. If it needs a new
+  look, add a mood (`core/sadie/mood.js`, drawn in `render/sadieView.js`; Chooter's in
+  `render/chooterView.js`).
+- **New friend:** a module in `core/friends/` like `chooter.js` (a height to meet them at, their
+  feelings and activities using `core/mind/`, their offers, a reset), called from `core/game.js`;
+  add them to `docs/CHARACTERS.md`; a drawing in `render/`; their toy in `ui/toybox.js`'s
   `TOYS` list and `core/toys.js`. Anything random they do must wait until they've been met, so the
   seeded tests before the meeting stay the same. A friend can move pieces the way Chooter's zoomies
   do: `wake()` the piece, then give its points a speed by moving `px`/`py`.

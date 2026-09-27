@@ -7,6 +7,7 @@
 import { U, W } from '../config.js';
 import { world } from './world.js';
 import { surfAt } from './surface.js';
+import { offersFrom } from './mind/offers.js';
 
 export const HAY_OUT = 3;                         // bundles out at once
 export const STEP_MIN = 10 * U, STEP_MAX = 18 * U; // sideways gap from the previous bundle
@@ -28,6 +29,15 @@ function placeNext() {
   world.hay.push({ x, y, y0: y, eaten: false, pop: 0, up: 0, down: 0 });
 }
 
+// Every bundle that's out says "I'm food".
+// Hay someone is carrying off is still food; it's just on the move.
+offersFrom(() => world.hay.filter(h => !h.eaten).map(h => ({ kind: 'food', thing: h, x: h.x, y: h.y, moving: !!h.carried })));
+
+// Someone picks a bundle up (it goes wherever they put it until it's put down again)...
+export function pickUpHay(h) { h.carried = true; h.up = h.down = 0; }
+// ...and puts it down: it drops onto the pile right below.
+export function putDownHay(h) { h.carried = false; h.y = h.y0 = surfAt(h.x) + SIT; }
+
 export function resetHay(startX) {
   world.hay = []; world.hayEaten = 0;
   trail.x = startX; trail.dir = Math.random() < 0.5 ? -1 : 1;
@@ -35,13 +45,14 @@ export function resetHay(startX) {
 }
 
 export function eatHay(h) {
-  h.eaten = true; h.pop = 1; world.hayEaten++;
+  h.eaten = true; h.carried = false; h.pop = 1; world.hayEaten++;
   placeNext();
 }
 
 export function updateHay(dt) {
   for (const h of world.hay) {
     if (h.eaten) { h.pop -= dt * 2.5; continue; } // short munch animation, then it's gone
+    if (h.carried) continue;
     // Hay rides the pile: if pieces cover it, it floats up to sit on top, and if the pile
     // later drops away it sinks back down with it, but never below where it appeared.
     // The short delays stop it reacting to a piece just passing through or wobbling.

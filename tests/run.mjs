@@ -210,12 +210,12 @@ const P = physParams({ ...DEFAULTS });
     const t = f * dt;
     if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U);
     // throw him a ball a little way off, whenever there isn't one out
-    if (t > 45 && f % 600 === 0 && toy.state === 'none' && chooter.place === 'out' && chooter.act === 'play') {
+    if (t > 45 && f % 600 === 0 && toy.state === 'none' && chooter.place === 'out' && chooter.doing === 'play') {
       const x = Math.min(W - 2 * U, Math.max(2 * U, chooter.x + 4 * U * (chooter.x < W / 2 ? 1 : -1)));
       if (throwToy('ball', drp.x, drp.y, x, groundAt(x, 1e9) + U)) balls++;
     }
     update(dt);
-    if (greeted === null && chooter.act !== 'greet') greeted = t;
+    if (greeted === null && chooter.doing !== 'greet') greeted = t;
     for (const p of world.pieces) if (p.kickT !== undefined) kicked.add(p);
     if (chooter.place === 'home') wasHome = true; else if (wasHome && chooter.place === 'out') cameOut = true;
     const inside = chooter.place === 'out' && !chooter.air && (groundAt(chooter.x, chooter.y) - chooter.y) / U > 0.6;
@@ -261,10 +261,11 @@ const P = physParams({ ...DEFAULTS });
   check('"Fetch the barn now" sends her home for it', !!sadie.trip);
   chooter.met = false;
   dbg.meetChooterNow();
-  check('"Meet him now" brings Chooter over', chooter.met && chooter.act === 'greet');
-  dbg.zoomiesNow(); chooter.act = 'play';
   update(dt);
-  check('"Zoomies" starts the zoomies', chooter.act === 'zoom');
+  check('"Meet him now" brings Chooter over', chooter.met && chooter.doing === 'greet');
+  chooter.feel.missing = 0; dbg.zoomiesNow();
+  update(dt);
+  check('"Zoomies" starts the zoomies', chooter.doing === 'zoom');
   resetGame();
   check('clearing the tower stops any rain', dbg.debug.rain.length === 0 && !dbg.debug.boost);
 }
@@ -304,6 +305,62 @@ const P = physParams({ ...DEFAULTS });
   check('"Clear tower" empties the board but Sadie keeps Chooter', world.pieces.filter(p => !p.fixed).length === 0 && chooter.met);
   startOver();
   check('"Start over" forgets everything, Chooter included', world.pieces.filter(p => !p.fixed).length === 0 && !chooter.met && world.climbBest === 0);
+}
+
+// 10. Chooter teases Sadie: fed up with being ignored, he snatches her hay; she chases him for it
+{
+  const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
+  const dt = 1 / 60;
+  resetGame();
+  for (let f = 0; f < 90 * 60; f++) { if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); update(dt); } // grow a pile
+  meetChooter();
+  let stolen = 0, caught = 0, dropped = 0, chaseSecs = 0, longest = 0, ranAfter = 0, hayOut = true, sunk = 0, longestSunk = 0;
+  on('hayStolen', () => stolen++);
+  let loot = null, t0 = 0, firstSteal = null, flips = 0, lastC = 0, lastS = 0;
+  for (let f = 0; f < 240 * 60; f++) {
+    const t = f * dt;
+    if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U);
+    update(dt);
+    if (chooter.loot && !loot) { loot = chooter.loot; t0 = t; if (firstSteal === null) firstSteal = t; }
+    if (loot) {
+      chaseSecs += dt;
+      if (sadie.target === loot && sadie.running) ranAfter++;
+      if (chooter.dir !== lastC) flips++; if (sadie.dir !== lastS) flips++;
+      if (!chooter.loot) { if (loot.eaten) caught++; else dropped++; longest = Math.max(longest, t - t0); loot = null; }
+    }
+    lastC = chooter.dir; lastS = sadie.dir;
+    if (world.hay.filter(h => !h.eaten).length !== 3) hayOut = false;
+    const inside = chooter.place === 'out' && !chooter.air && (groundAt(chooter.x, chooter.y) - chooter.y) / U > 0.6;
+    sunk = inside ? sunk + 1 : 0; longestSunk = Math.max(longestSunk, sunk);
+  }
+  check('fed up with being ignored, Chooter snatches the hay Sadie is after', stolen >= 1, `${stolen} time(s) in 4 minutes, first after ${firstSteal === null ? '-' : firstSteal.toFixed(0)} s`);
+  check('Sadie runs after her hay', ranAfter > 0, `running after it ${(ranAfter / 60).toFixed(0)} s of ${chaseSecs.toFixed(0)} s`);
+  check('keep-away always ends: she catches him or he drops it', caught + dropped === stolen - (loot ? 1 : 0) && longest <= 21, `${caught} caught, ${dropped} dropped, longest ${longest.toFixed(0)} s`);
+  check('nobody jitters back and forth during the chase', flips <= chaseSecs * 2, `${flips} turns in ${chaseSecs.toFixed(0)} s`);
+  check('there are always 3 hay bundles out, stolen ones included', hayOut);
+  check('Chooter never gets stuck in the pile while teasing', longestSunk <= 3, `longest ${longestSunk} frame(s)`);
+}
+
+// 11. Cornered: Chooter runs out of room against the wall with Sadie right behind him. Neither of
+// them should flip back and forth; she gets her hay.
+{
+  const { chooter, meetChooter, chooterDo } = await import('../src/core/friends/chooter.js');
+  const { pickUpHay } = await import('../src/core/hay.js');
+  const dt = 1 / 60;
+  resetGame(); world.pieces = world.pieces.filter(p => p.fixed); world.held = null; world.supply = 0; // a flat, empty board
+  chooter.met = false; meetChooter(); chooter.feel.missing = 0;
+  const h = world.hay[0]; h.x = W - 2 * U; h.y = h.y0 = 0.7 * U;
+  chooter.x = W - 2.5 * U; chooter.y = 0; sadie.x = W - 5 * U; sadie.y = 0; sadie.target = h; sadie.doing = 'eat';
+  chooter.feel.ignored = 1; chooterDo('tease'); pickUpHay(h); chooter.loot = h; chooter.actT = 20;
+  let flipsC = 0, flipsS = 0, lastC = chooter.dir, lastS = sadie.dir, got = null;
+  for (let f = 0; f < 15 * 60 && got === null; f++) {
+    world.supply = 0; update(dt);
+    if (chooter.dir !== lastC) { flipsC++; lastC = chooter.dir; }
+    if (sadie.dir !== lastS) { flipsS++; lastS = sadie.dir; }
+    if (h.eaten) got = f / 60;
+  }
+  check('cornered against the wall, neither of them jitters back and forth', flipsC <= 3 && flipsS <= 3, `Chooter turned ${flipsC} time(s), Sadie ${flipsS}`);
+  check('...and Sadie gets her hay', got !== null, got === null ? 'never' : `after ${got.toFixed(1)} s`);
 }
 
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');

@@ -5,6 +5,7 @@ import { U, W } from '../config.js';
 import { emit } from './events.js';
 import { groundAt } from './surface.js';
 import { spark } from './effects.js';
+import { offersFrom } from './mind/offers.js';
 
 export const TOY_R = 0.26 * U;       // the ball's radius
 const G = 1400, BOUNCE = 0.55, LIFE = 40; // gravity, how much of its speed it keeps per bounce, seconds before it vanishes by itself
@@ -13,6 +14,8 @@ const G = 1400, BOUNCE = 0.55, LIFE = 40; // gravity, how much of its speed it k
 export const toy = { kind: null, state: 'none', x: 0, y: 0, vx: 0, vy: 0, t: 0, spin: 0, pop: 0, rest: 0 };
 
 export const toyOut = () => toy.state !== 'none';
+// A thrown ball that nobody's played with yet says "chase me".
+offersFrom(() => toy.state === 'fly' && !toy.played ? [{ kind: 'fetch', thing: toy, x: toy.x, y: toy.y }] : []);
 
 // Throw it from (fx, fy) so it comes down around (tx, ty). Returns false if one is already out.
 export function throwToy(kind, fx, fy, tx, ty) {

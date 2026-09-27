@@ -1,46 +1,101 @@
-// Sadie's behavior: pick the nearest hay, walk or run to it, climb walls, wait underneath if she
-// can't reach it yet, then pace (further each lap) when she gets impatient. Every so often she
-// rushes back to her barn and drags it up to the top of the pile.
+// Sadie: a cat who thinks she's a cow (see docs/CHARACTERS.md). What she does comes from how she
+// feels, through the shared thinking in mind/think.js:
+//   hunger   - her strongest feeling. She's extremely food motivated: going after hay always
+//              matters to her, and she never walks past a bundle she can reach.
+//   settled  - how at home she feels after her last trip to the barn (1 = just got it home); it
+//              wears off over a minute. Once it's gone, a barn left far below her or buried
+//              under the pile worries her (cows live in barns; she can't live in a buried one),
+//              and she goes and drags it up.
+//   scared   - pieces lurching under her feet, or falling (kept as `scared`, read by mood.js).
+// Her activities: eat (walk, run and climb to the nearest hay; wait under it if it's out of
+// reach, then pace, further each lap; if her hay is being carried off, she runs after it) and fetchBarn (rush to the barn, grab the rope, drag it up
+// to the top of the pile).
 import { U, W } from '../../config.js';
 import { world } from '../world.js';
-import { emit } from '../events.js';
+import { emit, on } from '../events.js';
 import { emote, spark } from '../effects.js';
 import { groundAt, STEP_UP, surf, SURF_N, SURF_RES } from '../surface.js';
 import { eatHay } from '../hay.js';
 import { BARN_HALF, barnX, barnFloor, barnCover, freeBarn, haulBarn, releaseBarn, barnLag } from '../barn.js';
+import { drift, nudge } from '../mind/feelings.js';
+import { offers, offersFrom } from '../mind/offers.js';
+import { think, switchTo, done } from '../mind/think.js';
 
 // ---------- climber ----------
 export const REACH = 1.6 * U, WALK = 1.7 * U, CLIMB = 0.8 * U, WALL = 0.55 * U;
 // running: starts when the hay is far away sideways, stops once she's close (the gap stops her flickering between the two)
 const RUN_START = 6 * U, RUN_STOP = 2.5 * U, RUN_BOOST = 1.5;
-export const sadie = { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0 };
+export const sadie = { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, doing: null, feel: freshFeelings() };
+export function freshFeelings() { return { hunger: 0.5, settled: 1 }; }
+
+// ---------- feelings ----------
+const HUNGER_RISE = 1 / 90;         // per second: hungry again about a minute and a half after a bundle
+const HUNGER_EAT = 0.5;             // how much one bundle helps
+export const HOME_GAP = 60;         // seconds for the feeling of being settled to wear off after a trip
+export const LEFT_BEHIND = 6 * U;   // the barn worries her once she's this far above its floor...
+export const BURIED = 1 * U;        // ...or once the pile is this deep over its roof
+// How much the barn's whereabouts worry her: 1 or more means it needs her.
+export function barnWorry() { return Math.max((sadie.y - barnFloor()) / LEFT_BEHIND, barnCover() / BURIED); }
+export function barnNeedsHer() { return barnWorry() >= 1; }
+
+// Sadie is a friend (Chooter comes to play near her).
+offersFrom(() => [{ kind: 'friend', thing: sadie, x: sadie.x, y: sadie.y }]);
+
+// ---------- eat ----------
+// Keeps going for the same bundle until it's gone, then picks the nearest one, up or down.
 export function pickTarget() {
   sadie.pace = null; sadie.waitT = 0;
-  let bestS = null, bc = Infinity;
-  for (const s of world.hay) { if (s.eaten) continue;
-    const c = Math.abs(s.x - sadie.x) + Math.abs(s.y - sadie.y) * 1.5; // nearest hay, up or down
-    if (c < bc) { bc = c; bestS = s; } }
-  sadie.target = bestS;
+  let best = null, bc = Infinity;
+  for (const o of offers('food')) {
+    const c = Math.abs(o.x - sadie.x) + Math.abs(o.y - sadie.y) * 1.5;
+    if (c < bc) { bc = c; best = o.thing; }
+  }
+  sadie.target = best;
 }
 function munch(s) {
-  eatHay(s); sadie.cheer = 1.1; emit('hayEaten', s);
-  for (let k = 0; k < 5; k++) emote('\u2665', '#ff4f86', sadie.x + (Math.random() - 0.5) * U, sadie.y + 1.3 * U, (Math.random() - 0.5) * 40, 50 + Math.random() * 40);
+  eatHay(s); sadie.cheer = 1.1; nudge(sadie.feel, 'hunger', -HUNGER_EAT); emit('hayEaten', s);
+  for (let k = 0; k < 5; k++) emote('♥', '#ff4f86', sadie.x + (Math.random() - 0.5) * U, sadie.y + 1.3 * U, (Math.random() - 0.5) * 40, 50 + Math.random() * 40);
   for (let k = 0; k < 26; k++) { const a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 120;
     spark(s.x, s.y, Math.cos(a) * v, Math.sin(a) * v, 2 + Math.random() * 3, 1, k % 2 ? '#f2cf63' : '#c9a23a'); } // bits of straw
   pickTarget();
 }
-// ---------- trips home ----------
-// Once her barn is left far below her or buried under the pile, she rushes back to it, grabs the
-// rope and drags it up to the top of the pile behind her, shoving pieces out of the way.
-export const HOME_GAP = 60;            // at least this many seconds between trips
-export const LEFT_BEHIND = 6 * U;      // she goes back for it once she's this far above its floor...
-export const BURIED = 1 * U;           // ...or once the pile is this deep over its roof
+const eat = {
+  want: c => 1 + c.feel.hunger, // food always matters to her
+  start: () => pickTarget(),
+  step(c, dt) {
+    if (!c.target || c.target.eaten) pickTarget();
+    const T = c.target;
+    if (!T) { c.state = 'idle'; return 'there'; }
+    if (T.carried) { c.pace = null; c.waitT = 0; } // her food is getting away: no waiting around
+    // Under the hay but can't reach it: wait a moment, then pace back and forth,
+    // a little further each lap, in case it's stuck in a hole or the gap is wide.
+    let goal = T.x;
+    if (c.pace) {
+      goal = Math.min(W - 0.5 * U, Math.max(0.5 * U, T.x + c.pace.side * c.pace.dist));
+      if (Math.abs(goal - c.x) < 0.3 * U) {
+        c.pace.side = -c.pace.side; c.pace.dist = Math.min(12 * U, c.pace.dist + U);
+        goal = Math.min(W - 0.5 * U, Math.max(0.5 * U, T.x + c.pace.side * c.pace.dist));
+      }
+    } else if (Math.abs(T.x - c.x) < 0.5 * U) {
+      c.state = 'wait'; c.waitT = (c.waitT || 0) + dt;
+      if (c.waitT > 1.5) c.pace = { side: Math.random() < 0.5 ? -1 : 1, dist: 1.5 * U };
+      return 'there';
+    }
+    walkToward(goal, T.carried ? Infinity : Math.abs(T.x - c.x), !c.pace, 1, dt); // run after food on the move
+    return 'moving';
+  },
+};
+// Somebody took the hay she was after: hey!
+on('hayStolen', h => { if (h === sadie.target) emote('!', '#e8394f', sadie.x, sadie.y + 1.5 * U, 0, 40); });
+
+// ---------- fetch the barn ----------
+// She rushes back to it, grabs the rope and drags it up to the top of the pile behind her,
+// shoving pieces out of the way.
 export const HITCH = BARN_HALF + 0.9 * U; // she walks this far ahead of the barn's middle while dragging it
 const MIN_HAUL = 4 * U;                // she always drags it at least this far
 const HAUL_WALK = 0.7;                 // walking speed while dragging, compared to normal
 export const TRIP_MAX = 60;            // give up (leave it where it is) after this long
-export function barnNeedsHer() { return sadie.y - barnFloor() >= LEFT_BEHIND || barnCover() >= BURIED; }
-export function startTrip() {
+function startTrip() {
   const c = sadie, bx = barnX();
   // head for the top of the pile (not counting whatever is heaped on the barn itself, which is
   // about to get shoved aside), dragging the barn at least a little way
@@ -56,41 +111,55 @@ export function startTrip() {
 }
 function endTrip(home) {
   const c = sadie;
-  releaseBarn(); c.trip = null; c.heave = false; c.lastTrip = world.gameTime;
+  releaseBarn(); c.trip = null; c.heave = false; c.feel.settled = 1;
   if (home) {
     c.cheer = 1.1; emit('barnHome');
-    for (let k = 0; k < 7; k++) emote('\u2665', '#ff4f86', c.x + (Math.random() - 0.5) * 1.5 * U, c.y + 1.3 * U, (Math.random() - 0.5) * 50, 50 + Math.random() * 40);
+    for (let k = 0; k < 7; k++) emote('♥', '#ff4f86', c.x + (Math.random() - 0.5) * 1.5 * U, c.y + 1.3 * U, (Math.random() - 0.5) * 50, 50 + Math.random() * 40);
   }
   pickTarget();
+  done(c);
 }
-function tripStep(dt) {
-  const c = sadie, t = c.trip;
-  t.time += dt;
-  if (t.time > TRIP_MAX) { endTrip(false); return; }
-  if (t.phase === 'rush') { // run to the barn and stand beside it, on the side she'll drag it toward
-    const goal = Math.min(W - 0.5 * U, Math.max(0.5 * U, barnX() + t.side * HITCH));
-    if (Math.abs(goal - c.x) < 0.3 * U) { t.phase = 'haul'; c.dir = t.side; freeBarn(); return; }
-    walkToward(goal, Math.abs(goal - c.x), true, 1, dt);
-    return;
-  }
-  const there = Math.abs(t.dest - c.x) < 0.3 * U, lag = barnLag();
-  if (there && lag < 0.5 * U) { endTrip(true); return; }
-  if (there || lag > 1.2 * U) { // dig in and pull until the barn catches up
-    c.heave = true; c.dir = t.side; c.state = 'walk'; c.running = false; c.run = Math.max(0, (c.run || 0) - dt * 3);
-    c.phase += dt * 2.5;
-    return;
-  }
-  c.heave = false;
-  walkToward(t.dest, Math.abs(t.dest - c.x), false, HAUL_WALK, dt);
-}
+const fetchBarn = {
+  // once she's settled feeling has worn off, a barn left behind or buried beats even hay
+  want: c => c.feel.settled <= 0 && barnNeedsHer() ? 3 : 0,
+  busy: c => !!c.trip,
+  start: startTrip,
+  stop: c => { if (c.trip) { releaseBarn(); c.trip = null; c.heave = false; } },
+  step(c, dt) {
+    const t = c.trip;
+    t.time += dt;
+    if (t.time > TRIP_MAX) { endTrip(false); return 'there'; }
+    if (t.phase === 'rush') { // run to the barn and stand beside it, on the side she'll drag it toward
+      const goal = Math.min(W - 0.5 * U, Math.max(0.5 * U, barnX() + t.side * HITCH));
+      if (Math.abs(goal - c.x) < 0.3 * U) { t.phase = 'haul'; c.dir = t.side; freeBarn(); return 'there'; }
+      walkToward(goal, Math.abs(goal - c.x), true, 1, dt);
+      return 'moving';
+    }
+    const there = Math.abs(t.dest - c.x) < 0.3 * U, lag = barnLag();
+    if (there && lag < 0.5 * U) { endTrip(true); return 'there'; }
+    if (there || lag > 1.2 * U) { // dig in and pull until the barn catches up
+      c.heave = true; c.dir = t.side; c.state = 'walk'; c.running = false; c.run = Math.max(0, (c.run || 0) - dt * 3);
+      c.phase += dt * 2.5;
+      return 'there';
+    }
+    c.heave = false;
+    walkToward(t.dest, Math.abs(t.dest - c.x), false, HAUL_WALK, dt);
+    return 'moving';
+  },
+};
 
+export const SADIE_DOES = { eat, fetchBarn };
+// Start an activity right now (the dev sheet's buttons).
+export function sadieDo(name) { if (sadie.doing !== name) switchTo(sadie, SADIE_DOES, name); }
+
+// ---------- each tick ----------
 export function updateSadie(dt) {
   const c = sadie;
+  drift(c.feel, { hunger: HUNGER_RISE, settled: -1 / HOME_GAP }, dt);
   if (c.trip && c.trip.phase === 'haul') haulBarn(c.x - c.trip.side * HITCH, c.y); // the barn follows along behind her
-  if (!c.trip && (!c.target || c.target.eaten)) pickTarget();
-  const T = c.target;
   c.cheer = Math.max(0, c.cheer - dt);
-  if (!c.trip) for (const s of world.hay) if (!s.eaten && Math.abs(s.x - c.x) < 0.6 * U && s.y <= c.y + REACH) munch(s);
+  // she never walks past hay she can reach (unless she's busy with her barn)
+  if (!c.trip) for (const o of offers('food')) if (Math.abs(o.x - c.x) < 0.6 * U && o.y <= c.y + REACH) munch(o.thing);
 
   const ground = groundAt(c.x, c.y);
   // scared: pieces under her feet are lurching around (not while she's busy fetching her barn)
@@ -116,25 +185,8 @@ export function updateSadie(dt) {
   else if (c.y > ground + 0.5) { c.vy -= 1400 * dt; c.y = Math.max(ground, c.y + c.vy * dt); if (c.y === ground) c.vy = 0; if (c.vy < -4 * U) c.scared = 1; }
   else { c.y = ground; c.vy = 0; }
   if (c.state !== 'walk') c.run = Math.max(0, (c.run || 0) - dt * 3);
-  if (!c.trip && c.cheer <= 0 && world.gameTime - (c.lastTrip || 0) >= HOME_GAP && barnNeedsHer()) startTrip();
-  if (c.trip) { tripStep(dt); return; }
-  if (c.cheer > 0 || !T) { c.state = 'idle'; return; }
-
-  // Under the hay but can't reach it: wait a moment, then pace back and forth,
-  // a little further each lap, in case it's stuck in a hole or the gap is wide.
-  let goal = T.x;
-  if (c.pace) {
-    goal = Math.min(W - 0.5 * U, Math.max(0.5 * U, T.x + c.pace.side * c.pace.dist));
-    if (Math.abs(goal - c.x) < 0.3 * U) {
-      c.pace.side = -c.pace.side; c.pace.dist = Math.min(12 * U, c.pace.dist + U);
-      goal = Math.min(W - 0.5 * U, Math.max(0.5 * U, T.x + c.pace.side * c.pace.dist));
-    }
-  } else if (Math.abs(T.x - c.x) < 0.5 * U) {
-    c.state = 'wait'; c.waitT = (c.waitT || 0) + dt;
-    if (c.waitT > 1.5) c.pace = { side: Math.random() < 0.5 ? -1 : 1, dist: 1.5 * U };
-    return;
-  }
-  walkToward(goal, Math.abs(T.x - c.x), !c.pace, 1, dt);
+  if (c.cheer > 0 && !c.trip) { c.state = 'idle'; return; } // a happy moment after a bite or getting home
+  think(c, SADIE_DOES, dt);
 }
 
 // One step toward x = goal: walk (or run, if allowed and the thing she's after is `far` away),
