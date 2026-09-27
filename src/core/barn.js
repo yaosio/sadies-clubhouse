@@ -8,6 +8,7 @@ import { world } from './world.js';
 import { surf, SURF_N, SURF_RES } from './surface.js';
 import { wake } from './physics/solver.js';
 import { aabb } from './physics/body.js';
+import { offersFrom } from './mind/offers.js';
 
 export const BARN_HALF = 2 * U;       // half its width
 export const BARN_SPEED = 2.5 * U;    // how fast it moves when dragged, per second
@@ -41,6 +42,9 @@ export function resetBarn(x) {
   barn.piece = makeBarn(x); barn.hauling = false; barn.vy = 0;
   world.pieces.push(barn.piece);
 }
+
+// The barn says "I'm home" (Sadie's, and Chooter's once he's moved in).
+offersFrom(() => barn.piece ? [{ kind: 'home', thing: barn, x: barnX(), y: barnFloor() }] : []);
 
 export const barnX = () => (barn.piece.minX + barn.piece.maxX) / 2;
 export const barnFloor = () => barn.piece.minY;

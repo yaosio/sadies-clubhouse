@@ -8,7 +8,7 @@ import { physicsStep } from './physics/solver.js';
 import { surf, computeSurface, groundAt } from './surface.js';
 import { resetHay, updateHay } from './hay.js';
 import { drp, SUPPLY_MAX, drawFromBag, spawn, updateDropper } from './dropper.js';
-import { sadie, updateSadie } from './sadie/brain.js';
+import { sadie, updateSadie, freshFeelings } from './sadie/brain.js';
 import { updateMood } from './sadie/mood.js';
 import { updateEffects } from './effects.js';
 import { updateFossils } from './fossil.js';
@@ -25,7 +25,7 @@ export function resetGame() {
   world.topAll = world.topSettled = 0; world.fossils = 0; world.supply = SUPPLY_MAX; surf.fill(0);
   resetBarn(W / 2 - 4.5 * U);
   Object.assign(sadie, { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, pace: null, waitT: 0, scared: 0, mood: 'neutral', run: 0, running: false,
-    trip: null, lastTrip: world.gameTime, heave: false });
+    trip: null, heave: false, doing: null, feel: freshFeelings() });
   world.emotes = [];
   resetHay(sadie.x);
   resetChooter(); toy.state = 'none'; stopRain();

@@ -6,8 +6,7 @@ import { world } from './world.js';
 import { SHAPES } from './physics/pieceTypes.js';
 import { makePiece } from './physics/body.js';
 import { localTop, groundAt, highestPoint } from './surface.js';
-import { sadie, pickTarget, startTrip } from './sadie/brain.js';
-import { releaseBarn } from './barn.js';
+import { sadie, pickTarget, sadieDo } from './sadie/brain.js';
 import { chooter, meetChooter } from './friends/chooter.js';
 
 export const SPEEDS = [1, 2, 4, 8];
@@ -57,17 +56,18 @@ export function updateDebug(dt) {
 // ---------- Sadie ----------
 // Put her on the highest point of the pile (she stops any trip home first).
 export function sadieToTop() {
-  if (sadie.trip) { releaseBarn(); sadie.trip = null; sadie.heave = false; }
+  sadieDo('eat');
   sadie.x = Math.min(W - 0.5 * U, Math.max(0.5 * U, highestPoint()));
   sadie.y = groundAt(sadie.x, 1e9); sadie.vy = 0; sadie.state = 'walk'; sadie.scared = 0;
   pickTarget();
 }
 // Go and fetch her barn now, even if it doesn't need it yet.
-export function fetchBarnNow() { if (!sadie.trip) startTrip(); }
+export function fetchBarnNow() { sadieDo('fetchBarn'); }
 
 // ---------- Chooter ----------
 export function meetChooterNow() { if (!chooter.met) meetChooter(); }
-// Next time he's free, he gets the zoomies (coming out of the barn first if he's home).
-export function zoomiesNow() { if (!chooter.met) return; chooter.zoomT = 0; if (chooter.place === 'home') chooter.homeT = 0; }
-export function goHomeNow() { if (chooter.met && chooter.place === 'out') chooter.outT = 0; }
-export function comeOutNow() { if (chooter.met && chooter.place === 'home') chooter.homeT = 0; }
+// These change how he feels, and he does the rest: full of energy (and rested, so he comes out
+// of the barn first if he's home) gives the zoomies; worn out sends him home.
+export function zoomiesNow() { if (!chooter.met) return; chooter.feel.energy = 1; chooter.feel.tired = 0; }
+export function goHomeNow() { if (chooter.met && chooter.place === 'out') chooter.feel.tired = 1; }
+export function comeOutNow() { if (chooter.met && chooter.place === 'home') chooter.feel.tired = 0; }

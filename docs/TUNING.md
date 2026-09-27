@@ -64,8 +64,10 @@ it. Sadie can stand on its roof. When nobody is dragging it, it drops onto whate
 (gravity 1400, max 10 blocks/s), so it follows the pile down if the pile under it collapses.
 Nothing above it becomes a fossil, so it can always be dragged out.
 
-Trips home: at least 60 s apart. She goes when she's 6 blocks or more above the barn's floor, or
-when the pile covers its whole roof by 1 block or more. She runs to its side, grabs the rope and
+Trips home: after a trip she feels settled (`settled`, 1 falling to 0 over 60 s). Once that's gone
+she goes when she's 6 blocks or more above the barn's floor, or when the pile covers its whole roof
+by 1 block or more (then fetching the barn wants 3, more than hay's 1–2). Why she does it and how
+the wants work: `docs/CHARACTERS.md`. She runs to its side, grabs the rope and
 drags it toward the tallest point of the pile (not counting what's heaped on the barn itself), at
 least 4 blocks. The barn follows 2.9 blocks behind her at up to 2.5 blocks/s, shoving pieces out
 of its way; it rides over whatever is under its floor rather than being pulled down into the pile.
@@ -82,8 +84,10 @@ he stays met (saved in the browser), even after clearing the tower.
   barks. Walks off drops and falls (gravity 1400). If a piece lands on him he wriggles out on top.
 - Playing: picks a spot 1.4–3.6 blocks to one side of Sadie every 2–4.5 s and goes there; hops for
   joy or sends her a heart now and then.
-- Zoomies: first one 20 s after a game starts (30 s after meeting him), then every 40–75 s, lasting
-  7–10 s. He dashes 7–14 blocks one way, then the other, hopping every 0.6–1.8 s. Any piece that
+- Feelings (see `docs/CHARACTERS.md`): `energy` winds up while he's out, `tired` builds while he's
+  out, `missing` makes him greet a new friend.
+- Zoomies: when his energy is full. It starts 20 s from full on a fresh board (30 s after meeting
+  him), then takes 40–75 s to wind up again (chosen after each bout). His energy lasts 7–10 s. He dashes 7–14 blocks one way, then the other, hopping every 0.6–1.8 s. Any piece that
   isn't a fossil in the space just ahead of his body gets knocked forward 5 blocks/s and up 3.5
   (times its lightness, up to 1.5×; a boulder barely moves), at most once per 0.6 s per piece. In
   test runs each bout moves between 1 and about 25 pieces more than a block.
@@ -91,9 +95,12 @@ he stays met (saved in the browser), even after clearing the tower.
   and carries it to Sadie (she's not impressed). Gives up if he can't get to it for 5 s (25 s in
   all), or can't reach Sadie within 18 s. The ball vanishes 1.5 s after he drops it (3 s if he gave
   up), or after 40 s regardless.
-- Out of the barn 70–120 s, then he heads home: in through the cat flap if the side of the barn is
+- Worn out after 70–120 s out (chosen each time he comes out; the zoomies tire him twice as fast,
+  so outings with zoomies are shorter). Too tired for the zoomies then; he heads home once no toy
+  is out: in through the cat flap if the side of the barn is
   clear, or he digs in from on top if it's buried (or if he can't get there in 30 s). Home for
-  25–45 s, poking his head out of the hayloft window; a thrown ball gets him out straight away.
+  25–45 s (until rested), poking his head out of the hayloft window; a thrown ball gets him out
+  straight away.
 
 ## Toys (`core/toys.js`)
 One out at a time. The dropper drone throws it, taking 0.6–1.3 s to land near where you tapped.
@@ -172,18 +179,24 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   18-block peak only because the tests share one stream of random numbers and the play test before
   it now uses a different amount of them.)
 - Pieces dropped on the barn: the pile gets about 5 blocks over its roof, Sadie fetches it once
-  (about 20 s), and it ends up about 6 blocks higher with nothing near it higher than its roof,
-  inside the walls, with no piece sunk into it more than about 0.3 px.
+  (about 22 s), and it ends up about 8 blocks higher with nothing near it higher than its roof,
+  inside the walls, with no piece sunk into it more than about 0.5 px. (Moved from about 20 s, 6
+  blocks and 0.3 px when her behavior moved onto feelings: "a minute since the last trip" became a
+  feeling that wears off, which can land a frame differently, and in a pile one frame is enough to
+  make a different trip. Everything before this test came out exactly the same.)
 - Chooter: meets Sadie only once she's 15 blocks up. On a pile grown for 90 s, over 4 minutes he
-  greets her (about 12 s, running in from the far side), has 3 bouts of zoomies knocking about 28
-  pieces, brings back all 10 balls thrown for him, moves into the barn and comes back out, and
+  greets her (about 15 s, running in from the far side), has 3 bouts of zoomies knocking about 27
+  pieces, brings back all 11 balls thrown for him, moves into the barn and comes back out, and
   never gets stuck in the pile or leaves the board. This test runs after the others, so it doesn't
   change their numbers.
-- Debug tools (runs after the play tests): raining 100 pieces drops them all in about 8 s with no piece sunk into
-  another more than about 0.7 px; "Build a tall pile" peaks around 17.7 blocks and goes back to
-  normal speed; "Put her on top" puts Sadie about 16 blocks up, standing; the Sadie and Chooter
+- Debug tools (runs after the play tests): raining 100 pieces drops them all in about 10 s with no
+  piece sunk into another more than about 1 px; "Build a tall pile" peaks around 16.4 blocks and goes
+  back to normal speed; "Put her on top" puts Sadie about 14.5 blocks up, standing; the Sadie and Chooter
   buttons each start what they say; clearing the tower stops any rain.
-- Saving (runs last): a game saved after 70 s of play (47 pieces, 14 still moving, Chooter met)
+- Saving (runs last): a game saved after 70 s of play (47 pieces, 25 still moving, Chooter met)
   comes back the same after a JSON round trip, then plays on for 20 s with Sadie never stuck in the
-  pile and no piece sunk into another more than about 0.7 px; a save from another version is
+  pile and no piece sunk into another more than about 0.4 px; a save from another version is
   refused; Clear tower keeps Chooter; Start over forgets him.
+- The Chooter, debug and save numbers above moved a little when the characters moved onto
+  feelings: Chooter now draws his random numbers at different moments, and the tests share one
+  stream of random numbers. His behavior's rules are the same.

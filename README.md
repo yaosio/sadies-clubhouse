@@ -17,6 +17,8 @@ The owner doesn't code and installs nothing. Claude does all the building.
   a backup copy of the source, as JSON in `<script type="application/json" id="jelly-source">`.
   If the page and the repo ever disagree, trust the repo and say so.
 - `docs/ARCHITECTURE.md` is the map of the code. Read it before changing anything.
+- `docs/CHARACTERS.md` is who each character is and why they do what they do, and how feelings,
+  offers and activities turn that into behavior.
 - `docs/TUNING.md` lists the numbers that make the game feel right, and what the tests expect.
 
 ## Making a change (for Claude)

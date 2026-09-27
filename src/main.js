@@ -38,7 +38,7 @@ window.addEventListener('pagehide', saveGame);
 // For automated testing in a browser.
 window.__jellyDebug = () => ({ cx: sadie.x / U, cy: sadie.y / U, ground: groundAt(sadie.x, sadie.y) / U, state: sadie.state, mood: sadie.mood,
   tx: sadie.target ? sadie.target.x / U : null, ty: sadie.target ? sadie.target.y / U : null, follow: camState.follow, camx: cam.x / U,
-  supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, trip: sadie.trip ? sadie.trip.phase : null,
-  chooter: chooter.met ? { x: chooter.x / U, y: chooter.y / U, place: chooter.place, act: chooter.act, mood: chooter.mood } : null, toy: toy.state });
+  supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, trip: sadie.trip ? sadie.trip.phase : null, doing: sadie.doing, feel: sadie.feel,
+  chooter: chooter.met ? { x: chooter.x / U, y: chooter.y / U, place: chooter.place, doing: chooter.doing, feel: chooter.feel, mood: chooter.mood } : null, toy: toy.state });
 // Point the camera somewhere (in blocks; z = zoom compared to normal), for screenshots.
 window.__jellyLook = (x, y, z = 1) => { setFollow(false); cam.x = x * U; cam.y = y * U; cam.z = camState.fitZ * z; };

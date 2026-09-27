@@ -210,12 +210,12 @@ const P = physParams({ ...DEFAULTS });
     const t = f * dt;
     if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U);
     // throw him a ball a little way off, whenever there isn't one out
-    if (t > 45 && f % 600 === 0 && toy.state === 'none' && chooter.place === 'out' && chooter.act === 'play') {
+    if (t > 45 && f % 600 === 0 && toy.state === 'none' && chooter.place === 'out' && chooter.doing === 'play') {
       const x = Math.min(W - 2 * U, Math.max(2 * U, chooter.x + 4 * U * (chooter.x < W / 2 ? 1 : -1)));
       if (throwToy('ball', drp.x, drp.y, x, groundAt(x, 1e9) + U)) balls++;
     }
     update(dt);
-    if (greeted === null && chooter.act !== 'greet') greeted = t;
+    if (greeted === null && chooter.doing !== 'greet') greeted = t;
     for (const p of world.pieces) if (p.kickT !== undefined) kicked.add(p);
     if (chooter.place === 'home') wasHome = true; else if (wasHome && chooter.place === 'out') cameOut = true;
     const inside = chooter.place === 'out' && !chooter.air && (groundAt(chooter.x, chooter.y) - chooter.y) / U > 0.6;
@@ -261,10 +261,11 @@ const P = physParams({ ...DEFAULTS });
   check('"Fetch the barn now" sends her home for it', !!sadie.trip);
   chooter.met = false;
   dbg.meetChooterNow();
-  check('"Meet him now" brings Chooter over', chooter.met && chooter.act === 'greet');
-  dbg.zoomiesNow(); chooter.act = 'play';
   update(dt);
-  check('"Zoomies" starts the zoomies', chooter.act === 'zoom');
+  check('"Meet him now" brings Chooter over', chooter.met && chooter.doing === 'greet');
+  chooter.feel.missing = 0; dbg.zoomiesNow();
+  update(dt);
+  check('"Zoomies" starts the zoomies', chooter.doing === 'zoom');
   resetGame();
   check('clearing the tower stops any rain', dbg.debug.rain.length === 0 && !dbg.debug.boost);
 }

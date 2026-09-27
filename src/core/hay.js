@@ -7,6 +7,7 @@
 import { U, W } from '../config.js';
 import { world } from './world.js';
 import { surfAt } from './surface.js';
+import { offersFrom } from './mind/offers.js';
 
 export const HAY_OUT = 3;                         // bundles out at once
 export const STEP_MIN = 10 * U, STEP_MAX = 18 * U; // sideways gap from the previous bundle
@@ -27,6 +28,9 @@ function placeNext() {
   const y = surfAt(x) + SIT + RISE_MIN + Math.random() * (RISE_MAX - RISE_MIN);
   world.hay.push({ x, y, y0: y, eaten: false, pop: 0, up: 0, down: 0 });
 }
+
+// Every bundle that's out says "I'm food".
+offersFrom(() => world.hay.filter(h => !h.eaten).map(h => ({ kind: 'food', thing: h, x: h.x, y: h.y })));
 
 export function resetHay(startX) {
   world.hay = []; world.hayEaten = 0;

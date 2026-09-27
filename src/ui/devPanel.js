@@ -115,8 +115,8 @@ function refresh() {
     : debug.boost ? 'Letting the pile settle at 8×…' : '"Here" means around the dropper. A tall pile runs at 8× until it settles.';
   $('fetchBarn').disabled = !!sadie.trip;
   $('meetChooter').disabled = chooter.met;
-  $('zoomies').disabled = !chooter.met || chooter.act === 'zoom';
-  $('goHome').disabled = !chooter.met || chooter.place !== 'out' || chooter.act === 'gohome';
+  $('zoomies').disabled = !chooter.met || chooter.doing === 'zoom';
+  $('goHome').disabled = !chooter.met || chooter.place !== 'out' || chooter.doing === 'home';
   $('comeOut').disabled = !chooter.met || chooter.place !== 'home';
   $('pieceCount').textContent = `${world.pieces.length} pieces on the board, ${world.fossils} of them fossils.`;
 }
