@@ -46,7 +46,7 @@ export function snapshot() {
   });
   return {
     v: SAVE_VERSION,
-    world: pick(world, ['hayEaten', 'supply', 'gameTime', 'lastInteract', 'spawnTimer', 'bag', 'nextType']),
+    world: pick(world, ['hayEaten', 'supply', 'gameTime', 'spawnTimer', 'bag', 'nextType']),
     held: world.held && { type: world.held.type, cs: world.held.cs, ang: world.held.tAng },
     drp: { x: r2(drp.x), tX: r2(drp.tX), y: r2(drp.y) },
     pieces,

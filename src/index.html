@@ -29,9 +29,9 @@
     </div>
   </div>
 
-  <div class="mini" id="mini" aria-label="Map of the whole board. Tap to send the piece there."><canvas id="miniCv"></canvas></div>
+  <div class="mini" id="mini" aria-label="Map of the whole board. Tap to look there."><canvas id="miniCv"></canvas></div>
   <div class="perf" id="perf" hidden><canvas id="perfCv"></canvas><dl id="perfList"></dl></div>
-  <div class="tip" id="tip">The dropper lets go of a piece every so often. Tap anywhere to move it, or tap the piece to spin it. Tap Sadie to see what she's thinking.</div>
+  <div class="tip" id="tip">A mole up in the sky drops pieces on anything it thinks should be underground. Tap the mole, Sadie or anyone else to see what they're thinking.</div>
   <div class="thought" id="thought" hidden><b id="thoughtWho"></b><p id="thoughtDoing"></p><p class="why" id="thoughtWhy"></p><div class="feels" id="thoughtFeels"></div></div>
   <div class="toast" id="toast"></div>
 
@@ -73,7 +73,7 @@
           <button class="btn" id="buildPile">Build a tall pile</button>
           <button class="btn" id="stopRain">Stop</button>
         </div>
-        <small class="note" id="rainNote">"Here" means around the dropper. A tall pile runs at 8× until it settles.</small>
+        <small class="note" id="rainNote">"Here" means around the mole. A tall pile runs at 8× until it settles.</small>
         <h3>Sadie</h3>
         <div class="actions">
           <button class="btn" id="sadieTop">Put her on top</button>
@@ -87,6 +87,11 @@
           <button class="btn" id="comeOut">Come out</button>
           <button class="btn" id="tease">Feel ignored</button>
         </div>
+        <h3>Mole</h3>
+        <div class="actions">
+          <button class="btn" id="tireMole">Wear it out</button>
+        </div>
+        <small class="note">It naps until it's rested. It also tires by itself when the game is struggling to keep up.</small>
         <h3>Board</h3>
         <div class="actions">
           <button class="btn warn" id="clearTower">Clear tower</button>
@@ -105,7 +110,7 @@
         <label class="check"><input type="checkbox" id="perfToggle"> Show performance stats</label>
         <div class="keys" id="pieceCount"></div>
         <div class="keys">
-          Mouse: click anywhere to send the piece there, click the piece to rotate, drag to look around, wheel to zoom. Tap the map strip to jump anywhere on the board.
+          Mouse: click someone to see what they're thinking, drag to look around, wheel to zoom. Tap the map strip to jump anywhere on the board.
         </div>
       </section>
     </div>

@@ -1,5 +1,5 @@
 // Debug helpers, for us, not for players (they live in the dev sheet): rain lots of pieces at
-// once, run the game faster, and make Sadie and Chooter do things right now instead of waiting.
+// once, run the game faster, and make Sadie, Chooter and the mole do things right now instead of waiting.
 // Nothing here uses random numbers unless a button was pressed, so the seeded tests don't move.
 import { U, W, tuning } from '../config.js';
 import { world } from './world.js';
@@ -8,6 +8,7 @@ import { makePiece } from './physics/body.js';
 import { localTop, groundAt, highestPoint } from './surface.js';
 import { sadie, pickTarget, sadieDo } from './sadie/brain.js';
 import { chooter, meetChooter } from './friends/chooter.js';
+import { tireMole } from './mole.js';
 
 export const SPEEDS = [1, 2, 4, 8];
 const RAIN_EVERY = 0.08;     // seconds between raining pieces (about 12 a second)
@@ -73,3 +74,5 @@ export function goHomeNow() { if (chooter.met && chooter.place === 'out') choote
 export function comeOutNow() { if (chooter.met && chooter.place === 'home') chooter.feel.tired = 0; }
 // Fed up with being ignored: he'll snatch Sadie's hay as soon as he can reach it.
 export function teaseNow() { if (chooter.met) chooter.feel.ignored = 1; }
+// Wear the mole out: it naps (no pieces) until it's rested.
+export function tireMoleNow() { tireMole(); }

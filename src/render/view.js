@@ -3,6 +3,7 @@ import { U, W } from '../config.js';
 import { world } from '../core/world.js';
 import { emit } from '../core/events.js';
 import { sadie } from '../core/sadie/brain.js';
+import { drp, heldOffsets, NO_PIECE } from '../core/dropper.js';
 
 export const cv = document.getElementById('world');
 export const ctx = cv.getContext('2d');
@@ -29,13 +30,19 @@ export function clampCam() {
 }
 export function setFollow(v) { camState.follow = v; emit('followChanged', v); }
 
-// Camera follows Sadie (leaning toward her hay) unless the player has taken over.
+// Camera follows Sadie (leaning toward her hay) unless the player has taken over. If the mole is
+// nearby but up behind the map strip, it looks up a little, as long as Sadie stays well in view.
 export function updateCamera(dt) {
   if (camState.follow) {
     const b = camState.insetB, minY = (vp.vh / 2 - 120 - b) / cam.z;
-    const ty = Math.max(minY, sadie.y + (vp.vh * 0.1 - b / 2) / cam.z);
-    cam.y += (ty - cam.y) * Math.min(1, dt * 3);
+    let ty = Math.max(minY, sadie.y + (vp.vh * 0.1 - b / 2) / cam.z);
     const half = vp.vw / 2 / cam.z;
+    if (Math.abs(drp.x - cam.x) < half) {
+      const o = world.held ? heldOffsets(world.held, world.held.ang) : NO_PIECE;
+      const moleTop = drp.y + o.y1 + 2 * U, show = moleTop - (vp.vh / 2 - 80) / cam.z, keepSadie = sadie.y + (vp.vh / 2 - 150 - b) / cam.z;
+      ty = Math.max(ty, Math.min(show, keepSadie));
+    }
+    cam.y += (ty - cam.y) * Math.min(1, dt * 3);
     const T = sadie.target, lean = T ? Math.max(-half * 0.5, Math.min(half * 0.5, (T.x - sadie.x) * 0.5)) : 0;
     const r = camState.insetR / 2 / cam.z;
     const tx = W < 2 * half ? W / 2 : Math.min(W - half + U + 2 * r, Math.max(half - U, sadie.x + lean + r));

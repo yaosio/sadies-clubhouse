@@ -1,6 +1,7 @@
 // The toy box: a button in the corner that opens a little tray of toys for Sadie's friends. It
 // only shows up once she has a friend, and each toy only once its friend has been met. Pick a
-// toy, then tap the board where you want it thrown; the dropper drone tosses it there. One toy
+// toy, then tap the board where you want it thrown; the mole tosses it there
+// (it doesn't mind: a ball isn't a creature). One toy
 // out at a time.
 import { on } from '../core/events.js';
 import { drp } from '../core/dropper.js';

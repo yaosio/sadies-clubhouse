@@ -30,9 +30,11 @@ also read `docs/CHARACTERS.md`: who they are and why they do things comes first.
 
 ## Design pillars (these win over any feature idea)
 - The satisfying part is watching pieces squish, pile up, and topple. Protect that above all.
-- No fast clicking. Pieces come from a supply that refills over time.
+- No fast clicking. Pieces come one at a time from a supply that refills, never faster than one
+  every 1.5 s.
 - Physics feel is tuned by us, never by the player. Variety comes from piece types.
-- The dropper stays where the owner puts it and never moves on its own to help Sadie.
+- The mole decides where pieces go, for its own reasons (everything belongs underground). It never
+  means to help Sadie; when it does, it's by accident.
 - Sadie is a character with moods, not a cursor.
 - One feature at a time. Make sure it's fun before the next.
 
