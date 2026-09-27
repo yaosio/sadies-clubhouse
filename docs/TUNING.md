@@ -62,13 +62,17 @@ Asleep, or older than 0.4 s with a smoothed speed under 0.6. The smoothing stops
 of its bounce from counting.
 
 ## Hay (`core/hay.js`)
-Always 3 bundles out. They form a trail: each new bundle goes 5–12 blocks sideways from the last
+Always 3 bundles out. They form a trail: each new bundle goes 10–18 blocks sideways from the last
 one placed, carrying on the same way until it would hit a wall (keeps 1.5 blocks clear), then the
 trail turns around. So Sadie grazes back and forth across the board. When she eats one, the next
 is placed at the far end of the trail.
-A new bundle appears 0.7 blocks above the pile surface under it, plus 0–3 blocks extra. About a
-third can be reached just by walking (she reaches 1.6 blocks up), the rest need a step or two
-built. Because height is measured from the pile, hay keeps up as the tower grows.
+A new bundle appears 0.7 blocks above the pile surface under it, plus 1.5–4.5 blocks extra, so
+2.2–5.2 blocks above the pile. She reaches 1.6 blocks up, so a new bundle is never in reach: she
+needs 0.6–3.6 blocks built under it, and she gets impatient while she waits. Because height is
+measured from the pile, hay keeps up as the tower grows.
+(Tried and set aside: 5–12 apart and 0–3 up, which the owner found too close and too easy. A
+middle setting of 8–15 apart and 1–3.5 up made her impatient about 25% of the time instead of
+about 45%.)
 Covered by the pile for 0.5 s: float up to 0.7 blocks above the surface. Pile drops away for
 0.5 s: sink back, never below where it appeared.
 
@@ -90,7 +94,8 @@ Covered by the pile for 0.5 s: float up to 0.7 blocks above the surface. Pile dr
 - 70 pieces on one spot: a mound peaking around 12.5 blocks.
 - Two minutes of play with the dropper kept near Sadie: she never rises faster than about 4 blocks
   per second, never stays buried, hay never sinks below where it appeared, there are always 3
-  bundles out, each new one 5–12 blocks from the last, she eats about 13 bundles, and her longest
-  wait between snacks is about 26 s (the check allows up to 40).
-- 110 pieces on one spot (peak about 19 blocks): 16 become fossils, all buried at least 8 blocks,
+  bundles out, each new one 10–18 blocks from the last, new hay always starts out of her reach, she
+  eats about 6 bundles (the check wants at least 4), and her longest wait between snacks is about
+  33 s (the check allows up to 40).
+- 110 pieces on one spot (peak about 18 blocks): 18 become fossils, all buried at least 8 blocks,
   and a boulder landing on top wakes none of them.
