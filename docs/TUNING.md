@@ -242,7 +242,8 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   on a flat board. Neither jitters (he turns twice, she doesn't turn), and she gets the hay in
   about 0.6 s. Before the fix they flipped back and forth over 800 times and she never got it.
 - Thought bubbles: 4 minutes with Chooter just met, reading all three minds (Sadie, Chooter, the
-  mole) every half second. They always have something to say (24 different "doing" lines come up), every feeling bar is between 0 and 1, and reading thoughts
+  mole) every half second. They always have something to say (24 different "doing" lines come up), nobody has more than 4
+  feeling bars, every feeling bar is between 0 and 1, and reading thoughts
   never uses a random number (so tapping a character can't change what happens next).
 - The mole (runs last, so no earlier numbers moved): 3 minutes of a fresh game. Every piece lands
   either within 1.5 blocks of whoever it's burying (27 on Sadie, 17 on Chooter once she met him)

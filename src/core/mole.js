@@ -115,7 +115,10 @@ function moleThinks() {
   if (!c.napping && t > 0.3) why += " I'm getting tired, though, so I'm taking it slow.";
   const feelings = [{ label: "I'm tired", value: t }];
   if (barn.piece) feelings.push({ label: 'The barn needs burying', value: clamp01(-barnCover() / ROOF) });
-  for (const o of offers('restless')) feelings.push({ label: `${o.name} wants to be buried`, value: clamp01(o.how) });
+  // one bar, for whoever it has its eye on (the most restless creature around), however many there are
+  let eye = null;
+  for (const o of offers('restless')) if (o.how > 0 && (!eye || o.how > eye.how)) eye = o;
+  feelings.push(eye ? { label: `${eye.name} wants to be buried`, value: clamp01(eye.how) } : { label: 'Nobody wants burying right now', value: 0 });
   return { doing, why, feelings };
 }
 mindsFrom(() => {

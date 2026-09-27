@@ -35,7 +35,9 @@ not from rules that name two characters.
   their feelings as bars, all in their own voice, in first person ("I'm hungry", "I love
   absolutely everybody!"), true to who they are in this file. Each character writes its own
   `think()` next to its activities. When you add an activity or a feeling, add its line there too,
-  so the bubble never says something that isn't true. This replaced the old pop-up messages
+  so the bubble never says something that isn't true. At most 4 bars per character: never one bar
+  per other character (that won't scale as friends are added). The mole, for example, has one bar
+  for whoever it has its eye on right now. This replaced the old pop-up messages
   ("Munch munch!", "Zoomies!"); only a new friend still gets one.
 
 ### Adding an interaction

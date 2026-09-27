@@ -374,6 +374,7 @@ const P = physParams({ ...DEFAULTS });
       const t = m.think(); Math.random = before; reads++;
       said.add(m.name + ': ' + t.doing);
       if (!t.doing || !t.why) bad = `${m.name} had nothing to say`;
+      if (t.feelings.length > 4) bad = `${m.name} has ${t.feelings.length} feeling bars (4 at most)`;
       for (const x of t.feelings) if (!(x.value >= 0 && x.value <= 1)) bad = `${m.name}'s "${x.label}" is ${x.value}`;
       if (!isFinite(m.x) || !isFinite(m.y)) bad = `${m.name} is nowhere`;
     }

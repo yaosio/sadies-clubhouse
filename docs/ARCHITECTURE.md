@@ -44,7 +44,7 @@ tell the screen something, it emits an event (below).
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
 | `core/mind/feelings.js` | Feelings: 0–1 numbers on each character that drift over time and get nudged by events. |
 | `core/mind/offers.js` | Offers: things register what they're good for (`food`, `home`, `fetch`, `friend`); characters look for offers, not particular things. |
-| `core/mind/thoughts.js` | What each character is thinking, in plain words, for the thought bubble: characters register `{ who, name, x, y, h, think() }` (`mindsFrom`); `think()` returns what they're doing, why, and their feelings as 0–1 bars. Reading it never changes anything. |
+| `core/mind/thoughts.js` | What each character is thinking, in plain words, for the thought bubble: characters register `{ who, name, x, y, h, think() }` (`mindsFrom`); `think()` returns what they're doing, why, and their feelings as 0–1 bars (4 at most). Reading it never changes anything. |
 | `core/mind/think.js` | Choosing: each tick every activity says how much the character wants it; the biggest want wins (small bonus for the current one; `busy` activities can't be interrupted). |
 | `core/sadie/brain.js` | Sadie (`sadie` object): feelings (hunger, settled), activities (`eat`: nearest hay, wait, pace; `fetchBarn`: drag the barn up), her body (walk, run, climb, fall). Offers `friend`. |
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
@@ -60,7 +60,7 @@ tell the screen something, it emits an event (below).
 | `render/color.js` | Color helpers. |
 | **ui/ and input/** | |
 | `ui/hud.js` | The first-run tip (gone at the first touch of the board) and the one pop-up left (a new friend). Listens to simulation events. It's a toy, so there's no score, height, supply or next-piece display on screen (the numbers still exist in the world for saves and tests). |
-| `ui/thoughts.js` | The thought bubble: tap Sadie, Chooter (his face in the hayloft window while he's home) or the mole to see what they're doing, why, and how they feel. Follows them each frame; a tap anywhere else closes it. |
+| `ui/thoughts.js` | The thought bubble: tap Sadie, Chooter (his face in the hayloft window while he's home) or the mole to see what they're doing, why, and how they feel. Follows them each frame, above their head or below their feet: it picks a side when it opens and only swaps once it's 40 px past the edge, and not again for a second, so it never flickers. A tap anywhere else closes it. |
 | `ui/minimap.js` | The map strip; tap or drag to look there. |
 | `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board; the mole throws it there. |
 | `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, piece count, mouse help). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
