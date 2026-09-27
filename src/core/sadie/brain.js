@@ -157,20 +157,20 @@ function sadieThinks() {
   const c = sadie, T = c.target;
   let doing, why;
   if (c.trip) {
-    doing = c.trip.phase === 'rush' ? 'Rushing back to her barn.' : 'Dragging her barn up the pile.';
-    why = c.trip.buried ? "It's getting buried, and a cow can't live in a buried barn." : "She's climbed so far above it. A cow's barn should be close by.";
-  } else if (c.scared > 0) { doing = 'Eek!'; why = 'The pile is wobbling under her paws.'; }
-  else if (c.cheer > 0) { doing = 'So happy!'; why = 'She just got what she wanted.'; }
-  else if (c.doing !== 'eat' || !T) { doing = 'Looking around for hay.'; why = "She's a cow, after all. Well, she thinks so."; }
-  else if (T.carried) { doing = 'Chasing her hay!'; why = 'Somebody took it. Her food getting away is NOT okay.'; }
-  else if (c.pace) { doing = 'Pacing back and forth.'; why = "The hay is just out of reach. She's looking for a way up."; }
-  else if (c.state === 'wait') { doing = 'Waiting under the hay.'; why = "It's just out of reach. If only the pile were a bit taller..."; }
-  else if (c.state === 'climb') { doing = 'Climbing up.'; why = "There's hay up there!"; }
-  else { doing = c.running ? 'Running for the hay!' : 'Heading for the hay.'; why = c.feel.hunger > 0.7 ? "She's SO hungry." : 'She loves hay. She thinks she\'s a cow.'; }
+    doing = c.trip.phase === 'rush' ? "I'm rushing back to my barn!" : "I'm dragging my barn up the pile.";
+    why = c.trip.buried ? "It's getting buried, and a cow can't live in a buried barn." : "I've climbed so far above it. A cow's barn should be close by.";
+  } else if (c.scared > 0) { doing = 'Eek!'; why = 'The pile is wobbling under my paws.'; }
+  else if (c.cheer > 0) { doing = "I'm so happy!"; why = 'I just got what I wanted.'; }
+  else if (c.doing !== 'eat' || !T) { doing = "I'm looking around for hay."; why = "I'm a cow, after all."; }
+  else if (T.carried) { doing = "I'm chasing my hay!"; why = 'Somebody took it. My food getting away is NOT okay.'; }
+  else if (c.pace) { doing = "I'm pacing back and forth."; why = "The hay is just out of reach. I'm looking for a way up."; }
+  else if (c.state === 'wait') { doing = "I'm waiting under the hay."; why = "It's just out of reach. If only the pile were a bit taller..."; }
+  else if (c.state === 'climb') { doing = "I'm climbing up."; why = "There's hay up there!"; }
+  else { doing = c.running ? "I'm running for the hay!" : "I'm heading for the hay."; why = c.feel.hunger > 0.7 ? "I'm SO hungry." : "I love hay. I'm a cow."; }
   return { doing, why, feelings: [
-    { label: 'Hungry', value: c.feel.hunger },
-    { label: 'Settled at home', value: c.feel.settled },
-    { label: 'Worried about her barn', value: clamp01(barnWorry()) },
+    { label: "I'm hungry", value: c.feel.hunger },
+    { label: 'I feel at home', value: c.feel.settled },
+    { label: "I'm worried about my barn", value: clamp01(barnWorry()) },
   ] };
 }
 mindsFrom(() => [{ who: sadie, name: 'Sadie', x: sadie.x, y: sadie.y, h: 1.3 * U, think: sadieThinks }]);

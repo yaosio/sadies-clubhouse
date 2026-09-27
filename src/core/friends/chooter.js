@@ -356,22 +356,22 @@ export const CHOOTER_DOES = { greet, play, zoom, fetch: fetchBall, tease, home }
 function chooterThinks() {
   const c = chooter, f = c.feel;
   let doing, why;
-  if (c.place === 'home') { doing = 'Napping in the barn.'; why = "All worn out. He'll come out once he's rested, or if someone throws a ball!"; }
-  else if (c.place === 'dig') { doing = 'Digging down into the barn.'; why = "The door's buried, so he's making his own way in."; }
-  else if (c.place === 'door') { doing = c.doorIn ? 'Going in for a nap.' : 'Coming out to play!'; why = c.doorIn ? "He's all worn out." : 'Rested and ready for anything!'; }
-  else if (c.doing === 'greet') { doing = 'Running over to say hi to Sadie!'; why = 'He loves absolutely everybody.'; }
-  else if (c.doing === 'zoom') { doing = 'ZOOMIES!'; why = 'Too much energy to hold in!'; }
-  else if (c.doing === 'fetch') { doing = c.carrying ? 'Bringing the ball to Sadie!' : 'Chasing the ball!'; why = c.carrying ? 'He wants to share it with his friend.' : 'Balls are the best thing ever.'; }
-  else if (c.doing === 'tease') { doing = c.loot ? "Playing keep-away with Sadie's hay!" : "Going after Sadie's hay."; why = c.loot ? "It's a game! And now she's finally paying attention to him." : "She's been ignoring him. This'll get her attention!"; }
-  else if (c.doing === 'home') { doing = 'Heading home for a nap.'; why = "He's all worn out."; }
-  else if (c.doing === 'play') { doing = 'Playing near Sadie.'; why = f.ignored > 0.6 ? "She hasn't paid him any attention. Not even a little." : 'He loves being near his friend.'; }
-  else { doing = 'Sniffing around.'; why = 'Everything is interesting!'; }
+  if (c.place === 'home') { doing = "I'm napping in the barn."; why = "I'm all worn out. I'll come out once I'm rested, or if someone throws a ball!"; }
+  else if (c.place === 'dig') { doing = "I'm digging down into the barn!"; why = "The door's buried, so I'm making my own way in."; }
+  else if (c.place === 'door') { doing = c.doorIn ? "I'm going in for a nap." : "I'm coming out to play!"; why = c.doorIn ? "I'm all worn out." : "I'm rested and ready for anything!"; }
+  else if (c.doing === 'greet') { doing = "I'm running over to say hi to Sadie!"; why = 'I love absolutely everybody!'; }
+  else if (c.doing === 'zoom') { doing = 'ZOOMIES!'; why = 'I have too much energy to hold in!'; }
+  else if (c.doing === 'fetch') { doing = c.carrying ? "I'm bringing the ball to Sadie!" : "I'm chasing the ball!"; why = c.carrying ? 'I want to share it with my friend.' : 'Balls are the best thing ever!'; }
+  else if (c.doing === 'tease') { doing = c.loot ? "I'm playing keep-away with Sadie's hay!" : "I'm going after Sadie's hay."; why = c.loot ? "It's a game! And now she's finally paying attention to me!" : "She's been ignoring me. This'll get her attention!"; }
+  else if (c.doing === 'home') { doing = "I'm heading home for a nap."; why = "I'm all worn out."; }
+  else if (c.doing === 'play') { doing = "I'm playing near Sadie!"; why = f.ignored > 0.6 ? "She hasn't paid me any attention. Not even a little." : 'I love being near my friend!'; }
+  else { doing = "I'm sniffing around."; why = 'Everything is interesting!'; }
   const feelings = [
-    { label: 'Energy', value: f.energy },
-    { label: 'Tired', value: f.tired },
-    { label: 'Wants attention', value: f.ignored },
+    { label: "I've got energy", value: f.energy },
+    { label: "I'm tired", value: f.tired },
+    { label: 'I want attention', value: f.ignored },
   ];
-  if (f.missing > 0) feelings.push({ label: 'Wants to say hi', value: f.missing });
+  if (f.missing > 0) feelings.push({ label: 'I want to say hi', value: f.missing });
   return { doing, why, feelings };
 }
 // While he's home, tap his face in the hayloft window.
