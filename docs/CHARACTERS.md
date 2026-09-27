@@ -18,7 +18,7 @@ not from rules that name two characters.
 
   | Offer | Who offers it now |
   |---|---|
-  | `food` | each hay bundle (`hay.js`) |
+  | `food` | each hay bundle (`hay.js`), even while someone's carrying it (then it's `moving`) |
   | `home` | the barn (`barn.js`) |
   | `fetch` | a thrown ball nobody's played with yet (`toys.js`) |
   | `friend` | Sadie, and Chooter once met (their own files) |
@@ -40,9 +40,10 @@ not from rules that name two characters.
 4. The design pillars still win: Sadie is a character with moods, not a cursor, and the dropper
    never moves on its own to help her.
 
-Example, planned next: Chooter feels ignored, so he takes the hay Sadie wants (to him it's play).
-Hay he carries still offers `food`, so Sadie's hunger sends her after it, and to him being chased
-is the best game ever. Nobody writes "Sadie chases Chooter".
+Example (built): Chooter feels ignored, so he takes the hay Sadie wants (to him it's play). Hay he
+carries still offers `food`, so Sadie's hunger sends her after it, and to him being chased is the
+best game ever. Nobody wrote "Sadie chases Chooter": Sadie only knows "run after food that's on the
+move", and Chooter only knows "keep away from whoever's close".
 
 ## Sadie (`src/core/sadie/brain.js`)
 
@@ -56,6 +57,9 @@ The owner's late cat. A cat who thinks she's a cow.
   how at home she feels after her last trip, 1 right after, gone in 60 s. Once it's gone, a barn
   6+ blocks below her or buried 1+ block deep makes `fetchBarn` want 3, more than even hay.)
 - **Scared** by pieces lurching under her feet, or by falling (`scared`, a short-lived fear).
+- **Her food getting away is not okay.** If the hay she's after is being carried off, she doesn't
+  wait or pace: she runs after it, and eats it the moment she can reach it (even out of Chooter's
+  mouth).
 - **Not into play.** She's unimpressed when Chooter brings her the ball.
 - Activities: `eat`, `fetchBarn`.
 - Fits her, not built yet: tiredness, and napping in the barn when tired.
@@ -70,11 +74,19 @@ up.
 - **Absolutely loves everybody.** (`missing`: wanting to say hello. Full when he meets Sadie, so
   he runs over to greet her. He plays near his friend whenever nothing else is going on.)
 - **Thinks everything he does is play, even if it's antagonizing.** He doesn't mean harm: knocking
-  pieces over in the zoomies, and (planned) stealing Sadie's hay, are games to him.
+  pieces over in the zoomies, and stealing Sadie's hay, are games to him.
+- **Wants Sadie's attention.** (`ignored`: builds over about 75 s of playing next to her, since she
+  never pays him any mind, and a bit more each time she's unimpressed with the ball. Once it's
+  full and he can reach the hay she's going for, `tease` wants 2.5: he snatches it and plays
+  keep-away, darting off when she's within 3 blocks and bouncing in place, facing her, when she
+  falls behind. It ends when she eats it out of his mouth, or after 20 s when he gets bored and
+  drops it. Either way he's satisfied and `ignored` goes back to 0.) He can snatch hay up to about
+  3.9 blocks above the pile with a leap.
 - **Gets tired** (`tired`: worn out after 70–120 s out, twice as fast in the zoomies). Then he goes
   home to the barn, rests 25–45 s, and comes back out. A thrown ball gets him out right away.
-- Activities: `greet` (want 4), `fetch` (3, busy while carrying), `zoom` (2, busy until his
-  energy is used up; not when worn out), `home` (1.5, busy once inside), `play` (1).
+- Activities: `greet` (want 4), `fetch` (3, busy while carrying), `tease` (2.5, busy while he
+  has the hay), `zoom` (2, busy until his energy is used up; not when worn out), `home` (1.5, busy
+  once inside), `play` (1).
 
 ## The dropper (future)
 

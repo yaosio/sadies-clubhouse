@@ -10,7 +10,7 @@ import { wake } from '../core/physics/solver.js';
 import { drp } from '../core/dropper.js';
 import { chooter } from '../core/friends/chooter.js';
 import { sadie } from '../core/sadie/brain.js';
-import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, zoomiesNow, goHomeNow, comeOutNow } from '../core/debug.js';
+import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, zoomiesNow, goHomeNow, comeOutNow, teaseNow } from '../core/debug.js';
 import { camState } from '../render/view.js';
 import { clearTower, startOver } from '../core/save.js';
 
@@ -93,6 +93,7 @@ act('meetChooter', meetChooterNow);
 act('zoomies', zoomiesNow);
 act('goHome', goHomeNow);
 act('comeOut', comeOutNow);
+act('tease', teaseNow);
 // These can't be undone, so each needs a second tap within a few seconds.
 function confirmTap(id, label, fn) {
   const b = $(id); let armed = 0;
@@ -118,6 +119,7 @@ function refresh() {
   $('zoomies').disabled = !chooter.met || chooter.doing === 'zoom';
   $('goHome').disabled = !chooter.met || chooter.place !== 'out' || chooter.doing === 'home';
   $('comeOut').disabled = !chooter.met || chooter.place !== 'home';
+  $('tease').disabled = !chooter.met || chooter.feel.ignored >= 1 || chooter.doing === 'tease';
   $('pieceCount').textContent = `${world.pieces.length} pieces on the board, ${world.fossils} of them fossils.`;
 }
 setInterval(refresh, 400);

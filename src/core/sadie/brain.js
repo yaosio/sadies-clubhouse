@@ -8,11 +8,11 @@
 //              and she goes and drags it up.
 //   scared   - pieces lurching under her feet, or falling (kept as `scared`, read by mood.js).
 // Her activities: eat (walk, run and climb to the nearest hay; wait under it if it's out of
-// reach, then pace, further each lap) and fetchBarn (rush to the barn, grab the rope, drag it up
+// reach, then pace, further each lap; if her hay is being carried off, she runs after it) and fetchBarn (rush to the barn, grab the rope, drag it up
 // to the top of the pile).
 import { U, W } from '../../config.js';
 import { world } from '../world.js';
-import { emit } from '../events.js';
+import { emit, on } from '../events.js';
 import { emote, spark } from '../effects.js';
 import { groundAt, STEP_UP, surf, SURF_N, SURF_RES } from '../surface.js';
 import { eatHay } from '../hay.js';
@@ -66,6 +66,7 @@ const eat = {
     if (!c.target || c.target.eaten) pickTarget();
     const T = c.target;
     if (!T) { c.state = 'idle'; return 'there'; }
+    if (T.carried) { c.pace = null; c.waitT = 0; } // her food is getting away: no waiting around
     // Under the hay but can't reach it: wait a moment, then pace back and forth,
     // a little further each lap, in case it's stuck in a hole or the gap is wide.
     let goal = T.x;
@@ -80,10 +81,12 @@ const eat = {
       if (c.waitT > 1.5) c.pace = { side: Math.random() < 0.5 ? -1 : 1, dist: 1.5 * U };
       return 'there';
     }
-    walkToward(goal, Math.abs(T.x - c.x), !c.pace, 1, dt);
+    walkToward(goal, T.carried ? Infinity : Math.abs(T.x - c.x), !c.pace, 1, dt); // run after food on the move
     return 'moving';
   },
 };
+// Somebody took the hay she was after: hey!
+on('hayStolen', h => { if (h === sadie.target) emote('!', '#e8394f', sadie.x, sadie.y + 1.5 * U, 0, 40); });
 
 // ---------- fetch the barn ----------
 // She rushes back to it, grabs the rope and drags it up to the top of the pile behind her,

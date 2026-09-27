@@ -71,3 +71,5 @@ export function meetChooterNow() { if (!chooter.met) meetChooter(); }
 export function zoomiesNow() { if (!chooter.met) return; chooter.feel.energy = 1; chooter.feel.tired = 0; }
 export function goHomeNow() { if (chooter.met && chooter.place === 'out') chooter.feel.tired = 1; }
 export function comeOutNow() { if (chooter.met && chooter.place === 'home') chooter.feel.tired = 0; }
+// Fed up with being ignored: he'll snatch Sadie's hay as soon as he can reach it.
+export function teaseNow() { if (chooter.met) chooter.feel.ignored = 1; }

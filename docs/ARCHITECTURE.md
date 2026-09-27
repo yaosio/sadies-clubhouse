@@ -36,7 +36,7 @@ tell the screen something, it emits an event (below).
 | `core/friends/chooter.js` | Chooter, Sadie's first friend: feelings (energy, tired, missing), activities (`greet`, `play`, `zoom` knocking pieces aside, `fetch` the ball, `home` to rest in the barn), his body (trot, leap, fall). Meets Sadie at 15 blocks. Offers `friend` once met. |
 | `core/toys.js` | Toys the player throws for the friends (a ball so far): one out at a time, bounces off the pile without pushing it, vanishes once played with. |
 | `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
-| `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). |
+| `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). Offers `food`. Can be picked up (`pickUpHay`, it goes where the carrier puts it) and put down (`putDownHay`, drops onto the pile). |
 | `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
 | `core/save.js` | Saving and loading: `snapshot()` turns the board, Sadie, barn, hay, dropper and Chooter into plain data; `restore()` puts it back (throws on a save it can't read, and `loadGame()` then starts fresh). `clearTower()` (keeps friends and bests) and `startOver()` (forgets everything). Saved under `sadies-dropper-world.save`, format `SAVE_VERSION`. |
 | `core/debug.js` | Dev-sheet helpers (for us, not players): game speed, raining lots of pieces, building a tall pile fast, putting Sadie on top, and making Sadie and Chooter do things right now. Uses no random numbers unless a button was pressed. |
@@ -76,6 +76,7 @@ tell the screen something, it emits an event (below).
 | `friendMovedIn` (name) | friends/chooter | hud (toast) |
 | `zoomies` | friends/chooter | hud (toast) |
 | `ballBack` | friends/chooter | hud (toast) |
+| `hayStolen` (bundle) | friends/chooter | hud (toast), sadie/brain ("hey!") |
 | `toyThrown` (kind) | toys | nobody yet |
 | `nextChanged` (type) | dropper | hud (preview) |
 | `playerActed` | dropper | hud (hides the first-run tip) |

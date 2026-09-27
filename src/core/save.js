@@ -50,7 +50,7 @@ export function snapshot() {
     held: world.held && { type: world.held.type, cs: world.held.cs, ang: world.held.tAng },
     drp: { x: r2(drp.x), tX: r2(drp.tX), y: r2(drp.y) },
     pieces,
-    hay: world.hay.filter(h => !h.eaten).map(h => ({ x: r2(h.x), y: r2(h.y), y0: r2(h.y0) })),
+    hay: world.hay.filter(h => !h.eaten).map(h => h.carried ? { x: r2(h.x), y: r2(h.y0), y0: r2(h.y0) } : { x: r2(h.x), y: r2(h.y), y0: r2(h.y0) }), // snatched hay goes back to its spot
     trail: { x: trail.x, dir: trail.dir },
     sadie: pick(sadie, SADIE_KEYS),
     chooter: chooter.met ? pick(chooter, CHOOTER_KEYS) : null,
@@ -98,10 +98,10 @@ export function restore(s) {
     Object.assign(chooter, s.chooter);
     // halfway through a door or a dig: finish it; fetching a ball: the ball isn't saved
     if (chooter.place === 'door' || chooter.place === 'dig') { if (chooter.doorIn) chooter.place = 'home'; else chooter.place = 'out'; }
-    if (chooter.doing === 'fetch') chooter.doing = null;
+    if (chooter.doing === 'fetch' || chooter.doing === 'tease') chooter.doing = null; // the ball and any snatched hay aren't saved as held
     if (chooter.place === 'home') chooter.doing = 'home';
-    chooter.carrying = false; chooter.ballDone = undefined;
-    chooter.feel = Object.assign({ energy: 0, tired: 0, missing: 0 }, chooter.feel);
+    chooter.carrying = false; chooter.loot = chooter.hay = null; chooter.ballDone = undefined;
+    chooter.feel = Object.assign({ energy: 0, tired: 0, missing: 0, ignored: 0 }, chooter.feel);
   }
   toy.state = 'none';
   emit('nextChanged', world.nextType);

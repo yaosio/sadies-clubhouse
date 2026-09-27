@@ -56,6 +56,7 @@ on('friendMet', name => toast(`Sadie made a friend: ${name}!`));
 on('friendMovedIn', name => toast(`${name} moved into the barn!`));
 on('zoomies', () => toast('Zoomies!'));
 on('ballBack', () => toast('Good boy, Chooter!'));
+on('hayStolen', () => toast('Chooter took the hay!'));
 on('nextChanged', () => drawNext());
 on('playerActed', hideTip);
 on('followChanged', v => topBtn.classList.toggle('following', v));

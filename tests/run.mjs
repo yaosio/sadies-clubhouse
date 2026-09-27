@@ -307,5 +307,36 @@ const P = physParams({ ...DEFAULTS });
   check('"Start over" forgets everything, Chooter included', world.pieces.filter(p => !p.fixed).length === 0 && !chooter.met && world.climbBest === 0);
 }
 
+// 10. Chooter teases Sadie: fed up with being ignored, he snatches her hay; she chases him for it
+{
+  const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
+  const dt = 1 / 60;
+  resetGame();
+  for (let f = 0; f < 90 * 60; f++) { if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); update(dt); } // grow a pile
+  meetChooter();
+  let stolen = 0, caught = 0, dropped = 0, chaseSecs = 0, longest = 0, ranAfter = 0, hayOut = true, sunk = 0, longestSunk = 0;
+  on('hayStolen', () => stolen++);
+  let loot = null, t0 = 0, firstSteal = null;
+  for (let f = 0; f < 240 * 60; f++) {
+    const t = f * dt;
+    if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U);
+    update(dt);
+    if (chooter.loot && !loot) { loot = chooter.loot; t0 = t; if (firstSteal === null) firstSteal = t; }
+    if (loot) {
+      chaseSecs += dt;
+      if (sadie.target === loot && sadie.running) ranAfter++;
+      if (!chooter.loot) { if (loot.eaten) caught++; else dropped++; longest = Math.max(longest, t - t0); loot = null; }
+    }
+    if (world.hay.filter(h => !h.eaten).length !== 3) hayOut = false;
+    const inside = chooter.place === 'out' && !chooter.air && (groundAt(chooter.x, chooter.y) - chooter.y) / U > 0.6;
+    sunk = inside ? sunk + 1 : 0; longestSunk = Math.max(longestSunk, sunk);
+  }
+  check('fed up with being ignored, Chooter snatches the hay Sadie is after', stolen >= 1, `${stolen} time(s) in 4 minutes, first after ${firstSteal === null ? '-' : firstSteal.toFixed(0)} s`);
+  check('Sadie runs after her hay', ranAfter > 0, `running after it ${(ranAfter / 60).toFixed(0)} s of ${chaseSecs.toFixed(0)} s`);
+  check('keep-away always ends: she catches him or he drops it', caught + dropped === stolen - (loot ? 1 : 0) && longest <= 21, `${caught} caught, ${dropped} dropped, longest ${longest.toFixed(0)} s`);
+  check('there are always 3 hay bundles out, stolen ones included', hayOut);
+  check('Chooter never gets stuck in the pile while teasing', longestSunk <= 3, `longest ${longestSunk} frame(s)`);
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
 process.exit(failed ? 1 : 0);

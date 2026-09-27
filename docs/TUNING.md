@@ -102,6 +102,12 @@ he stays met (saved in the browser), even after clearing the tower.
   25–45 s (until rested), poking his head out of the hayloft window; a thrown ball gets him out
   straight away.
 
+- Teasing Sadie: fed up after about 75 s of playing beside her (sooner if she's unimpressed with
+  his ball: each "…" counts for about 19 s), he snatches the hay she's going for if it's within
+  3.9 blocks of the pile, leaping up for it. Keep-away: darts 4 blocks away at 3.1 blocks/s when
+  she's within 3 blocks, bounces facing her otherwise; drops it after 20 s. Sadie runs after hay
+  that's being carried, and eats it once it's within her reach.
+
 ## Toys (`core/toys.js`)
 One out at a time. The dropper drone throws it, taking 0.6–1.3 s to land near where you tapped.
 Ball radius 0.26 blocks, gravity 1400, keeps 55% of its speed on each bounce, rolls downhill.
@@ -185,18 +191,24 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
   feeling that wears off, which can land a frame differently, and in a pile one frame is enough to
   make a different trip. Everything before this test came out exactly the same.)
 - Chooter: meets Sadie only once she's 15 blocks up. On a pile grown for 90 s, over 4 minutes he
-  greets her (about 15 s, running in from the far side), has 3 bouts of zoomies knocking about 27
-  pieces, brings back all 11 balls thrown for him, moves into the barn and comes back out, and
+  greets her (about 15 s, running in from the far side), has 3 bouts of zoomies knocking about 23
+  pieces, brings back 6 of the 7 balls thrown for him (fewer balls than before because he now also
+  spends time teasing Sadie), moves into the barn and comes back out, and
   never gets stuck in the pile or leaves the board. This test runs after the others, so it doesn't
   change their numbers.
-- Debug tools (runs after the play tests): raining 100 pieces drops them all in about 10 s with no
-  piece sunk into another more than about 1 px; "Build a tall pile" peaks around 16.4 blocks and goes
-  back to normal speed; "Put her on top" puts Sadie about 14.5 blocks up, standing; the Sadie and Chooter
+- Debug tools (runs after the play tests): raining 100 pieces drops them all in about 9 s with no
+  piece sunk into another more than about 1 px; "Build a tall pile" peaks around 18 blocks and goes
+  back to normal speed; "Put her on top" puts Sadie about 17 blocks up, standing; the Sadie and Chooter
   buttons each start what they say; clearing the tower stops any rain.
-- Saving (runs last): a game saved after 70 s of play (47 pieces, 25 still moving, Chooter met)
-  comes back the same after a JSON round trip, then plays on for 20 s with Sadie never stuck in the
-  pile and no piece sunk into another more than about 0.4 px; a save from another version is
+- Saving: a game saved after 70 s of play (47 pieces, 38 still moving, Chooter met) comes back the
+  same after a JSON round trip, then plays on for 20 s with Sadie never stuck in the pile and no
+  piece sunk into another more than about 0.6 px; a save from another version is
   refused; Clear tower keeps Chooter; Start over forgets him.
 - The Chooter, debug and save numbers above moved a little when the characters moved onto
   feelings: Chooter now draws his random numbers at different moments, and the tests share one
-  stream of random numbers. His behavior's rules are the same.
+  stream of random numbers. His behavior's rules are the same. (They moved again when he learned to
+  tease Sadie, for the same reason plus the time he spends teasing.)
+- Teasing (runs last): on a pile grown for 90 s, over 4 minutes with a helpful player, Chooter
+  snatches Sadie's hay twice (first after about 46 s), she runs after it nearly the whole time, one
+  chase ends with her catching him and one with him dropping it at 20 s, there are always 3 bundles
+  out, and he never gets stuck in the pile.

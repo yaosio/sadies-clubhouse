@@ -9,6 +9,10 @@
 //   tired   - creeps up while he's out and about (faster during the zoomies). Once he's worn out
 //             he goes home to the barn for a rest and pokes his head out of the hayloft window.
 //   missing - wanting to say hello to a friend. Full when he first meets Sadie.
+//   ignored - builds while he plays next to Sadie and she pays him no attention (she's a cat; she
+//             never does), and when she's unimpressed with the ball he brings her. Once he's had
+//             enough, he snatches the hay she's going for and plays keep-away. To him it's a
+//             game, and her chasing him is exactly the attention he wanted.
 // Anything that says "chase me" (a thrown ball) beats everything but the zoomies: he chases it
 // and proudly brings it to Sadie. Otherwise he plays near his friend.
 //
@@ -24,7 +28,8 @@ import { wake } from '../physics/solver.js';
 import { barn, barnX, barnFloor, BARN_HALF } from '../barn.js';
 import { sadie } from '../sadie/brain.js';
 import { toy, holdToy, dropToy, poofToy, toyResting } from '../toys.js';
-import { drift } from '../mind/feelings.js';
+import { pickUpHay, putDownHay } from '../hay.js';
+import { drift, nudge } from '../mind/feelings.js';
 import { offers, offersFrom } from '../mind/offers.js';
 import { think, switchTo, done } from '../mind/think.js';
 
@@ -42,13 +47,16 @@ const ZOOM_LEN = [7, 10];       // seconds his energy lasts once the zoomies sta
 const TIRED_OUT = [70, 120];    // seconds out and about before he's worn out (varies each outing)
 const ZOOM_TIRES = 2;           // the zoomies tire him this many times faster
 const REST = [25, 45];          // seconds of rest in the barn before he's ready to go again
-const freshFeelings = () => ({ energy: 0, tired: 0, missing: 0 });
+const IGNORED_FILL = 75;        // seconds of playing next to Sadie, with no attention back, before he's had enough
+const UNIMPRESSED = 0.25;       // how much it stings when she's not impressed with the ball
+const freshFeelings = () => ({ energy: 0, tired: 0, missing: 0, ignored: 0 });
 
 // place: out | home | door (going in or out through the cat flap) | dig (digging into a buried barn)
-// doing: greet | play | zoom | fetch | home (see think.js); carrying: he has the ball in his mouth
+// doing: greet | play | zoom | fetch | tease | home (see think.js); carrying: he has the ball in his
+// mouth; loot: the hay he's snatched
 export const chooter = {
   met: !!store.get('sadie.chooter.met', false), movedIn: !!store.get('sadie.chooter.movedIn', false),
-  place: 'out', doing: null, x: 0, y: 0, vx: 0, vy: 0, air: false, dir: 1, phase: 0, mood: 'happy', carrying: false,
+  place: 'out', doing: null, x: 0, y: 0, vx: 0, vy: 0, air: false, dir: 1, phase: 0, mood: 'happy', carrying: false, loot: null, hay: null,
   feel: freshFeelings(), windUp: 1 / 55, outFor: 95, restFor: 35,
   actT: 0, spotT: 0, spot: 0, stuckT: 0, doorT: 0, doorIn: false, doorX: 0, barkT: 0, hopT: 0, pant: 0,
 };
@@ -63,7 +71,7 @@ function bark() { const c = chooter; emote('Woof!', '#3a2658', c.x + c.dir * 0.8
 export function resetChooter() {
   const c = chooter;
   if (!c.met) return;
-  Object.assign(c, { place: 'out', doing: null, carrying: false, vx: 0, vy: 0, air: false, dir: -1, phase: 0, stuckT: 0, pant: 0, barkT: 0, spotT: 0 });
+  Object.assign(c, { place: 'out', doing: null, carrying: false, loot: null, hay: null, vx: 0, vy: 0, air: false, dir: -1, phase: 0, stuckT: 0, pant: 0, barkT: 0, spotT: 0 });
   c.x = Math.min(W - 0.5 * U, barnX() + BARN_HALF + 1.2 * U); c.y = groundAt(c.x, 0);
   newOuting(); c.windUp = 1 / 55; c.feel.energy = 1 - FIRST_ZOOM * c.windUp;
 }
@@ -72,7 +80,7 @@ export function meetChooter() {
   c.met = true; store.set('sadie.chooter.met', true);
   // he comes bounding in from the far side of the board, along the top of the pile
   c.x = sadie.x > W / 2 ? 0.6 * U : W - 0.6 * U; c.y = groundAt(c.x, 1e9); c.dir = Math.sign(sadie.x - c.x) || 1;
-  Object.assign(c, { place: 'out', doing: null, carrying: false, vx: 0, vy: 0, air: false, stuckT: 0 });
+  Object.assign(c, { place: 'out', doing: null, carrying: false, loot: null, hay: null, vx: 0, vy: 0, air: false, stuckT: 0 });
   newOuting(); c.windUp = 1 / 55; c.feel.energy = 1 - (FIRST_ZOOM + 10) * c.windUp; c.feel.missing = 1;
   emit('friendMet', 'Chooter');
 }
@@ -245,12 +253,58 @@ const fetchBall = {
     const there = res === 'there' && Math.abs(sadie.y - c.y) < 1.2 * U;
     if (there || c.actT <= 0) {
       dropToy(toy.x, toy.y, c.dir * 20, 60); toy.played = true; c.carrying = false;
-      if (there) { hearts(c.x, c.y, 5); emote('…', '#6d5a80', sadie.x, sadie.y + 1.6 * U, 0, 30); emit('ballBack'); } // Sadie is not impressed
+      if (there) { hearts(c.x, c.y, 5); emote('…', '#6d5a80', sadie.x, sadie.y + 1.6 * U, 0, 30); emit('ballBack'); nudge(c.feel, 'ignored', UNIMPRESSED); } // Sadie is not impressed
       c.spotT = 1.5; c.ballDone = 1.5; done(c);
     }
     return res;
   },
   stop: c => { if (c.carrying) { c.carrying = false; dropToy(toy.x, toy.y); } },
+};
+
+// Had enough of being ignored: snatch the hay Sadie's going for and play keep-away with it.
+// He darts off when she gets close and waits, bouncing, when she falls behind. It ends when she
+// catches him and eats it out of his mouth, or when he gets bored and drops it.
+const HAY_REACH = JUMP_MAX + 1.3 * U; // how high above the pile he can snatch something with a leap
+const KEEP_AWAY = 20;                // seconds before he gets bored and drops it
+const herHay = () => { // the hay Sadie's after, if he could get it
+  const h = sadie.doing === 'eat' ? sadie.target : null;
+  return h && !h.eaten && !h.carried && h.y - groundAt(h.x, h.y) <= HAY_REACH ? h : null;
+};
+const tease = {
+  want: c => c.feel.ignored >= 1 && herHay() ? 2.5 : 0,
+  busy: c => !!c.loot,
+  start(c) { c.hay = herHay(); c.actT = 12; c.stuckT = 0; },
+  stop(c) { if (c.loot) putDownHay(c.loot); c.loot = c.hay = null; },
+  step(c, dt) {
+    c.actT -= dt;
+    if (!c.loot) { // go and get it
+      const h = c.hay, mouthY = c.y + 0.85 * U;
+      if (!h || h.eaten || h.carried || c.actT <= 0) { c.hay = null; done(c); return 'there'; } // Sadie got there first, or he can't
+      if (Math.abs(h.x - c.x) < 0.7 * U && Math.abs(h.y - mouthY) < 0.6 * U) { // got it!
+        pickUpHay(h); c.loot = h; c.hay = null; c.actT = KEEP_AWAY; c.hopT = 0.3; bark(); emit('hayStolen', h);
+        return 'there';
+      }
+      const res = walk(h.x, RUN, JUMP_MAX, dt);
+      c.stuckT = res === 'blocked' ? c.stuckT + dt : 0;
+      if (c.stuckT > 4) { c.hay = null; done(c); }
+      else if (res === 'there' && !c.air && h.y > mouthY) jump(Math.min(JUMP_MAX, h.y - c.y - 1.3 * U), 0); // leap for it
+      return res;
+    }
+    const h = c.loot;
+    if (h.eaten) { c.loot = null; c.feel.ignored = 0; hearts(c.x, c.y, 4); c.spotT = 1; done(c); return 'there'; } // she got him! best game ever
+    let res = 'there';
+    const d = c.x - sadie.x;
+    if (Math.abs(d) < 3 * U) { // she's close: dart away
+      const away = Math.sign(d) || c.dir, goal = Math.min(W - U, Math.max(U, c.x + away * 4 * U));
+      res = walk(goal, TROT * 1.4, JUMP_MAX, dt);
+    } else if (!c.air) { // she's behind: face her and bounce, come on!
+      c.dir = Math.sign(-d) || c.dir; c.hopT -= dt;
+      if (c.hopT <= 0) { jump(0, 0); c.hopT = 0.7 + Math.random() * 0.8; }
+    }
+    h.x = c.x + c.dir * 0.95 * U; h.y = c.y + 0.85 * U;
+    if (c.actT <= 0) { putDownHay(h); c.loot = null; c.feel.ignored = 0; c.spotT = 1; done(c); } // bored: drops it
+    return res;
+  },
 };
 
 // Worn out: go home to the barn (in through the cat flap, or dig in if it's buried), rest, and
@@ -290,7 +344,7 @@ const home = {
   },
 };
 
-export const CHOOTER_DOES = { greet, play, zoom, fetch: fetchBall, home };
+export const CHOOTER_DOES = { greet, play, zoom, fetch: fetchBall, tease, home };
 // Start an activity right now (the dev sheet's buttons).
 export function chooterDo(name) { if (chooter.met && chooter.doing !== name) switchTo(chooter, CHOOTER_DOES, name); }
 
@@ -302,10 +356,11 @@ export function updateChooter(dt) {
   const f = c.feel;
   if (c.place === 'home') drift(f, { tired: -1 / c.restFor }, dt);
   else if (c.place === 'out') drift(f, c.doing === 'zoom' ? { energy: -1 / c.zoomLen, tired: ZOOM_TIRES / c.outFor } : { energy: c.windUp, tired: 1 / c.outFor }, dt);
+  if (c.doing === 'play') drift(f, { ignored: 1 / IGNORED_FILL }, dt); // playing next to Sadie, who pays him no attention
   if (c.place === 'out') body(dt);
   const res = think(c, CHOOTER_DOES, dt);
   if (c.place !== 'out') return;
   if (c.ballDone !== undefined) { c.ballDone -= dt; if (c.ballDone <= 0) { c.ballDone = undefined; if (toy.state === 'fly') poofToy(); } } // the ball's been played with
   c.moving = res === 'moving';
-  c.mood = c.doing === 'zoom' ? 'zoom' : c.carrying ? 'fetch' : c.pant > 0 ? 'pant' : c.barkT > 0 ? 'bark' : 'happy';
+  c.mood = c.doing === 'zoom' ? 'zoom' : c.carrying || c.loot ? 'fetch' : c.pant > 0 ? 'pant' : c.barkT > 0 ? 'bark' : 'happy';
 }
