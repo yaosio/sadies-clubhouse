@@ -16,6 +16,7 @@ const { resetGame, update } = await import('../src/core/game.js');
 const { groundAt } = await import('../src/core/surface.js');
 const { sendHeldTo } = await import('../src/core/dropper.js');
 const { sadie } = await import('../src/core/sadie/brain.js');
+const { HAY_OUT, STEP_MAX } = await import('../src/core/hay.js');
 const { computeSurface, surfAt } = await import('../src/core/surface.js');
 const { updateFossils, FOSSIL_DEPTH } = await import('../src/core/fossil.js');
 
@@ -92,7 +93,11 @@ const P = physParams({ ...DEFAULTS });
 // 4. Two minutes of real play: Sadie, the dropper, stars, all together
 {
   resetGame();
-  let maxRise = 0, sunkFrames = 0, longestSunk = 0, starsBelowStart = 0, prevY = sadie.y;
+  let maxRise = 0, sunkFrames = 0, longestSunk = 0, hayBelowStart = 0, prevY = sadie.y;
+  let lastMeal = 0, longestWait = 0, eaten = 0, badGap = 0, hayOut = true, prevX = null;
+  const seen = new Set(), placed = [];
+  const noteHay = () => { for (const h of world.hay) if (!seen.has(h)) { seen.add(h); placed.push(h.x); } };
+  noteHay();
   const dt = 1 / 60;
   for (let f = 0; f < 120 * 60; f++) {
     if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); // a helpful player nudging the dropper
@@ -101,14 +106,22 @@ const P = physParams({ ...DEFAULTS });
     // buried inside the pile without climbing out (a single frame can happen as she steps onto a ledge)
     const sunk = sadie.state !== 'climb' && (groundAt(sadie.x, sadie.y) - sadie.y) / U > 0.6;
     sunkFrames = sunk ? sunkFrames + 1 : 0; longestSunk = Math.max(longestSunk, sunkFrames);
-    for (const s of world.stars) if (s.y < s.y0 - 0.01) starsBelowStart++;
+    for (const h of world.hay) if (!h.eaten && h.y < h.y0 - 0.01) hayBelowStart++;
+    noteHay();
+    if (world.hay.filter(h => !h.eaten).length !== HAY_OUT) hayOut = false;
+    if (world.hayEaten > eaten) { eaten = world.hayEaten; longestWait = Math.max(longestWait, f / 60 - lastMeal); lastMeal = f / 60; }
   }
-  const got = world.stars.filter(s => s.got).length;
+  longestWait = Math.max(longestWait, 120 - lastMeal);
+  for (let i = 1; i < placed.length; i++) { const d = Math.abs(placed[i] - placed[i - 1]); if (d < 1.4 * U || d > STEP_MAX + 0.01) badGap++; }
+  const got = world.hayEaten;
   check('game runs two minutes without broken numbers', !hasNaN(world.pieces) && isFinite(sadie.x) && isFinite(sadie.y));
   check('Sadie never teleports upward', maxRise < 0.1, `fastest rise ${(maxRise * 60).toFixed(1)} blocks/s`);
   check('Sadie never stays stuck inside the pile', longestSunk <= 3, `longest ${longestSunk} frame(s) inside before climbing out`);
-  check('stars never drop below where they started', starsBelowStart === 0);
-  check('with a little help, Sadie collects stars', got >= 4, `${got} of ${world.stars.length} stars, ${world.pieces.length} pieces`);
+  check('hay never drops below where it appeared', hayBelowStart === 0);
+  check('there are always 3 hay bundles out', hayOut);
+  check('each new bundle is a short walk from the last one', badGap === 0, `${placed.length} bundles placed`);
+  check('with a little help, Sadie eats hay', got >= 6, `${got} bundles, ${world.pieces.length} pieces`);
+  check('Sadie never waits too long for her next snack', longestWait < 40, `longest wait ${longestWait.toFixed(0)} s`);
 }
 
 // 5. Deep in a tall pile, settled pieces become fossils: permanent ground that nothing wakes

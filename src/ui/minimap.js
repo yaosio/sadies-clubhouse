@@ -1,4 +1,4 @@
-// The map strip: outline of the whole pile, stars, Sadie, the dropper, and the current view.
+// The map strip: outline of the whole pile, hay, Sadie, the dropper, and the current view.
 // Tap or drag on it to send the dropper there and look at that spot.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
@@ -13,7 +13,8 @@ export function drawMini(time) {
   if (mcv.width !== Math.round(w * vp.dpr)) { mcv.width = Math.round(w * vp.dpr); mcv.height = Math.round(h * vp.dpr); }
   mctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0); mctx.clearRect(0, 0, w, h);
   const pad = 6, iw = w - pad * 2, ih = h - pad * 2;
-  let maxH = 21 * U; for (let i = 0; i < SURF_N; i++) if (surf[i] + 2 * U > maxH) maxH = surf[i] + 2 * U;
+  let maxH = 8 * U; for (let i = 0; i < SURF_N; i++) if (surf[i] + 2 * U > maxH) maxH = surf[i] + 2 * U;
+  for (const s of world.hay) if (s.y + U > maxH) maxH = s.y + U;
   const mx = x => pad + x / W * iw, my = y => pad + ih - y / maxH * ih;
   const ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#2a1840';
   mctx.fillStyle = ink; mctx.globalAlpha = 0.28;
@@ -21,11 +22,10 @@ export function drawMini(time) {
   for (let i = 0; i < SURF_N; i += 2) mctx.lineTo(mx(i * SURF_RES), my(surf[i]));
   mctx.lineTo(mx(W), my(0)); mctx.closePath(); mctx.fill();
   mctx.globalAlpha = 1;
-  for (const s of world.stars) {
-    mctx.beginPath(); mctx.arc(mx(s.x), my(s.y), 2.6, 0, Math.PI * 2);
-    if (s.got) { mctx.strokeStyle = '#d9920f'; mctx.lineWidth = 1.2; mctx.stroke(); }
-    else if (s === sadie.target) { mctx.fillStyle = '#ff4f86'; mctx.fill(); }
-    else { mctx.fillStyle = '#ffc21f'; mctx.fill(); }
+  for (const s of world.hay) {
+    if (s.eaten) continue;
+    mctx.beginPath(); mctx.arc(mx(s.x), my(s.y), 2.8, 0, Math.PI * 2);
+    mctx.fillStyle = s === sadie.target ? '#ff4f86' : '#e0b43c'; mctx.fill();
   }
   const half = vp.vw / 2 / cam.z;
   mctx.strokeStyle = ink; mctx.globalAlpha = 0.6; mctx.lineWidth = 1.5;

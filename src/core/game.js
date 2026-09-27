@@ -6,7 +6,7 @@ import { world } from './world.js';
 import { emit } from './events.js';
 import { physicsStep } from './physics/solver.js';
 import { surf, computeSurface, groundAt } from './surface.js';
-import { makeStars, updateStars } from './stars.js';
+import { resetHay, updateHay } from './hay.js';
 import { drp, SUPPLY_MAX, drawFromBag, spawn, updateDropper } from './dropper.js';
 import { sadie, updateSadie } from './sadie/brain.js';
 import { updateMood } from './sadie/mood.js';
@@ -17,11 +17,11 @@ export const timing = { physMs: 0 }; // read by the performance overlay
 
 export function resetGame() {
   world.pieces = []; world.held = null; world.bag = []; world.nextType = drawFromBag();
-  world.stars = makeStars();
   drp.x = drp.tX = W / 2; drp.y = 3 * U; drp.claw = 0; world.spawnTimer = 0; world.particles = [];
   world.topAll = world.topSettled = 0; world.fossils = 0; world.supply = SUPPLY_MAX; surf.fill(0);
   Object.assign(sadie, { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, pace: null, waitT: 0, scared: 0, mood: 'neutral', run: 0, running: false });
   world.emotes = [];
+  resetHay(sadie.x);
   spawn();
   emit('reset');
 }
@@ -41,8 +41,8 @@ export function update(dt) {
   }
   if (world.topSettled / U > world.best + 0.05) { world.best = world.topSettled / U; store.set('jellystack.best', +world.best.toFixed(2)); }
 
-  updateStars(dt);
   computeSurface();
+  updateHay(dt);
   updateFossils(dt);
   updateSadie(dt);
   updateMood(dt);
