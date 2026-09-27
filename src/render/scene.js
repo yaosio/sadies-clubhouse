@@ -66,7 +66,7 @@ export function draw(time) {
   // goal stars
   for (const s of world.stars) {
     const X = sxf(s.x), Y = syf(s.y + (s.got ? 0 : Math.sin(time * 0.003 + s.h) * 0.12 * U));
-    if (Y < -40 || Y > vp.vh + 40) continue;
+    if (Y < -40 || Y > vp.vh + 40 || X < -40 || X > vp.vw + 40) continue;
     const r = 0.5 * U * cam.z * (1 + s.pop * 0.6);
     if (s.got) {
       starPath(X, Y, r); ctx.fillStyle = 'rgba(255,214,90,0.35)'; ctx.fill();
@@ -101,7 +101,8 @@ export function draw(time) {
 
   // pieces
   for (const p of world.pieces) {
-    if (syf(p.maxY) > vp.vh + 10 || syf(p.minY) < -10) continue;
+    // only pieces on screen (with a little margin for the outline)
+    if (syf(p.maxY) > vp.vh + 10 || syf(p.minY) < -10 || sxf(p.maxX) < -10 || sxf(p.minX) > vp.vw + 10) continue;
     drawJelly(p.T, p.x, p.y, p.color, 1, time);
   }
   drawSadie(time);

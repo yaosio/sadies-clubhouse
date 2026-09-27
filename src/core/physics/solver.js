@@ -91,6 +91,53 @@ function bounds(p, mu) {
 const SLEEP_SPEED = 0.07, SLEEP_TIME = 1.2, WAKE_SPEED = 0.2;
 export const PSTATS = { pairs: 0, touching: 0 }; // profiling counters, reset by the game each frame
 export function wake(p) { if (p.asleep) { p.asleep = false; p.still = 0; } }
+
+// Finding pairs that might touch. Sleepers don't move during a step, so they go into a grid
+// once per step, and each awake piece only looks in the grid cells around it. The pairs are
+// then sorted into the same order as a plain "every piece against every piece" loop, so the
+// results are exactly the same as checking everything, just without the wasted work.
+const CELL = U * 2;
+const grid = new Map();
+let stamp = new Int32Array(0), stampId = 0, pairBuf = new Float64Array(1024), awakeIdx = new Int32Array(0);
+const cellKey = (cx, cy) => cy * 4096 + cx;
+function buildSleeperGrid(pieces) {
+  for (const list of grid.values()) list.length = 0;
+  for (let b = 0; b < pieces.length; b++) {
+    const B = pieces[b]; if (!B.asleep) continue;
+    const x0 = Math.floor(B.minX / CELL), x1 = Math.floor(B.maxX / CELL), y0 = Math.floor(B.minY / CELL), y1 = Math.floor(B.maxY / CELL);
+    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
+      const k = cellKey(cx, cy); let list = grid.get(k);
+      if (!list) { list = []; grid.set(k, list); }
+      list.push(b);
+    }
+  }
+}
+function addPair(n, key) {
+  if (n === pairBuf.length) { const nb = new Float64Array(n * 2); nb.set(pairBuf); pairBuf = nb; }
+  pairBuf[n] = key;
+  return n + 1;
+}
+// Returns how many candidate pairs are in pairBuf (each stored as a * N + b with a < b, sorted).
+function findPairs(pieces, nAwake, ce) {
+  const N = pieces.length; let n = 0;
+  for (let i = 0; i < nAwake; i++) {
+    const a = awakeIdx[i], A = pieces[a];
+    for (let j = i + 1; j < nAwake; j++) { PSTATS.pairs++; n = addPair(n, a * N + awakeIdx[j]); }
+    stampId++;
+    const x0 = Math.floor((A.minX - ce) / CELL), x1 = Math.floor((A.maxX + ce) / CELL);
+    const y0 = Math.floor((A.minY - ce) / CELL), y1 = Math.floor((A.maxY + ce) / CELL);
+    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
+      const list = grid.get(cellKey(cx, cy)); if (!list) continue;
+      for (let q = 0; q < list.length; q++) {
+        const b = list[q]; if (stamp[b] === stampId) continue;
+        stamp[b] = stampId; PSTATS.pairs++;
+        n = addPair(n, a < b ? a * N + b : b * N + a);
+      }
+    }
+  }
+  pairBuf.subarray(0, n).sort();
+  return n;
+}
 export function physicsStep(pieces, P, dt) {
   const h = dt / SUBSTEPS, gh = P.g * h * h, maxV = U * 0.4, maxV2 = maxV * maxV;
   const N = pieces.length;
@@ -104,6 +151,12 @@ export function physicsStep(pieces, P, dt) {
       wake(B);
     }
   }
+  // sleepers stay put for the whole step: grid them once
+  if (stamp.length < N) stamp = new Int32Array(N * 2);
+  if (awakeIdx.length < N) awakeIdx = new Int32Array(N * 2);
+  let nAwake = 0;
+  for (let a = 0; a < N; a++) if (!pieces[a].asleep) awakeIdx[nAwake++] = a;
+  buildSleeperGrid(pieces);
   for (let s = 0; s < SUBSTEPS; s++) {
     for (let a = 0; a < N; a++) {
       const p = pieces[a]; if (p.asleep) continue;
@@ -129,18 +182,15 @@ export function physicsStep(pieces, P, dt) {
         if (kb > 0) shapeMatch(p, p.T.gIdx, p.T.gqx, p.T.gqy, kb);
         aabb(p);
       }
-      for (let a = 0; a < N; a++) {
-        const A = pieces[a];
-        for (let b = a + 1; b < N; b++) {
-          const B = pieces[b];
-          if (A.asleep && B.asleep) continue;
-          PSTATS.pairs++;
-          if (A.maxX + ce < B.minX || B.maxX + ce < A.minX || A.maxY + ce < B.minY || B.maxY + ce < A.minY) continue;
-          PSTATS.touching++;
-          const wa = A.asleep ? 0 : A.mat.invMass, wb = B.asleep ? 0 : B.mat.invMass;
-          const last = it === ITERS - 1, mu = last ? Math.min(1, P.mu * Math.sqrt(A.mat.grip * B.mat.grip)) : 0, st = last ? P.stick : 0;
-          collide(A, B, mu, wa, wb, st); collide(B, A, mu, wb, wa, st);
-        }
+      const nPairs = findPairs(pieces, nAwake, ce);
+      for (let k = 0; k < nPairs; k++) {
+        const key = pairBuf[k], a = Math.floor(key / N), b = key - a * N;
+        const A = pieces[a], B = pieces[b];
+        if (A.maxX + ce < B.minX || B.maxX + ce < A.minX || A.maxY + ce < B.minY || B.maxY + ce < A.minY) continue;
+        PSTATS.touching++;
+        const wa = A.asleep ? 0 : A.mat.invMass, wb = B.asleep ? 0 : B.mat.invMass;
+        const last = it === ITERS - 1, mu = last ? Math.min(1, P.mu * Math.sqrt(A.mat.grip * B.mat.grip)) : 0, st = last ? P.stick : 0;
+        collide(A, B, mu, wa, wb, st); collide(B, A, mu, wb, wa, st);
       }
       for (let a = 0; a < N; a++) if (!pieces[a].asleep) bounds(pieces[a], it === ITERS - 1 ? Math.min(1, P.mu * Math.sqrt(pieces[a].mat.grip)) : 0);
     }

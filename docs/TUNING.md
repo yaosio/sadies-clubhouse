@@ -13,6 +13,11 @@ a 3×3 lattice of points; per-block shape matching plus a weaker whole-piece mat
 Boundary points pushed out of other pieces toward the nearest edge, split by inverse mass. Friction
 only on the last iteration. Speed cap 0.4 blocks per substep.
 
+Finding pairs: sleeping pieces go into a grid of 2×2-block cells once per frame, and each awake
+piece only checks sleepers in the cells around it (plus every other awake piece). Pairs are
+handled in the same order as checking everything against everything, so results are identical;
+it only skips pairs that are far apart.
+
 Dev panel defaults (stiffness 0.6, bendiness 0.6, jiggle 0.6, grip 0.6, gravity 1):
 - block stiffness = 0.03 + 0.62 × stiffness²
 - bend stiffness = (1 − bendiness) × 0.12
