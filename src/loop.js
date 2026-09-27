@@ -6,7 +6,6 @@ import { PSTATS } from './core/physics/solver.js';
 import { updateCamera } from './render/view.js';
 import { draw } from './render/scene.js';
 import { drawMini } from './ui/minimap.js';
-import { updateHud } from './ui/hud.js';
 import { recordFrame } from './ui/perf.js';
 import { gameSpeed } from './core/debug.js';
 
@@ -22,7 +21,7 @@ export function frame(t) {
   if (steps === maxSteps) acc = 0;
   const t1 = performance.now();
   updateCamera(STEP * steps);
-  draw(t); drawMini(t); updateHud();
+  draw(t); drawMini(t);
   const t2 = performance.now();
   recordFrame(t, frameGap, t0, t1, t2, steps);
   requestAnimationFrame(frame);
