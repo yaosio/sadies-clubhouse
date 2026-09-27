@@ -187,5 +187,51 @@ const P = physParams({ ...DEFAULTS });
   check('Sadie never teleports upward during the trip', maxRise < 0.1, `fastest rise ${(maxRise * 60).toFixed(1)} blocks/s`);
 }
 
+// 7. Chooter: meets Sadie, gets the zoomies, fetches a ball, goes home to the barn and comes back out
+{
+  const { chooter, meetChooter, updateChooter, MEET_AT } = await import('../src/core/friends/chooter.js');
+  const { toy, throwToy } = await import('../src/core/toys.js');
+  const { drp } = await import('../src/core/dropper.js');
+  const dt = 1 / 60;
+  chooter.met = false;
+  resetGame();
+  let met = 0; on('friendMet', () => met++);
+  sadie.y = MEET_AT - U; sadie.state = 'walk'; updateChooter(dt); const early = met;
+  sadie.y = MEET_AT; updateChooter(dt);
+  check('Sadie meets Chooter the first time she stands 15 blocks up', early === 0 && met === 1 && chooter.met);
+  chooter.met = false;
+  resetGame();
+  for (let f = 0; f < 90 * 60; f++) { if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); update(dt); } // grow a pile first
+  meetChooter();
+  let greeted = null, zooms = 0, kicked = new Set(), balls = 0, back = 0, movedIn = 0, cameOut = false, sunk = 0, longestSunk = 0, outside = 0, stuckToy = 0;
+  on('zoomies', () => zooms++); on('ballBack', () => back++); on('friendMovedIn', () => movedIn++);
+  let wasHome = false, toyT = 0;
+  for (let f = 0; f < 240 * 60; f++) {
+    const t = f * dt;
+    if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U);
+    // throw him a ball a little way off, whenever there isn't one out
+    if (t > 45 && f % 600 === 0 && toy.state === 'none' && chooter.place === 'out' && chooter.act === 'play') {
+      const x = Math.min(W - 2 * U, Math.max(2 * U, chooter.x + 4 * U * (chooter.x < W / 2 ? 1 : -1)));
+      if (throwToy('ball', drp.x, drp.y, x, groundAt(x, 1e9) + U)) balls++;
+    }
+    update(dt);
+    if (greeted === null && chooter.act !== 'greet') greeted = t;
+    for (const p of world.pieces) if (p.kickT !== undefined) kicked.add(p);
+    if (chooter.place === 'home') wasHome = true; else if (wasHome && chooter.place === 'out') cameOut = true;
+    const inside = chooter.place === 'out' && !chooter.air && (groundAt(chooter.x, chooter.y) - chooter.y) / U > 0.6;
+    sunk = inside ? sunk + 1 : 0; longestSunk = Math.max(longestSunk, sunk);
+    if (chooter.x < 0 || chooter.x > W || chooter.y < -0.01) outside++;
+    toyT = toy.state === 'none' ? 0 : toyT + dt; if (toyT > 45) stuckToy++;
+  }
+  check('Chooter runs over and says hello to Sadie', greeted !== null && greeted < 20, greeted === null ? 'never' : `after ${greeted.toFixed(0)} s`);
+  check('he gets the zoomies and knocks pieces about', zooms >= 2 && kicked.size >= 1, `${zooms} zoomies, ${kicked.size} pieces knocked`);
+  check('he fetches the ball and brings it to Sadie', balls >= 1 && back >= 1, `${back} of ${balls} balls brought back`);
+  check('he moves into the barn and comes back out', movedIn === 1 && cameOut);
+  check('he never stays stuck inside the pile', longestSunk <= 3, `longest ${longestSunk} frame(s)`);
+  check('he stays inside the walls and above the ground', outside === 0);
+  check('a ball never hangs around forever', stuckToy === 0);
+  check('no broken numbers with Chooter about', !hasNaN(world.pieces) && isFinite(chooter.x) && isFinite(chooter.y) && isFinite(toy.x) && isFinite(toy.y));
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
 process.exit(failed ? 1 : 0);

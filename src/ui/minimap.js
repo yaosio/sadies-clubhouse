@@ -1,4 +1,4 @@
-// The map strip: outline of the whole pile, hay, Sadie's barn, Sadie, the dropper, and the current view.
+// The map strip: outline of the whole pile, hay, Sadie's barn, her friends, Sadie, the dropper, and the current view.
 // Tap or drag on it to send the dropper there and look at that spot.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
@@ -6,6 +6,7 @@ import { surf, SURF_N, SURF_RES } from '../core/surface.js';
 import { drp, sendHeldTo } from '../core/dropper.js';
 import { sadie } from '../core/sadie/brain.js';
 import { barn } from '../core/barn.js';
+import { chooterMapSpot } from '../render/chooterView.js';
 import { cam, vp, clampCam, setFollow } from '../render/view.js';
 
 const miniEl = document.getElementById('mini'), mcv = document.getElementById('miniCv'), mctx = mcv.getContext('2d');
@@ -38,6 +39,8 @@ export function drawMini(time) {
   mctx.strokeStyle = ink; mctx.globalAlpha = 0.6; mctx.lineWidth = 1.5;
   mctx.strokeRect(mx(cam.x - half), pad - 2, (2 * half) / W * iw, ih + 4);
   mctx.globalAlpha = 1;
+  const ch = chooterMapSpot(); // Chooter: a black dot (none while he's inside the barn)
+  if (ch && !ch.home) { mctx.fillStyle = '#2d2733'; mctx.strokeStyle = '#fff'; mctx.lineWidth = 1; mctx.beginPath(); mctx.arc(mx(ch.x), my(ch.y) - 3, 3.2, 0, Math.PI * 2); mctx.fill(); mctx.stroke(); }
   mctx.fillStyle = '#fff1d0'; mctx.strokeStyle = ink; mctx.lineWidth = 1.5;
   mctx.beginPath(); mctx.arc(mx(sadie.x), my(sadie.y) - 3, 3.5, 0, Math.PI * 2); mctx.fill(); mctx.stroke();
   { const x = mx(drp.x); mctx.fillStyle = '#3a2658';

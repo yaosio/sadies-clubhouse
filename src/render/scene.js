@@ -1,5 +1,5 @@
 // Draws one frame of the world, back to front: sky, ruler, walls, ground, hay, drop lane, barn,
-// pieces, Sadie's rope, Sadie, the held piece, the dropper, particles.
+// pieces, Sadie's rope, Sadie's friends, Sadie, toys, the held piece, the dropper, particles.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
 import { COLORS } from '../core/physics/pieceTypes.js';
@@ -10,6 +10,8 @@ import { drawJelly } from './jelly.js';
 import { drawDropper } from './dropperView.js';
 import { drawSadie, drawEmotes } from './sadieView.js';
 import { drawBarn, drawRope } from './barnView.js';
+import { drawChooter } from './chooterView.js';
+import { drawToy } from './toyView.js';
 
 const SKY = [[0, '#ffe3ec'], [12, '#bfe7ff'], [35, '#7f8fe0'], [60, '#3a2f7a'], [95, '#120e33']];
 const farStars = Array.from({ length: 160 }, () => ({ x: -W + Math.random() * W * 3, y: (40 + Math.random() * 140) * U, r: 0.6 + Math.random() * 1.2, tw: Math.random() * 6 }));
@@ -119,7 +121,7 @@ export function draw(time) {
     heldReady = true;
   }
 
-  drawBarn();
+  drawBarn(time);
   // pieces
   for (const p of world.pieces) {
     // only pieces on screen (with a little margin for the outline); the barn draws itself
@@ -127,7 +129,9 @@ export function draw(time) {
     drawJelly(p.T, p.x, p.y, p.color, 1, time);
   }
   drawRope();
+  drawChooter(time);
   drawSadie(time);
+  drawToy();
   drawEmotes();
   if (heldReady) drawJelly(world.held.T, heldX, heldY, COLORS[world.held.type], world.supply < 1 ? 0.35 : 0.82 + 0.12 * Math.sin(time * 0.006), time);
   drawDropper(time);

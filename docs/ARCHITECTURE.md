@@ -33,6 +33,8 @@ tell the screen something, it emits an event (below).
 | `core/physics/solver.js` | The soft-body solver: integration, shape matching, finding nearby pairs (sleeper grid), collisions, friction, floor/walls, bounce, sleeping, and fixed pieces (the barn) that only move when told to. Pure math. |
 | `core/surface.js` | Reading the pile: heightmap `surf` (minimap, hay, dropper) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). |
 | `core/fossil.js` | Turns pieces buried deep in the pile into fossils: permanent ground that never wakes. |
+| `core/friends/chooter.js` | Chooter, Sadie's first friend (a black lab/pitbull mix): meeting him at 15 blocks, playing near Sadie, the zoomies (knocks pieces out of his way), fetching the ball, going home to the barn and back out. Walks on top of the pile like Sadie, but leaps up ledges instead of climbing. |
+| `core/toys.js` | Toys the player throws for the friends (a ball so far): one out at a time, bounces off the pile without pushing it, vanishes once played with. |
 | `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
 | `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). |
 | `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
@@ -43,6 +45,8 @@ tell the screen something, it emits an event (below).
 | `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. |
 | `render/scene.js` | Draws a frame back to front: sky, ruler, walls, ground, hay, drop lane, barn, pieces, Sadie's rope, Sadie, held piece, dropper, particles. Skips pieces and hay that are off screen. |
 | `render/barnView.js` | Draws Sadie's barn and the rope she drags it with. |
+| `render/chooterView.js` | Draws Chooter in every mood, and his face in the barn's hayloft window while he's home. |
+| `render/toyView.js` | Draws the toys (the tennis ball). |
 | `render/jelly.js` | Draws one jelly piece (smooth outline, shine, material decorations). |
 | `render/sadieView.js` | Draws Sadie in every mood, and her emotes. |
 | `render/dropperView.js` | Draws the drone, or an edge marker when it's off screen. |
@@ -50,9 +54,10 @@ tell the screen something, it emits an event (below).
 | **ui/ and input/** | |
 | `ui/hud.js` | Height, hay eaten, supply pips, next-piece preview, tip, toasts. Listens to simulation events. |
 | `ui/minimap.js` | The map strip; tap to send the dropper and look there. |
+| `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board to throw it. |
 | `ui/devPanel.js` | Dev tuning sheet (physics sliders for us, not players), restore defaults, clear tower. |
 | `ui/perf.js` | Performance overlay (P key or the dev sheet). |
-| `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom. |
+| `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom, or throw a toy picked from the toy box. |
 | `input/controls.js` | On-screen buttons and keyboard shortcuts. |
 
 ## Events
@@ -62,6 +67,11 @@ tell the screen something, it emits an event (below).
 | `hayEaten` (bundle) | sadie/brain | hud (toast) |
 | `homeRush` | sadie/brain | hud (toast) |
 | `barnHome` | sadie/brain | hud (toast) |
+| `friendMet` (name) | friends/chooter | hud (toast), toybox (shows the Toys button) |
+| `friendMovedIn` (name) | friends/chooter | hud (toast) |
+| `zoomies` | friends/chooter | hud (toast) |
+| `ballBack` | friends/chooter | hud (toast) |
+| `toyThrown` (kind) | toys | nobody yet |
 | `nextChanged` (type) | dropper | hud (preview) |
 | `playerActed` | dropper | hud (hides the first-run tip) |
 | `reset` | game | main (camera follows Sadie again) |
@@ -70,7 +80,7 @@ tell the screen something, it emits an event (below).
 ## Tick order (`core/game.js`)
 
 physics → piece bookkeeping (rest time, age, smoothed speed, top heights) → surface heightmap →
-hay rides the pile → fossils → Sadie's brain → barn (dragged or dropping) → Sadie's mood → Sadie's best height → particles and emotes →
+hay rides the pile → fossils → Sadie's brain → barn (dragged or dropping) → Chooter → toys → Sadie's mood → Sadie's best height → particles and emotes →
 dropper (supply refill, hover, autodrop, spawn). The camera and drawing happen after all steps in
 `loop.js`.
 
@@ -82,6 +92,11 @@ dropper (supply refill, hover, autodrop, spawn). The camera and drawing happen a
 - **New Sadie behavior:** state and movement in `core/sadie/brain.js`; if it needs a new mood, add
   it in `core/sadie/mood.js` and draw it in `render/sadieView.js` (ears, eyes, mouth, tail and
   emotes all switch on `mood`).
+- **New friend:** a module in `core/friends/` like `chooter.js` (a height to meet them at, what they
+  do, a reset), called from `core/game.js`; a drawing in `render/`; their toy in `ui/toybox.js`'s
+  `TOYS` list and `core/toys.js`. Anything random they do must wait until they've been met, so the
+  seeded tests before the meeting stay the same. A friend can move pieces the way Chooter's zoomies
+  do: `wake()` the piece, then give its points a speed by moving `px`/`py`.
 - **Something solid that isn't a jelly piece** (like the barn): put it in `world.pieces` with
   `asleep: true, fixed: true` and move it by setting `kvx`/`kvy` (px per second). The solver
   never wakes, pushes or tips it, and nothing above it turns to fossil.

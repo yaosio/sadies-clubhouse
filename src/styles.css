@@ -64,6 +64,28 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   border:1px solid var(--panel-edge);display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .top-btn svg{width:20px;height:20px}
 .top-btn.following{opacity:.55}
+.toy-btn{position:absolute;left:12px;bottom:92px;height:44px;padding:0 14px 0 10px;border-radius:14px;background:var(--panel);
+  border:1px solid var(--panel-edge);display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.toy-btn[hidden]{display:none}
+.toy-btn svg{width:20px;height:20px}
+.toy-btn.aiming{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.toy-btn.new{animation:toyNew 1s ease-in-out 5}
+@keyframes toyNew{50%{transform:scale(1.12)}}
+.toy-tray{position:absolute;left:12px;bottom:144px;min-width:210px;background:var(--sheet);border:1px solid var(--panel-edge);border-radius:18px;padding:6px;
+  box-shadow:0 8px 30px rgba(20,10,40,.22);display:flex;flex-direction:column;gap:4px}
+.toy-tray[hidden]{display:none}
+.toy{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;border-radius:12px;padding:8px 10px;min-height:52px}
+.toy:hover:not(:disabled){background:var(--track)}
+.toy:disabled{opacity:.5;cursor:default}
+.toy b{display:block;font-size:17px;line-height:1.1}
+.toy small{display:block;color:var(--muted);font-size:13px;font-weight:600}
+.toy-pic{width:30px;height:30px;flex:none;border-radius:50%}
+.toy-pic.ball{background:radial-gradient(circle at 35% 32%,#f5ffb0,#d7ef4a 55%,#b4cf2c);border:2px solid #3a2658;position:relative;overflow:hidden}
+.toy-pic.ball::before,.toy-pic.ball::after{content:"";position:absolute;top:2px;width:18px;height:18px;border:2px solid #fffbe8;border-radius:50%}
+.toy-pic.ball::before{left:-12px}
+.toy-pic.ball::after{right:-12px}
+.aim-tip{opacity:0}
+.aim-tip.show{opacity:1}
 
 .controls{position:absolute;left:0;right:0;bottom:0;padding:10px 12px 14px;display:flex;align-items:flex-end;gap:8px;pointer-events:none}
 .controls > *{pointer-events:auto}
@@ -99,4 +121,4 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .btn.warn{background:var(--accent);color:var(--accent-ink);border:0}
 .keys{margin-top:14px;font-size:13px;color:var(--muted);line-height:1.6}
 kbd{font:inherit;font-weight:700;color:var(--ink);background:var(--track);border-radius:6px;padding:0 6px}
-@media (prefers-reduced-motion: reduce){.sheet,.toast,.tip{transition:none}}
+@media (prefers-reduced-motion: reduce){.sheet,.toast,.tip{transition:none}.toy-btn.new{animation:none}}

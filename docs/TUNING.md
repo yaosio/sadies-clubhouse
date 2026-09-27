@@ -73,6 +73,32 @@ She walks at 70% speed while dragging and stops to heave whenever it falls more 
 behind. A trip gives up after 60 s. While on a trip she ignores hay and isn't scared by pieces
 shifting under her (falling still scares her).
 
+## Chooter (`core/friends/chooter.js`)
+Sadie meets him the first time she stands 15 blocks up (about 3 minutes into a game with a helpful
+player). He comes running in from the far side of the board along the top of the pile. Once met,
+he stays met (saved in the browser), even after clearing the tower.
+- Trots 2.2 blocks/s, runs 4.2 when he has somewhere to be, 6.5 with the zoomies.
+- Leaps up ledges up to 2.6 blocks tall (3.2 with the zoomies); anything taller stops him and he
+  barks. Walks off drops and falls (gravity 1400). If a piece lands on him he wriggles out on top.
+- Playing: picks a spot 1.4–3.6 blocks to one side of Sadie every 2–4.5 s and goes there; hops for
+  joy or sends her a heart now and then.
+- Zoomies: first one 20 s after a game starts (30 s after meeting him), then every 40–75 s, lasting
+  7–10 s. He dashes 7–14 blocks one way, then the other, hopping every 0.6–1.8 s. Any piece that
+  isn't a fossil in the space just ahead of his body gets knocked forward 5 blocks/s and up 3.5
+  (times its lightness, up to 1.5×; a boulder barely moves), at most once per 0.6 s per piece. In
+  test runs each bout moves between 1 and about 25 pieces more than a block.
+- Ball: he chases it unless he has the zoomies, grabs it once it's near his mouth and coming down,
+  and carries it to Sadie (she's not impressed). Gives up if he can't get to it for 5 s (25 s in
+  all), or can't reach Sadie within 18 s. The ball vanishes 1.5 s after he drops it (3 s if he gave
+  up), or after 40 s regardless.
+- Out of the barn 70–120 s, then he heads home: in through the cat flap if the side of the barn is
+  clear, or he digs in from on top if it's buried (or if he can't get there in 30 s). Home for
+  25–45 s, poking his head out of the hayloft window; a thrown ball gets him out straight away.
+
+## Toys (`core/toys.js`)
+One out at a time. The dropper drone throws it, taking 0.6–1.3 s to land near where you tapped.
+Ball radius 0.26 blocks, gravity 1400, keeps 55% of its speed on each bounce, rolls downhill.
+
 ## What counts as ground (`core/surface.js`)
 Asleep, or older than 0.4 s with a smoothed speed under 0.6. The smoothing stops a ball at the top
 of its bounce from counting.
@@ -122,3 +148,8 @@ Covered by the pile for 0.5 s: float up to 0.7 blocks above the surface. Pile dr
 - Pieces dropped on the barn: the pile gets about 5 blocks over its roof, Sadie fetches it once
   (about 20 s), and it ends up about 6 blocks higher with nothing near it higher than its roof,
   inside the walls, with no piece sunk into it more than about 0.3 px.
+- Chooter: meets Sadie only once she's 15 blocks up. On a pile grown for 90 s, over 4 minutes he
+  greets her (about 12 s, running in from the far side), has 3 bouts of zoomies knocking about 28
+  pieces, brings back all 10 balls thrown for him, moves into the barn and comes back out, and
+  never gets stuck in the pile or leaves the board. This test runs last, so it doesn't change the
+  numbers of the tests before it.
