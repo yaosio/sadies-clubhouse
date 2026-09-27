@@ -5,7 +5,7 @@
 // pieces out of the way), or dropping onto whatever is under it when she lets go.
 import { U, W } from '../config.js';
 import { world } from './world.js';
-import { surf, SURF_N, SURF_RES } from './surface.js';
+import { surf, SURF_N, SURF_RES, rockTop } from './surface.js';
 import { wake } from './physics/solver.js';
 import { aabb } from './physics/body.js';
 import { offersFrom } from './mind/offers.js';
@@ -79,10 +79,10 @@ export function releaseBarn() { barn.hauling = false; barn.vy = 0; }
 // how far the barn still is from where it's being dragged to
 export function barnLag() { return barn.hauling ? Math.hypot(barn.gx - barnX(), barn.ty - barn.piece.minY) : 0; }
 
-// Highest point of anything under the barn's floor (or the ground).
+// Highest point of anything under the barn's floor (or the bedrock).
 function support(B) {
   const x0 = B.minX, x1 = B.maxX, lim = B.minY + 0.3 * U;
-  let s = 0;
+  let s = rockTop(x0, x1);
   for (const q of world.pieces) {
     if (q === B || q.maxX < x0 || q.minX > x1 || q.minY > lim) continue;
     const b = q.T.bnd;

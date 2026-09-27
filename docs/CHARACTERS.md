@@ -125,5 +125,8 @@ joke). The player doesn't steer it: it decides where every piece goes, for its o
 - Always drops with a full supply, so never faster than one piece every 1.5 s (the same top speed
   as before the mole).
 - Activities: `bury` (want 1 + 2 × restless), `barn` (1), `nap` (10, busy until rested).
+- **Envies the bedrock.** For 20 s after pieces melt into the bedrock (`core/bedrock.js`), its
+  thoughts add: "And some of the deep ones just turned into bedrock. Lucky things." Nothing is more
+  underground than that.
 - The player's thing to do with the mole: tap it to see what it's thinking. (The owner is still
   thinking about something more.)

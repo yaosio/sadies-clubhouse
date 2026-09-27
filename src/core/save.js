@@ -1,5 +1,5 @@
-// Saving and loading the game: the whole board (every piece exactly as it's squished), Sadie, her
-// barn, the hay, the dropper and Chooter. Saved in the browser (platform/storage.js), so each
+// Saving and loading the game: the whole board (every piece exactly as it's squished, and the
+// bedrock under it), Sadie, her barn, the hay, the dropper and Chooter. Saved in the browser (platform/storage.js), so each
 // device and browser keeps its own game. main.js decides when to save.
 //
 // Two ways to clear it: clearTower() starts a fresh board but Sadie keeps her friends and bests;
@@ -15,7 +15,8 @@ import { emit } from './events.js';
 import { SHAPES } from './physics/pieceTypes.js';
 import { makePiece, aabb } from './physics/body.js';
 import { getTemplate } from './physics/templates.js';
-import { computeSurface } from './surface.js';
+import { computeSurface, rock } from './surface.js';
+import { bedrock, setBedrock } from './bedrock.js';
 import { trail } from './hay.js';
 import { drp, clampHeld } from './dropper.js';
 import { barn, resetBarn } from './barn.js';
@@ -54,6 +55,7 @@ export function snapshot() {
     trail: { x: trail.x, dir: trail.dir },
     sadie: pick(sadie, SADIE_KEYS),
     chooter: chooter.met ? pick(chooter, CHOOTER_KEYS) : null,
+    bedrock: bedrock.melted ? { rock: Array.from(rock, r2), melted: bedrock.melted, flecks: bedrock.flecks } : null,
   };
 }
 
@@ -87,6 +89,7 @@ export function restore(s) {
   if (!(world.nextType in SHAPES)) world.nextType = 'O';
   world.bag = (world.bag || []).filter(t => t in SHAPES);
   Object.assign(drp, s.drp); clampHeld();
+  if (s.bedrock) setBedrock(s.bedrock.rock, s.bedrock.melted, s.bedrock.flecks); // saves from before bedrock have none
   computeSurface();
   world.hay = s.hay.map(h => ({ x: h.x, y: h.y, y0: h.y0, eaten: false, pop: 0, up: 0, down: 0 }));
   Object.assign(trail, s.trail);

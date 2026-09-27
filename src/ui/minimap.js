@@ -1,8 +1,9 @@
-// The map strip: outline of the whole pile, hay, Sadie's barn, her friends, Sadie, the mole, and the current view.
+// The map strip: outline of the pile down to the lowest point of the bedrock (with the bedrock at the
+// bottom), hay, Sadie's barn, her friends, Sadie, the mole, and the current view.
 // Tap or drag on it to look at that spot.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
-import { surf, SURF_N, SURF_RES } from '../core/surface.js';
+import { surf, rock, rockInfo, SURF_N, SURF_RES } from '../core/surface.js';
 import { drp } from '../core/dropper.js';
 import { sadie } from '../core/sadie/brain.js';
 import { barn } from '../core/barn.js';
@@ -15,14 +16,19 @@ export function drawMini(time) {
   if (mcv.width !== Math.round(w * vp.dpr)) { mcv.width = Math.round(w * vp.dpr); mcv.height = Math.round(h * vp.dpr); }
   mctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0); mctx.clearRect(0, 0, w, h);
   const pad = 6, iw = w - pad * 2, ih = h - pad * 2;
-  let maxH = 8 * U; for (let i = 0; i < SURF_N; i++) if (surf[i] + 2 * U > maxH) maxH = surf[i] + 2 * U;
+  const base = Math.max(0, rockInfo.low - U);
+  let maxH = base + 8 * U; for (let i = 0; i < SURF_N; i++) if (surf[i] + 2 * U > maxH) maxH = surf[i] + 2 * U;
   for (const s of world.hay) if (s.y + U > maxH) maxH = s.y + U;
-  const mx = x => pad + x / W * iw, my = y => pad + ih - y / maxH * ih;
+  const mx = x => pad + x / W * iw, my = y => pad + ih - Math.max(0, y - base) / (maxH - base) * ih;
   const ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#2a1840';
-  mctx.fillStyle = ink; mctx.globalAlpha = 0.28;
-  mctx.beginPath(); mctx.moveTo(mx(0), my(0));
-  for (let i = 0; i < SURF_N; i += 2) mctx.lineTo(mx(i * SURF_RES), my(surf[i]));
-  mctx.lineTo(mx(W), my(0)); mctx.closePath(); mctx.fill();
+  const outline = (h, color, alpha) => {
+    mctx.fillStyle = color; mctx.globalAlpha = alpha;
+    mctx.beginPath(); mctx.moveTo(mx(0), my(base));
+    for (let i = 0; i < SURF_N; i += 2) mctx.lineTo(mx(i * SURF_RES), my(h[i]));
+    mctx.lineTo(mx(W), my(base)); mctx.closePath(); mctx.fill();
+  };
+  outline(surf, ink, 0.28);
+  if (rockInfo.high > 0) outline(rock, '#9a5f86', 0.8);
   mctx.globalAlpha = 1;
   for (const s of world.hay) {
     if (s.eaten) continue;

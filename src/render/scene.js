@@ -1,10 +1,12 @@
 // Draws one frame of the world, back to front: sky, ruler, walls, ground, hay, drop lane, barn,
-// pieces, Sadie's rope, Sadie's friends, Sadie, toys, the held piece, the mole, particles.
+// pieces, the bedrock, Sadie's rope, Sadie's friends, Sadie, toys, the held piece, the mole, particles.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
 import { COLORS } from '../core/physics/pieceTypes.js';
 import { drp, heldOffsets } from '../core/dropper.js';
 import { sadie } from '../core/sadie/brain.js';
+import { rock, rockInfo, SURF_N, SURF_RES } from '../core/surface.js';
+import { bedrock } from '../core/bedrock.js';
 import { ctx, cam, vp, sxf, syf, toWorld } from './view.js';
 import { drawJelly } from './jelly.js';
 import { drawMole } from './moleView.js';
@@ -41,6 +43,46 @@ function drawBale(X, Y, s) {
   ctx.beginPath(); ctx.moveTo(X - 0.08 * s, Y - h); ctx.lineTo(X - 0.08 * s, Y + h); ctx.moveTo(X + 0.1 * s, Y - h); ctx.lineTo(X + 0.1 * s, Y + h); ctx.stroke();
 }
 const heldX = new Float64Array(128), heldY = new Float64Array(128);
+
+// The bedrock: marbled candy rock, flecked with the colors of the pieces that melted into it, with
+// a glossy top edge. Drawn over the pieces so anything half sunk into it looks fused in.
+const ROCK = { light: '#c98aa8', mid: '#9a5f86', deep: '#5a3558', rim: '#f3cfe0', edge: '#4a2a4a' };
+function drawBedrock() {
+  if (rockInfo.high === 0) return;
+  const yTopS = syf(rockInfo.high), yBotS = syf(0);
+  if (yTopS > vp.vh || yBotS < 0) return; // none of it on screen
+  const z = cam.z, step = z * SURF_RES < 3 ? 2 : 1;
+  ctx.beginPath(); ctx.moveTo(sxf(0), yBotS);
+  for (let i = 0; i < SURF_N; i += step) ctx.lineTo(sxf(i * SURF_RES), syf(rock[i]));
+  ctx.lineTo(sxf((SURF_N - 1) * SURF_RES), syf(rock[SURF_N - 1])); ctx.lineTo(sxf(W), yBotS); ctx.closePath();
+  const g = ctx.createLinearGradient(0, yTopS, 0, yTopS + 14 * U * z);
+  g.addColorStop(0, ROCK.light); g.addColorStop(0.35, ROCK.mid); g.addColorStop(1, ROCK.deep);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.save(); ctx.clip();
+  // swirls of melted candy, following the shape of the top
+  ctx.lineWidth = Math.max(1, 0.14 * U * z); ctx.lineCap = 'round';
+  for (let k = 1; k <= 4; k++) {
+    ctx.strokeStyle = k % 2 ? 'rgba(255,220,235,0.16)' : 'rgba(60,20,60,0.14)';
+    ctx.beginPath();
+    for (let i = 0; i < SURF_N; i += 4) { const X = sxf(i * SURF_RES), Y = syf(rock[i] - k * 1.3 * U + Math.sin(i * 0.21 + k * 1.7) * 0.35 * U); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); }
+    ctx.stroke();
+  }
+  // flecks of what melted in
+  const r = Math.max(1.5, 0.16 * U * z);
+  ctx.globalAlpha = 0.6;
+  for (const [x, y, c] of bedrock.flecks) {
+    const X = sxf(x), Y = syf(y); if (Y < -r || Y > vp.vh + r || X < -r || X > vp.vw + r) continue;
+    ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(X, Y, r * 1.4, r, 0.4, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1; ctx.restore();
+  // glossy top edge
+  ctx.beginPath();
+  for (let i = 0; i < SURF_N; i += step) { const X = sxf(i * SURF_RES), Y = syf(rock[i]); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); }
+  ctx.strokeStyle = ROCK.edge; ctx.lineWidth = Math.max(2, 0.12 * U * z); ctx.stroke();
+  ctx.translate(0, Math.max(1.5, 0.08 * U * z));
+  ctx.strokeStyle = ROCK.rim; ctx.lineWidth = Math.max(1, 0.06 * U * z); ctx.stroke();
+  ctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0);
+}
 
 export function draw(time) {
   ctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0);
@@ -128,6 +170,7 @@ export function draw(time) {
     if (p.fixed || syf(p.maxY) > vp.vh + 10 || syf(p.minY) < -10 || sxf(p.maxX) < -10 || sxf(p.minX) > vp.vw + 10) continue;
     drawJelly(p.T, p.x, p.y, p.color, 1, time);
   }
+  drawBedrock();
   drawRope();
   drawChooter(time);
   drawSadie(time);

@@ -77,10 +77,42 @@ function collide(A, B, mu, wA, wB, stick) {
   }
 }
 
-function bounds(p, mu) {
+// The floor is the bedrock (a heightmap, `floor`, one height every `res` px; see core/bedrock.js),
+// or flat ground at 0 without one. Points just under it are pushed straight up. A point further
+// under it than STEP, or where the bedrock is steeper than 45°, has run into the side of a step in
+// it: it's pushed out sideways to the nearest open side (within SIDE), like off a wall, instead of
+// being lifted up on top of the step (which would fling the whole piece into the air).
+const STEP = U * 0.25, SIDE = U * 1.5;
+const floorAt = (floor, res, x) => { const f = Math.min(floor.length - 1.001, Math.max(0, x / res)), k = Math.floor(f), t = f - k; return floor[k] * (1 - t) + floor[k + 1] * t; };
+// how far to go from x in direction d (+1/-1) to reach a spot where the floor is below y (Infinity if not within SIDE)
+function sideOut(floor, res, x, y, d) {
+  let prev = x;
+  for (let s = res / 2; s <= SIDE; s += res / 2) {
+    const q = x + d * s;
+    if (q < 0 || q > W) return Infinity;
+    if (floorAt(floor, res, q) <= y) {
+      let a = prev, b = q; // refine: a is inside the step, b is out
+      for (let k = 0; k < 6; k++) { const m = (a + b) / 2; if (floorAt(floor, res, m) <= y) b = m; else a = m; }
+      return Math.abs(b - x);
+    }
+    prev = q;
+  }
+  return Infinity;
+}
+function bounds(p, mu, floor, res) {
   const n = p.n, X = p.x, Y = p.y, PX = p.px, PY = p.py, gf = 1 - Math.min(1, mu * 1.1), wf = 1 - mu * 0.5, e = p.mat.bounce > 0;
   for (let i = 0; i < n; i++) {
-    if (Y[i] < 0) { Y[i] = 0; PX[i] = X[i] - (X[i] - PX[i]) * gf; if (e) { p.cny += 1; p.cc++; } }
+    const g = floor ? floorAt(floor, res, X[i]) : 0;
+    if (floor && Y[i] < g && (g - Y[i] > STEP || Math.abs(floorAt(floor, res, X[i] + res / 2) - floorAt(floor, res, X[i] - res / 2)) > res)) {
+      const l = sideOut(floor, res, X[i], Y[i], -1), r = sideOut(floor, res, X[i], Y[i], 1);
+      if (l < Infinity || r < Infinity) {
+        const d = l <= r ? -1 : 1;
+        X[i] += d * Math.min(l, r); PX[i] = X[i]; PY[i] = Y[i] - (Y[i] - PY[i]) * wf;
+        if (e) { p.cnx += d; p.cc++; }
+        continue;
+      }
+    }
+    if (Y[i] < g) { Y[i] = g; PX[i] = X[i] - (X[i] - PX[i]) * gf; if (e) { p.cny += 1; p.cc++; } }
     if (X[i] < 0) { X[i] = 0; PY[i] = Y[i] - (Y[i] - PY[i]) * wf; if (e) { p.cnx += 1; p.cc++; } }
     else if (X[i] > W) { X[i] = W; PY[i] = Y[i] - (Y[i] - PY[i]) * wf; if (e) { p.cnx -= 1; p.cc++; } }
   }
@@ -148,7 +180,8 @@ function findPairs(pieces, nAwake, ce) {
   pairBuf.subarray(0, n).sort();
   return n;
 }
-export function physicsStep(pieces, P, dt) {
+// floor/res: the bedrock heightmap (leave out for flat ground at 0)
+export function physicsStep(pieces, P, dt, floor = null, res = 1) {
   const h = dt / SUBSTEPS, gh = P.g * h * h, maxV = U * 0.4, maxV2 = maxV * maxV;
   const N = pieces.length;
   // wake sleepers touched by moving neighbours (a fixed piece being moved counts as moving)
@@ -204,7 +237,7 @@ export function physicsStep(pieces, P, dt) {
         const last = it === ITERS - 1, mu = last ? Math.min(1, P.mu * Math.sqrt(A.mat.grip * B.mat.grip)) : 0, st = last ? P.stick : 0;
         collide(A, B, mu, wa, wb, st); collide(B, A, mu, wb, wa, st);
       }
-      for (let a = 0; a < N; a++) if (!pieces[a].asleep) bounds(pieces[a], it === ITERS - 1 ? Math.min(1, P.mu * Math.sqrt(pieces[a].mat.grip)) : 0);
+      for (let a = 0; a < N; a++) if (!pieces[a].asleep) bounds(pieces[a], it === ITERS - 1 ? Math.min(1, P.mu * Math.sqrt(pieces[a].mat.grip)) : 0, floor, res);
     }
     // bouncy pieces: if they hit something this substep, send the whole body back out
     for (let a = 0; a < N; a++) {

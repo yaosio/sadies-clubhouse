@@ -4,6 +4,7 @@ import { world } from '../core/world.js';
 import { emit } from '../core/events.js';
 import { sadie } from '../core/sadie/brain.js';
 import { drp, heldOffsets, NO_PIECE } from '../core/dropper.js';
+import { rockInfo } from '../core/surface.js';
 
 export const cv = document.getElementById('world');
 export const ctx = cv.getContext('2d');
@@ -26,7 +27,9 @@ export const toWorld = (sx, sy) => ({ x: (sx - vp.vw / 2) / cam.z + cam.x, y: (v
 export function clampCam() {
   cam.z = Math.min(camState.fitZ * 3, Math.max(camState.fitZ * 0.3, cam.z));
   cam.x = Math.min(W + 3 * U, Math.max(-3 * U, cam.x));
-  cam.y = Math.min(world.topAll + 60 * U, Math.max(-6 * U, cam.y));
+  // no looking more than a couple of blocks below the bedrock (or below the ground before there is any)
+  const floor = rockInfo.low > 0 ? rockInfo.low - 2 * U + vp.vh / 2 / cam.z : -6 * U;
+  cam.y = Math.min(Math.max(world.topAll, floor) + 60 * U, Math.max(floor, cam.y));
 }
 export function setFollow(v) { camState.follow = v; emit('followChanged', v); }
 
@@ -34,7 +37,7 @@ export function setFollow(v) { camState.follow = v; emit('followChanged', v); }
 // nearby but up behind the map strip, it looks up a little, as long as Sadie stays well in view.
 export function updateCamera(dt) {
   if (camState.follow) {
-    const b = camState.insetB, minY = (vp.vh / 2 - 120 - b) / cam.z;
+    const b = camState.insetB, minY = rockInfo.low + (vp.vh / 2 - 120 - b) / cam.z;
     let ty = Math.max(minY, sadie.y + (vp.vh * 0.1 - b / 2) / cam.z);
     const half = vp.vw / 2 / cam.z;
     if (Math.abs(drp.x - cam.x) < half) {
