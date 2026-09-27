@@ -23,7 +23,7 @@ function reportPerf(now) {
     ['Game logic', (prof.sumLogic / n).toFixed(1) + ' ms'],
     ['Drawing', (prof.sumDraw / n).toFixed(1) + ' ms'],
     ['Physics steps', (prof.steps / n).toFixed(1) + ' per frame'],
-    ['Pieces', world.pieces.length + ' (' + awake + ' awake)'],
+    ['Pieces', world.pieces.length + ' (' + awake + ' awake, ' + world.fossils + ' fossil)'],
     ['Pair checks', Math.round(prof.pairs / n) + ' per frame'],
     ['Touching pairs', Math.round(prof.touching / n) + ' per frame'],
     ['Slow frames', prof.slow + ' over 20 ms'],

@@ -17,6 +17,7 @@ export const world = {
   holdingDropper: false, // player is dragging the dropper right now (set by input)
   topAll: 0,           // highest point of any piece
   topSettled: 0,       // highest point of settled pieces
+  fossils: 0,          // pieces buried deep enough to be permanent ground (core/fossil.js)
   best: +store.get('jellystack.best', 0) || 0,
   climbBest: +store.get('jellystack.climbBest', 0) || 0,
 };
