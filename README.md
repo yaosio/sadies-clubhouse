@@ -11,7 +11,7 @@ The owner doesn't code and installs nothing. Claude does all the building.
 - **The source of truth is this GitHub repo:** https://github.com/yaosio/sadies-dropper-world
   All changes are made, tested and committed here first.
 - **The game** is published at https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
-  It is republished from this repo by the owner through the Claude chat app. The page also carries
+  Claude publishes it from the coding session, always built from `main`. The page also carries
   a backup copy of the source, as JSON in `<script type="application/json" id="jelly-source">`.
   If the page and the repo ever disagree, trust the repo and say so.
 - `docs/ARCHITECTURE.md` is the map of the code. Read it before changing anything.
@@ -26,10 +26,14 @@ The owner doesn't code and installs nothing. Claude does all the building.
    expected numbers, explain why in plain words and update `docs/TUNING.md` to match.
 4. `npm run build` writes `dist/index.html`: the game plus a fresh copy of the source.
 5. Check it in a headless browser: no console errors, and a screenshot that looks right.
-6. Commit with a plain-English message saying what changed and what to look for in-game, and push.
-   `dist/`, `node_modules/` and `package-lock.json` stay out of git.
-7. Don't publish the artifact from a coding session. The owner republishes the page from the
-   repo through the chat app.
+6. Commit with a plain-English message saying what changed and what to look for in-game, and push
+   to a working branch. `dist/`, `node_modules/` and `package-lock.json` stay out of git.
+7. When the owner says so, open a pull request and merge it into `main`.
+8. Publish: check out `main`, `npm test`, `npm run build`, then publish `dist/index.html` to the
+   artifact URL above (Artifact tool, same URL, so the link never changes). Read the live page
+   first; if its embedded source differs from `main` (unpack it with `tools/unpack.mjs` and
+   compare), stop and ask before overwriting. Only ever publish from `main`, never a branch, and
+   only from here, so the page always matches GitHub.
 
 If the repo is ever lost, `node tools/unpack.mjs <page.html> <folder>` rebuilds the project from
 the backup inside the published page.
