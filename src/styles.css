@@ -28,7 +28,7 @@ body{margin:0;height:100%;overflow:hidden;background:var(--bg);overscroll-behavi
 button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
-.hud{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
+.hud{position:absolute;top:10px;left:12px;right:calc(12px + var(--dev-r,0px));display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
 .stats{background:var(--panel);border:1px solid var(--panel-edge);border-radius:18px;padding:6px 14px 8px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .height{display:flex;align-items:baseline;gap:6px;line-height:1}
 .height b{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
@@ -41,11 +41,11 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .icon{width:48px;height:48px;border-radius:16px;background:var(--panel);border:1px solid var(--panel-edge);display:grid;place-items:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .icon svg{width:24px;height:24px}
 
-.tip{position:absolute;left:50%;top:150px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--panel-edge);
+.tip{position:absolute;left:calc(50% - var(--dev-r,0px) / 2);top:150px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--panel-edge);
   border-radius:14px;padding:8px 14px;font-size:15px;font-weight:600;max-width:min(88vw,380px);text-align:center;pointer-events:none;
   transition:opacity .4s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .tip.hide{opacity:0}
-.mini{position:absolute;top:92px;left:12px;right:12px;height:46px;border-radius:14px;background:var(--panel);border:1px solid var(--panel-edge);
+.mini{position:absolute;top:92px;left:12px;right:calc(12px + var(--dev-r,0px));height:46px;border-radius:14px;background:var(--panel);border:1px solid var(--panel-edge);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overflow:hidden;touch-action:none;cursor:pointer}
 .mini canvas{display:block;width:100%;height:100%}
 .perf{position:absolute;top:146px;left:12px;background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:8px 10px 6px;
@@ -56,22 +56,22 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .perf dd{margin:0;text-align:right;font-weight:700}
 .check{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;margin:12px 0 4px}
 .check input{width:22px;height:22px;accent-color:var(--accent)}
-.toast{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.9);font-size:26px;font-weight:800;color:#fff;
+.toast{position:absolute;left:calc(50% - var(--dev-r,0px) / 2);top:40%;transform:translate(-50%,-50%) scale(.9);font-size:26px;font-weight:800;color:#fff;
   text-shadow:0 2px 0 rgba(42,24,64,.45),0 0 18px rgba(255,190,60,.7);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
-.top-btn{position:absolute;right:12px;bottom:92px;height:44px;padding:0 14px 0 10px;border-radius:14px;background:var(--panel);
+.top-btn{position:absolute;right:calc(12px + var(--dev-r,0px));bottom:calc(92px + var(--dev-b,0px));height:44px;padding:0 14px 0 10px;border-radius:14px;background:var(--panel);
   border:1px solid var(--panel-edge);display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .top-btn svg{width:20px;height:20px}
 .top-btn.following{opacity:.55}
-.toy-btn{position:absolute;left:12px;bottom:92px;height:44px;padding:0 14px 0 10px;border-radius:14px;background:var(--panel);
+.toy-btn{position:absolute;left:12px;bottom:calc(92px + var(--dev-b,0px));height:44px;padding:0 14px 0 10px;border-radius:14px;background:var(--panel);
   border:1px solid var(--panel-edge);display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .toy-btn[hidden]{display:none}
 .toy-btn svg{width:20px;height:20px}
 .toy-btn.aiming{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 .toy-btn.new{animation:toyNew 1s ease-in-out 5}
 @keyframes toyNew{50%{transform:scale(1.12)}}
-.toy-tray{position:absolute;left:12px;bottom:144px;min-width:210px;background:var(--sheet);border:1px solid var(--panel-edge);border-radius:18px;padding:6px;
+.toy-tray{position:absolute;left:12px;bottom:calc(144px + var(--dev-b,0px));min-width:210px;background:var(--sheet);border:1px solid var(--panel-edge);border-radius:18px;padding:6px;
   box-shadow:0 8px 30px rgba(20,10,40,.22);display:flex;flex-direction:column;gap:4px}
 .toy-tray[hidden]{display:none}
 .toy{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;border-radius:12px;padding:8px 10px;min-height:52px}
@@ -87,7 +87,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .aim-tip{opacity:0}
 .aim-tip.show{opacity:1}
 
-.controls{position:absolute;left:0;right:0;bottom:0;padding:10px 12px 14px;display:flex;align-items:flex-end;gap:8px;pointer-events:none}
+.controls{position:absolute;left:0;right:var(--dev-r,0px);bottom:var(--dev-b,0px);padding:10px 12px 14px;display:flex;align-items:flex-end;gap:8px;pointer-events:none}
 .controls > *{pointer-events:auto}
 .group{display:flex;gap:8px}
 .pad{width:52px;height:56px;border-radius:18px;background:var(--panel);border:1px solid var(--panel-edge);display:grid;place-items:center;
@@ -103,20 +103,45 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);overflow:hidden;position:relative}
 .pip i{position:absolute;left:0;bottom:0;width:100%;background:#fff;height:var(--f,0%)}
 
-.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);border-radius:24px 24px 0 0;padding:16px 20px 22px;
-  box-shadow:0 -10px 40px rgba(20,10,40,.25);max-height:80%;overflow-y:auto;transform:translateY(105%);transition:transform .28s ease}
+/* Dev sheet. Phones: a bottom sheet covering at most ~45% of the screen, scrolling inside, and
+   it can shrink to just its title bar. Wide screens: a panel down the right side. */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);border-radius:24px 24px 0 0;
+  box-shadow:0 -10px 40px rgba(20,10,40,.25);max-height:45%;display:flex;flex-direction:column;
+  transform:translateY(105%);transition:transform .28s ease}
 .sheet.open{transform:none}
-.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.sheet h2{margin:0;font-size:22px;font-weight:800}
+.sheet-top{padding:12px 16px 0;flex:none}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sheet h2{margin:0;font-size:20px;font-weight:800}
+.sheet-btns{display:flex;gap:8px}
 .close{width:40px;height:40px;border-radius:12px;border:1px solid var(--panel-edge);background:transparent;display:grid;place-items:center}
-.close svg{width:20px;height:20px}
+.close svg{width:20px;height:20px;transition:transform .2s}
+.sheet.shrunk .sheet-body{display:none}
+.sheet.shrunk #shrinkSheet svg{transform:rotate(180deg)}
+.tabs{display:flex;gap:4px;margin-top:10px;border-bottom:1px solid var(--panel-edge)}
+.tab{border:0;background:transparent;padding:8px 12px 6px;font-weight:700;font-size:15px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;min-height:40px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.sheet.shrunk .tabs{display:none}
+.sheet-body{overflow-y:auto;overscroll-behavior:contain;padding:4px 16px 18px;flex:1 1 auto;min-height:0}
+.sheet h3{margin:14px 0 6px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.note{display:block;margin-top:6px;color:var(--muted);font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--panel-edge);border-radius:14px;overflow:hidden}
+.seg button{border:0;background:transparent;min-width:52px;height:40px;font-weight:700;font-size:16px}
+.seg button + button{border-left:1px solid var(--panel-edge)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+@media (min-width: 900px){
+  .sheet{left:auto;top:0;width:360px;max-height:none;border-radius:24px 0 0 24px;box-shadow:-10px 0 40px rgba(20,10,40,.2);transform:translateX(105%)}
+  .sheet.open{transform:none}
+  .sheet.shrunk{bottom:auto}
+}
 .sheet p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.45;max-width:60ch}
 .row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;margin:10px 0}
 .row label{font-weight:700;font-size:16px}
 .row output{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
 .row small{grid-column:1/-1;color:var(--muted);font-size:13px}
 .row input{grid-column:1/-1;width:100%;accent-color:var(--accent);height:28px}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+[data-pane="physics"] > .actions{margin-top:14px}
+.btn:disabled{opacity:.45;cursor:default}
 .btn{height:44px;padding:0 16px;border-radius:14px;border:1px solid var(--panel-edge);background:transparent;font-weight:700;font-size:16px}
 .btn.warn{background:var(--accent);color:var(--accent-ink);border:0}
 .keys{margin-top:14px;font-size:13px;color:var(--muted);line-height:1.6}

@@ -20,7 +20,7 @@ tell the screen something, it emits an event (below).
 | File | What it does |
 |---|---|
 | `main.js` | Boots everything: sizes the canvas, applies tuning, starts a board, starts the loop. Also exposes `window.__jellyDebug()` for browser tests. |
-| `loop.js` | Fixed 1/60 s simulation steps (max 3 catch-up steps), then camera, draw, HUD, perf recording. |
+| `loop.js` | Fixed 1/60 s simulation steps (max 3 catch-up steps, each run 1–8 times over at the dev sheet's speed setting), then camera, draw, HUD, perf recording. |
 | `config.js` | Board size (`U` = 30 px per block, 48 blocks wide), solver constants, dev-panel defaults, and the live `tuning` object (`tuning.set` = panel values, `tuning.P` = solver numbers). |
 | `platform/storage.js` | Safe localStorage wrapper. |
 | **core/** | |
@@ -38,6 +38,7 @@ tell the screen something, it emits an event (below).
 | `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
 | `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). |
 | `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
+| `core/debug.js` | Dev-sheet helpers (for us, not players): game speed, raining lots of pieces, building a tall pile fast, putting Sadie on top, and making Sadie and Chooter do things right now. Uses no random numbers unless a button was pressed. |
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
 | `core/sadie/brain.js` | Sadie's behavior (`sadie` object): target the nearest hay, walk/run/climb, wait, pace, and trips home to drag her barn up. |
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
@@ -55,7 +56,7 @@ tell the screen something, it emits an event (below).
 | `ui/hud.js` | Height, hay eaten, supply pips, next-piece preview, tip, toasts. Listens to simulation events. |
 | `ui/minimap.js` | The map strip; tap to send the dropper and look there. |
 | `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board to throw it. |
-| `ui/devPanel.js` | Dev tuning sheet (physics sliders for us, not players), restore defaults, clear tower. |
+| `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, keys). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
 | `ui/perf.js` | Performance overlay (P key or the dev sheet). |
 | `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom, or throw a toy picked from the toy box. |
 | `input/controls.js` | On-screen buttons and keyboard shortcuts. |
@@ -81,7 +82,7 @@ tell the screen something, it emits an event (below).
 
 physics → piece bookkeeping (rest time, age, smoothed speed, top heights) → surface heightmap →
 hay rides the pile → fossils → Sadie's brain → barn (dragged or dropping) → Chooter → toys → Sadie's mood → Sadie's best height → particles and emotes →
-dropper (supply refill, hover, autodrop, spawn). The camera and drawing happen after all steps in
+dropper (supply refill, hover, autodrop, spawn) → debug rain. The camera and drawing happen after all steps in
 `loop.js`.
 
 ## Common changes
@@ -100,6 +101,9 @@ dropper (supply refill, hover, autodrop, spawn). The camera and drawing happen a
 - **Something solid that isn't a jelly piece** (like the barn): put it in `world.pieces` with
   `asleep: true, fixed: true` and move it by setting `kvx`/`kvy` (px per second). The solver
   never wakes, pushes or tips it, and nothing above it turns to fossil.
+- **New debug button:** the action goes in `core/debug.js` (so the tests can press it too), the
+  button in the Debug tab in `index.html`, wired up in `ui/devPanel.js` (`act(...)`, plus its
+  on/off state in `refresh()`).
 - **Feel of the physics:** the dev panel defaults in `config.js`, or a piece's material numbers.
   Never expose these to the player.
 - **Anything new that changes over time** goes in `core/`, is driven from `update()` in

@@ -233,5 +233,41 @@ const P = physParams({ ...DEFAULTS });
   check('no broken numbers with Chooter about', !hasNaN(world.pieces) && isFinite(chooter.x) && isFinite(chooter.y) && isFinite(toy.x) && isFinite(toy.y));
 }
 
+// 8. Debug tools (the dev sheet): raining pieces, a quick tall pile, and making things happen now
+{
+  const dbg = await import('../src/core/debug.js');
+  const { chooter } = await import('../src/core/friends/chooter.js');
+  const dt = 1 / 60;
+  resetGame();
+  dbg.rainPieces(100);
+  let f = 0;
+  while (dbg.debug.rain.length && f < 60 * 60) { update(dt); f++; }
+  for (let k = 0; k < 5 * 60; k++) update(dt);
+  const n = world.pieces.filter(p => !p.fixed).length;
+  check('raining 100 pieces drops all of them', n >= 100 && dbg.debug.rain.length === 0, `${n} pieces in ${(f / 60).toFixed(0)} s`);
+  check('rained pieces land without sinking into each other', !hasNaN(world.pieces) && penetration(world.pieces) < 3, `deepest ${penetration(world.pieces).toFixed(2)} px`);
+  resetGame();
+  dbg.buildPile(W / 2);
+  const fast = dbg.gameSpeed();
+  f = 0;
+  while ((dbg.debug.rain.length || dbg.debug.boost) && f < 120 * 60) { update(dt); f++; }
+  computeSurface();
+  let peak = 0; for (let x = U; x < W; x += U / 2) peak = Math.max(peak, surfAt(x));
+  check('"Build a tall pile" makes a tall mound, fast, then goes back to normal speed', fast === 8 && dbg.gameSpeed() === 1 && peak > 12 * U,
+    `peak ${(peak / U).toFixed(1)} blocks after ${(f / 60).toFixed(0)} s of game time`);
+  dbg.sadieToTop();
+  check('"Put her on top" puts Sadie on the pile, standing on it', sadie.y > 12 * U && Math.abs(groundAt(sadie.x, sadie.y) - sadie.y) < 0.1 * U, `${(sadie.y / U).toFixed(1)} blocks up`);
+  dbg.fetchBarnNow();
+  check('"Fetch the barn now" sends her home for it', !!sadie.trip);
+  chooter.met = false;
+  dbg.meetChooterNow();
+  check('"Meet him now" brings Chooter over', chooter.met && chooter.act === 'greet');
+  dbg.zoomiesNow(); chooter.act = 'play';
+  update(dt);
+  check('"Zoomies" starts the zoomies', chooter.act === 'zoom');
+  resetGame();
+  check('clearing the tower stops any rain', dbg.debug.rain.length === 0 && !dbg.debug.boost);
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
 process.exit(failed ? 1 : 0);
