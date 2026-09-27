@@ -16,7 +16,8 @@ const { resetGame, update } = await import('../src/core/game.js');
 const { groundAt } = await import('../src/core/surface.js');
 const { sendHeldTo } = await import('../src/core/dropper.js');
 const { sadie } = await import('../src/core/sadie/brain.js');
-const { HAY_OUT, STEP_MAX } = await import('../src/core/hay.js');
+const { HAY_OUT, STEP_MIN, STEP_MAX } = await import('../src/core/hay.js');
+const { REACH } = await import('../src/core/sadie/brain.js');
 const { computeSurface, surfAt } = await import('../src/core/surface.js');
 const { updateFossils, FOSSIL_DEPTH } = await import('../src/core/fossil.js');
 
@@ -94,9 +95,9 @@ const P = physParams({ ...DEFAULTS });
 {
   resetGame();
   let maxRise = 0, sunkFrames = 0, longestSunk = 0, hayBelowStart = 0, prevY = sadie.y;
-  let lastMeal = 0, longestWait = 0, eaten = 0, badGap = 0, hayOut = true, prevX = null;
+  let lastMeal = 0, longestWait = 0, eaten = 0, badGap = 0, hayOut = true, inReach = 0;
   const seen = new Set(), placed = [];
-  const noteHay = () => { for (const h of world.hay) if (!seen.has(h)) { seen.add(h); placed.push(h.x); } };
+  const noteHay = () => { for (const h of world.hay) if (!seen.has(h)) { seen.add(h); placed.push(h.x); if (h.y0 - surfAt(h.x) <= REACH) inReach++; } };
   noteHay();
   const dt = 1 / 60;
   for (let f = 0; f < 120 * 60; f++) {
@@ -112,15 +113,16 @@ const P = physParams({ ...DEFAULTS });
     if (world.hayEaten > eaten) { eaten = world.hayEaten; longestWait = Math.max(longestWait, f / 60 - lastMeal); lastMeal = f / 60; }
   }
   longestWait = Math.max(longestWait, 120 - lastMeal);
-  for (let i = 1; i < placed.length; i++) { const d = Math.abs(placed[i] - placed[i - 1]); if (d < 1.4 * U || d > STEP_MAX + 0.01) badGap++; }
+  for (let i = 1; i < placed.length; i++) { const d = Math.abs(placed[i] - placed[i - 1]); if (d < STEP_MIN - 0.01 || d > STEP_MAX + 0.01) badGap++; }
   const got = world.hayEaten;
   check('game runs two minutes without broken numbers', !hasNaN(world.pieces) && isFinite(sadie.x) && isFinite(sadie.y));
   check('Sadie never teleports upward', maxRise < 0.1, `fastest rise ${(maxRise * 60).toFixed(1)} blocks/s`);
   check('Sadie never stays stuck inside the pile', longestSunk <= 3, `longest ${longestSunk} frame(s) inside before climbing out`);
   check('hay never drops below where it appeared', hayBelowStart === 0);
   check('there are always 3 hay bundles out', hayOut);
-  check('each new bundle is a short walk from the last one', badGap === 0, `${placed.length} bundles placed`);
-  check('with a little help, Sadie eats hay', got >= 6, `${got} bundles, ${world.pieces.length} pieces`);
+  check('each new bundle is 10-18 blocks from the last one', badGap === 0, `${placed.length} bundles placed`);
+  check('new hay always starts out of reach, so Sadie needs help', inReach === 0);
+  check('with a little help, Sadie eats hay', got >= 4, `${got} bundles, ${world.pieces.length} pieces`);
   check('Sadie never waits too long for her next snack', longestWait < 40, `longest wait ${longestWait.toFixed(0)} s`);
 }
 

@@ -9,8 +9,9 @@ import { world } from './world.js';
 import { surfAt } from './surface.js';
 
 export const HAY_OUT = 3;                         // bundles out at once
-export const STEP_MIN = 5 * U, STEP_MAX = 12 * U; // sideways gap from the previous bundle
-export const RISE_MAX = 3 * U;                    // how far above the pile a bundle can appear
+export const STEP_MIN = 10 * U, STEP_MAX = 18 * U; // sideways gap from the previous bundle
+// how far above the pile a new bundle appears: always out of reach, so Sadie needs some help
+export const RISE_MIN = 1.5 * U, RISE_MAX = 4.5 * U;
 export const SIT = 0.7 * U;                       // how high a bundle sits above the pile
 const EDGE = 1.5 * U;                             // keep away from the walls
 const trail = { x: W / 2, dir: 1 };
@@ -23,7 +24,7 @@ function placeNext() {
     x = Math.min(W - EDGE, Math.max(EDGE, x));
   }
   trail.x = x;
-  const y = surfAt(x) + SIT + Math.random() * RISE_MAX;
+  const y = surfAt(x) + SIT + RISE_MIN + Math.random() * (RISE_MAX - RISE_MIN);
   world.hay.push({ x, y, y0: y, eaten: false, pop: 0, up: 0, down: 0 });
 }
 
