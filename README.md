@@ -11,6 +11,8 @@ The owner doesn't code and installs nothing. Claude does all the building.
 - **The game** is published at https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
 - **The source** is embedded inside that published page, as JSON in
   `<script type="application/json" id="jelly-source">`. The published page is the source of truth.
+- **A history of every change** is on GitHub (private): https://github.com/yaosio/sadies-dropper-world
+  It mirrors the published page. If the two ever disagree, trust the published page and say so.
 - `docs/ARCHITECTURE.md` is the map of the code. Read it before changing anything.
 - `docs/TUNING.md` lists the numbers that make the game feel right, and what the tests expect.
 
@@ -26,6 +28,10 @@ The owner doesn't code and installs nothing. Claude does all the building.
 6. `npm run build` writes `dist/index.html`: the game plus a fresh copy of the source.
 7. Check it in a browser (a headless screenshot is fine), then publish `dist/index.html` to the
    same artifact URL.
+8. Commit to GitHub with a plain-English message saying what changed and what to look for. Clone
+   the repo, copy the unpacked project over it, commit, push. The owner pastes a fine-grained token
+   (this repo only, Contents read/write) each chat. Pass it per command as an
+   `http.extraHeader` and never write it into `.git/config`, the project, the page, or memory.
 
 ## Design pillars
 

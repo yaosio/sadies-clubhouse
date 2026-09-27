@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'n
 import { join, relative } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
-const EMBED = ['README.md', 'package.json', 'docs', 'src', 'tests', 'tools'];
+const EMBED = ['README.md', '.gitignore', 'package.json', 'docs', 'src', 'tests', 'tools'];
 
 function collect(p, out) {
   const full = join(root, p);
