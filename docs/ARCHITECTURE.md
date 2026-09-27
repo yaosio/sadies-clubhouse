@@ -63,7 +63,7 @@ tell the screen something, it emits an event (below).
 | `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, keys). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
 | `ui/perf.js` | Performance overlay (P key or the dev sheet). |
 | `input/pointer.js` | Touch/mouse on the board: drag or tap the dropper, pan, pinch, wheel zoom, or throw a toy picked from the toy box. |
-| `input/controls.js` | The Follow Sadie button and keyboard shortcuts. There are no on-screen move/rotate/drop buttons: on screen you tap or drag the board to move the dropper and tap the piece to spin it (`input/pointer.js`), and the dropper lets go by itself when the supply is full. |
+| `input/controls.js` | The Follow Sadie button, and Escape to close the dev sheet. No keyboard controls and no on-screen move/rotate/drop buttons: on screen you tap or drag the board to move the dropper and tap the piece to spin it (`input/pointer.js`), and the dropper lets go by itself when the supply is full. |
 
 ## Events
 

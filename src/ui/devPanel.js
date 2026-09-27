@@ -1,7 +1,7 @@
 // The dev sheet (for us, not for players), in three tabs:
 //   Debug: game speed, raining lots of pieces, making Sadie and Chooter do things now, clear tower, start over.
 //   Physics: the feel sliders and restore defaults.
-//   Info: the performance-stats toggle (wired up in perf.js), piece count, keys.
+//   Info: the performance-stats toggle (wired up in perf.js), piece count, mouse help.
 // On a phone it's a short bottom sheet that can shrink to its title bar; on a wide screen it sits
 // down the right side. Either way the camera shifts so Sadie stays in the part you can see.
 import { U, DEFAULTS, tuning, applyTuning } from '../config.js';

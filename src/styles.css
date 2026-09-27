@@ -122,5 +122,4 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .btn{height:44px;padding:0 16px;border-radius:14px;border:1px solid var(--panel-edge);background:transparent;font-weight:700;font-size:16px}
 .btn.warn{background:var(--accent);color:var(--accent-ink);border:0}
 .keys{margin-top:14px;font-size:13px;color:var(--muted);line-height:1.6}
-kbd{font:inherit;font-weight:700;color:var(--ink);background:var(--track);border-radius:6px;padding:0 6px}
 @media (prefers-reduced-motion: reduce){.sheet,.toast,.tip{transition:none}.toy-btn.new{animation:none}}
