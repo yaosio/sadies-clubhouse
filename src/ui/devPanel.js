@@ -1,5 +1,5 @@
 // The dev sheet (for us, not for players), in three tabs:
-//   Debug: game speed, raining lots of pieces, making Sadie and Chooter do things now, clear tower.
+//   Debug: game speed, raining lots of pieces, making Sadie and Chooter do things now, clear tower, start over.
 //   Physics: the feel sliders and restore defaults.
 //   Info: the performance-stats toggle (wired up in perf.js), piece count, keys.
 // On a phone it's a short bottom sheet that can shrink to its title bar; on a wide screen it sits
@@ -7,12 +7,12 @@
 import { U, DEFAULTS, tuning, applyTuning } from '../config.js';
 import { world } from '../core/world.js';
 import { wake } from '../core/physics/solver.js';
-import { resetGame } from '../core/game.js';
 import { drp } from '../core/dropper.js';
 import { chooter } from '../core/friends/chooter.js';
 import { sadie } from '../core/sadie/brain.js';
 import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, zoomiesNow, goHomeNow, comeOutNow } from '../core/debug.js';
 import { camState } from '../render/view.js';
+import { clearTower, startOver } from '../core/save.js';
 
 const sheet = document.getElementById('sheet');
 const SLIDERS = [
@@ -93,7 +93,17 @@ act('meetChooter', meetChooterNow);
 act('zoomies', zoomiesNow);
 act('goHome', goHomeNow);
 act('comeOut', comeOutNow);
-act('clearTower', resetGame);
+// These can't be undone, so each needs a second tap within a few seconds.
+function confirmTap(id, label, fn) {
+  const b = $(id); let armed = 0;
+  b.addEventListener('click', () => {
+    if (armed) { clearTimeout(armed); armed = 0; b.textContent = label; fn(); refresh(); return; }
+    b.textContent = 'Tap again to ' + label.toLowerCase();
+    armed = setTimeout(() => { armed = 0; b.textContent = label; }, 3000);
+  });
+}
+confirmTap('clearTower', 'Clear tower', clearTower);
+confirmTap('startOver', 'Start over', startOver);
 
 // Keep the buttons' on/off states current while the sheet is open.
 function refresh() {

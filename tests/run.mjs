@@ -269,5 +269,42 @@ const P = physParams({ ...DEFAULTS });
   check('clearing the tower stops any rain', dbg.debug.rain.length === 0 && !dbg.debug.boost);
 }
 
+// 9. Saving: a game saved mid-play comes back exactly as it was, and carries on without trouble
+{
+  const { snapshot, restore, clearTower, startOver } = await import('../src/core/save.js');
+  const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
+  const { barn, barnX } = await import('../src/core/barn.js');
+  const { drp } = await import('../src/core/dropper.js');
+  const dt = 1 / 60;
+  resetGame();
+  for (let f = 0; f < 60 * 60; f++) { if (f % 180 === 0) sendHeldTo(sadie.x + (Math.random() - 0.5) * 2 * U); update(dt); }
+  meetChooter();
+  for (let f = 0; f < 10 * 60; f++) update(dt); // save with some pieces still moving
+  const before = { n: world.pieces.length, awake: world.pieces.filter(p => !p.asleep).length, sx: sadie.x, sy: sadie.y, cx: chooter.x, bx: barnX(), by: barn.piece.minY,
+    hay: world.hay.filter(h => !h.eaten).map(h => Math.round(h.x / 5)).join(), eaten: world.hayEaten, top: Math.max(...world.pieces.map(p => p.maxY)), dx: drp.x };
+  const text = JSON.stringify(snapshot());
+  resetGame(); // wipe the board, then load
+  restore(JSON.parse(text));
+  const after = { n: world.pieces.length, awake: world.pieces.filter(p => !p.asleep).length, sx: sadie.x, sy: sadie.y, cx: chooter.x, bx: barnX(), by: barn.piece.minY,
+    hay: world.hay.map(h => Math.round(h.x / 5)).join(), eaten: world.hayEaten, top: Math.max(...world.pieces.map(p => p.maxY)), dx: drp.x };
+  const same = before.n === after.n && before.awake === after.awake && Math.abs(before.sx - after.sx) < 0.1 && Math.abs(before.sy - after.sy) < 0.1 && Math.abs(before.cx - after.cx) < 0.1
+    && Math.abs(before.bx - after.bx) < 0.1 && Math.abs(before.by - after.by) < 0.1 && before.hay === after.hay && before.eaten === after.eaten && Math.abs(before.top - after.top) < 0.1 && Math.abs(before.dx - after.dx) < 0.1;
+  check('a saved game comes back as it was', same, `${after.n} pieces (${after.awake} moving), Sadie at ${(after.sy / U).toFixed(1)} blocks, save is ${(text.length / 1024).toFixed(0)} KB`);
+  let maxRise = 0, prevY = sadie.y, sunk = 0, longest = 0;
+  for (let f = 0; f < 20 * 60; f++) {
+    update(dt);
+    maxRise = Math.max(maxRise, (sadie.y - prevY) / U); prevY = sadie.y;
+    sunk = sadie.state !== 'climb' && groundAt(sadie.x, sadie.y) - sadie.y > 0.6 * U ? sunk + 1 : 0; longest = Math.max(longest, sunk); // same as test 4
+  }
+  check('after loading, the game carries on without trouble', !hasNaN(world.pieces) && maxRise < 0.1 && longest <= 3 && penetration(world.pieces) < 3,
+    `longest stuck in the pile ${longest} frames, fastest rise ${(maxRise * 60).toFixed(1)} blocks/s, deepest overlap ${penetration(world.pieces).toFixed(2)} px`);
+  let threw = false; try { restore({ v: 999, pieces: [] }); } catch (e) { threw = true; }
+  check('a save from a different version is refused, not half-loaded', threw);
+  clearTower();
+  check('"Clear tower" empties the board but Sadie keeps Chooter', world.pieces.filter(p => !p.fixed).length === 0 && chooter.met);
+  startOver();
+  check('"Start over" forgets everything, Chooter included', world.pieces.filter(p => !p.fixed).length === 0 && !chooter.met && world.climbBest === 0);
+}
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
 process.exit(failed ? 1 : 0);

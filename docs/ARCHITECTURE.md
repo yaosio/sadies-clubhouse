@@ -19,10 +19,10 @@ tell the screen something, it emits an event (below).
 
 | File | What it does |
 |---|---|
-| `main.js` | Boots everything: sizes the canvas, applies tuning, starts a board, starts the loop. Also exposes `window.__jellyDebug()` for browser tests. |
+| `main.js` | Boots everything: sizes the canvas, applies tuning, loads the saved game (or starts a board), saves every 5 s and when the page is hidden or closed, starts the loop. Also exposes `window.__jellyDebug()` for browser tests. |
 | `loop.js` | Fixed 1/60 s simulation steps (max 3 catch-up steps, each run 1–8 times over at the dev sheet's speed setting), then camera, draw, HUD, perf recording. |
 | `config.js` | Board size (`U` = 30 px per block, 48 blocks wide), solver constants, dev-panel defaults, and the live `tuning` object (`tuning.set` = panel values, `tuning.P` = solver numbers). |
-| `platform/storage.js` | Safe localStorage wrapper. |
+| `platform/storage.js` | Safe localStorage wrapper (get, set, remove; never throws). The one place that touches browser storage, so a different home for saves (itch.io, a desktop app) only changes this file. |
 | **core/** | |
 | `core/world.js` | The `world` object: every piece, the held piece, hay, supply, timers, particles, bests. Shared state lives here. |
 | `core/events.js` | Tiny event bus (`on`, `emit`). |
@@ -38,6 +38,7 @@ tell the screen something, it emits an event (below).
 | `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
 | `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). |
 | `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
+| `core/save.js` | Saving and loading: `snapshot()` turns the board, Sadie, barn, hay, dropper and Chooter into plain data; `restore()` puts it back (throws on a save it can't read, and `loadGame()` then starts fresh). `clearTower()` (keeps friends and bests) and `startOver()` (forgets everything). Saved under `sadies-dropper-world.save`, format `SAVE_VERSION`. |
 | `core/debug.js` | Dev-sheet helpers (for us, not players): game speed, raining lots of pieces, building a tall pile fast, putting Sadie on top, and making Sadie and Chooter do things right now. Uses no random numbers unless a button was pressed. |
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
 | `core/sadie/brain.js` | Sadie's behavior (`sadie` object): target the nearest hay, walk/run/climb, wait, pace, and trips home to drag her barn up. |
@@ -107,4 +108,6 @@ dropper (supply refill, hover, autodrop, spawn) → debug rain. The camera and d
 - **Feel of the physics:** the dev panel defaults in `config.js`, or a piece's material numbers.
   Never expose these to the player.
 - **Anything new that changes over time** goes in `core/`, is driven from `update()` in
-  `core/game.js`, and gets drawn by something in `render/`.
+  `core/game.js`, and gets drawn by something in `render/`. If it should survive closing the page,
+  add it to `snapshot()` and `restore()` in `core/save.js` (and the save test). If old saves can't
+  be loaded into the new format, bump `SAVE_VERSION` (old saves then start fresh).

@@ -14,7 +14,7 @@ export const STEP_MIN = 10 * U, STEP_MAX = 18 * U; // sideways gap from the prev
 export const RISE_MIN = 1.5 * U, RISE_MAX = 4.5 * U;
 export const SIT = 0.7 * U;                       // how high a bundle sits above the pile
 const EDGE = 1.5 * U;                             // keep away from the walls
-const trail = { x: W / 2, dir: 1 };
+export const trail = { x: W / 2, dir: 1 }; // where the last bundle was placed, and which way the trail is heading
 
 function placeNext() {
   let x = trail.x + trail.dir * (STEP_MIN + Math.random() * (STEP_MAX - STEP_MIN));
