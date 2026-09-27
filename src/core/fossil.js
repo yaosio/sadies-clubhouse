@@ -20,14 +20,19 @@ function coverAbove(p) {
   return low;
 }
 
+// Nothing above a fixed piece (Sadie's barn) turns to fossil: she has to be able to drag it up
+// through whatever has piled on top of it.
+function overFixed(p, B) { return B && p.maxX > B.minX - 0.5 * U && p.minX < B.maxX + 0.5 * U && p.maxY > B.minY; }
+
 export function updateFossils(dt, force = false) {
   checkT += dt;
   if (checkT < CHECK_EVERY && !force) return;
   checkT = 0;
   let n = 0;
+  const B = world.pieces.find(p => p.fixed);
   for (const p of world.pieces) {
     if (p.fossil) { n++; continue; }
-    if (!p.asleep || p.rest < FOSSIL_REST) continue;
+    if (p.fixed || !p.asleep || p.rest < FOSSIL_REST || overFixed(p, B)) continue;
     if (coverAbove(p) - p.maxY >= FOSSIL_DEPTH) { p.fossil = true; n++; }
   }
   world.fossils = n;

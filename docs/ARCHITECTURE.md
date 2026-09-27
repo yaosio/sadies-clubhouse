@@ -30,17 +30,19 @@ tell the screen something, it emits an event (below).
 | `core/physics/pieceTypes.js` | Every piece type: shape, color, name, and material numbers. **Add new piece types here.** |
 | `core/physics/templates.js` | Builds each type's rest shape (point lattice per block, or rings for the ball). |
 | `core/physics/body.js` | Creates a live piece; bounding boxes. |
-| `core/physics/solver.js` | The soft-body solver: integration, shape matching, finding nearby pairs (sleeper grid), collisions, friction, floor/walls, bounce, sleeping. Pure math. |
+| `core/physics/solver.js` | The soft-body solver: integration, shape matching, finding nearby pairs (sleeper grid), collisions, friction, floor/walls, bounce, sleeping, and fixed pieces (the barn) that only move when told to. Pure math. |
 | `core/surface.js` | Reading the pile: heightmap `surf` (minimap, hay, dropper) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). |
 | `core/fossil.js` | Turns pieces buried deep in the pile into fossils: permanent ground that never wakes. |
+| `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
 | `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). |
 | `core/dropper.js` | The dropper drone and the supply: moving, rotating, dropping, hover height, autodrop, the piece bag. |
 | `core/effects.js` | Particles and Sadie's floating emotes (notes, hearts, steam). |
-| `core/sadie/brain.js` | Sadie's behavior (`sadie` object): target the nearest hay, walk/run/climb, wait, pace. |
+| `core/sadie/brain.js` | Sadie's behavior (`sadie` object): target the nearest hay, walk/run/climb, wait, pace, and trips home to drag her barn up. |
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
 | **render/** | |
 | `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. |
-| `render/scene.js` | Draws a frame back to front: sky, ruler, walls, ground, hay, drop lane, pieces, Sadie, held piece, dropper, particles. Skips pieces and hay that are off screen. |
+| `render/scene.js` | Draws a frame back to front: sky, ruler, walls, ground, hay, drop lane, barn, pieces, Sadie's rope, Sadie, held piece, dropper, particles. Skips pieces and hay that are off screen. |
+| `render/barnView.js` | Draws Sadie's barn and the rope she drags it with. |
 | `render/jelly.js` | Draws one jelly piece (smooth outline, shine, material decorations). |
 | `render/sadieView.js` | Draws Sadie in every mood, and her emotes. |
 | `render/dropperView.js` | Draws the drone, or an edge marker when it's off screen. |
@@ -58,6 +60,8 @@ tell the screen something, it emits an event (below).
 | Event | Sent by | Heard by |
 |---|---|---|
 | `hayEaten` (bundle) | sadie/brain | hud (toast) |
+| `homeRush` | sadie/brain | hud (toast) |
+| `barnHome` | sadie/brain | hud (toast) |
 | `nextChanged` (type) | dropper | hud (preview) |
 | `playerActed` | dropper | hud (hides the first-run tip) |
 | `reset` | game | main (camera follows Sadie again) |
@@ -66,7 +70,7 @@ tell the screen something, it emits an event (below).
 ## Tick order (`core/game.js`)
 
 physics → piece bookkeeping (rest time, age, smoothed speed, top heights) → surface heightmap →
-hay rides the pile → fossils → Sadie's brain → Sadie's mood → Sadie's best height → particles and emotes →
+hay rides the pile → fossils → Sadie's brain → barn (dragged or dropping) → Sadie's mood → Sadie's best height → particles and emotes →
 dropper (supply refill, hover, autodrop, spawn). The camera and drawing happen after all steps in
 `loop.js`.
 
@@ -78,6 +82,9 @@ dropper (supply refill, hover, autodrop, spawn). The camera and drawing happen a
 - **New Sadie behavior:** state and movement in `core/sadie/brain.js`; if it needs a new mood, add
   it in `core/sadie/mood.js` and draw it in `render/sadieView.js` (ears, eyes, mouth, tail and
   emotes all switch on `mood`).
+- **Something solid that isn't a jelly piece** (like the barn): put it in `world.pieces` with
+  `asleep: true, fixed: true` and move it by setting `kvx`/`kvy` (px per second). The solver
+  never wakes, pushes or tips it, and nothing above it turns to fossil.
 - **Feel of the physics:** the dev panel defaults in `config.js`, or a piece's material numbers.
   Never expose these to the player.
 - **Anything new that changes over time** goes in `core/`, is driven from `update()` in

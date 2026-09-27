@@ -20,7 +20,7 @@ export function drawSadie(time) {
   const shake = mood === 'mad' ? Math.sin(t * 55) * 0.02 : mood === 'scared' ? Math.sin(t * 70) * 0.025 : 0;
   const crouch = mood === 'scared' ? -0.06 : 0;
   const run = walking ? (c.run || 0) : 0, gph = c.phase * Math.PI * 2;
-  const a = climbing ? 1.0 : Math.sin(gph) * 0.1 * run; // rocking-horse gallop
+  const a = climbing ? 1.0 : mood === 'haul' ? -0.13 : Math.sin(gph) * 0.1 * run; // rocking-horse gallop; leaning into the rope when hauling
   lift += Math.abs(Math.sin(gph)) * 0.1 * run;
   const fx = d * Math.cos(a), fy = -Math.sin(a), ux = -d * Math.sin(a), uy = -Math.cos(a);
   const ox = X + shake * S, oy = Y - lift * S;
@@ -33,7 +33,7 @@ export function drawSadie(time) {
   const L = lw / S; // line width in local units
 
   // tail
-  const swayRate = { happy: 7, mad: 16, scared: 30, excited: 10, lookup: 3 }[mood] || 2.5;
+  const swayRate = { happy: 7, mad: 16, scared: 30, excited: 10, lookup: 3, haul: 12 }[mood] || 2.5;
   const sway = Math.sin(t * swayRate);
   let ctrl, tip;
   if (mood === 'mad') { ctrl = [-0.95, 0.3]; tip = [-1.1, 0.5 + sway * 0.35]; }
@@ -41,6 +41,7 @@ export function drawSadie(time) {
   else if (mood === 'happy' || mood === 'excited') { ctrl = [-0.8, 0.85]; tip = [-0.62 + sway * 0.12, 1.22]; }
   else if (mood === 'lookup') { ctrl = [-0.85, 0.6]; tip = [-0.82, 1.0 + (Math.sin(t * 9) > 0.7 ? 0.08 : 0)]; }
   else if (mood === 'run') { ctrl = [-0.9, 0.62]; tip = [-1.25, 0.72 + Math.sin(gph * 2) * 0.06]; } // streaming out behind
+  else if (mood === 'haul') { ctrl = [-0.9, 0.75]; tip = [-1.15, 0.95 + sway * 0.04]; } // stiff with effort
   else { ctrl = [-0.85, 0.6]; tip = [-0.8 + sway * 0.07, 1.05]; }
   const tw = (mood === 'scared' ? 0.24 : mood === 'mad' ? 0.16 : 0.13);
   const tailPath = () => { ctx.beginPath(); ctx.moveTo(-0.48, 0.45 + crouch); ctx.quadraticCurveTo(ctrl[0], ctrl[1] + crouch, tip[0], tip[1] + crouch); };
@@ -130,7 +131,7 @@ function drawCatHead(hx, hy, r, mood, t, lookX, lookY, blink, tilt) {
   const lw = Math.max(1.4, 0.13 * r);
   ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   // ears: flatten sideways when mad or scared, perk up when excited
-  const flat = mood === 'mad' || mood === 'scared' ? 0.6 : mood === 'excited' ? -0.08 : mood === 'run' ? 0.25 : 0;
+  const flat = mood === 'mad' || mood === 'scared' ? 0.6 : mood === 'excited' ? -0.08 : mood === 'run' || mood === 'haul' ? 0.25 : 0;
   for (const side of [-1, 1]) {
     const th = -Math.PI / 2 + side * (0.62 + flat), b1 = th - 0.45, b2 = th + 0.45, len = 1.6 - Math.max(0, flat) * 0.25;
     const tx = Math.cos(th) * r * len, ty = Math.sin(th) * r * len;
@@ -164,7 +165,7 @@ function drawCatHead(hx, hy, r, mood, t, lookX, lookY, blink, tilt) {
   headPath(); ctx.strokeStyle = CAT.ink; ctx.stroke();
 
   // eyes
-  const lid = { neutral: 0.42, lookup: 0.18, mad: 0.55, scared: 0, excited: 0, happy: 0, run: 0.28 }[mood] ?? 0.4;
+  const lid = { neutral: 0.42, lookup: 0.18, mad: 0.55, scared: 0, excited: 0, happy: 0, run: 0.28, haul: 0.35 }[mood] ?? 0.4;
   for (const side of [-1, 1]) {
     const ex = side * 0.37 * r, ey = 0.0, er = 0.16 * r;
     if (mood === 'happy' || blink) { // closed: happy arcs or a quick blink
@@ -203,6 +204,7 @@ function drawCatHead(hx, hy, r, mood, t, lookX, lookY, blink, tilt) {
   ctx.beginPath();
   if (mood === 'scared') { ctx.ellipse(0, 0.56 * r, 0.08 * r, 0.1 * r, 0, 0, Math.PI * 2); }
   else if (mood === 'mad') { ctx.moveTo(-0.14 * r, 0.56 * r); ctx.quadraticCurveTo(0, 0.48 * r, 0.14 * r, 0.56 * r); }
+  else if (mood === 'haul') { ctx.moveTo(-0.16 * r, 0.5 * r); ctx.lineTo(0.16 * r, 0.5 * r); } // teeth clenched on the rope
   else if (mood === 'excited' || mood === 'happy') {
     ctx.moveTo(-0.2 * r, 0.44 * r); ctx.quadraticCurveTo(-0.1 * r, 0.62 * r, 0, 0.42 * r); ctx.quadraticCurveTo(0.1 * r, 0.62 * r, 0.2 * r, 0.44 * r);
   } else { ctx.moveTo(-0.14 * r, 0.47 * r); ctx.quadraticCurveTo(-0.07 * r, 0.54 * r, 0, 0.42 * r); ctx.quadraticCurveTo(0.07 * r, 0.54 * r, 0.14 * r, 0.47 * r); }

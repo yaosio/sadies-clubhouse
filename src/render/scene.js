@@ -1,5 +1,5 @@
-// Draws one frame of the world, back to front: sky, ruler, walls, ground, hay, drop lane,
-// pieces, Sadie, the held piece, the dropper, particles.
+// Draws one frame of the world, back to front: sky, ruler, walls, ground, hay, drop lane, barn,
+// pieces, Sadie's rope, Sadie, the held piece, the dropper, particles.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
 import { COLORS } from '../core/physics/pieceTypes.js';
@@ -9,6 +9,7 @@ import { ctx, cam, vp, sxf, syf, toWorld } from './view.js';
 import { drawJelly } from './jelly.js';
 import { drawDropper } from './dropperView.js';
 import { drawSadie, drawEmotes } from './sadieView.js';
+import { drawBarn, drawRope } from './barnView.js';
 
 const SKY = [[0, '#ffe3ec'], [12, '#bfe7ff'], [35, '#7f8fe0'], [60, '#3a2f7a'], [95, '#120e33']];
 const farStars = Array.from({ length: 160 }, () => ({ x: -W + Math.random() * W * 3, y: (40 + Math.random() * 140) * U, r: 0.6 + Math.random() * 1.2, tw: Math.random() * 6 }));
@@ -118,12 +119,14 @@ export function draw(time) {
     heldReady = true;
   }
 
+  drawBarn();
   // pieces
   for (const p of world.pieces) {
-    // only pieces on screen (with a little margin for the outline)
-    if (syf(p.maxY) > vp.vh + 10 || syf(p.minY) < -10 || sxf(p.maxX) < -10 || sxf(p.minX) > vp.vw + 10) continue;
+    // only pieces on screen (with a little margin for the outline); the barn draws itself
+    if (p.fixed || syf(p.maxY) > vp.vh + 10 || syf(p.minY) < -10 || sxf(p.maxX) < -10 || sxf(p.minX) > vp.vw + 10) continue;
     drawJelly(p.T, p.x, p.y, p.color, 1, time);
   }
+  drawRope();
   drawSadie(time);
   drawEmotes();
   if (heldReady) drawJelly(world.held.T, heldX, heldY, COLORS[world.held.type], world.supply < 1 ? 0.35 : 0.82 + 0.12 * Math.sin(time * 0.006), time);

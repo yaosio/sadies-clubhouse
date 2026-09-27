@@ -90,7 +90,16 @@ function bounds(p, mu) {
 // solid ground until something moving bumps into them. Keeps big towers fast.
 const SLEEP_SPEED = 0.07, SLEEP_TIME = 1.2, WAKE_SPEED = 0.2;
 export const PSTATS = { pairs: 0, touching: 0 }; // profiling counters, reset by the game each frame
-export function wake(p) { if (p.asleep && !p.fossil) { p.asleep = false; p.still = 0; } } // fossils never wake (core/fossil.js)
+export function wake(p) { if (p.asleep && !p.fossil && !p.fixed) { p.asleep = false; p.still = 0; } } // fossils never wake (core/fossil.js)
+
+// Fixed pieces (Sadie's barn, core/barn.js) never wake, tip or get pushed. They count as asleep,
+// so they're solid to everything, but they can be moved on purpose: kvx/kvy is a speed in px per
+// second, applied a little each substep so whatever it bumps gets shoved smoothly out of the way.
+function moveFixed(p, h) {
+  const dx = (p.kvx || 0) * h, dy = (p.kvy || 0) * h, X = p.x, Y = p.y, PX = p.px, PY = p.py;
+  for (let i = 0; i < p.n; i++) { PX[i] = X[i]; PY[i] = Y[i]; X[i] += dx; Y[i] += dy; }
+  if (dx || dy) aabb(p);
+}
 
 // Finding pairs that might touch. Sleepers don't move during a step, so they go into a grid
 // once per step, and each awake piece only looks in the grid cells around it. The pairs are
@@ -104,7 +113,8 @@ function buildSleeperGrid(pieces) {
   for (const list of grid.values()) list.length = 0;
   for (let b = 0; b < pieces.length; b++) {
     const B = pieces[b]; if (!B.asleep) continue;
-    const x0 = Math.floor(B.minX / CELL), x1 = Math.floor(B.maxX / CELL), y0 = Math.floor(B.minY / CELL), y1 = Math.floor(B.maxY / CELL);
+    const m = B.fixed ? 0.25 * U : 0; // a fixed piece can move a little during the step
+    const x0 = Math.floor((B.minX - m) / CELL), x1 = Math.floor((B.maxX + m) / CELL), y0 = Math.floor((B.minY - m) / CELL), y1 = Math.floor((B.maxY + m) / CELL);
     for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
       const k = cellKey(cx, cy); let list = grid.get(k);
       if (!list) { list = []; grid.set(k, list); }
@@ -141,9 +151,9 @@ function findPairs(pieces, nAwake, ce) {
 export function physicsStep(pieces, P, dt) {
   const h = dt / SUBSTEPS, gh = P.g * h * h, maxV = U * 0.4, maxV2 = maxV * maxV;
   const N = pieces.length;
-  // wake sleepers touched by moving neighbours
+  // wake sleepers touched by moving neighbours (a fixed piece being moved counts as moving)
   for (let a = 0; a < N; a++) {
-    const A = pieces[a]; if (A.asleep || A.speed < WAKE_SPEED) continue;
+    const A = pieces[a]; if (A.fixed ? !(A.kvx || A.kvy) : A.asleep || A.speed < WAKE_SPEED) continue;
     const m = U * 0.3;
     for (let b = 0; b < N; b++) {
       const B = pieces[b]; if (!B.asleep || B.fossil) continue;
@@ -159,7 +169,9 @@ export function physicsStep(pieces, P, dt) {
   buildSleeperGrid(pieces);
   for (let s = 0; s < SUBSTEPS; s++) {
     for (let a = 0; a < N; a++) {
-      const p = pieces[a]; if (p.asleep) continue;
+      const p = pieces[a];
+      if (p.fixed) { moveFixed(p, h); continue; }
+      if (p.asleep) continue;
       const n = p.n, X = p.x, Y = p.y, PX = p.px, PY = p.py, damp = 1 - (1 - P.damp) * p.mat.drag;
       for (let i = 0; i < n; i++) {
         let vx = (X[i] - PX[i]) * damp, vy = (Y[i] - PY[i]) * damp;

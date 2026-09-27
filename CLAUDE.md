@@ -36,5 +36,6 @@ Read `README.md`, `docs/ARCHITECTURE.md` and `docs/TUNING.md`.
 - One feature at a time. Make sure it's fun before the next.
 
 ## Parked ideas (don't start unless asked)
-Sadie batting pieces around, a home for Sadie to upgrade, sky zones with different physics,
-unlocking piece types, prestige by melting the tower, a desktop-toy version.
+Sadie batting pieces around, upgrading Sadie's barn, friends she meets moving into the barn, sky
+zones with different physics, unlocking piece types, prestige by melting the tower, a desktop-toy
+version.

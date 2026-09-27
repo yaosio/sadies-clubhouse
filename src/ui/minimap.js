@@ -1,10 +1,11 @@
-// The map strip: outline of the whole pile, hay, Sadie, the dropper, and the current view.
+// The map strip: outline of the whole pile, hay, Sadie's barn, Sadie, the dropper, and the current view.
 // Tap or drag on it to send the dropper there and look at that spot.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
 import { surf, SURF_N, SURF_RES } from '../core/surface.js';
 import { drp, sendHeldTo } from '../core/dropper.js';
 import { sadie } from '../core/sadie/brain.js';
+import { barn } from '../core/barn.js';
 import { cam, vp, clampCam, setFollow } from '../render/view.js';
 
 const miniEl = document.getElementById('mini'), mcv = document.getElementById('miniCv'), mctx = mcv.getContext('2d');
@@ -26,6 +27,12 @@ export function drawMini(time) {
     if (s.eaten) continue;
     mctx.beginPath(); mctx.arc(mx(s.x), my(s.y), 2.8, 0, Math.PI * 2);
     mctx.fillStyle = s === sadie.target ? '#ff4f86' : '#e0b43c'; mctx.fill();
+  }
+  if (barn.piece) { // a little red house
+    const B = barn.piece, x0 = mx(B.minX), x1 = mx(B.maxX), y0 = my(B.minY), yw = my(B.minY + 2.4 * U), yt = my(B.maxY);
+    mctx.fillStyle = '#c8463d'; mctx.strokeStyle = ink; mctx.lineWidth = 1;
+    mctx.beginPath(); mctx.moveTo(x0, y0); mctx.lineTo(x1, y0); mctx.lineTo(x1, yw); mctx.lineTo((x0 + x1) / 2, Math.min(yt, yw - 3)); mctx.lineTo(x0, yw); mctx.closePath();
+    mctx.fill(); mctx.stroke();
   }
   const half = vp.vw / 2 / cam.z;
   mctx.strokeStyle = ink; mctx.globalAlpha = 0.6; mctx.lineWidth = 1.5;

@@ -12,6 +12,7 @@ import { sadie, updateSadie } from './sadie/brain.js';
 import { updateMood } from './sadie/mood.js';
 import { updateEffects } from './effects.js';
 import { updateFossils } from './fossil.js';
+import { resetBarn, updateBarn } from './barn.js';
 
 export const timing = { physMs: 0 }; // read by the performance overlay
 
@@ -19,7 +20,9 @@ export function resetGame() {
   world.pieces = []; world.held = null; world.bag = []; world.nextType = drawFromBag();
   drp.x = drp.tX = W / 2; drp.y = 3 * U; drp.claw = 0; world.spawnTimer = 0; world.particles = [];
   world.topAll = world.topSettled = 0; world.fossils = 0; world.supply = SUPPLY_MAX; surf.fill(0);
-  Object.assign(sadie, { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, pace: null, waitT: 0, scared: 0, mood: 'neutral', run: 0, running: false });
+  resetBarn(W / 2 - 4.5 * U);
+  Object.assign(sadie, { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, pace: null, waitT: 0, scared: 0, mood: 'neutral', run: 0, running: false,
+    trip: null, lastTrip: world.gameTime, heave: false });
   world.emotes = [];
   resetHay(sadie.x);
   spawn();
@@ -45,6 +48,7 @@ export function update(dt) {
   updateHay(dt);
   updateFossils(dt);
   updateSadie(dt);
+  updateBarn(dt);
   updateMood(dt);
   const standing = sadie.state !== 'climb' && Math.abs(sadie.y - groundAt(sadie.x, sadie.y)) < 0.1 * U;
   if (standing && sadie.y / U > world.climbBest + 0.05) { world.climbBest = sadie.y / U; store.set('jellystack.climbBest', +world.climbBest.toFixed(2)); }

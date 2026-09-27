@@ -57,6 +57,22 @@ A piece that has been at rest for 3 s and is buried at least 8 blocks under the 
 Checked every 0.5 s. This keeps a landing piece from waking a long chain of pieces deep in a tall
 tower, so only the top 8 blocks or so can wobble and topple. First step toward an endless tower.
 
+## Sadie's barn (`core/barn.js`, trips in `core/sadie/brain.js`)
+4 blocks wide, walls 2.4 blocks tall, roof peak 3.9 blocks. Starts on the ground 4.5 blocks left of
+the middle. It's a fixed piece: solid, never tips, never gets pushed, and pieces pile on it and bury
+it. Sadie can stand on its roof. When nobody is dragging it, it drops onto whatever is under it
+(gravity 1400, max 10 blocks/s), so it follows the pile down if the pile under it collapses.
+Nothing above it becomes a fossil, so it can always be dragged out.
+
+Trips home: at least 60 s apart. She goes when she's 6 blocks or more above the barn's floor, or
+when the pile covers its whole roof by 1 block or more. She runs to its side, grabs the rope and
+drags it toward the tallest point of the pile (not counting what's heaped on the barn itself), at
+least 4 blocks. The barn follows 2.9 blocks behind her at up to 2.5 blocks/s, shoving pieces out
+of its way; it rides over whatever is under its floor rather than being pulled down into the pile.
+She walks at 70% speed while dragging and stops to heave whenever it falls more than 1.2 blocks
+behind. A trip gives up after 60 s. While on a trip she ignores hay and isn't scared by pieces
+shifting under her (falling still scares her).
+
 ## What counts as ground (`core/surface.js`)
 Asleep, or older than 0.4 s with a smoothed speed under 0.6. The smoothing stops a ball at the top
 of its bounce from counting.
@@ -85,8 +101,8 @@ Covered by the pile for 0.5 s: float up to 0.7 blocks above the surface. Pile dr
 - Runs (2.5× speed) when her hay is more than 6 blocks away sideways; walks again under 2.5.
 - Can't reach her hay: waits 1.5 s, then paces 1.5 blocks out, turning and going 1 block further
   each lap, up to 12.
-- Moods: neutral, lookup (waiting), mad (pacing), happy (climbing), excited (ate hay), scared
-  (falling or lurching ground), run.
+- Moods: neutral, lookup (waiting), mad (pacing), happy (climbing), excited (ate hay or got her
+  barn home), scared (falling or lurching ground), run, haul (dragging her barn).
 
 ## What the tests expect (`tests/run.mjs`, seeded, so results repeat exactly)
 - 150-piece mixed pile: no broken numbers, deepest overlap about 0.6 px, about 140 asleep.
@@ -96,6 +112,13 @@ Covered by the pile for 0.5 s: float up to 0.7 blocks above the surface. Pile dr
   per second, never stays buried, hay never sinks below where it appeared, there are always 3
   bundles out, each new one 10–18 blocks from the last, new hay always starts out of her reach, she
   eats about 6 bundles (the check wants at least 4), and her longest wait between snacks is about
-  33 s (the check allows up to 40).
-- 110 pieces on one spot (peak about 18 blocks): 18 become fossils, all buried at least 8 blocks,
-  and a boulder landing on top wakes none of them.
+  39 s (the check allows up to 40). Time spent fetching her barn doesn't count as waiting. (Before
+  the barn this was about 33 s; over 10 other random runs the longest waits look the same with and
+  without the barn, 18–40 s, so this is just how this run happens to go.)
+- 110 pieces on one spot (peak about 16 blocks): 15 become fossils, all buried at least 8 blocks,
+  and a boulder landing on top wakes none of them. (These numbers moved from 18 fossils and an
+  18-block peak only because the tests share one stream of random numbers and the play test before
+  it now uses a different amount of them.)
+- Pieces dropped on the barn: the pile gets about 5 blocks over its roof, Sadie fetches it once
+  (about 20 s), and it ends up about 6 blocks higher with nothing near it higher than its roof,
+  inside the walls, with no piece sunk into it more than about 0.3 px.
