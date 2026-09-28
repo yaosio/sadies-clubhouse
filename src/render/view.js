@@ -6,18 +6,20 @@ import { sadie } from '../core/sadie/brain.js';
 import { drp, heldOffsets, NO_PIECE } from '../core/dropper.js';
 import { rockInfo } from '../core/surface.js';
 
-// The world is drawn small, on `ctx` (a hidden canvas with one pixel per big on-screen pixel), and
-// blown up onto the real canvas with hard edges (`present`), so every pixel is a visible square.
-// Everything still draws in screen (CSS) pixels: `vp.k` scales that down to the small canvas.
-// The dotted 90s shading is part of each drawing (render/pixels.js), not an effect over the screen.
+// The world is drawn small, on `ctx` (a canvas with one pixel per big on-screen pixel), and the
+// browser blows that canvas up to fill the screen with hard edges (CSS `image-rendering: pixelated`),
+// so every pixel is a visible square. That scaling happens on the graphics chip for free: blowing it
+// up ourselves every frame took over half of each frame's time. Everything still draws in screen
+// (CSS) pixels: `vp.k` scales that down to the small canvas. The dotted 90s shading is part of each
+// drawing (render/pixels.js), not an effect over the screen. `cv` (#world) is a sharp full-size
+// canvas on top: it takes the touches, and holds the few things drawn sharp (`crisp`).
 export const cv = document.getElementById('world');
 const hctx = cv.getContext('2d');
-const lo = document.createElement('canvas');
-export const ctx = lo.getContext('2d');
-export const vp = { vw: 0, vh: 0, dpr: 1, k: 1, P: 1 };  // viewport size in CSS pixels, device pixel ratio;
+const lo = document.getElementById('pixels');
+export const ctx = lo.getContext('2d', { alpha: false });
+export const vp = { vw: 0, vh: 0, dpr: 1, k: 1, P: 1 };  // viewport size in CSS pixels, device pixel ratio (of the sharp canvas);
 // k: small-canvas pixels per CSS pixel; P: CSS pixels per big pixel (use it for 1-pixel lines)
 const BLOCK_PX = 11;                               // about this many big pixels per block at the usual zoom
-let Pd = 1;                                        // device pixels per big pixel (a whole number, so they're all the same size)
 export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0, room: null };  // following Sadie? default zoom for this screen;
 // insetB/insetR: screen px along the bottom/right covered by the dev sheet, so Sadie stays in view;
 // room: { y, px } asks the camera to keep px of screen clear above world height y (a thought bubble)
@@ -25,14 +27,18 @@ export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0, room: nul
 export const cam = { x: W / 2, y: 6 * U, z: 1 };
 export function resize() {
   const r = cv.getBoundingClientRect(); vp.vw = r.width; vp.vh = r.height;
-  vp.dpr = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = window.devicePixelRatio || 1;
+  vp.dpr = Math.min(2, dpr);
   cv.width = Math.round(vp.vw * vp.dpr); cv.height = Math.round(vp.vh * vp.dpr);
   const oldFit = camState.fitZ;
   camState.fitZ = Math.min(vp.vw / (13 * U), vp.vh / (15 * U));
-  // the pixel size is set by the screen, not the zoom, so pixels stay the same size whatever the camera does
-  Pd = Math.max(2, Math.round(camState.fitZ * U * vp.dpr / BLOCK_PX));
-  vp.P = Pd / vp.dpr; vp.k = 1 / vp.P;
-  lo.width = Math.ceil(cv.width / Pd); lo.height = Math.ceil(cv.height / Pd);
+  // the pixel size is set by the screen, not the zoom, so pixels stay the same size whatever the camera does;
+  // a whole number of the screen's own pixels, so they're all the same size
+  const Pd = Math.max(2, Math.round(camState.fitZ * U * dpr / BLOCK_PX));
+  vp.P = Pd / dpr; vp.k = 1 / vp.P;
+  lo.width = Math.ceil(vp.vw / vp.P); lo.height = Math.ceil(vp.vh / vp.P);
+  lo.style.width = lo.width * vp.P + 'px'; lo.style.height = lo.height * vp.P + 'px'; // a hair past the edge, never squeezed
+  crispDirty = true;
   cam.z = cam.z === 1 && oldFit === 1 ? camState.fitZ : cam.z * (camState.fitZ / oldFit);
 }
 export const sxf = x => (x - cam.x) * cam.z + vp.vw / 2;
@@ -76,14 +82,16 @@ export function updateCamera(dt) {
   }
 }
 
-// Things that must stay readable (numbers, emotes) are drawn sharp on top, after the pixels:
-// `crisp(fn)` runs fn(context) then, in CSS pixels.
+// Things that must stay readable (numbers, emotes) are drawn sharp on top, on the full-size canvas:
+// `crisp(fn)` runs fn(context) at the end of the frame, in CSS pixels. That canvas is only cleared
+// when something was on it.
 const later = [];
+let crispDirty = false;
 export const crisp = fn => { later.push(fn); };
 export function present() {
-  hctx.setTransform(1, 0, 0, 1, 0, 0); hctx.imageSmoothingEnabled = false;
-  hctx.drawImage(lo, 0, 0, lo.width * Pd, lo.height * Pd);
+  if (!crispDirty && !later.length) return;
+  hctx.setTransform(1, 0, 0, 1, 0, 0); hctx.clearRect(0, 0, cv.width, cv.height);
   hctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0);
   for (const fn of later) { hctx.save(); fn(hctx); hctx.restore(); }
-  later.length = 0;
+  crispDirty = later.length > 0; later.length = 0;
 }

@@ -4,7 +4,10 @@
 //   - which of the game's functions take the most time, overall and in the slowest frames
 //   - what the browser spends the rest of its time on (garbage collection, drawing to screen, ...)
 //
-//   node tools/profile.mjs [--seconds 40] [--slow 4] [--desktop] [--no-build] [--json out.json]
+//   node tools/profile.mjs [--seconds 40] [--slow 4] [--desktop] [--zoom | --zoomed-out] [--no-build] [--json out.json]
+//
+// --zoom keeps zooming in and out the whole time (like pinching back and forth), to see what that costs;
+// --zoomed-out zooms all the way out first and stays there.
 //
 // It builds the real game first (dist/index.html) unless --no-build. A hidden browser has no
 // graphics card, so "drawing to screen" costs look different from a real phone; the game's own
@@ -18,7 +21,7 @@ import { createServer } from 'node:http';
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
 const opt = (name, d) => { const i = args.indexOf(name); return i < 0 ? d : args[i + 1]; };
-const seconds = +opt('--seconds', 40), slow = +opt('--slow', 4), desktop = args.includes('--desktop');
+const seconds = +opt('--seconds', 40), slow = +opt('--slow', 4), desktop = args.includes('--desktop'), zoom = args.includes('--zoom'), zoomedOut = args.includes('--zoomed-out');
 const SAVE_KEY = 'sadies-dropper-world.save';
 
 if (!args.includes('--no-build') && spawnSync('node', ['tools/build.mjs'], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
@@ -65,6 +68,12 @@ await cdp.send('Profiler.setSamplingInterval', { interval: 200 });
 await browser.startTracing(page, { categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'v8', 'blink.canvas', 'gpu'] });
 await page.evaluate(() => { window.__frames.length = 0; });
 const gameT0 = (await page.evaluate(() => window.__jellyDebug())).time;
+if (zoom) await page.evaluate(() => { // zoom in for a second and a half, then out, over and over
+  const cv = document.getElementById('world'), r = cv.getBoundingClientRect(); let k = 0;
+  setInterval(() => { k++; cv.dispatchEvent(new WheelEvent('wheel', { deltaY: (k % 180 < 90 ? -1 : 1) * 12, clientX: r.width / 2, clientY: r.height / 2, cancelable: true, bubbles: true })); }, 16);
+});
+if (zoomedOut) { await page.evaluate(() => { const cv = document.getElementById('world'), r = cv.getBoundingClientRect();
+  for (let i = 0; i < 40; i++) cv.dispatchEvent(new WheelEvent('wheel', { deltaY: 100, clientX: r.width / 2, clientY: r.height / 2, cancelable: true, bubbles: true })); }); await page.waitForTimeout(1000); }
 await cdp.send('Profiler.start');
 await page.waitForTimeout(seconds * 1000);
 const { profile } = await cdp.send('Profiler.stop');
@@ -79,7 +88,7 @@ const pct = (a, q) => a[Math.min(a.length - 1, Math.floor(q * a.length))];
 const gaps = frames.slice(1).map((f, i) => f[0] - frames[i][0]).sort((a, b) => a - b);
 const works = frames.map(f => f[1]).sort((a, b) => a - b);
 const ms = v => v.toFixed(1) + ' ms';
-console.log(`\n=== ${desktop ? 'desktop' : 'phone'}, ${slow}x slower, ${seconds} s, ${piecesAtStart} pieces at the start, ${piecesAtEnd} at the end${errors.length ? ', PAGE ERRORS: ' + errors.join(' | ') : ''}`);
+console.log(`\n=== ${desktop ? 'desktop' : 'phone'}${zoom ? ', zooming in and out' : zoomedOut ? ', zoomed all the way out' : ''}, ${slow}x slower, ${seconds} s, ${piecesAtStart} pieces at the start, ${piecesAtEnd} at the end${errors.length ? ', PAGE ERRORS: ' + errors.join(' | ') : ''}`);
 console.log(`\nFRAMES: ${frames.length} in ${seconds} s = ${(frames.length / seconds).toFixed(1)} per second; the game ran at ${Math.round(100 * gameSpeed)}% speed (under 100: slowed down to keep up)`);
 console.log(`  time between frames: typical ${ms(pct(gaps, 0.5))}, 1 in 10 over ${ms(pct(gaps, 0.9))}, 1 in 100 over ${ms(pct(gaps, 0.99))}, worst ${ms(gaps[gaps.length - 1])}`);
 console.log(`  game's own work per frame: typical ${ms(pct(works, 0.5))}, 1 in 10 over ${ms(pct(works, 0.9))}, 1 in 100 over ${ms(pct(works, 0.99))}, worst ${ms(works[works.length - 1])}`);

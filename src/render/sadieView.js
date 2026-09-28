@@ -116,7 +116,7 @@ export function drawSadie(time) {
   if ((c.state === 'wait' || c.pace) && c.target && c.target.y > c.y + REACH) {
     const need = Math.max(0, (c.target.y - REACH - c.y) / U);
     const txt = '\u2191 ' + need.toFixed(1);
-    ctx.font = `800 ${Math.max(12, 0.5 * S)}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
+    ctx.font = `800 ${Math.round(Math.max(12, 0.5 * S))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
     const twid = ctx.measureText(txt).width, bh = Math.max(20, 0.8 * S), bx = hx - twid / 2 - 8, by = hy - 2.3 * r - bh;
     ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.strokeStyle = CAT.ink; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.roundRect(bx, by, twid + 16, bh, bh / 2); ctx.fill(); ctx.stroke();
@@ -223,7 +223,7 @@ export function drawEmotes() {
   const list = world.emotes.map(e => [Math.min(1, e.life * 1.5), e.color, e.glyph, sxf(e.x), syf(e.y)]);
   crisp(c => { // drawn sharp on top of the pixels, so they stay readable
     c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.font = `800 ${Math.max(14, 0.6 * U * cam.z)}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
+    c.font = `800 ${Math.round(Math.max(14, 0.6 * U * cam.z))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
     for (const [a, col, glyph, X, Y] of list) { c.globalAlpha = a; c.fillStyle = col; c.fillText(glyph, X, Y); }
   });
 }
