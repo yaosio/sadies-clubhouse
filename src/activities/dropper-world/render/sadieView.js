@@ -3,7 +3,7 @@
 // faces the viewer so the markings read the same way whichever direction she walks.
 import { U } from '../config.js';
 import { world } from '../core/world.js';
-import { sadie, REACH } from '../core/sadie/brain.js';
+import { sadie } from '../core/sadie/brain.js';
 import { ctx, cam, vp, sxf, syf, crisp } from './view.js';
 
 // Sadie: white dilute calico with a gray cap and back patch, a gray patch over one eye,
@@ -112,17 +112,6 @@ export function drawSadie(time) {
     }
   }
 
-  // how much higher the pile needs to be, while she's stuck under some hay
-  if ((c.state === 'wait' || c.pace) && c.target && c.target.y > c.y + REACH) {
-    const need = Math.max(0, (c.target.y - REACH - c.y) / U);
-    const txt = '\u2191 ' + need.toFixed(1);
-    ctx.font = `800 ${Math.round(Math.max(12, 0.5 * S))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
-    const twid = ctx.measureText(txt).width, bh = Math.max(20, 0.8 * S), bx = hx - twid / 2 - 8, by = hy - 2.3 * r - bh;
-    ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.strokeStyle = CAT.ink; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.roundRect(bx, by, twid + 16, bh, bh / 2); ctx.fill(); ctx.stroke();
-    const font = ctx.font, m = ctx.getTransform(), tx = m.a * hx + m.c * (by + bh / 2 + 1) + m.e, ty = m.b * hx + m.d * (by + bh / 2 + 1) + m.f;
-    crisp(c => { c.font = font; c.fillStyle = CAT.ink; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, tx / vp.k, ty / vp.k); });
-  }
   ctx.restore();
 }
 

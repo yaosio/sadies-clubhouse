@@ -47,16 +47,30 @@ export function open(cards, enter) {
     const k = Math.max(1, Math.min(narrow ? 3 : 4, Math.floor(room / w)));
     logo.width = w * k; logo.height = h * k;
   }
-  let typing = 0;
+  // The LED board types its lines out. It's one fixed size, so when they don't all fit, it then
+  // steps them up a line at a time (a little wait at each end) and starts over, like a real one.
+  let typing = 0, rolling = 0;
   function say(lines) {
-    const led = $('#led'); clearInterval(typing);
-    led.innerHTML = lines.map((l, i) => `<div class="${i ? '' : 't'}"></div>`).join('');
-    const rows = [...led.children]; let r = 0, c = 0;
+    const led = $('#led'); clearInterval(typing); clearTimeout(rolling);
+    led.innerHTML = '<div class="roll">' + lines.map((l, i) => `<div class="${i ? '' : 't'}"></div>`).join('') + '</div>';
+    const roll = led.firstChild, rows = [...roll.children]; let r = 0, c = 0;
     typing = setInterval(() => {
-      if (r >= lines.length) return clearInterval(typing);
+      if (r >= lines.length) { clearInterval(typing); rollLed(led, roll); return; }
       rows[r].textContent = lines[r].slice(0, ++c);
       if (c >= lines[r].length) { r++; c = 0; }
     }, 14);
+  }
+  function rollLed(led, roll) {
+    let at = 0; // lines rolled up so far
+    const step = () => { // measured every time: the blocky font arriving late can wrap the lines again
+      const cs = getComputedStyle(led), line = parseFloat(cs.lineHeight) || 16;
+      const room = led.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const extra = Math.max(0, Math.ceil((roll.offsetHeight - room - 1) / line));
+      at = at >= extra ? 0 : at + 1; // a line at a time, then back to the top
+      roll.style.transform = `translateY(${-at * line}px)`;
+      rolling = setTimeout(step, !extra ? 1000 : at === 0 ? 2000 : at === extra ? 2500 : 1100); // a wait at each end
+    };
+    rolling = setTimeout(step, 900);
   }
 
   // ---------- the room, and you standing in it ----------
@@ -84,11 +98,17 @@ export function open(cards, enter) {
   const aim = (x, z) => Math.atan2(-(x - cam.position.x), -(z - cam.position.z));
   const SHELF1 = () => aim(-0.2, ZB), SHELF2 = () => aim(-RW, 1.2);
 
+  let drawnAt = '';  // the drawing size last set
   function resize() {
+    fitLogo();
     const v = $('#view'), w = v.clientWidth, h = v.clientHeight;
     if (!w || !h) return;
     const k = Math.max(1, Math.floor(Math.min(w, h) / 200)); // big chunky pixels, but never under 200 across
     const iw = Math.ceil(w / k), ih = Math.ceil(h / k);
+    // resizing wipes the picture, so only when the size really changed, and then draw it again
+    // straight away (otherwise that frame shows black)
+    if (drawnAt === iw + 'x' + ih) return;
+    drawnAt = iw + 'x' + ih;
     renderer.setSize(iw, ih, false); res.set(iw, ih);
     cam.aspect = iw / ih;
     const hfov = 78 * Math.PI / 180;
@@ -97,7 +117,7 @@ export function open(cards, enter) {
     if (!walk.moved) cam.position.set(tall ? -0.2 : 0.15, EYE, tall ? 1.55 : -0.2);
     cam.updateProjectionMatrix();
     if (!look.touched && look.toYaw === null) look.yaw = SHELF1();
-    fitLogo();
+    renderer.render(scene, cam);
   }
   const sizer = new ResizeObserver(resize);
   sizer.observe($('#view'));
@@ -253,7 +273,7 @@ export function open(cards, enter) {
   }
 
   function close() {
-    cancelAnimationFrame(raf); clearInterval(typing);
+    cancelAnimationFrame(raf); clearInterval(typing); clearTimeout(rolling);
     off.abort(); sizer.disconnect();
     room.dispose(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();

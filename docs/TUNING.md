@@ -322,7 +322,7 @@ order. Nothing about how things behave changed apart from the hay.)
 - Cornered: Chooter carrying the hay near the right wall with Sadie 2.5 blocks behind on a flat
   board. Neither jitters (he turns once, she turns twice), and she gets the hay in about 1.3 s.
   (This guards against them flipping back and forth forever, with her never getting it.)
-- Thought bubbles: 4 minutes with Chooter just met, reading all three minds (Sadie, Chooter, the
+- Thoughts (what the dashboard shows): 4 minutes with Chooter just met, reading all three minds (Sadie, Chooter, the
   mole) every half second. They always have something to say (26 different "doing" lines come
   up), nobody has more than 4 feeling bars, every feeling bar is between 0 and 1, and reading
   thoughts never uses a random number (so tapping a character can't change what happens next).

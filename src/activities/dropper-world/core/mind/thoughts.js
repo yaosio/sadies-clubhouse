@@ -1,5 +1,5 @@
-// What a character is thinking, in plain words, for the bubble you get by tapping them
-// (ui/thoughts.js). Each character registers itself, the same way things register offers:
+// What a character is thinking, in plain words, for the dashboard (ui/dashboard.js), which shows
+// whoever you last tapped. Each character registers itself, the same way things register offers:
 //   { who, name, x, y, h, think() }   x, y: their feet; h: how tall they are (for tapping)
 //   think() -> { doing, why, feelings: [{ label, value }] }   value from 0 to 1, at most 4 feelings
 //   (a character with more feelings than that shows the ones that matter most right now)

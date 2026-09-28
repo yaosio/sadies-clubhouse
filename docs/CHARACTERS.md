@@ -31,12 +31,14 @@ not from rules that name two characters.
 - **Bodies**: how a character gets around stays their own. Sadie walks and climbs; Chooter trots
   and leaps. Activities only say where to go.
 
-- **Thoughts** (`thoughts.js`): tap a character and a bubble shows what they're doing, why, and
-  their feelings as bars, all in their own voice, in first person ("I'm hungry", "I love
+- **Thoughts** (`thoughts.js`): tap a character and the dashboard shows what they're doing, why,
+  and their strongest feeling right now as a meter, all in their own voice, in first person ("I'm hungry", "I love
   absolutely everybody!"), true to who they are in this file. Each character writes its own
   `think()` next to its activities. When you add an activity or a feeling, add its line there too,
-  so the bubble never says something that isn't true. At most 4 bars per character: never one bar
-  per other character (that won't scale as friends are added). The mole, for example, has one bar
+  so the dashboard never says something that isn't true. At most 4 feelings per character (the
+  dashboard shows the strongest; the owner chose one meter over all of them, to save room), each label short enough to fit it
+  ("I'm worried", "Bury the barn!"): never one
+  feeling per other character (that won't scale as friends are added). The mole, for example, has one bar
   for whoever it has its eye on right now. There are no pop-up messages ("Munch munch!",
   "Zoomies!"); only a new friend gets one.
 

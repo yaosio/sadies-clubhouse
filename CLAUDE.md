@@ -32,6 +32,8 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to
    the working branch. Never commit `dist/`, `node_modules/` or `package-lock.json`.
 5. Publish that build to the test page (below) and give the owner the link, so they can try it.
+   Build it again after committing (`npm run build -- --preview`): its label names the commit it
+   was built at, and a build from before the commit shows the previous one, which confuses the owner.
 6. When the owner says to, open a pull request, merge it into `main`, and publish the real game.
 7. Checking something new by hand? If the script would be useful again, put it in `tools/<activity>/`
    (or add it to `tests/<activity>/browser.mjs`), not the scratchpad, which is gone next session.
@@ -70,5 +72,5 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
 ## Parked ideas (don't start unless asked)
 Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building
 things out of dropped pieces, sky zones with different physics, unlocking piece types, prestige by
-melting the tower, a desktop-toy version, other ideas for the thought bubbles (on a phone they
-can still crowd the board; for now the camera makes room above).
+melting the tower, a desktop-toy version, other ideas for the dashboard (it shows one
+character's thoughts at a time, and only their strongest feeling).

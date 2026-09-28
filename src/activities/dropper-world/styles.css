@@ -1,6 +1,11 @@
 :root{
+  /* the dev sheet's own (modern) look; only we use it */
   --ink:#2a1840; --muted:#6d5a80; --panel:rgba(255,250,253,.86); --panel-edge:rgba(42,24,64,.14);
-  --accent:#ff4f86; --accent-deep:#c9306a; --accent-ink:#ffffff; --bg:#ffe3ec; --sheet:#fff8fc; --track:#e9d9ee;
+  --accent:#ff4f86; --accent-deep:#c9306a; --accent-ink:#ffffff; --sheet:#fff8fc; --track:#e9d9ee;
+  /* the game's 90s look: a DOS program that invented its own interface */
+  --void:#150c33; --candy:#4a2a9c; --hi:#a99cff; --lo:#1a0f40; --gold:#ffcf3a; --gold-hi:#fff3a8; --gold-lo:#9a6a00;
+  --pink:#ff6fb4; --lav:#c9bdff; --stamp:#5b3bb4; --led-bg:#07210f; --led:#6dff8a; --led-dim:#1f5a2e;
+  --pixel:'Silkscreen',ui-monospace,monospace; --term:'VT323',ui-monospace,monospace;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
@@ -10,101 +15,191 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --ink:#f6ecff; --muted:#bba9cf; --panel:rgba(34,24,56,.82); --panel-edge:rgba(255,255,255,.14);
-    --bg:#241a3d; --sheet:#241a3d; --track:#3d2f5c;
+    --sheet:#241a3d; --track:#3d2f5c;
   }
 }
 :root[data-theme="dark"]{
   --ink:#f6ecff; --muted:#bba9cf; --panel:rgba(34,24,56,.82); --panel-edge:rgba(255,255,255,.14);
-  --bg:#241a3d; --sheet:#241a3d; --track:#3d2f5c;
+  --sheet:#241a3d; --track:#3d2f5c;
 }
-html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
+html{height:100%;background:var(--void);scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
-body{margin:0;height:100%;overflow:hidden;background:var(--bg);overscroll-behavior:none;
+body{margin:0;height:100%;overflow:hidden;background:var(--void);overscroll-behavior:none;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-#app{position:relative;height:100%;overflow:hidden}
-#pixels{position:absolute;left:0;top:0;display:block;pointer-events:none;image-rendering:pixelated}
-#world{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
-#world.dragging{cursor:grabbing}
-
 button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
-.hud{position:absolute;top:10px;right:calc(12px + var(--dev-r,0px));display:flex;align-items:flex-start;gap:10px;pointer-events:none}
-.hud-right{display:flex;gap:8px;align-items:flex-start;pointer-events:auto}
-.icon{width:48px;height:48px;border-radius:16px;background:var(--panel);border:1px solid var(--panel-edge);display:grid;place-items:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.icon svg{width:24px;height:24px}
+/* ---------- the frame ----------
+   Phone (and any tall screen): top strip, board, dashboard strip, key bar, stacked.
+   Wide screen, sideways: the dashboard is a column down the right, so the board keeps its height. */
+#app{position:relative;height:100%;overflow:hidden;display:grid;gap:5px;padding:4px 6px 6px;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:38px minmax(0,1fr) 106px 38px;grid-template-areas:"top" "board" "side" "keys";
+  background-color:var(--candy);color:#fff;font-family:var(--pixel);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 2px,transparent 2px 4px);
+  border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi)}
+@media (min-width:700px) and (orientation:landscape){
+  #app{grid-template-columns:minmax(0,1fr) 250px;grid-template-rows:48px minmax(0,1fr) 36px;grid-template-areas:"top top" "board side" "keys keys";padding:4px 8px 6px;gap:6px}
+}
+.rivet{position:absolute;width:6px;height:6px;background:var(--gold);box-shadow:inset -2px -2px 0 #b8860b;z-index:1}
+.rivet.a{left:2px;top:2px}.rivet.b{right:2px;top:2px}.rivet.c{left:2px;bottom:2px}.rivet.d{right:2px;bottom:2px}
 
-.tip{position:absolute;left:calc(50% - var(--dev-r,0px) / 2);top:72px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--panel-edge);
-  border-radius:14px;padding:8px 14px;font-size:15px;font-weight:600;max-width:min(88vw,380px);text-align:center;pointer-events:none;
-  transition:opacity .4s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.tip.hide{opacity:0}
-.perf{position:absolute;top:62px;left:12px;background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:8px 10px 6px;
-  font-size:12.5px;line-height:1.35;font-variant-numeric:tabular-nums;pointer-events:none;width:210px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+/* top strip: room for the clubhouse's ESC BACK key, the logo, the shareware plaque */
+.top{grid-area:top;display:flex;align-items:center;gap:12px;min-width:0}
+.back-slot{flex:none;width:var(--back-w,100px)} /* as wide as the ESC BACK key, measured */
+.mlogo{font-size:min(19px,4.8vw);line-height:1;letter-spacing:.02em;white-space:nowrap;overflow:hidden;
+  background:linear-gradient(#fff36b 0 25%,#ffae3a 25% 50%,#ff5fa8 50% 75%,#b060ff 75%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(2px 2px 0 var(--lo))}
+.plaque{display:none;margin-left:auto;background:var(--lo);padding:4px 9px;font-size:10px;line-height:1.35;
+  border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.plaque b{display:block;color:#6ff2ff;font-weight:400}.plaque span{color:var(--pink)}
+@media (min-width:700px) and (orientation:landscape){ .mlogo{font-size:27px} .plaque{display:block} }
+
+/* the board: the game's canvases, sunk into the frame */
+.board{grid-area:board;position:relative;overflow:hidden;background:#2a64d8;border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+#pixels{position:absolute;left:0;top:0;display:block;pointer-events:none;image-rendering:pixelated}
+#world{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#world.dragging{cursor:grabbing}
+/* the test version's label (placed by the build, fixed to the window): in the board's top left corner */
+#testBadge{top:calc(52px + env(safe-area-inset-top))!important;right:auto!important;left:16px}
+@media (min-width:700px) and (orientation:landscape){ #testBadge{top:calc(66px + env(safe-area-inset-top))!important} }
+/* the gold arrow bobbing over whoever you're watching */
+.arrow{position:absolute;left:0;top:0;width:18px;height:20px;pointer-events:none;
+  filter:drop-shadow(2px 0 0 var(--lo)) drop-shadow(-2px 0 0 var(--lo)) drop-shadow(0 2px 0 var(--lo)) drop-shadow(0 -2px 0 var(--lo))}
+.arrow::before{content:"";position:absolute;inset:0;background:var(--gold);clip-path:polygon(30% 0,70% 0,70% 45%,100% 45%,50% 100%,0 45%,30% 45%);animation:bob .7s steps(2) infinite}
+.arrow[hidden]{display:none}
+@keyframes bob{50%{transform:translateY(-4px)}}
+
+/* keycaps */
+.key{display:inline-flex;align-items:center;gap:6px;font-family:var(--pixel);font-size:12px;letter-spacing:.04em;color:#fff;
+  background:none;border:0;padding:0;text-shadow:1px 1px 0 var(--lo);white-space:nowrap;min-height:34px}
+.key kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-gradient(#ece6ff 45%,#cabfff 45%);
+  padding:4px 5px;border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;min-width:26px;text-align:center}
+.key:active kbd,.key[aria-expanded="true"] kbd{border-color:#6a58d8 #fff #fff #6a58d8;background:var(--gold)}
+.key.dim{opacity:.55}
+.key:focus-visible,.stamp:focus-visible,.toys:focus-visible,.more-btn:focus-visible,.win button:focus-visible{outline:2px dashed var(--gold);outline-offset:3px}
+
+/* key bar: F1 HELP, (the stamps, on a phone), F12 DEV, TOYS */
+.keys{grid-area:keys;display:flex;align-items:center;gap:10px;min-width:0}
+.keys .spacer{flex:1}
+@media (max-width:699px),(orientation:portrait){ .key-word{display:none} }
+.toys{display:flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 7px;font-family:var(--pixel);font-size:12px;color:#fff;
+  background:var(--stamp);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);text-shadow:1px 1px 0 var(--lo)}
+.toys[hidden]{display:none}
+.toys.aiming{background:var(--gold);color:var(--lo);text-shadow:none;border-color:var(--gold-hi) var(--gold-lo) var(--gold-lo) var(--gold-hi)}
+.toys.new{animation:toyNew 1s steps(2) 5}
+@keyframes toyNew{50%{background:var(--gold);color:var(--lo)}}
+.ball{width:16px;height:16px;border-radius:50%;background:#d7ef4a;box-shadow:inset -3px -3px 0 #a8c02a,0 0 0 2px var(--lo);flex:none}
+
+/* stamps: who you're watching (in the key bar on a phone, atop the side column on a wide screen) */
+.stamps{display:flex;gap:6px;align-items:center}
+.stamp{width:34px;height:34px;padding:0;background:var(--stamp);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);position:relative;display:grid;place-items:center;flex:none}
+.stamp[hidden]{display:none}
+.stamp canvas{width:24px;height:24px;border:2px solid var(--lo);image-rendering:pixelated;background:#57c8ff}
+.stamp[aria-pressed="true"]{background:var(--gold);border-color:var(--gold-hi) var(--gold-lo) var(--gold-lo) var(--gold-hi);box-shadow:0 0 10px rgba(255,207,58,.8)}
+.stamp.locked{display:none;background:#2b1a66;border-color:#5a4aa8 #120a30 #120a30 #5a4aa8}
+.stamp.locked::before{content:"?";font-size:15px;color:#5a4aa8}
+.stamp.locked::after{content:"";position:absolute;right:3px;bottom:3px;width:10px;height:8px;background:var(--gold);box-shadow:inset -2px -2px 0 #b8860b}
+.stamp.locked i{position:absolute;right:5px;bottom:10px;width:6px;height:5px;border:2px solid var(--gold);border-bottom:0}
+
+/* the dashboard. Phone: one slim strip (face, name, mood, what they're doing, their strongest
+   feeling); tap it for why, which pops up over the bottom of the board. Wide: all of it, always. */
+.side{grid-area:side;display:contents}
+.dash{grid-area:side;position:relative;display:grid;gap:3px 8px;padding:5px 6px;cursor:pointer;min-width:0;min-height:0;
+  grid-template-columns:48px minmax(0,1fr) 30px;grid-template-areas:"face who btn";align-items:center;
+  background:rgba(26,15,64,.35);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi)}
+.face{grid-area:face;width:48px;height:48px;image-rendering:pixelated;background:#57c8ff;border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.who{grid-area:who;min-width:0;display:flex;flex-direction:column;gap:2px}
+.name{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;height:20px;line-height:20px;flex:none} /* its own line height, so the font can't poke out of it */
+.name b{font-weight:400;font-size:13px;color:var(--gold)}
+.name span{font-size:10px;color:var(--pink)}
+.doing{font-family:var(--term);font-size:18px;line-height:22px;color:#fff;height:44px;flex:none} /* boxes of text: a whole number of lines tall, the letters a size under the line so there is room to spare */
+/* a box that never changes size: when its words don't fit, they slowly roll up and back (ui/dashboard.js) */
+.scroll{overflow:hidden;position:relative}
+.scroll > div{will-change:transform;transition:transform .7s ease-in-out} /* glides up to the next line */
+.feel{display:flex;align-items:center;gap:8px;min-width:0;height:20px;flex:none}
+.feel span{flex:none;max-width:70%;font-family:var(--term);font-size:16px;line-height:20px;color:var(--lav);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meter{flex:1;display:flex;gap:2px}
+.meter i{flex:1;height:9px;background:#24164f;border:1px solid #120a30}
+.meter i.on{border-color:rgba(0,0,0,.35)}
+.more-btn{grid-area:btn;width:28px;height:28px;padding:0;font:12px/1 var(--pixel);color:var(--lo);background:linear-gradient(#ece6ff 45%,#cabfff 45%);border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff}
+.dash.open .more-btn{transform:scaleY(-1)}
+.why{font-family:var(--term);font-size:17px;line-height:21px;color:var(--lav)}
+.why-box{display:none;position:absolute;left:-3px;right:-3px;bottom:calc(100% + 8px);z-index:6;cursor:default;
+  background:var(--candy);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:5px 5px 0 rgba(0,0,0,.5)}
+.why-box .why{margin:8px 10px 10px;height:84px}
+.dash.open .why-box{display:block}
+/* the LED sign: on a phone it only shows for news, right over the strip, then gets out of the way */
+.led{grid-area:led;display:none;position:absolute;inset:0;z-index:2;place-items:center;text-align:center;padding:4px 8px;
+  font-family:var(--term);font-size:20px;line-height:1;color:var(--led);text-shadow:0 0 6px rgba(109,255,138,.6);
+  background-color:var(--led-bg);background-image:radial-gradient(rgba(109,255,138,.08) 1px,transparent 1.5px);background-size:4px 4px;
+  border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.dash.news .led{display:grid}
+.led.flash{animation:blink .25s steps(2) 6}
+@keyframes blink{50%{color:var(--led-dim);text-shadow:none}}
+
+@media (min-width:700px) and (orientation:landscape){
+  .side{display:flex;flex-direction:column;gap:6px;min-height:0}
+  .stamps{flex-wrap:wrap}
+  .stamp{width:42px;height:42px}
+  .stamp canvas{width:32px;height:32px}
+  .stamp.locked{display:grid}
+  .dash{flex:1;min-height:0;overflow:hidden;cursor:default;align-items:start;align-content:start;padding:8px;
+    grid-template-columns:72px minmax(0,1fr);grid-template-rows:72px 76px 34px 110px minmax(0,1fr);grid-template-areas:"face name" "doing doing" "feel feel" "why why" "led led"}
+  .face{width:72px;height:72px}
+  .who{display:contents}
+  .name{grid-area:name;flex-direction:column;align-items:flex-start;gap:4px;height:auto}
+  .name b{font-size:15px}
+  .name span{font-size:12px}
+  .doing{grid-area:doing;font-size:20px;line-height:24px;height:72px;margin-top:4px}
+  .feel{grid-area:feel;height:auto;flex-direction:column;align-items:stretch;gap:3px}
+  .feel span{max-width:none}
+  .meter i{height:11px}
+  .more-btn{display:none}
+  .why-box{grid-area:why;display:block;position:static;background:none;border:0;box-shadow:none;align-self:stretch;min-height:0}
+  .why-box .bar{display:none}
+  .why-box .why{margin:0;height:105px}
+  .led{display:grid;position:static;min-height:0;overflow:hidden;margin-top:6px;font-size:22px;line-height:1.05;align-self:stretch}
+}
+
+/* a wide screen that's short (a phone on its side): a smaller face, and the sign makes way for why */
+@media (min-width:700px) and (orientation:landscape) and (max-height:620px){
+  .dash{grid-template-rows:48px 54px 34px minmax(0,1fr) 0}
+  .face{width:48px;height:48px}
+  .doing{height:48px;line-height:24px}
+  .why-box .why{height:21px} /* grown to as many whole lines as fit (ui/dashboard.js) */
+  .led{display:none}
+  .dash.news .led{display:grid;position:absolute;inset:0}
+}
+
+/* 90s windows: help, toy box, and the phone's "why" pop-up */
+.win{position:absolute;z-index:5;background:var(--candy);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:5px 5px 0 rgba(0,0,0,.5)}
+.win[hidden]{display:none}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:linear-gradient(90deg,#ff5fa8,#b060ff);padding:3px 3px 3px 7px;font-size:11px;color:#fff}
+.bar button{font:11px/1 var(--pixel);width:22px;height:20px;padding:0;background:#ece6ff;color:var(--lo);border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff}
+.win-body{padding:10px 12px;font-family:var(--term);font-size:19px;line-height:1.1}
+.win-body p{margin:0 0 8px}.win-body p:last-child{margin:0}
+.help-win{left:12px;right:12px;top:12px;max-width:440px;margin:0 auto}
+.toy-win{right:8px;bottom:8px;width:230px}
+.toy-win .win-body{padding:4px}
+.toy{display:flex;align-items:center;gap:10px;width:100%;padding:6px;background:transparent;border:0;color:#fff;text-align:left;font-family:var(--term);font-size:20px;line-height:1}
+.toy:hover:not(:disabled){background:rgba(255,255,255,.1)}
+.toy:disabled{opacity:.5;cursor:default}
+.toy small{display:block;font-size:16px;color:var(--lav)}
+
+/* dev-only performance overlay, in the board's top left */
+.perf{position:absolute;top:8px;left:8px;background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:8px 10px 6px;color:var(--ink);
+  font-family:"Baloo 2", ui-rounded, system-ui, sans-serif;font-size:12.5px;line-height:1.35;font-variant-numeric:tabular-nums;pointer-events:none;width:210px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:3}
 .perf canvas{display:block;width:100%;height:36px;margin-bottom:4px}
 .perf dl{display:grid;grid-template-columns:auto 1fr;gap:0 10px;margin:0}
 .perf dt{color:var(--muted);font-weight:600}
 .perf dd{margin:0;text-align:right;font-weight:700}
 .check{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;margin:12px 0 4px}
 .check input{width:22px;height:22px;accent-color:var(--accent)}
-.toast{position:absolute;left:calc(50% - var(--dev-r,0px) / 2);top:40%;transform:translate(-50%,-50%) scale(.9);font-size:26px;font-weight:800;color:#fff;
-  text-shadow:0 2px 0 rgba(42,24,64,.45),0 0 18px rgba(255,190,60,.7);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap}
-.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-
-/* The bubble you get by tapping a character: what they're doing, why, and how they feel. It
-   follows them around; the little tail points at them (--tail: its distance from the left edge). */
-.thought{position:absolute;left:0;top:0;width:min(270px,calc(100vw - 24px));background:var(--sheet);border:1px solid var(--panel-edge);border-radius:18px;
-  padding:9px 13px 10px;box-shadow:0 6px 24px rgba(20,10,40,.2);pointer-events:none;line-height:1.3}
-.thought[hidden]{display:none}
-.thought::after{content:"";position:absolute;left:calc(var(--tail,50%) - 8px);bottom:-8px;width:14px;height:14px;background:var(--sheet);
-  border-right:1px solid var(--panel-edge);border-bottom:1px solid var(--panel-edge);transform:rotate(45deg)}
-.thought.below::after{bottom:auto;top:-8px;transform:rotate(225deg)}
-.thought.right::after,.thought.left::after{bottom:auto;top:calc(var(--tail,50%) - 8px)}
-.thought.right::after{left:-8px;transform:rotate(135deg)}
-.thought.left::after{left:auto;right:-8px;transform:rotate(-45deg)}
-.thought > b{display:block;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-deep)}
-.thought p{margin:2px 0 0;font-size:17px;font-weight:700}
-.thought p.why{font-size:14px;font-weight:600;color:var(--muted)}
-.feels{margin-top:7px;display:grid;grid-template-columns:minmax(0,auto) minmax(70px,1fr);gap:4px 10px;align-items:center}
-.feels span{font-size:13px;font-weight:700;color:var(--muted);line-height:1.2}
-.feels i{display:block;height:8px;border-radius:4px;background:var(--track);overflow:hidden}
-.feels i b{display:block;height:100%;border-radius:4px;background:var(--accent);width:0}
-/* phones: wider and smaller print, so the bubble is shorter and covers less of the board */
-@media (max-width: 599px){
-  .thought{width:min(340px,calc(100vw - 24px));padding:7px 11px 8px}
-  .thought > b{font-size:11px}
-  .thought p{font-size:15px}
-  .thought p.why{font-size:12.5px}
-  .feels{margin-top:5px;gap:3px 10px}
-  .feels span{font-size:11.5px}
-}
-
-.toy-btn{position:absolute;left:12px;bottom:calc(14px + var(--dev-b,0px));height:44px;padding:0 14px 0 10px;border-radius:14px;background:var(--panel);
-  border:1px solid var(--panel-edge);display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.toy-btn[hidden]{display:none}
-.toy-btn svg{width:20px;height:20px}
-.toy-btn.aiming{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.toy-btn.new{animation:toyNew 1s ease-in-out 5}
-@keyframes toyNew{50%{transform:scale(1.12)}}
-.toy-tray{position:absolute;left:12px;bottom:calc(66px + var(--dev-b,0px));min-width:210px;background:var(--sheet);border:1px solid var(--panel-edge);border-radius:18px;padding:6px;
-  box-shadow:0 8px 30px rgba(20,10,40,.22);display:flex;flex-direction:column;gap:4px}
-.toy-tray[hidden]{display:none}
-.toy{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;border-radius:12px;padding:8px 10px;min-height:52px}
-.toy:hover:not(:disabled){background:var(--track)}
-.toy:disabled{opacity:.5;cursor:default}
-.toy b{display:block;font-size:17px;line-height:1.1}
-.toy small{display:block;color:var(--muted);font-size:13px;font-weight:600}
-.toy-pic{width:30px;height:30px;flex:none;border-radius:50%}
-.toy-pic.ball{background:radial-gradient(circle at 35% 32%,#f5ffb0,#d7ef4a 55%,#b4cf2c);border:2px solid #3a2658;position:relative;overflow:hidden}
-.toy-pic.ball::before,.toy-pic.ball::after{content:"";position:absolute;top:2px;width:18px;height:18px;border:2px solid #fffbe8;border-radius:50%}
-.toy-pic.ball::before{left:-12px}
-.toy-pic.ball::after{right:-12px}
-.aim-tip{opacity:0}
-.aim-tip.show{opacity:1}
 
 
 /* Dev sheet. Phones: a bottom sheet covering at most ~45% of the screen, scrolling inside, and
    it can shrink to just its title bar. Wide screens: a panel down the right side. */
-.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);border-radius:24px 24px 0 0;
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:20;color:var(--ink);font-family:"Baloo 2", ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;background:var(--sheet);border-radius:24px 24px 0 0;
   box-shadow:0 -10px 40px rgba(20,10,40,.25);max-height:45%;display:flex;flex-direction:column;
   transform:translateY(105%);transition:transform .28s ease}
 .sheet.open{transform:none}
@@ -144,4 +239,4 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .btn{height:44px;padding:0 16px;border-radius:14px;border:1px solid var(--panel-edge);background:transparent;font-weight:700;font-size:16px}
 .btn.warn{background:var(--accent);color:var(--accent-ink);border:0}
 .keys{margin-top:14px;font-size:13px;color:var(--muted);line-height:1.6}
-@media (prefers-reduced-motion: reduce){.sheet,.toast,.tip{transition:none}.toy-btn.new{animation:none}}
+@media (prefers-reduced-motion: reduce){.sheet{transition:none}.toys.new,.arrow::before,.led.flash{animation:none}}

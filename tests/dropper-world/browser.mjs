@@ -2,7 +2,8 @@
 // (never on its own) with the built page, whenever this activity's code, the clubhouse, the
 // toolbox or the build changed since these last passed.
 //
-// It opens a new game, taps Sadie and the mole to read their thoughts, opens the dev sheet, loads
+// It opens a new game, checks the 90s frame gives the board most of the screen, taps Sadie and the
+// mole to watch them in the dashboard (their faces drawn), opens the dev sheet, loads
 // a full board (400 pieces, bedrock melting; made by tools/dropper-world/fullboard.mjs), reloads it
 // to see that it saved, and measures how smooth the full board runs on a phone 4x slower than this
 // machine. Screenshots of each go in dist/check/dropper-world/ to look at. Any error on the page,
@@ -25,7 +26,10 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
   const shot = (p, name) => p.screenshot({ path: join(outDir, name + '.png') });
   const wait = (p, ms) => p.waitForTimeout(ms);
   const debugInfo = p => p.evaluate(() => window.__jellyDebug());
-  const thought = p => p.evaluate(() => { const t = document.getElementById('thought'); return t.hidden ? '' : t.innerText.trim(); });
+  const thought = p => p.evaluate(() => window.__jellyDebug().dash); // what the dashboard says about whoever it's watching
+  // how much of the face in the dashboard is drawn (not the plain sky behind it), 0 to 1
+  const faceDrawn = p => p.evaluate(() => { const d = document.getElementById('face').getContext('2d').getImageData(0, 0, 26, 26).data; let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 0x57) + Math.abs(d[i + 1] - 0xc8) + Math.abs(d[i + 2] - 0xff) > 30) n++; return n / 676; });
 
   const DEVICES = [
     ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
@@ -71,25 +75,32 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
     await shot(p, `${device}-2-sadie-thinks`);
     check(`${device}: tapping Sadie shows what she's thinking`, /sadie/i.test(sadieSays), JSON.stringify(sadieSays.split('\n')[0]));
 
-    // the mole's bubble, the camera following Sadie as usual: it should sit up in the sky above the
-    // mole (the camera makes room), not down over the pile
-    let above = null;
-    for (let tries = 0; tries < 60 && above === null; tries++) { // up to about 30 s: the mole may be off to one side a while, burying the barn
-      d = await debugInfo(p);
-      const vw = await p.evaluate(() => innerWidth);
-      if (d.follow && d.mole.sx > 40 && d.mole.sx < vw - 40 && d.mole.sy > 80) {
-        await tap(p, d.mole.sx, d.mole.sy); await wait(p, 1500);
-        if (/mole/i.test(await thought(p))) {
-          d = await debugInfo(p);
-          const box = await p.evaluate(() => document.getElementById('thought').getBoundingClientRect().toJSON());
-          // above it, or off to one side of it (a wide screen): either way not over the pile below it
-          above = box.bottom <= d.mole.sy + 4 || box.right <= d.mole.sx - 20 || box.left >= d.mole.sx + 20 ? true
-            : `bubble ${Math.round(box.left)}-${Math.round(box.right)} across, bottom at ${Math.round(box.bottom)} px; the mole at ${Math.round(d.mole.sx)}, ${Math.round(d.mole.sy)} px`;
-        }
-      } else await wait(p, 500);
+    // the frame: the board gets most of the screen, and the modern bits are gone from it
+    const frame = await p.evaluate(() => { const b = document.getElementById('board').getBoundingClientRect();
+      return { share: b.width * b.height / (innerWidth * innerHeight), old: ['thought', 'tip', 'toast', 'aimTip'].filter(id => document.getElementById(id)) }; });
+    check(`${device}: the board gets most of the screen, with nothing modern left on it`, frame.share > 0.6 && !frame.old.length,
+      `board ${Math.round(frame.share * 100)}% of the screen${frame.old.length ? ', still there: ' + frame.old.join(', ') : ''}`);
+    // the ESC BACK key never covers the name, and the board and dashboard never change size (a
+    // resize wipes the board's picture): watch them while switching who's watched and news comes in
+    const sizes = () => p.evaluate(() => ['board', 'dash'].map(id => { const r = document.getElementById(id).getBoundingClientRect(); return `${r.width}x${r.height}`; }).join(' '));
+    const firstSize = await sizes(), seen = new Set([firstSize]);
+    for (const who of ['mole', 'sadie', 'mole', 'sadie']) {
+      await p.evaluate(w => { const b = document.querySelector(`.stamp[data-who="${w}"]`); b.click(); }, who); await wait(p, 700); seen.add(await sizes());
     }
-    await shot(p, `${device}-2b-mole-bubble-above`);
-    check(`${device}: the mole's thought bubble sits above it or beside it, not over the pile`, above === true, above === null ? 'never got to tap it' : above === true ? '' : above);
+    await p.evaluate(() => document.getElementById('dash').click()); await wait(p, 300); seen.add(await sizes()); // the "why" pop-up (phone)
+    await p.evaluate(() => document.getElementById('dash').click()); await wait(p, 300);
+    check(`${device}: the board and dashboard stay one size`, seen.size === 1, [...seen].join(' / '));
+    const clash = await p.evaluate(() => { const b = document.getElementById('clubBack').getBoundingClientRect(), l = document.querySelector('.mlogo').getBoundingClientRect(); return b.right > l.left ? `ESC BACK ends at ${Math.round(b.right)} px, the name starts at ${Math.round(l.left)} px` : ''; });
+    check(`${device}: ESC BACK doesn't cover the name`, !clash, clash);
+    // every box of words in the dashboard shows whole lines (never half a line cut off), and nothing's cut off sideways
+    const cut = await p.evaluate(() => [...document.querySelectorAll('#dash .scroll, #dash .name, #dash .feel span')].filter(e => e.offsetParent).flatMap(e => {
+      const line = parseFloat(getComputedStyle(e).lineHeight), bad = [];
+      if (e.classList.contains('scroll') && Math.abs(e.clientHeight / line - Math.round(e.clientHeight / line)) > 0.05) bad.push(`${e.id || e.className} is ${e.clientHeight} px tall, lines are ${line} px`);
+      if (e.scrollWidth > e.clientWidth + 1) bad.push(`${e.id || e.className} is cut off sideways`);
+      if (!e.classList.contains('scroll') && e.scrollHeight > e.clientHeight + 1) bad.push(`${e.id || e.className} is cut off top or bottom`);
+      return bad; }));
+    check(`${device}: the dashboard's words are never cut off`, !cut.length, cut.join('; '));
+    check(`${device}: the dashboard shows Sadie's face`, await faceDrawn(p) > 0.1, `${Math.round(await faceDrawn(p) * 100)}% of the picture drawn`);
 
     // it flies about, so look right at it and tap where it is now (a few tries, in case it moved)
     let moleSays = '';
@@ -102,6 +113,8 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
     }
     await shot(p, `${device}-3-mole-thinks`);
     check(`${device}: tapping the mole shows what it's thinking`, /mole/i.test(moleSays), JSON.stringify(moleSays.split('\n')[0]));
+    await wait(p, 200);
+    check(`${device}: ...and its face`, await faceDrawn(p) > 0.1, `${Math.round(await faceDrawn(p) * 100)}% of the picture drawn`);
 
     // Chooter, before they meet: "Peek in" in the dev sheet, then look at his head and tap it
     await p.click('#settingsBtn'); await wait(p, 400); await p.click('#peekChooter'); await p.click('#closeSheet');
