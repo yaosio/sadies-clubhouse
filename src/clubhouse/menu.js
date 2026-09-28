@@ -51,7 +51,7 @@ export function open(cards, enter) {
   // steps them up a line at a time (a little wait at each end) and starts over, like a real one.
   let typing = 0, rolling = 0;
   function say(lines) {
-    const led = $('#led'); clearInterval(typing); clearInterval(rolling);
+    const led = $('#led'); clearInterval(typing); clearTimeout(rolling);
     led.innerHTML = '<div class="roll">' + lines.map((l, i) => `<div class="${i ? '' : 't'}"></div>`).join('') + '</div>';
     const roll = led.firstChild, rows = [...roll.children]; let r = 0, c = 0;
     typing = setInterval(() => {
@@ -61,14 +61,16 @@ export function open(cards, enter) {
     }, 14);
   }
   function rollLed(led, roll) {
-    let tick = 0;
-    rolling = setInterval(() => { // measured every tick: the blocky font arriving late can wrap the lines again
+    let at = 0; // lines rolled up so far
+    const step = () => { // measured every time: the blocky font arriving late can wrap the lines again
       const cs = getComputedStyle(led), line = parseFloat(cs.lineHeight) || 16;
       const room = led.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       const extra = Math.max(0, Math.ceil((roll.offsetHeight - room - 1) / line));
-      tick = extra ? (tick + 1) % (extra + 4) : 0; // two ticks' wait at the top, a line a tick, two at the bottom
-      roll.style.transform = `translateY(${-Math.min(extra, Math.max(0, tick - 1)) * line}px)`;
-    }, 1400);
+      at = at >= extra ? 0 : at + 1; // a line at a time, then back to the top
+      roll.style.transform = `translateY(${-at * line}px)`;
+      rolling = setTimeout(step, !extra ? 1000 : at === 0 ? 2000 : at === extra ? 2500 : 1100); // a wait at each end
+    };
+    rolling = setTimeout(step, 900);
   }
 
   // ---------- the room, and you standing in it ----------
@@ -271,7 +273,7 @@ export function open(cards, enter) {
   }
 
   function close() {
-    cancelAnimationFrame(raf); clearInterval(typing); clearInterval(rolling);
+    cancelAnimationFrame(raf); clearInterval(typing); clearTimeout(rolling);
     off.abort(); sizer.disconnect();
     room.dispose(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();

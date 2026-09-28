@@ -97,6 +97,7 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
       const line = parseFloat(getComputedStyle(e).lineHeight), bad = [];
       if (e.classList.contains('scroll') && Math.abs(e.clientHeight / line - Math.round(e.clientHeight / line)) > 0.05) bad.push(`${e.id || e.className} is ${e.clientHeight} px tall, lines are ${line} px`);
       if (e.scrollWidth > e.clientWidth + 1) bad.push(`${e.id || e.className} is cut off sideways`);
+      if (!e.classList.contains('scroll') && e.scrollHeight > e.clientHeight + 1) bad.push(`${e.id || e.className} is cut off top or bottom`);
       return bad; }));
     check(`${device}: the dashboard's words are never cut off`, !cut.length, cut.join('; '));
     check(`${device}: the dashboard shows Sadie's face`, await faceDrawn(p) > 0.1, `${Math.round(await faceDrawn(p) * 100)}% of the picture drawn`);
