@@ -1,4 +1,4 @@
-// Draws one frame of the world, back to front: sky, ruler, walls, ground, hay, drop lane, barn,
+// Draws one frame of the world, back to front: sky (sun, clouds, hills), ruler, walls, ground, hay, drop lane, barn,
 // pieces, the bedrock, Sadie's rope, Sadie's friends, Sadie, toys, the held piece, the mole, particles.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
@@ -6,7 +6,7 @@ import { COLORS } from '../core/physics/pieceTypes.js';
 import { drp, heldOffsets } from '../core/dropper.js';
 import { rock, rockInfo, SURF_N, SURF_RES } from '../core/surface.js';
 import { bedrock } from '../core/bedrock.js';
-import { ctx, cam, vp, sxf, syf, toWorld } from './view.js';
+import { ctx, cam, vp, sxf, syf, toWorld, crisp, present } from './view.js';
 import { drawJelly } from './jelly.js';
 import { drawMole } from './moleView.js';
 import { drawSadie, drawEmotes } from './sadieView.js';
@@ -15,8 +15,88 @@ import { drawChooter, drawChooterPeek } from './chooterView.js';
 import { drawToy } from './toyView.js';
 import { drawHay } from './hayView.js';
 
-const SKY = [[0, '#ffe3ec'], [12, '#bfe7ff'], [35, '#7f8fe0'], [60, '#3a2f7a'], [95, '#120e33']];
+// Sky by height: pink at the horizon, cyan, then deep blue, then night up high. The dithering in
+// present() turns it into bands of dots.
+const SKY = [[0, '#ff9ed8'], [3, '#9ee8ff'], [10, '#3ec8f0'], [24, '#2a6ae0'], [45, '#2a2a9a'], [70, '#16104a'], [95, '#0a0628']];
 const farStars = Array.from({ length: 160 }, () => ({ x: -W + Math.random() * W * 3, y: (40 + Math.random() * 140) * U, r: 0.6 + Math.random() * 1.2, tw: Math.random() * 6 }));
+// Far things move slower than the board as the camera moves (f: 0 = fixed on screen, 1 = with the board).
+const pxf = (x, f) => (x - cam.x * f) * cam.z + vp.vw / 2;
+const pyf = (y, f) => vp.vh / 2 - (y - cam.y * f) * cam.z;
+// Lumpy clouds, spread up the sky, drifting.
+const CLOUDS = Array.from({ length: 26 }, (_, i) => ({ x: ((i * 37) % 48) * U * 1.6 - 12 * U, y: (4 + i * 1.7 + (i * 7 % 5)) * U, s: 0.8 + (i * 13 % 7) / 10, v: 3 + (i * 11 % 5) }));
+const PUFFS = [[-1.2, 0, 0.55], [-0.5, 0.25, 0.75], [0.35, 0.35, 0.85], [1.1, 0.05, 0.6], [0.2, -0.1, 0.6]];
+function drawCloud(X, Y, r) {
+  const P = vp.P;
+  const puffs = (grow, dy) => { ctx.beginPath(); for (const [dx, dy0, pr] of PUFFS) { ctx.moveTo(X + dx * r + pr * r + grow, Y - dy0 * r + dy); ctx.arc(X + dx * r, Y - dy0 * r + dy, pr * r + grow, 0, Math.PI * 2); } };
+  ctx.save(); ctx.beginPath(); ctx.rect(X - 3 * r, Y - 3 * r, 6 * r, 3 * r + 0.3 * r); ctx.clip(); // flat bottoms
+  puffs(P, 0); ctx.fillStyle = '#9ab8f0'; ctx.fill();       // soft blue edge
+  puffs(0, 0); ctx.fillStyle = '#d8ecff'; ctx.fill();       // shaded underside
+  puffs(-P, -0.25 * r); ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.restore();
+}
+// A checkerboard of one color, one big pixel per square (every other pixel filled): a 90s see-through.
+const checkers = new Map();
+function checker(color) {
+  let pat = checkers.get(color);
+  if (!pat) {
+    const c = document.createElement('canvas'); c.width = c.height = 2;
+    const g = c.getContext('2d'); g.fillStyle = color; g.fillRect(0, 0, 1, 1); g.fillRect(1, 1, 1, 1);
+    pat = ctx.createPattern(c, 'repeat'); checkers.set(color, pat);
+  }
+  pat.setTransform(new DOMMatrix([vp.P, 0, 0, vp.P, 0, 0]));
+  return pat;
+}
+// The chunky sun with rays, far away: up in the corner of the sky, sinking slowly as the camera climbs.
+function drawSun(time) {
+  const r = 1.4 * U * cam.z, X = Math.max(vp.vw * 0.2, 2 * r) - (cam.x - W / 2) * cam.z * 0.05, Y = Math.max(vp.vh * 0.2, 2.2 * r) + cam.y * cam.z * 0.05;
+  if (Y > vp.vh + 3 * r || Y < -3 * r) return;
+  ctx.save(); ctx.translate(X, Y); ctx.rotate(time * 0.00005);
+  ctx.strokeStyle = '#ffe44a'; ctx.lineWidth = vp.P;
+  for (let k = 0; k < 16; k++) { const a = k * Math.PI / 8, l = k % 2 ? 1.5 : 1.9; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 1.15, Math.sin(a) * r * 1.15); ctx.lineTo(Math.cos(a) * r * l, Math.sin(a) * r * l); ctx.stroke(); }
+  ctx.restore();
+  ctx.fillStyle = checker('#ffe44a'); ctx.beginPath(); ctx.arc(X, Y, r * 1.3, 0, Math.PI * 2); ctx.fill(); // a dotted glow
+  const g = ctx.createRadialGradient(X - r * 0.3, Y - r * 0.3, 0, X, Y, r);
+  g.addColorStop(0, '#fffbe0'); g.addColorStop(0.45, '#ffd23a'); g.addColorStop(1, '#ff9a1e');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI * 2); ctx.fill();
+}
+// Rolling hills behind the board: a far teal row and a nearer green one, filled down to the bottom.
+// f: how much they move sideways with the camera (they stay on the horizon going up and down).
+function drawHills(f, base, amp, seed, light, dark) {
+  const y0 = pyf(base, 0.97); if (y0 - amp * 2 * cam.z > vp.vh) return;
+  const step = 2 * vp.P, g = ctx.createLinearGradient(0, y0 - amp * cam.z, 0, y0 + amp * cam.z);
+  g.addColorStop(0, light); g.addColorStop(1, dark);
+  ctx.beginPath(); ctx.moveTo(0, vp.vh);
+  for (let X = 0; X <= vp.vw + step; X += step) {
+    const x = (X - vp.vw / 2) / cam.z + cam.x * f;
+    ctx.lineTo(X, y0 - amp * cam.z * (0.55 + 0.3 * Math.sin(x / (4.3 * U) + seed) + 0.15 * Math.sin(x / (1.7 * U) + seed * 2)));
+  }
+  ctx.lineTo(vp.vw, vp.vh); ctx.closePath(); ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = dark; ctx.lineWidth = vp.P; ctx.stroke();
+}
+// The ground: a bright grass strip with tufts over brown dirt, speckled with pebbles and candy sprinkles.
+const SPRINKLES = ['#ff5ab4', '#ffe030', '#4ae0ff', '#b07aff', '#ffffff', '#ff8c3a'];
+function drawGround() {
+  const gy = syf(0); if (gy >= vp.vh) return;
+  const z = cam.z, P = vp.P;
+  const dirt = ctx.createLinearGradient(0, gy, 0, gy + 3 * U * z);
+  dirt.addColorStop(0, '#b0602a'); dirt.addColorStop(1, '#6a3414');
+  ctx.fillStyle = dirt; ctx.fillRect(0, gy, vp.vw, vp.vh - gy);
+  const x0 = Math.floor(toWorld(0, 0).x / (0.37 * U)), x1 = Math.ceil(toWorld(vp.vw, 0).x / (0.37 * U));
+  for (let i = x0; i <= x1; i++) { // pebbles and sprinkles at fixed spots in the dirt
+    const h = (i * 2654435761) >>> 0, x = i * 0.37 * U, y = -((h % 1000) / 1000) * 5.5 * U - 0.5 * U;
+    const X = sxf(x), Y = syf(y); if (Y > vp.vh) continue;
+    if (h % 3 === 0) { ctx.fillStyle = SPRINKLES[(h >>> 8) % SPRINKLES.length]; ctx.fillRect(X, Y, P, P); }
+    else if (h % 3 === 1) { ctx.fillStyle = '#d89a6a'; ctx.fillRect(X, Y, 2 * P, P); ctx.fillStyle = '#4a200a'; ctx.fillRect(X, Y + P, 2 * P, P); }
+  }
+  const gh = Math.max(2 * P, 0.35 * U * z);
+  const grass = ctx.createLinearGradient(0, gy - gh, 0, gy + gh);
+  grass.addColorStop(0, '#9aff5a'); grass.addColorStop(1, '#1e9a2e');
+  ctx.fillStyle = grass; ctx.fillRect(0, gy - gh * 0.4, vp.vw, gh * 1.4);
+  ctx.fillStyle = '#0c5a1a'; ctx.fillRect(0, gy + gh, vp.vw, P);
+  ctx.fillStyle = '#c8ff8a';
+  for (let i = x0; i <= x1; i++) { const h = (i * 40503) & 7; if (h < 3) ctx.fillRect(sxf(i * 0.37 * U), gy - gh * 0.4 - P * (1 + (h & 1)), P, P * (1 + (h & 1))); }
+}
+
 const heldX = new Float64Array(128), heldY = new Float64Array(128);
 
 // The bedrock: marbled candy rock, flecked with the colors of the pieces that melted into it, with
@@ -56,11 +136,11 @@ function drawBedrock() {
   ctx.strokeStyle = ROCK.edge; ctx.lineWidth = Math.max(2, 0.12 * U * z); ctx.stroke();
   ctx.translate(0, Math.max(1.5, 0.08 * U * z));
   ctx.strokeStyle = ROCK.rim; ctx.lineWidth = Math.max(1, 0.06 * U * z); ctx.stroke();
-  ctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0);
+  ctx.setTransform(vp.k, 0, 0, vp.k, 0, 0);
 }
 
 export function draw(time) {
-  ctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0);
+  ctx.setTransform(vp.k, 0, 0, vp.k, 0, 0);
   // sky: color changes with altitude
   const g = ctx.createLinearGradient(0, syf(0), 0, syf(SKY[SKY.length - 1][0] * U));
   const top = SKY[SKY.length - 1][0];
@@ -72,21 +152,33 @@ export function draw(time) {
     const a = Math.min(1, (s.y / U - 40) / 30); if (a <= 0) continue;
     const X = sxf(s.x), Y = syf(s.y); if (Y < -5 || Y > vp.vh + 5 || X < -5 || X > vp.vw + 5) continue;
     ctx.globalAlpha = a * (0.6 + 0.4 * Math.sin(time * 0.002 + s.tw));
-    ctx.fillStyle = '#fff'; ctx.fillRect(X, Y, s.r, s.r);
+    ctx.fillStyle = '#fff'; ctx.fillRect(X, Y, vp.P, vp.P);
   }
   ctx.globalAlpha = 1;
-
-  // height ruler
-  const yTop = toWorld(0, 0).y, yBot = toWorld(0, vp.vh).y;
-  ctx.font = `700 ${Math.max(11, Math.min(15, 13 * cam.z))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  for (let hb = Math.max(5, Math.ceil(yBot / U / 5) * 5); hb * U <= yTop; hb += 5) {
-    const Y = syf(hb * U);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([4, 6]);
-    ctx.beginPath(); ctx.moveTo(sxf(0), Y); ctx.lineTo(sxf(W), Y); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = hb > 40 ? 'rgba(255,255,255,0.8)' : 'rgba(42,24,64,0.55)';
-    ctx.fillText(hb, Math.max(8, sxf(0) - 0.9 * U * cam.z), Y);
+  drawSun(time);
+  for (const c of CLOUDS) {
+    const span = W * 2.2, x = ((c.x + time * 0.001 * c.v) % span + span) % span - W * 0.6;
+    const X = pxf(x, 0.6), Y = pyf(c.y, 0.6), r = 0.9 * U * c.s * cam.z;
+    if (Y < -2 * r || Y > vp.vh + r || X < -3 * r || X > vp.vw + 3 * r) continue;
+    drawCloud(X, Y, r);
   }
+  drawHills(0.5, 1.4 * U, 2.6 * U, 1.3, '#7ae8b8', '#2a9a8a');
+  drawHills(0.8, 0.3 * U, 1.5 * U, 4.1, '#6aec5a', '#1e8a3a');
+
+  // height ruler: dashed lines on the pixels, the numbers sharp on top
+  const yTop = toWorld(0, 0).y, yBot = toWorld(0, vp.vh).y, rulerX = Math.max(8, sxf(0) - 0.9 * U * cam.z);
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = vp.P; ctx.setLineDash([2 * vp.P, 3 * vp.P]);
+  const marks = [];
+  for (let hb = Math.max(5, Math.ceil(yBot / U / 5) * 5); hb * U <= yTop; hb += 5) {
+    const Y = syf(hb * U); marks.push([hb, Y]);
+    ctx.beginPath(); ctx.moveTo(sxf(0), Y); ctx.lineTo(sxf(W), Y); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  crisp(c => {
+    c.font = `700 ${Math.max(11, Math.min(15, 13 * cam.z))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
+    c.textAlign = 'left'; c.textBaseline = 'middle';
+    for (const [hb, Y] of marks) { c.fillStyle = hb > 20 ? 'rgba(255,255,255,0.85)' : 'rgba(42,24,64,0.6)'; c.fillText(hb, rulerX, Y); }
+  });
 
   // walls
   const wallTop = Math.max(0, yTop) + U;
@@ -94,14 +186,7 @@ export function draw(time) {
   ctx.fillRect(sxf(-0.35 * U), syf(wallTop), 0.35 * U * cam.z, syf(-U) - syf(wallTop));
   ctx.fillRect(sxf(W), syf(wallTop), 0.35 * U * cam.z, syf(-U) - syf(wallTop));
 
-  // ground
-  const gy = syf(0);
-  if (gy < vp.vh) {
-    ctx.fillStyle = '#c7855a'; ctx.fillRect(0, gy, vp.vw, vp.vh - gy);
-    ctx.fillStyle = '#a8663f'; ctx.fillRect(0, gy, vp.vw, Math.max(3, 0.18 * U * cam.z));
-    ctx.fillStyle = 'rgba(255,240,220,0.35)';
-    for (let i = -6; i < 30; i++) { const X = sxf(i * U * 1.3 + 7); ctx.beginPath(); ctx.arc(X, gy + (0.6 + (i % 3) * 0.35) * U * cam.z, 0.09 * U * cam.z, 0, Math.PI * 2); ctx.fill(); }
-  }
+  drawGround();
 
   drawHay(time);
 
@@ -144,4 +229,5 @@ export function draw(time) {
     ctx.fillStyle = q.c; ctx.beginPath(); ctx.arc(sxf(q.x), syf(q.y), q.r * cam.z, 0, Math.PI * 2); ctx.fill();
   }
   ctx.globalAlpha = 1;
+  present();
 }

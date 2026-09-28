@@ -1,6 +1,8 @@
-// Drawing a jelly piece: smooth outline through its boundary points, a shine per block, and
-// little decorations for some materials (sponge holes, ice streak, sugar dust, stone speckles).
-import { ctx, cam, sxf, syf } from './view.js';
+// Drawing a jelly piece as one gummy shape: smooth outline through its boundary points, a darker
+// rim, a bright rim light along the bottom right, a dark outline in its own
+// color, a white shine per block, and little decorations for some materials (sponge holes, ice
+// streak, sugar dust, stone speckles). Lit from the top left, like everything else.
+import { ctx, cam, vp, sxf, syf } from './view.js';
 import { shade } from './color.js';
 
 let sxBuf = new Float64Array(64), syBuf = new Float64Array(64);
@@ -19,16 +21,22 @@ export function drawJelly(T, X, Y, color, alpha, time) {
   if (sxBuf.length < n) { sxBuf = new Float64Array(n * 2); syBuf = new Float64Array(n * 2); }
   for (let q = 0; q < n; q++) { sxBuf[q] = sxf(X[b[q]]); syBuf[q] = syf(Y[b[q]]); }
   ctx.globalAlpha = alpha;
+  const cs = T.cs * cam.z, P = vp.P, sc = T.shineScale;
   smoothPath(n);
   ctx.fillStyle = color; ctx.fill();
-  ctx.lineWidth = Math.max(1.5, 0.09 * T.cs * cam.z); ctx.strokeStyle = shade(color, -0.32); ctx.stroke();
-  // gummy shine per block
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  const cs = T.cs * cam.z;
-  const sc = T.shineScale;
+  ctx.save(); ctx.clip();
+  ctx.lineWidth = cs * 0.45; ctx.strokeStyle = shade(color, -0.2); ctx.stroke();  // darker rim, lighter middle
+  // rim light: the outline nudged up-left, so its bottom-right edges fall just inside the shape
+  ctx.translate(-1.5 * P, -1.5 * P); ctx.lineWidth = P * 1.2; ctx.strokeStyle = shade(color, 0.55); ctx.stroke();
+  ctx.restore();
+  smoothPath(n);
+  ctx.lineWidth = 2 * P; ctx.strokeStyle = shade(color, -0.6); ctx.stroke();
+  // white gummy shine per block, with a pixel of sparkle beside it
+  ctx.fillStyle = '#ffffff';
   for (const m of T.shine) {
-    const sx = sxf(X[m]) - cs * 0.2 * sc, sy = syf(Y[m]) - cs * 0.2 * sc;
-    ctx.beginPath(); ctx.ellipse(sx, sy, cs * 0.13 * sc, cs * 0.08 * sc, -0.6, 0, Math.PI * 2); ctx.fill();
+    const sx = sxf(X[m]) - cs * 0.22 * sc, sy = syf(Y[m]) - cs * 0.22 * sc;
+    ctx.beginPath(); ctx.ellipse(sx, sy, Math.max(P, cs * 0.12 * sc), Math.max(P * 0.7, cs * 0.06 * sc), -0.6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(sx + cs * 0.17 * sc, sy - cs * 0.06 * sc, P, P);
   }
   if (T.holes) { // sponge
     ctx.fillStyle = 'rgba(160,110,0,0.28)';

@@ -50,13 +50,13 @@ tell the screen something, it emits an event (below).
 | `core/sadie/brain.js` | Sadie (`sadie` object): feelings (hunger, settled), activities (`eat`: nearest hay, wait, pace; `fetchBarn`: drag the barn up), her body (walk, run, climb, fall). Offers `friend`. |
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
 | **render/** | |
-| `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. The camera never looks more than 2 blocks below the lowest point of the bedrock. |
+| `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. The chunky pixels: everything draws on a small hidden canvas (`ctx`, still in screen pixels; `vp.P` is one big pixel), and `present()` dithers it to 8 levels per color (on the graphics chip with WebGL, else the processor) and blows it up with hard edges. Numbers and emotes go on sharp afterwards (`crisp`). The camera never looks more than 2 blocks below the lowest point of the bedrock. |
 | `render/hayView.js` | Draws the hay bales: tumbling while flung, then glowing and floating with a twinkle under them (the mystery float, drawn under the mole too). |
-| `render/scene.js` | Draws a frame back to front: sky, ruler, walls, ground, hay, drop lane, barn, pieces, the bedrock (marbled candy rock with flecks of what melted in), Sadie's rope, Sadie, held piece, the mole, particles. Skips pieces and hay that are off screen. |
+| `render/scene.js` | Draws a frame back to front: sky (sun, drifting clouds and two rows of hills that move slower than the board), ruler, walls, ground, hay, drop lane, barn, pieces, the bedrock (marbled candy rock with flecks of what melted in), Sadie's rope, Sadie, held piece, the mole, particles. Skips pieces and hay that are off screen. |
 | `render/barnView.js` | Draws Sadie's barn and the rope she drags it with. |
 | `render/chooterView.js` | Draws Chooter in every mood, his face in the barn's hayloft window while he's home, and his head peeking in over a wall before they meet (mirrored for the left one). |
 | `render/toyView.js` | Draws the toys (the tennis ball). |
-| `render/jelly.js` | Draws one jelly piece (smooth outline, shine, material decorations). |
+| `render/jelly.js` | Draws one jelly piece as a gummy shape (darker rim, rim light on the bottom right, dark outline in its own color, white shine, material decorations). |
 | `render/sadieView.js` | Draws Sadie in every mood, and her emotes. |
 | `render/moleView.js` | Draws the mole (squinting, drooping when tired, snoozing when napping, aghast at hay it dug up) holding its piece or the hay, or an edge marker when it's off screen. |
 | `render/color.js` | Color helpers. |

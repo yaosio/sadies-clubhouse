@@ -4,7 +4,7 @@
 import { U } from '../config.js';
 import { world } from '../core/world.js';
 import { sadie, REACH } from '../core/sadie/brain.js';
-import { ctx, cam, vp, sxf, syf } from './view.js';
+import { ctx, cam, vp, sxf, syf, crisp } from './view.js';
 
 // Sadie: white dilute calico with a gray cap and back patch, a gray patch over one eye,
 // a nose split gray and tan, and a permanently unimpressed half-lidded stare.
@@ -120,7 +120,8 @@ export function drawSadie(time) {
     const twid = ctx.measureText(txt).width, bh = Math.max(20, 0.8 * S), bx = hx - twid / 2 - 8, by = hy - 2.3 * r - bh;
     ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.strokeStyle = CAT.ink; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.roundRect(bx, by, twid + 16, bh, bh / 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = CAT.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, hx, by + bh / 2 + 1);
+    const font = ctx.font, m = ctx.getTransform(), tx = m.a * hx + m.c * (by + bh / 2 + 1) + m.e, ty = m.b * hx + m.d * (by + bh / 2 + 1) + m.f;
+    crisp(c => { c.font = font; c.fillStyle = CAT.ink; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, tx / vp.k, ty / vp.k); });
   }
   ctx.restore();
 }
@@ -219,11 +220,10 @@ function drawCatHead(hx, hy, r, mood, t, lookX, lookY, blink, tilt) {
 
 export function drawEmotes() {
   if (!world.emotes.length) return;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.font = `800 ${Math.max(14, 0.6 * U * cam.z)}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
-  for (const e of world.emotes) {
-    ctx.globalAlpha = Math.min(1, e.life * 1.5);
-    ctx.fillStyle = e.color; ctx.fillText(e.glyph, sxf(e.x), syf(e.y));
-  }
-  ctx.globalAlpha = 1;
+  const list = world.emotes.map(e => [Math.min(1, e.life * 1.5), e.color, e.glyph, sxf(e.x), syf(e.y)]);
+  crisp(c => { // drawn sharp on top of the pixels, so they stay readable
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `800 ${Math.max(14, 0.6 * U * cam.z)}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
+    for (const [a, col, glyph, X, Y] of list) { c.globalAlpha = a; c.fillStyle = col; c.fillText(glyph, X, Y); }
+  });
 }
