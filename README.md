@@ -6,8 +6,8 @@ owner's late cat, drawn from a photo) climbs the piles to eat bundles of hay (sh
 cow), and every so often drags her barn back up out of the pile. High up she makes friends who move
 into the barn: the first is Chooter, a black lab/pitbull mix who gets the zoomies and fetches the
 ball you throw him from the toy box. The player watches, taps anyone to see what they're thinking,
-and throws Chooter his ball. The tower can grow forever: deep down, the weight of everything above
-melts the oldest pieces into candy bedrock. It's a toy, not a game to win.
+and throws Chooter his ball. The tower can grow forever: once it's big, the weight of everything above
+melts the deepest pieces into candy bedrock. It's a toy, not a game to win.
 
 The owner doesn't code and installs nothing. Claude does all the building.
 

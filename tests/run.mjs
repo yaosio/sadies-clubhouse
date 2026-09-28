@@ -433,23 +433,24 @@ const P = physParams({ ...DEFAULTS });
   mole.strain = 0; mole.feel.tired = 0; mole.napping = false;
 }
 
-// 14. Bedrock: fossils buried 12 blocks deep melt into the floor, so the tower can grow forever
-// without the number of pieces growing with it. (Runs last, so no earlier numbers moved.)
+// 14. Bedrock: once the board has more than 400 pieces, fossils buried 12 blocks deep melt into the
+// floor, so the tower can grow forever without the number of pieces growing with it. (Runs last, so no earlier numbers moved.)
 {
   const { rock, rockAt, rockInfo, surf, SURF_N, SURF_RES } = await import('../src/core/surface.js');
-  const { bedrock, MELT_DEPTH } = await import('../src/core/bedrock.js');
+  const { bedrock, MELT_DEPTH, MAX_PIECES } = await import('../src/core/bedrock.js');
   const { rainPieces } = await import('../src/core/debug.js');
   const { snapshot, restore } = await import('../src/core/save.js');
   const { minds } = await import('../src/core/mind/thoughts.js');
   const dt = 1 / 60;
   resetGame();
   check('a fresh board has no bedrock (flat ground, the physics as before)', rockInfo.high === 0 && bedrock.melted === 0);
-  rainPieces(420, U, W - U, 0.05);
-  let tooHigh = 0, sunk = 0, most = 0, heard = false, f = 0, uncovered = 0, maxOut = 0;
+  rainPieces(700, U, W - U, 0.05);
+  let early = 0, firstAt = 0, tooHigh = 0, sunk = 0, most = 0, heard = false, f = 0, uncovered = 0, maxOut = 0;
   const { debug } = await import('../src/core/debug.js');
   for (; f < 150 * 60 && (debug.rain.length || f < 100 * 60); f++) {
-    const before = bedrock.melted, was = Array.from(rock), fossils = world.pieces.filter(p => p.fossil);
+    const before = bedrock.melted, was = Array.from(rock), fossils = world.pieces.filter(p => p.fossil), count = world.pieces.length;
     update(dt);
+    if (bedrock.melted > before) { if (count <= MAX_PIECES) early++; if (!firstAt) firstAt = count; }
     if (bedrock.melted > before) { // what melted is completely inside the rock now: whatever rested on it rests on the rock
       const left = new Set(world.pieces);
       // (compared with the rock's heights on either side of each point: it's kept one height every quarter block)
@@ -466,6 +467,8 @@ const P = physParams({ ...DEFAULTS });
   const buried = world.pieces.filter(p => !p.fixed && Array.from(p.T.bnd).every(i => p.y[i] < rockAt(p.x[i]))).length;
   check('deep fossils melt into bedrock, and the board keeps fewer pieces', bedrock.melted > 50 && world.pieces.length < most,
     `${bedrock.melted} melted, ${world.pieces.length} pieces left (${most} at most), bedrock ${(rockInfo.low / U).toFixed(1)}-${(rockInfo.high / U).toFixed(1)} blocks up`);
+  check('nothing melts until the board has more than 400 pieces', early === 0 && firstAt > MAX_PIECES, `first melt with ${firstAt} pieces on the board`);
+  check('...and then it stays around 400', world.pieces.length <= MAX_PIECES + 20, `${world.pieces.length} at the end`);
   check('only pieces at least 12 blocks under the pile melt', tooHigh === 0);
   check('the rock rises right up to the top of whatever melts, so nothing is left hanging over a gap', uncovered === 0, `${uncovered} melted pieces stuck out of the rock, at most ${(maxOut / U).toFixed(2)} blocks`);
   check('no piece is left inside the bedrock', buried === 0);

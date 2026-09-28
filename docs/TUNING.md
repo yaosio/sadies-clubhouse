@@ -79,6 +79,18 @@ keeping the bedrock from forming above them.) This keeps a landing piece from wa
 tower, so only the top 8 blocks or so can wobble and topple. First step toward an endless tower.
 
 ## Bedrock (`core/bedrock.js`)
+Only there to keep the game smooth, so it waits until it's needed: nothing melts while the board has
+400 pieces or fewer. Past 400, the deepest fossils melt (lowest first) until it's back down to 390,
+so the board sits at about 390–400 pieces from then on. In normal play that's about 11 minutes in,
+and the rock stays about 45 blocks under the top of the tower, out of sight unless you scroll down.
+Why 400, and why one fixed number rather than one based on how fast the device is: sleeping buried
+pieces cost very little, and time per physics step with nothing melting grew only slowly (about 2.4
+ms at 270 pieces, 2.7 at 450, 3.2 at 630, 4.4 at 900), while playing with the mole always costs
+about 3 ms. At 400 it's still in the flat part, with room to spare on a phone. A number based on
+the device's speed would make the same save play differently on a phone and a computer, would
+flicker with phones warming up or saving battery, would only kick in after the game had already
+slowed down, and couldn't be tested the same way twice. (It started at melting anything 12 blocks
+down right away, which kept about 150 pieces and put bedrock in view after a few minutes.)
 A fossil buried at least 12 blocks under the pile's surface (everywhere across its width) melts
 into the bedrock, as long as nothing that can still move (or the barn) reaches within half a block
 under its top. Checked every 0.5 s. It stops being a piece: the bedrock's top rises to exactly its
@@ -100,8 +112,9 @@ color in the rock (the newest 300 are kept) and a little glimmer.
   under its lowest point. Heights (the ruler, bests) still count from the real ground.
 - It's saved as its height every quarter block (193 numbers) plus the flecks, so a save stays small
   however tall the tower gets. Saves from before bedrock load with none.
-- Why: only the top 12–20 blocks of the tower stay as pieces, so the game costs about the same
-  after an hour as after 10 minutes.
+- Why: however tall the tower gets, only the top 400 pieces stay pieces, so the game costs about
+  the same after an hour as after 20 minutes (about 3–4 ms per step from then on; it was about 3
+  with the old 150 pieces).
 
 ## Sadie's barn (`core/barn.js`, trips in `core/sadie/brain.js`)
 4 blocks wide, walls 2.4 blocks tall, roof peak 3.9 blocks. Starts on the ground 4.5 blocks left of
@@ -212,8 +225,8 @@ For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
 Saved in the browser every 5 s, and when the page is hidden or closed, under the key
 `sadies-dropper-world.save` (a name no other game on a shared site like itch.io will use). Each
 browser and device keeps its own game. Piece positions are kept to 1/100 px; a 50-piece board is
-about 24 KB. The bedrock keeps the board to a couple of hundred pieces however tall the tower
-gets (about 100 KB), far under the browser's ~5 MB limit.
+about 24 KB. The bedrock keeps the board to about 400 pieces however tall the tower
+gets (about 200 KB), far under the browser's ~5 MB limit.
 What comes back exactly: every piece (squish, speed, asleep, fossil), the bedrock, the barn, the hay and the
 hay trail, the mole's spot and the piece it holds, the supply, Sadie and Chooter. What starts over:
 any trip home Sadie was on, the hay she was heading for, what the mole was doing (and how tired it
@@ -293,11 +306,15 @@ the results are identical.)
   simulation taking 80% of each second): the gaps between pieces stretch to about 4.6 s, it's
   napping after 8 s and drops nothing while it naps, and 12 s after the game calms down it's back
   to work.
-- Bedrock (runs last, so no earlier numbers moved): a fresh board has none. Raining 420 pieces over
-  the whole board: about 290 melt into bedrock (15–28 blocks up), leaving about 185 pieces (from
-  about 360 at the most). Where the bedrock rises it's always at least 12 blocks under the pile,
+- Bedrock (runs last, so no earlier numbers moved): a fresh board has none. Raining 700 pieces over
+  the whole board: nothing melts until there are more than 400 (the first melt comes at 406), then
+  about 375 melt into bedrock (2–39 blocks up), leaving about 390 pieces (from about 520 at the
+  most, since pieces rain in faster than deep ones become fossils). Where the bedrock rises it's
+  always at least 12 blocks under the pile,
   every piece that melts ends up completely inside the rock (so nothing that rested on it is left
   hanging), no piece is left inside it, nothing that can move sinks into it, and the mole mentions
   it. A box sliding fast into the side of a 5-block step in the bedrock stops against it (it
   tumbles up to about 3.7 blocks high, never on top). It comes back exactly from a save (about
-  92 KB), and a save from before bedrock loads with flat ground.
+  209 KB), and a save from before bedrock loads with flat ground. (Was 420 pieces raining in with
+  about 290 melting, 185 left, from 360 at most, a 92 KB save, before the 400-piece limit: raining
+  420 would now barely melt anything, so it rains more.)

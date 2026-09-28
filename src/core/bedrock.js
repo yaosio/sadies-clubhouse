@@ -8,12 +8,19 @@
 // its neighbor; the solver pushes anything that bumps into one sideways off it (see bounds() in
 // physics/solver.js) rather than popping it up on top.
 //
+// It's only there so the game stays smooth, so nothing melts until it's needed: while the board has
+// MAX_PIECES pieces or fewer, there's no bedrock at all. Past that, the deepest fossils melt (lowest
+// first), a few at a time, until it's back under. It's a fixed number, the same on every device (so
+// a save plays out the same everywhere, and the tests stay repeatable), picked so a phone stays smooth.
+//
 // Nothing random happens here, so the seeded tests stay the same until something melts.
 import { U } from '../config.js';
 import { world } from './world.js';
 import { surf, rock, rockAt, rockInfo, SURF_N, SURF_RES } from './surface.js';
 import { spark } from './effects.js';
 
+export const MAX_PIECES = 400;          // nothing melts until the board has more pieces than this
+const BATCH = 10;                       // ...then it melts back down to this many under it
 export const MELT_DEPTH = 12 * U;       // how far under the pile's surface a fossil must be (everywhere across it)
 const CHECK_EVERY = 0.5;                // seconds between checks
 const CLEAR = 0.5 * U;                  // nothing that can still move may be this close under a melting piece
@@ -73,6 +80,7 @@ export function updateBedrock(dt) {
   checkT += dt;
   if (checkT < CHECK_EVERY) return;
   checkT = 0;
+  if (world.pieces.length <= MAX_PIECES) return;
   // everything that could still move (and the barn): nothing melts over them
   const live = world.pieces.filter(p => !p.fossil);
   const melt = [];
@@ -83,6 +91,9 @@ export function updateBedrock(dt) {
     if (!blocked) melt.push(p);
   }
   if (!melt.length) return;
+  // only as many as it takes, deepest first
+  melt.sort((a, b) => a.maxY - b.maxY);
+  melt.length = Math.min(melt.length, world.pieces.length - (MAX_PIECES - BATCH));
   // The rock rises to exactly the top of what melted, filling any cave under it, so whatever was
   // resting on a melted piece is resting on the rock now. (Smoothing it out instead, even only
   // where it's steep, left pieces hanging over gaps, and kept caves from ever filling in.)
