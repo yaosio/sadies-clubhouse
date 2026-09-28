@@ -20,7 +20,7 @@ The owner doesn't code and installs nothing. Claude does all the building.
   a backup copy of the source, as JSON in `<script type="application/json" id="jelly-source">`.
   If the page and the repo ever disagree, trust the repo and say so.
 - **The test version** is at https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the work in
-  progress, for the owner to try before it's merged. It says "test version" at the bottom and keeps
+  progress, for the owner to try before it's merged. It says "test version" near the top right and keeps
   its own save.
 - `docs/ARCHITECTURE.md` is the map of the code. Read it before changing anything.
 - `docs/CHARACTERS.md` is who each character is and why they do what they do, and how feelings,
