@@ -1,7 +1,7 @@
 // One simulation tick, in order, plus starting a fresh board. This is the only place that
 // decides what runs when.
 import { U, W, tuning } from '../config.js';
-import { store } from '../platform/storage.js';
+import { store } from '../../../shared/storage.js';
 import { world } from './world.js';
 import { emit } from './events.js';
 import { physicsStep } from './physics/solver.js';

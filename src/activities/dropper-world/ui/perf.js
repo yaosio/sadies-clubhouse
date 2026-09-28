@@ -1,6 +1,6 @@
 // Performance overlay: frame-time graph and a breakdown of where time goes each frame.
 // Toggle from the dev sheet's Info tab.
-import { store } from '../platform/storage.js';
+import { store } from '../../../shared/storage.js';
 import { world } from '../core/world.js';
 import { PSTATS } from '../core/physics/solver.js';
 import { timing } from '../core/game.js';

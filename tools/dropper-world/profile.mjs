@@ -1,10 +1,10 @@
-// Finds out where the time goes: plays a full board (made by tools/fullboard.mjs) in a hidden
+// Finds out where the time goes: plays a full board (made by tools/dropper-world/fullboard.mjs) in a hidden
 // Chromium as a phone slowed down 4x, records a CPU profile and a browser trace, and prints:
 //   - how even the frames are (typical, slow and worst gaps between frames)
 //   - which of the game's functions take the most time, overall and in the slowest frames
 //   - what the browser spends the rest of its time on (garbage collection, drawing to screen, ...)
 //
-//   node tools/profile.mjs [--seconds 40] [--slow 4] [--desktop] [--zoom | --zoomed-out] [--no-build] [--json out.json]
+//   node tools/dropper-world/profile.mjs [--seconds 40] [--slow 4] [--desktop] [--zoom | --zoomed-out] [--no-build] [--json out.json]
 //
 // --zoom keeps zooming in and out the whole time (like pinching back and forth), to see what that costs;
 // --zoomed-out zooms all the way out first and stays there.
@@ -18,7 +18,7 @@ import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { createServer } from 'node:http';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = new URL('../..', import.meta.url).pathname;
 const args = process.argv.slice(2);
 const opt = (name, d) => { const i = args.indexOf(name); return i < 0 ? d : args[i + 1]; };
 const seconds = +opt('--seconds', 40), slow = +opt('--slow', 4), desktop = args.includes('--desktop'), zoom = args.includes('--zoom'), zoomedOut = args.includes('--zoomed-out');
@@ -29,14 +29,14 @@ let boardFile = readdirSync(join(root, 'dist')).find(f => /^fullboard-.*\.json$/
 if (!boardFile) {
   boardFile = 'fullboard-profile.json';
   console.log('making a full board (about two minutes)');
-  if (spawnSync('node', ['tools/fullboard.mjs', join(root, 'dist', boardFile)], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
+  if (spawnSync('node', ['tools/dropper-world/fullboard.mjs', join(root, 'dist', boardFile)], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
 }
 const board = readFileSync(join(root, 'dist', boardFile), 'utf8');
 const html = readFileSync(join(root, 'dist/index.html'), 'utf8');
 
 // which source file each line of the built page came from (the bundler marks each file's start)
 const htmlLines = html.split('\n'), fileOfLine = [];
-{ let cur = '?'; for (let i = 0; i < htmlLines.length; i++) { const m = htmlLines[i].match(/^\s*\/\/ (src\/\S+\.js)$/); if (m) cur = m[1].slice(4); fileOfLine[i] = cur; } }
+{ let cur = '?'; for (let i = 0; i < htmlLines.length; i++) { const m = htmlLines[i].match(/^\s*\/\/ (src\/\S+\.js)$/); if (m) cur = m[1].replace(/^src\/(activities\/dropper-world\/)?/, ''); fileOfLine[i] = cur; } }
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -56,7 +56,7 @@ await ctx.addInitScript(([k, s]) => {
 }, [SAVE_KEY, board]);
 const page = await ctx.newPage();
 const errors = []; page.on('pageerror', e => errors.push(e.message));
-await page.goto(`http://127.0.0.1:${server.address().port}/`);
+await page.goto(`http://127.0.0.1:${server.address().port}/#dropper-world`);
 await page.waitForFunction(() => window.__jellyDebug);
 const cdp = await ctx.newCDPSession(page);
 await cdp.send('Emulation.setCPUThrottlingRate', { rate: slow });

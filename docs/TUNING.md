@@ -16,7 +16,7 @@ only on the last iteration. Speed cap 0.4 blocks per substep.
 Finding pairs: sleeping pieces go into a grid of 2×2-block cells once per frame, awake pieces into
 a second grid each iteration, and each awake piece only checks the pieces in the cells around it.
 Pairs are handled in the same order as checking everything against everything, so results are
-identical; it only skips pairs that are far apart. (`node tools/physics-load.mjs` prints a
+identical; it only skips pairs that are far apart. (`node tools/dropper-world/physics-load.mjs` prints a
 fingerprint of the board after two minutes: a speed-up like this must leave it unchanged.)
 
 Dev panel defaults (stiffness 0.6, bendiness 0.6, jiggle 0.6, grip 0.6, gravity 1):
@@ -157,7 +157,7 @@ his ears and winds him up at most 1/150 a second, so even a downpour takes at le
 At 60% he starts peeking in (his head, from behind whichever wall is nearer Sadie as the peek starts, at the top of the pile there),
 every 22 s at first and every 8 s near the end; you can tap him while
 his head is in. At 100% he bursts in over that
-wall with a leap and a bark. With the mole building, `node tools/arrival.mjs` gives a first peek at
+wall with a leap and a bark. With the mole building, `node tools/dropper-world/arrival.mjs` gives a first peek at
 about 2:50–3:05 and an arrival at about 4:10–4:40 (between 160 and 175 pieces). A slow device whose
 mole gets tired drops fewer pieces, so he takes longer. Once met, he stays met (saved in the
 browser), even after clearing the tower; Start over sends him back next door, from quiet.
@@ -272,7 +272,7 @@ speed and rain.
 Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save, bests and friends
 (keeps the dev sheet's physics settings). Both need a second tap within 3 s.
 
-## What the tests expect (`tests/run.mjs`)
+## What the tests expect (`tests/dropper-world/run.mjs`)
 Each numbered section runs in its own process (several at once, about 3.5 minutes in all), starting
 from a fresh game with its own seeded random numbers, so results repeat exactly and no section can
 change another's numbers. When a change moves a number, update it here and say why in the commit.

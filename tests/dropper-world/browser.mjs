@@ -1,0 +1,157 @@
+// Dropper World in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
+// (never on its own) with the built page, whenever this activity's code, the clubhouse, the
+// toolbox or the build changed since these last passed.
+//
+// It opens a new game, taps Sadie and the mole to read their thoughts, opens the dev sheet, loads
+// a full board (400 pieces, bedrock melting; made by tools/dropper-world/fullboard.mjs), reloads it
+// to see that it saved, and measures how smooth the full board runs on a phone 4x slower than this
+// machine. Screenshots of each go in dist/check/dropper-world/ to look at. Any error on the page,
+// or anything that doesn't work, is a failure; the smoothness numbers are only reported.
+import { readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+
+const SAVE_KEY = 'sadies-dropper-world.save';
+
+export default async function ({ browser, page, check, run, hashOf, root, outDir }) {
+  // ---------- a full board to load (remade only when the game's code changes) ----------
+  const boardFile = join(root, 'dist/fullboard-' + hashOf(['src/activities/dropper-world/core', 'src/activities/dropper-world/config.js', 'tools/dropper-world/fullboard.mjs']) + '.json');
+  if (!existsSync(boardFile)) {
+    for (const f of readdirSync(join(root, 'dist'))) if (/^fullboard-.*\.json$/.test(f)) rmSync(join(root, 'dist', f));
+    if (!run('making a full board (about two minutes, only when the game changed)', 'node', ['tools/dropper-world/fullboard.mjs', boardFile])) { check('make a full board', false); return; }
+  }
+  const board = readFileSync(boardFile, 'utf8');
+  const boardPieces = JSON.parse(board).pieces?.length;
+
+  const shot = (p, name) => p.screenshot({ path: join(outDir, name + '.png') });
+  const wait = (p, ms) => p.waitForTimeout(ms);
+  const debugInfo = p => p.evaluate(() => window.__jellyDebug());
+  const thought = p => p.evaluate(() => { const t = document.getElementById('thought'); return t.hidden ? '' : t.innerText.trim(); });
+
+  const DEVICES = [
+    ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
+    ['desktop', { viewport: { width: 1280, height: 800 } }],
+  ];
+
+  async function open(device, opts, save) {
+    const ctx = await browser.newContext(opts);
+    // the web font can't be fetched from here; answer with nothing rather than log a network error
+    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    // the save goes in before the game starts, once; after that the game's own saves take over
+    if (save) await ctx.addInitScript(([k, s]) => { if (!sessionStorage.getItem('check.planted')) { localStorage.setItem(k, s); sessionStorage.setItem('check.planted', '1'); } }, [SAVE_KEY, save]);
+    const p = await ctx.newPage();
+    p.errors = [];
+    p.on('pageerror', e => p.errors.push(e.message));
+    p.on('console', m => { if (m.type() === 'error') p.errors.push(m.text()); });
+    await p.goto(page + '#dropper-world');
+    return p;
+  }
+
+  for (const [device, opts] of DEVICES) {
+    const tap = (p, x, y) => opts.hasTouch ? p.touchscreen.tap(x, y) : p.mouse.click(x, y);
+
+    // a new game: the mole digs up the first hay and flings it, then drops pieces
+    let p = await open(device, opts);
+    await p.waitForFunction(() => window.__jellyDebug().moleHay, null, { timeout: 5000 }).catch(() => {});
+    let d = await debugInfo(p);
+    await p.evaluate(m => window.__jellyLook(m.x, m.y - 1, 2), d.mole); await wait(p, 100);
+    await shot(p, `${device}-0-mole-digs-hay`);
+    check(`${device}: a new game starts with the mole digging up hay`, d.moleHay);
+    await p.evaluate(() => window.__jellyLook(24, 3, 0.5)); await wait(p, 1500);
+    await shot(p, `${device}-0b-hay-flung`);
+    await wait(p, 6400);
+    d = await debugInfo(p);
+    await p.evaluate(() => window.__jellyFollow()); await wait(p, 1500); // back to following Sadie
+    d = await debugInfo(p);
+    await shot(p, `${device}-1-new-game`);
+    check(`${device}: a new game starts and the mole drops pieces`, d.pieces > 0, `${d.pieces} pieces after 8 s`);
+    check(`${device}: ...and has flung out 3 bundles of hay`, d.hayOut.length + d.hay >= 3, `${d.hayOut.join(', ')}${d.hay ? `, and Sadie has eaten ${d.hay}` : ''}`);
+
+    await tap(p, d.sx, d.sy); await wait(p, 400);
+    const sadieSays = await thought(p);
+    await shot(p, `${device}-2-sadie-thinks`);
+    check(`${device}: tapping Sadie shows what she's thinking`, /sadie/i.test(sadieSays), JSON.stringify(sadieSays.split('\n')[0]));
+
+    // the mole's bubble, the camera following Sadie as usual: it should sit up in the sky above the
+    // mole (the camera makes room), not down over the pile
+    let above = null;
+    for (let tries = 0; tries < 60 && above === null; tries++) { // up to about 30 s: the mole may be off to one side a while, burying the barn
+      d = await debugInfo(p);
+      const vw = await p.evaluate(() => innerWidth);
+      if (d.follow && d.mole.sx > 40 && d.mole.sx < vw - 40 && d.mole.sy > 80) {
+        await tap(p, d.mole.sx, d.mole.sy); await wait(p, 1500);
+        if (/mole/i.test(await thought(p))) {
+          d = await debugInfo(p);
+          const box = await p.evaluate(() => document.getElementById('thought').getBoundingClientRect().toJSON());
+          // above it, or off to one side of it (a wide screen): either way not over the pile below it
+          above = box.bottom <= d.mole.sy + 4 || box.right <= d.mole.sx - 20 || box.left >= d.mole.sx + 20 ? true
+            : `bubble ${Math.round(box.left)}-${Math.round(box.right)} across, bottom at ${Math.round(box.bottom)} px; the mole at ${Math.round(d.mole.sx)}, ${Math.round(d.mole.sy)} px`;
+        }
+      } else await wait(p, 500);
+    }
+    await shot(p, `${device}-2b-mole-bubble-above`);
+    check(`${device}: the mole's thought bubble sits above it or beside it, not over the pile`, above === true, above === null ? 'never got to tap it' : above === true ? '' : above);
+
+    // it flies about, so look right at it and tap where it is now (a few tries, in case it moved)
+    let moleSays = '';
+    for (let tries = 0; tries < 3 && !/mole/i.test(moleSays); tries++) {
+      d = await debugInfo(p);
+      await p.evaluate(m => window.__jellyLook(m.x, m.y, 2), d.mole); await wait(p, 100);
+      d = await debugInfo(p);
+      await tap(p, d.mole.sx, d.mole.sy); await wait(p, 400);
+      moleSays = await thought(p);
+    }
+    await shot(p, `${device}-3-mole-thinks`);
+    check(`${device}: tapping the mole shows what it's thinking`, /mole/i.test(moleSays), JSON.stringify(moleSays.split('\n')[0]));
+
+    // Chooter, before they meet: "Peek in" in the dev sheet, then look at his head and tap it
+    await p.click('#settingsBtn'); await wait(p, 400); await p.click('#peekChooter'); await p.click('#closeSheet');
+    await p.waitForFunction(() => window.__jellyDebug().peek?.out >= 1, null, { timeout: 15000 }).catch(() => {});
+    d = await debugInfo(p);
+    await p.evaluate(k => window.__jellyLook(k.x < 24 ? k.x + 3 : k.x - 3, k.y, 2), d.peek); await wait(p, 100); // from inside the board
+    d = await debugInfo(p);
+    await shot(p, `${device}-3b-chooter-peeks`);
+    await tap(p, d.peek.sx + (d.peek.x < 24 ? 8 : -8), d.peek.sy); await wait(p, 400);
+    const chooterSays = await thought(p);
+    await shot(p, `${device}-3c-chooter-thinks`);
+    check(`${device}: before they meet, Chooter peeks in and can be tapped`, d.peek.out >= 1 && /noise/i.test(chooterSays), JSON.stringify(chooterSays.split('\n').slice(0, 2).join(' / ')));
+
+    await p.click('#settingsBtn'); await wait(p, 500);
+    await shot(p, `${device}-4-dev-sheet`);
+    const sheetOpen = await p.evaluate(() => document.getElementById('sheet').classList.contains('open'));
+    await p.click('#closeSheet'); await wait(p, 400);
+    const sheetShut = await p.evaluate(() => !document.getElementById('sheet').classList.contains('open'));
+    check(`${device}: the dev sheet opens and closes`, sheetOpen && sheetShut);
+    check(`${device}: no errors on the page (new game)`, !p.errors.length, p.errors.slice(0, 3).join(' | '));
+    await p.context().close();
+
+    // a full board, and it saves: reload and it's still there
+    p = await open(device, opts, board);
+    await wait(p, 6000);
+    const loaded = await debugInfo(p);
+    await shot(p, `${device}-5-full-board`);
+    check(`${device}: a full board loads from a save`, Math.abs(loaded.pieces - boardPieces) <= 15, `${loaded.pieces} pieces, the save had ${boardPieces}`);
+    // it saves as the page closes; right after reopening, everything should be where it was
+    const before = await debugInfo(p);
+    await p.reload(); await p.waitForFunction(() => window.__jellyDebug);
+    const after = await debugInfo(p);
+    const moved = Math.hypot(after.cx - before.cx, after.cy - before.cy);
+    check(`${device}: closing and reopening keeps the board`, Math.abs(after.pieces - before.pieces) <= 3 && moved < 2,
+      `${after.pieces} pieces (was ${before.pieces}), Sadie ${moved.toFixed(1)} blocks from where she was`);
+    check(`${device}: no errors on the page (full board)`, !p.errors.length, p.errors.slice(0, 3).join(' | '));
+    await p.context().close();
+  }
+
+  // how smooth a full board is on a slow phone (reported, not a pass/fail)
+  {
+    const p = await open('phone', DEVICES[0][1], board);
+    await p.evaluate(() => localStorage.setItem('jellystack.perf', 'true')); await p.reload();
+    const cdp = await p.context().newCDPSession(p);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await wait(p, 15000);
+    const stats = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('#perfList dt')].map(d => [d.textContent, d.nextElementSibling.textContent])));
+    await shot(p, 'phone-6-slow-phone-stats');
+    console.log(`INFO  full board on a phone 4x slower than this machine (rough, a hidden browser draws slower than a real one): ${Object.entries(stats).map(([k, v]) => k + ' ' + v).join(', ')}`);
+    check('slow phone: no errors on the page', !p.errors.length, p.errors.slice(0, 3).join(' | '));
+    await p.context().close();
+  }
+}

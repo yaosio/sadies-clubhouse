@@ -9,7 +9,7 @@ things in the world **offer** something, and each character keeps doing whatever
 right now. New interactions should mostly come from new feelings, new offers or new activities,
 not from rules that name two characters.
 
-## How it works (`src/core/mind/`)
+## How it works (`src/activities/dropper-world/core/mind/`)
 
 - **Feelings** (`feelings.js`): numbers from 0 to 1 on each character (`c.feel`). They drift on
   their own and get nudged by what happens.
@@ -55,7 +55,7 @@ carries still offers `food`, so Sadie's hunger sends her after it, and to him be
 best game ever. Nobody wrote "Sadie chases Chooter": Sadie only knows "run after food that's on the
 move", and Chooter only knows "keep away from whoever's close".
 
-## Sadie (`src/core/sadie/brain.js`)
+## Sadie (`src/activities/dropper-world/core/sadie/brain.js`)
 
 The owner's late cat. A cat who thinks she's a cow.
 
@@ -78,7 +78,7 @@ The owner's late cat. A cat who thinks she's a cow.
 - Activities: `eat`, `fetchBarn`.
 - Fits her, not built yet: tiredness, and napping in the barn when tired.
 
-## Chooter (`src/core/friends/chooter.js`)
+## Chooter (`src/activities/dropper-world/core/friends/chooter.js`)
 
 Sadie's first friend, a black lab/pitbull mix. Friends show up because of something happening in
 the world, never at a height or a time.
@@ -114,7 +114,7 @@ the world, never at a height or a time.
   has the hay), `zoom` (2, busy until his energy is used up; not when worn out), `home` (1.5, busy
   once inside), `play` (1).
 
-## The mole (`src/core/mole.js`)
+## The mole (`src/activities/dropper-world/core/mole.js`)
 
 It drops the pieces. It lives up in the sky, in a propeller beanie, and nobody knows why (that's the
 joke). The player doesn't steer it: it decides where every piece goes, for its own reasons.

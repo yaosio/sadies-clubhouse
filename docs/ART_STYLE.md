@@ -52,7 +52,7 @@ program that never existed.
   rings, a chrome glint on the logo.
 
 ## Sadie
-Same cat as in the game (`src/render/sadieView.js`): white dilute calico, gray cap and back
+Same cat as in the game (`src/activities/dropper-world/render/sadieView.js`): white dilute calico, gray cap and back
 patch, gray patch over one eye, nose split gray and tan, a permanently unimpressed half-lidded
 stare, gray tail. In pixels: white fur shades toward lavender (never plain gray), a heavy dark
 upper lid over yellow-green eyes, a flat little "w" mouth, dithered pink blush on her cheeks, and

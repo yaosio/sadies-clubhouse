@@ -1,5 +1,5 @@
 // World size and physics tuning. Tuning is ours to set (the dev panel), never the player's.
-import { store } from './platform/storage.js';
+import { store } from '../../shared/storage.js';
 
 export const U = 30;              // one block, in world pixels
 export const COLS = 48;

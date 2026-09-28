@@ -1,6 +1,6 @@
 // All of the game's changing state lives here, so every system reads and writes the same thing.
 // (Sadie's own state is in sadie/brain.js, the mole's in mole.js and dropper.js.)
-import { store } from '../platform/storage.js';
+import { store } from '../../../shared/storage.js';
 
 export const world = {
   pieces: [],          // every piece on the board

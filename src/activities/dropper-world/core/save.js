@@ -1,5 +1,5 @@
 // Saving and loading the game: the whole board (every piece exactly as it's squished, and the
-// bedrock under it), Sadie, her barn, the hay, the dropper and Chooter. Saved in the browser (platform/storage.js), so each
+// bedrock under it), Sadie, her barn, the hay, the dropper and Chooter. Saved in the browser (src/shared/storage.js), so each
 // device and browser keeps its own game. main.js decides when to save.
 //
 // Two ways to clear it: clearTower() starts a fresh board but Sadie keeps her friends and bests;
@@ -9,7 +9,7 @@
 // fresh rather than breaking. Bump SAVE_VERSION when the format changes in a way old saves can't
 // be loaded into.
 import { U, W } from '../config.js';
-import { store } from '../platform/storage.js';
+import { store } from '../../../shared/storage.js';
 import { world } from './world.js';
 import { emit } from './events.js';
 import { SHAPES } from './physics/pieceTypes.js';
