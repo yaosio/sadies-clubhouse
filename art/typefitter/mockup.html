@@ -63,7 +63,7 @@ kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-
 .tool.font b{font-weight:400;color:var(--gold);margin-left:auto}
 .tool.font.on b{color:#3a1400}
 
-.main{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:8px;min-height:0}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 284px;gap:8px;min-height:0}
 .docwrap{display:flex;flex-direction:column;min-width:0;background:var(--paper)}
 .ruler{height:16px;background:#e9e4ff;border-bottom:2px solid var(--lo);
   background-image:repeating-linear-gradient(90deg,var(--lo) 0 2px,transparent 2px 12px),repeating-linear-gradient(90deg,var(--lo) 0 2px,transparent 2px 96px);
@@ -87,7 +87,7 @@ kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-
 /* Sadie's corner */
 .sadie{display:flex;flex-direction:column;gap:8px;padding:8px;background:var(--deep);min-width:0}
 .scan{display:flex;flex-direction:column;align-items:center;gap:3px}
-.scan canvas{width:240px;height:280px;max-width:100%;image-rendering:pixelated;border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);background:#000}
+.scan canvas{width:256px;height:218px;max-width:100%;image-rendering:pixelated;border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);background:#000}
 .scan small{font:10px/1.2 var(--pixel);color:var(--muted);letter-spacing:.04em}
 .bubble{position:relative;background:#fff;color:#1a0f40;border:3px solid var(--lo);padding:8px 10px;font-family:'Comic Neue','Comic Sans MS',cursive;font-size:15px;line-height:1.3;min-height:92px;box-shadow:3px 3px 0 var(--lo)}
 .bubble::before{content:'';position:absolute;left:54px;top:-14px;border:11px solid transparent;border-bottom:13px solid var(--lo);border-top:0}
@@ -144,7 +144,7 @@ kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-
   .doc{min-height:220px}
   .sadie{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"scan bubble" "meter meter" "fit fit";align-items:start}
   .scan{grid-area:scan}.bubble{grid-area:bubble;margin-left:8px}.meter{grid-area:meter}.fit{grid-area:fit}
-  .scan canvas{width:120px;height:140px}
+  .scan canvas{width:128px;height:109px}
   .bubble{font-size:14px}
   .bubble::before{left:-14px;top:22px;border:11px solid transparent;border-right:13px solid var(--lo);border-left:0}
   .bubble::after{left:-9px;top:26px;border:7px solid transparent;border-right:9px solid #fff;border-left:0}
@@ -201,7 +201,7 @@ kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-
         </div>
       </div>
       <div class="sadie sunk">
-        <div class="scan"><canvas id="scan" width="120" height="140" aria-label="Sadie, a photo traced over by hand, squashed to a few colors and badly compressed"></canvas><small>SADIE.JPG · 16 COLORS · 3 KB</small></div>
+        <div class="scan"><canvas id="scan" width="128" height="109" aria-label="Sadie, her photo traced over by hand, squashed to a few colors and badly compressed"></canvas><small>SADIE.JPG · 16 COLORS · 3 KB</small></div>
         <div class="bubble" id="bubble" aria-live="polite"></div>
         <div class="meter"><div class="lab"><span>TEXT LOVE</span><span id="loveNum">0/10</span></div><div class="hearts" id="hearts"></div></div>
         <button class="fit" type="button" id="fit" disabled>FIT IT!<small id="fitSub">SADIE ISN'T READY</small></button>
@@ -235,7 +235,7 @@ kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-
     <section>
       <h2>STILL TO DECIDE</h2>
       <ul>
-        <li>Sadie here is traced from a stand-in drawing. In the real thing, she'd be traced from her real photo the same way.</li>
+        <li>Sadie is traced from her real photo. Want her bigger, smaller, or somewhere else on the screen?</li>
         <li>Sounds: grinding disk while fitting, a screechy dot-matrix printer for the certificate?</li>
         <li>Keep old certificates somewhere to flip through, or let each one go?</li>
         <li>More buttons, fewer, or different ones?</li>
@@ -252,103 +252,75 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
-/* ================= Sadie: a photo, traced over by hand, then saved way too small ================= */
-function drawScan() {
-  const W = 120, H = 140;
-  // 1. the photo (a stand-in until her real one): Sadie sitting on an orange couch, at 240x280
-  const P = document.createElement('canvas'); P.width = 240; P.height = 280;
-  const p = P.getContext('2d');
-  let g = p.createRadialGradient(100, 90, 20, 120, 140, 230);
-  g.addColorStop(0, '#d8995a'); g.addColorStop(.55, '#a0602e'); g.addColorStop(1, '#5a3018');
-  p.fillStyle = g; p.fillRect(0, 0, 240, 280);
-  p.fillStyle = 'rgba(60,30,10,.35)'; p.fillRect(0, 226, 240, 54);
-  const shade = (x, y, r, a, b) => { const q = p.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r * 1.1); q.addColorStop(0, a); q.addColorStop(1, b); return q; };
-  const ell = (x, y, rx, ry, f, rot = 0) => { p.beginPath(); p.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); p.fillStyle = f; p.fill(); };
-  const tri = (a, b, c, f) => { p.beginPath(); p.moveTo(...a); p.lineTo(...b); p.lineTo(...c); p.closePath(); p.fillStyle = f; p.fill(); };
-  p.lineCap = 'round'; p.strokeStyle = '#8f8a9b'; p.lineWidth = 20;
-  p.beginPath(); p.moveTo(184, 240); p.quadraticCurveTo(206, 276, 120, 272); p.quadraticCurveTo(84, 270, 72, 262); p.stroke();
-  ell(120, 200, 68, 72, shade(120, 200, 72, '#ffffff', '#b8b0cc'));
-  p.save(); p.beginPath(); p.ellipse(120, 200, 68, 72, 0, 0, Math.PI * 2); p.clip(); ell(66, 184, 34, 46, '#8f8a9b', .2); p.restore();
-  for (const x of [98, 142]) { p.fillStyle = shade(x, 236, 30, '#ffffff', '#d4cde0'); p.fillRect(x - 13, 196, 26, 70); ell(x, 266, 17, 9, '#f4f0f8'); }
-  tri([70, 76], [60, 20], [108, 56], '#8f8a9b'); tri([132, 56], [180, 20], [170, 76], '#8f8a9b');
-  tri([76, 68], [67, 32], [100, 58], '#e9a3b6'); tri([140, 58], [173, 32], [164, 68], '#d9a2b4');
-  ell(120, 104, 64, 55, shade(120, 104, 60, '#ffffff', '#c4bcd6'));
-  p.save(); p.beginPath(); p.ellipse(120, 104, 64, 55, 0, 0, Math.PI * 2); p.clip();
-  ell(82, 62, 42, 30, '#8f8a9b', .25); ell(158, 62, 42, 30, '#8f8a9b', -.25);
-  ell(121, 64, 10, 24, '#ffffff'); ell(122, 54, 6, 6, '#e7b688');
-  ell(146, 102, 24, 19, '#8f8a9b', -.2);
-  p.restore();
-  for (const x of [98, 142]) { ell(x, 105, 11, 7, '#c4c96a'); ell(x + 1, 106, 3, 6, '#2b2233'); p.fillStyle = '#3a2658'; p.fillRect(x - 12, 96, 24, 8); }
-  tri([112, 120], [120, 120], [120, 130], '#6a6480'); tri([120, 120], [128, 120], [120, 130], '#e7b688');
-  ell(88, 124, 11, 6, 'rgba(255,140,170,.45)'); ell(152, 124, 11, 6, 'rgba(255,140,170,.45)');
-
-  // 2. shrunk to 120x140, then squashed to 16 colors with a dot pattern
+// Sadie's real photo, cropped and shrunk to 256x218
+const SADIE_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADaAQADASIAAhEBAxEB/8QAHQAAAgMBAQEBAQAAAAAAAAAABQYDBAcCAQgACf/EAD0QAAIBAwMDAwIEBAQEBwEBAAECAwAEEQUSIQYxQRNRYSJxBxQygSNCkaEIFRbBQ1JTsSQzYnLR8PE14f/EABoBAAIDAQEAAAAAAAAAAAAAAAIDAAEEBQb/xAAqEQACAgEEAgEDBAMBAAAAAAAAAQIRAwQSITETQSIFMlEUFWFxI0KBM//aAAwDAQACEQMRAD8A+RdGRpNTtUjcxuZAAw7g+9aVDqPU9vqo05NYNwpj35kiDdvHNZtoO7/N7QqcN6ox/WtGDyr1RDvbBaBqRqJtTS9DYVsbJL7UNWuMR3em6bdEHO4R7WqFZrcx+o2hSRjOG9GSiMu1ySSS/wAV7aKTHIF5G72pEpxroPFKW6rEzUrktdSbZ7qCE8Isq7sUMVjaJI8N2r57jkGnzUYFeAiSM4z5WguradbF29OEEeeKbjyxfFB5J5ItOxffUZigLjcB85qKa5WfHGDnPai8elWbQtlMHPg1Vk0yCE7g747c+KZeMZ58slTZUQDANfnHORXYUjg8EHmuHGM8UPbL9DB0rn1o+f5q+h/wqI/zVoz2eAj+1fPHSf8A5yZHmvoL8KWx1HbA9mXBFcbW8ZUdHFzhZnOuWhju7lMYKysMfYmgts4ExVl+K+yNQ/DTprWFLzWFuWfktG205NKepf4dtGnkMtjdXduT/KcOtdeOqg1ycN4Zp2ZZ+FUa/wCsNGIHeT/amH8ToBH11dzyzRRRrIMl2A8CmzTvwg1fp7WbTVLe5jmitCWPg4xXz71nq9xf9R39zdStI7Tvkk/JrLnyJyuJqxY/yMGqXWhByJdSLN3xGhP96Ey6noEdnLAYbm4LMG5IUUpTTZ571C0uVKk4FLqTG8IY313RbRg9poqh18yTE8+/ap5vxR6kEaW9rdLaRk4KxDvSNcvkc49qpbx6yd/1Cjjgi1bI5sO6g3qTvIxyzHJOfNUmbMgxxxzU10xLADx4xUSo24jHjuaYlXBUuzhSd1ENMz6mSSORQ5uPbvRHTWLSKr5+/tVTdoFUNWrzBOlpUGQcqMU7f4ermKefUdPmRQ09o2188rgUj62AnSzsWD5ZeaaP8PRP+oZARnfbOo9844rGq2f9Df3GzaB6On2kNu7ZB7H5qfUmV9QXZ9RK+KjtYDK8KSW8iov69wwajmCRa/vgVtkSdie9DKq4GR+4WuqQF0+dfOa76YuD+b0kexYVF1PIJbC6bgZOce1VtBl2XWkbf+oR/avOZ1wd/D9oc1axaTVJ5CQNzk076DgdLPATwIyKHx6cNT1RI1iIX+Yg0VWEWdvPaIx+kEc0/WQrFB/0c/DO8kos/nT0ypbXbJQO8oFaP1HGkPUthg4LQNn71nPTBK67ZEeJRT31JcbupLRpDnEbDivZ578qX8HnYfYyx6uyUg5zRFtQutNNvHp6qvqrvll/myfAPigwljQEscHvzUs0pmt45QzAxfSfbHisuaCaH6drdyNtt1DdhAk8wm4/TIAwP7Gh+qy6Rqj4urP8jJ/17cYB/wDcvY/tigC3S4Bz9XvX6SUuud5yPas0IuDtHRywjOPR5daXNaCb0nW6gyGEsfIx8juKB3o/gvxRuGS8iG+CdVKnIywUj96i9fTrxja6zE9i7jCXcSgpn/1KOMfI/oa2RmzFs28C2B6kRfuyDn5HvVeQHJGc09R/h11Ebf8AOaZFFqtqV/8ANtXDqR7e4PwRSrLpN9+b9BbaUyFtqqEO4/GKOOSLfYbi6LvS3Eif+6t3/DSXZ1BaZPcY/tWWdLdFa6vozTWhiRnKnewUg/INav0rpN/YajDO8YzH3G4Zrj617slo34WljaYK61636t0LrPU4LHUrtIUnOwBsgAgHsa8sPxw60tME6i5I91q11Vo97qGtT3Rs3zM/GVPPFCI+h9RnaQGyZNnfcMZ/rTY5Y+zHt9Drpv8AiN6m/LvbXkVndB1K5dMHn7VhmtzNNqUsrEfxHZiPknNOWodD31m7l4F+hd2VYHilLVtJvoboetA4HcfTTYzUnwytu1cAyc7VPbFU5JVH09zVu6SRTtdSpHgioPyGyH81fTLbQt+gt+p//aO5rTBWDIiMUlw6RQo0jngKoyTTPoHQ4Z47nWbr0gCCIISC5+57D+9DtBSQyZtVaJRxvP62+/t9qd9HiMaAM24+5pOfK4KkxuLFudsuQwaPYPGYNMgDqOHdd7H5yaNWdrpuqn07vTLdhINocRBWXPnNRafarK+SgP3FFswWIe5lYJFAhlc+wUZNc5ZXJ0ma5YoqNmDdQ2qWet3dpGzMkMzIM+cGp9I+p1VsAHH3qpqMxvdQnujwZZGfn5OavaQu6dcEbvY11pcQ5Oauxi6qynSSJjDGQD71Z6B1mfQLQ3lqD+b4CEjtzXfVcJuOm4cD9Lgmg+kXskUBt7gqAOQfNY7vH/0ao/I+weluo9K1TSrZrpY/VdF3g8FWxzRc9MaNqheWzu1imxgjdkV8l6X1JcxyF1umJ48+1NOi9f6rZziWOVjhgWye9KU2u0H436NY6n/DTXo9PuTZ+ndK3KhTyaRYNO1HTL7S472yngZJiDvQjxTBoX4zXsbBbnayFhke1aFpX4l9LatbxrqMcLt7MgODWXJpsWS9ro0Y9XlxcSViZadQtYapIUDIynGQaJw6l+cSS5Z2JYkmm+XpvofqN3ltpVt5z5jfH9qF6p0Lc6Rp0klrdJcwrkk4wQKTq9Ll8C280Vgz4/I2+LP5w9Of/wBq0x/1R/3p06ikA1+zI5O00mdO86zac/8AFFOnUMYXXrEPjlTXrcz/AMiOJH/zZ+UIzMW3gnxV7TwssE8OO4HPzUb+mD6YOD4qXTlEbzFmxhQRWbLVcB4fvQEleSKV0dSCprqG5ycMxHxU+rMlwXmhJyvDj/egkjFckHmpFKSOhGdBxyjLlVDEf1odqDgrhkPHjGaht7sqdrNx7+a/X0yPH9TZU/zj/eijFpgZFuVlzpPrbU+nLwtY3ckcTH64s/Q3zinhvxRuLiLdHbwNMT9X0AFuPfH3rHrlMNuOCD2I7GpbGRkZlBOSMjHuOaZk02OXyoxxyyjwafF1vdTF1u7VIy3KtG5BB/rRbTOsZd0bZlLqf1ZznHb+lZIJ5G2SEHd8U3dHWt3qV4S0TMsaBgoPJ5rLlwQjG2OjlbdG0dOdW6hLE80sgk25yreOeOara31xFLZvL6pWRsqU3kAZGAftnFHtK0WBdFeBok/jENyOR8ftWQ9caZPYXNzLFA5jimYH2Hk/3NYMcITkOlJpFw9Vhoo3Rp5JUbhnfufmp7TqFLn1GuXFs+QQckr98Vl8t5I0oIY7T4H9q9ub78xCVclHXx71vWmQrzDr1F1glshWCOGac8CTZ/8APOaU7BbrUr4Xd3I8hY5APigjtJNOu9jwcADxTf0/AFxzTJRjhjwFhTyy5GjR7XCKNuKZ7G3VAGYcUF066gtkAZgeParqXlxcttiQhB5NcXNJyZ3cOGlyNFgUkP8ADwNtLf4o6mtroy6cJCLi7IZhj/hqf9z/ANqKW0rWlhJdO+2KJS8jfArJuqNan1vVpr+VQikhUUH9KjsKPRYd89z9GXWzUVtQPThxwTzRrRMJcqxHGcCgSFgfvTBo6oyhc4OQ1dPNxE5i7GbqT020KJXmEI9Qc5pYjltom3fmRJjvkZp9ubCC40KFriMOu/IyPihkllZxzRhLaNQe/wBNc+OVL4HQjiezeLLalAgBhhf7qtejXJe0dncOD524r6C6G6Z0O80p3l063dxjkqM9qHWGjWVr1JcQTWcITaTGCBgVanF80BKdOjF7TV7knJ0+cL796IQdRpCcB3VhT5r6QQxXSpEigA4wKx8fxL9wO26qxuGa+KobPG4Jc9miaP1hqcLiS2nlUd85rWuhut9cvrCaS+uFjtcbS0r4zn4rFtBtg8aJ2GPatP0K3tbXSVguY0YuQw3Pt/t5rDlzbXtQfgi1Z8c9OZGt2nH/ABRTn1VuXXLBu5Ocf2pT6Zjb/ObQ7Gx6gPam7qpT/m9gwBI58dq9Xma8qPPRT2MpX0l693H6cJ2B8lgPFFLd19aRe+Y84NWIWWNCAhO4e1eRoHuH/hkAp7VkyTjQeJSckDVtFtFuHBZ/V558Chc0ayAcbc0xXAkEZjCEjB5AoWYGZFZ0dSF7kVcJLux8HJTqgFcJ6ZwGz8VC9w8a4wCp4II4NXry1PqHB7VSmjydpGfc1qg0ysrfornJBdVLRHuP+WrVtp835mIICQ5yrDyKKaBpTu8c6HchOGx2I9jT9ZdPxRRx4QmJTuQ/8hNKy6lQ4QmGJyYs9O9JzXLRmaNiU3ZHvg8Vrf4ddPR2MzPKuXPABHYVT6Yg2T7iMc02adKY70ccVx9RqJT4ZthjURiXClFxjB4od1DoNvqunyARhmfOQfOalluwsqeRir3rgQKVPBrIm48hUYX1B0EYyqxIYwshL59uP/8AaQ9c0S4sJWbBO9iF/r/+V9O6xCk1uSy5PekrVtCiumRzCrlTkKfJ/wDuK24dbKL5AeGMkYLY2zyT/VkDPOeP2pv0lSqAYGPHk0a6n6b9FyYo8H+UAYA9z/8AfahOlW88TBJCAXPGfatmTMsqtBYF4mF4JYAA8gG5ePvR7SRJeuqx4HsPFAW076gxBPwPFN3RNjIZhnso5yOwrnZYqjreaoWgV+KNwdM0m10mOdmknzLOFHG0HCj7Zz/SswP1I6bsc5xR7rvV31HqW6nG8Rg7EBHZRwP/AJ/elzdtbdk4NdDTY9uNHHzT3SskAOAM0b0Jh6igngEeKBxvnnPPjNGtJABRg3JIzxTMv2gRo1KaKROkraZhgGXA57jFUNHVbnVYrf0RKSpbHwKv3Tn/AENaMSCGnwB7YHNBNL1NtK1u2vlQSbAVKk981xVFufB1oya09o1XpjXrPTo5LeSOTaTxhscUK1DVLW51/wBaF5GA7IBz/Wo7i9m6gAkht44DGucKMcUP07py8nuJbgTsgHgGtUXGMeTHkTyO06K/ULlluCVKgg5B8VmMEafnGOc5btWkatDKizQsWZgCCe+aQYtPuxeMRbTAbu+w4pGnaW43ZqqI8dFoSfpi9U44GM0/36q7WqNCI2CLlfak3oi2kJTCurKeSMinfU4JJ9UVIkZikaljXNzpuXA2DSPnCy6l0i1jWNbWLgcHAzVj/WOmHGbeFsdsgVkWW9zX7J9zmvW/tcH2zgr6i16NePWunAcW8QP7Vx/rywT9MMXz2rI+a/c1P2vF7Zf7lL0jWf8AX9krZ9GE/sKin61tNS/8KLaJt/GAKyvFMXR1tvlmmYD6AADjtmqn9Ow41uLjr8k3VBPU2RFb38YqrotpLdXYAT6c1JfqJARGp4P3rvSL3UtPJCQytH8AcUxJqHAmbuXJouh6dbWqq4XYSMOvg0y28tutvtIG0VksPXAjB9X1Gwccp2q/H1haSj+HdBGPhsisM9PkfaHRyQ/JoyalDbyM5YBVPfNX9P1i3nmLQyK+PY9qxHXteuLnNtG4CHuQe9Ffw5vZ0u5Ii7FSvv2oJ6NxhuZazJypG3i/Bxu96ll1uC3Cxsw2t/akjU9Te3iTacMaEahfTNHv9Q8Disfgscn+TW11O2ntl+tefmuUSNhlWFY0devEUIrEgOCOacNE6ogFuBdzojfLAVbwSiS0hq1PTY7mA5QM3wKSNV0ImZvq2yn+VfH70yw9V2rZ9KRHUcFldT/vRGyuoNQbftAJqo7oAumLPTul+uWt5F2kY8cmtG6d6XkOi3scTBJniKqW9j3qGw0mBZRcQKqyDv8ANOWiSgkIBg9iKqTvkve6o+Tus+nbuw1qWNkZVDHG7vS48YEJ9w1fRP4lWFjfaxcWF8pt7uMYjmI4cHtWL6701e2kjxIm5dxKkdiK6ODLapiZR9iwg+rJo/or5AGF9sUKvLG4tseqpAPY1f0F9twofkE4+adkacQYumaprSCHovRyoIErsx5rjo3p2DqDVo1vLpbe3jG457v8CuesL+2tukdDi9MuzFlUHtnij34Z6nolvcxmQo8zLx6nCA/ArkuDXyNyz/49iNa6c17pPRrAWkOjRxhDsLyKCX+c0bTqHR+TLptvEndWWPg/fis/t5rIahcXd3qdiFYfSm4BV/rVmLrDpG2t/Tveood3/TwNpPigTnLoQO4vbS5kB0/p+wlbvvZBj981+vtaEU6W9xZ6XHkjbGUA/wBqzlfxK6Rlu13anPmI4b0x9DVU1f8AFLoVYzd7by7nUHaroSCP9qNRm+KI77NiSCaWITwWmkxpj6wqAtj+lW9IEJ9YrFpyNGMhmTkivlqD/EqYJ2in6VRrZD/CRbgrgfPHNFLf/EJ0vq0awX1hf6cWOHKsGTH7c1r/AEs487RTyXxZ8lhB2zXQQe4zRyy6fguEV31OKLcM/Up4q0/TFqvbWYm+0ZNd3zwXszrQaiXURZ9PNdBB8Uwt07b9v8zU/aM17/pmErkakPt6ZoP1GP8AI5fStU/9Rc2r8U19JBVsXx3Lc1X/ANLIe2oDt/yGiGk2LafGyet6qk57YxSc2WM40mHH6dqMPznGkEbOCIXBbHfvRlI4ZYTEAORjtQFJMNnNFLGYe/NYZX2SIhdRaVNp906OpCMxZG8UIWJy2CMVshhtrxPTuI1kU+GGaHXfSOlENMtqw4ycMQK1Y9YkqkZsmnbdozSF9soVeRTZ0bLJBqKtzsI+sjsBQG7sAl8ViQhN+Bjmir3AtIfysPDn/wAw57/FOytTjS9gY04vkdNTufzcyNC+YxwPg1chtjNb7XXihHSiFrLMowVYEAj3piMhSF1UgccGuPle2W06EPkrELqieWO8e1hfaB3I75pPme4WX63cuPJPNa1adHnWf/EXAki3DiRO5Nfm/DVPUy2ottB8xDNbsOrxwjTM2bDKTEbpKynubiG3UMWkcEj2FfQ+h2C2tpEpOHUYpZ6a6f03ReYELynvI/JNNsLuQDuyKwanN5pcdDsUdkaDOnTyRzqpYYpk0a6Ed2Nx7nxST+cENwqnimDTpI2Mcm/A881k6CZc/GHp6XUNNTVbEn1kiwwC5LVh1xqEtoGguwxC8HI5zX1RbtFc6TEAwdQu0n3pC65/Duw1pDNENknkDsa0Y5pdgbmjCntIbqAsSsiHkbvGah9K007Tna9igWPcCHC4K4o51b09qWgzbkgZoVGEAHb5NR2dna6hZEXab0cYZfKk0/cmv4DT/AudR9VaLrlnp2nxz3MTWWSjhQQxPiqzXNm6hG1SRCRkH0iMfHFcdW/hvcWMRvdFuGuU7tC3Dj7e9U9A0qeKwaW/0C5uGB4Pq4/tWpQxbLiwFvUqaL40w3e5E1x2VzwqLRqz6T0JI0/O6rcSXLjAjbhQfkUBvta0rT40/LaVLZXvku+cfYVU03VfWkd1kZpTzlsk5+KHZJx44DTgnyHNb0zqKxZYdKl06WFeVVFCsfvmlKfqfVbV5bO9j2TKcEFQMGnO00+/lH5m8vfy0JwQSMsR8Cor/prSdUn3eneXT9vV3BRUx5ILiaKnjlLmLEWTXhOQLm1gk5+o7BzUOrWVo9sL7THzH/xIz+pD/wDFNtx0LodpMz3OtkIO8S43D4J7VNa3nSukxPHb6akzkbdzsXzWlZYJpwTM/hk/vEmB0WJAzDgCjH57QVtx9UiyAcgHIJpHDn3NehyadLTJvlmh/VpUlFVQ8NqnTSknNyx8BR2qpca3pawMLeGcybuCx7ClW2je4nWJCMn3NPnTnRkFxbNPdShm28AnABpU8ePF9zJD6nqW/ixebXWXhYufk1Y0vU5rq59JgoU88VV1u1j068kt2ReD39x8V5pM6rdxpGq4Y9wOat44bbSBn9R1GV7Zy4GAoQc8V3BKUbFcSMAeKhkYmstEGKyuQQBnJozHPmDY31AjzSlpO9n8nHajaGRQC5x+9IlGmEiK+0+0UmdIl35yOPNJFxEY9UeNWDHdyabtYupIoDIuWA74pDbUUW8lkI3Fm81q0ybRnzUjRul8fkiGBYjA4PtRSRx+XZQMsTgCkfp3qS3hYxyZ+o5FO+imDUbmPa+5X9vBrHnwyjJtmjDNOPA7dEXLPYi2njH0jCsBRW7iUgggfBqmsYsrceioAHkVMszXEYVgQ1Ymwn2DpFZHK9/bFWYbgRIAeGPvVDUbg2zn1Acj9NDIL95rnc4Pfj2pm1tFBq5Lfm13k4PINMOkzswEfODQWKZZVXcgxRvSY0WRSrZFA0Q1DQ8JpUa+BzVyQ/TkUM0SQjT1LfzHj7UShYMOe1GhbBeraZY6pEUmjUsfJpLl6DtYJZDCu0sSSPmnq5jeKUkE47iu45FmUBv11FYV0Yf1Hp+o6K0ssql7ZFyRtzSBqWo6TKTGbiezZl7bs459q+o9V0q3v7V4ZogwYY7V86/ib+HkGn6jJfSyXCW7NhQg4rRhcb+QfkbVGca3o9xdtLd2d0t8ijJIP1Afal62uprObK7kdT58U1xjQNNkKie+JJ5IYAVM1503dxOJ0DN4YgbjXRjkcVTVozygpO06YK03qO79TFzJJKmOBu7GjMvVer3ojtbKDCn6QqLgH70HS40C0lbZZ+tt/SXbIJ+1c3XVE/5c28ISKP8A5UGKqWNSfxiWsjiuZDLYdK3cqtdazcx2wP8AJvokuk6Fp6qRe2aSED69hYj+tZpcaxfTMd08r575JqH1L24UssUzgdyATU/TzfcqKWeK6QEDHzXpI+RXUcMsg+hGP7VMmnXLDJUL9zXRckuzAk36IrZyjFkYBvemjpzWLtkeG5um9LbtUA0JtNJ4/iMCfvVpYDB+lBxSMjjLgfjhJE3UNjczokqzJMF7c/Vg110zp8iXPqSJwB5NcKRIdrJj7Ue062/L2+7n6ves+SbUKGrGk9x06gn9I/eonDjjcij45qSU4fceBXSFSMjAA/mbtWdD1RZ02Ro03FfU57ntVt7xCMGIg/ahDXJjYhHYg/zEf9hX5p5R3kH796Xst2WWppA6lWUhfak3qTTkgJuIV+knnA7UfluSM7nzVK5vLdg0crA7h271ow7oMVkSkuQFoFk99qEcKcDP1H2Fbb0fa2ml2qrEFDd2Y9zWXaFcW1o2Y9qEnzTlp2tAooADE+xodW5SdLorFFRRp1lewSq49baScYI7UVs5YSdpmUnHtWd6fqiuBviBOeMUyaVfxLmQRlccnNcueNj0+CDq6P8AM3wSKQqEGDQ/T7R4nw5J9iavXsjXN0bgMuWNTW8J4O37jxRXSIWLRWyMnPzTLpEZ9VFHOTQW2hQEeD7Zpg0c+mQ/t2pTdljzbyhI4oUI2ouP3q9aykvs7UtWlyWIw2aL2FxtkyeSeKiYLQauIxJCAQMihrRNHJkdqvrIxAbHHmuDIjHGAaYwUfo3EgGOCKp6xptjqVs0F3CkisCDkVbKAfWpA+K9OJewwRV3RD5l/Fb8LGsb97i2u1itJDlcqTt557VnP+ltMgRmutaLYBOIo+58d6+2NSsLXUrJ7W7iV1YYORWLda/hDBBm4sIJLhMk7FYgj4rXi1UkqbIoRZhkdj0yjAytdvjg5Yc/0qe3HSa/T+QdjjvJISKKa505p1hKIb2K/s23dnANVdM6c0W7mdDqzRhRn6l71p8kWrbZShzSSObrUYLVENha2yrjjCA8fNVLfqK+iLMpC7v5VXAFN9r0305BBtS8W6ft+vHP2r82k6Yy+nb28LN7b+/70rzY06oZ45ejPAkQOB9P2rsjA3BgRVI3GRxUTSsffFbNrEbkggZVAxxUbXUa8d/ah7OTzk1Z0yxlvrtYYRuJq9qStspzfoN9P2n+YXA2p9A/UTTBrCpH6ccYAUDAqbT9PTSbIRIcseWb3NUtRk3uCTmsE5b5/wADV1yUZduMvyPAqs7MWG7sDwoq03Jyf/yoZFwcjv8A9qNccEIJGAOBy3v7VVlDAnBJ+c1ZkTjivPTLUaI2UlG47XFcSWKtKJPA8USEPx2rsR/T2Bq99A1Yv3lq5YAcCj2iW4ht1Ls2TyM17hg+CgJNWoZNq4kQfcVJzclQKjTsN6XtLBSWUEcGmmxLlQC4yBwfNJ1lqFuFwoJIPtRS01GV+F7isM0xyY0+mRgjG747NVy1uBjBHb37il6yu5XIVjkefii9pG0jAo2XH9xSpKiwxaPuYCjdo3bnmgFpkNjGCO4o1bNwOf2pJYdsJCuDnFHbAqxBYnNK0EhO2i9hcHeFzVL+CmNUMxJZfAqrJcGOU4Gea5sJFcnc2eKguztfKnIpj5AQRhnyOQSK/TTGPLLxQ6Cd848V1cysYyM81X9ll2G+jc7Sfqqwzkrg8ilhWZZgc80Xt7sFMMcmrUvRGhe/EHpWw6j0ySCaFVmxmOTHKmvnPqTo6HTrprWK/kWYNj6xgD5+1fVrHeQD55NZl+L3SQ1Cyk1ezVzcwKcov84rRjnKLpMtV7MEbQ9XtWyEFwoPDRyZzU8mo3VmX2W0wUnJEiHj3GapjUJrVirNmROTu4olp2qXtyxlVy6Hh1+fFa5KVfJBKk6Qi+cY4FeuRjgVw7BASe1ebhjOa6FMxWdxp6kiqp5PFaT0pYQ2lomYwZiOXApJ6ZthdXgLJvRee9aNayJFHtUDtxjxWHVzf2objV8kWqsN20H70AvSTKAKK30m5yc0IuT/ABAQazwQzk4KnHPao2Vj471PnNeHPjtTERFcRgDkkmvQMdxUw7812YyVHFRshxHHuHAHNdpDtBOAB71PEjAdvNWI4SyFfmh3UVyCryElkVVx5JrmUMCERc57n3oyYAww2MjioGg/iKPAqKaJRxaW4VB2wOwFFbFRkYGPeoYVXcAB24q5An8cAA4FLkwqCdsuBwApPPFF7P6JEIbv5obaoobLHijVp6TKFwOKRLsJBa2YSH6l+rwfeiEagAN7d6FwNhQCP3q9C7EgFsg0uUbLClq6GicTYAIx96CRqynOcUTtpwYwDjmgKDmmysqk8HNTXBDjvQu2nwMDFX0bfFzRpgn6OQBseKlaVBnnmq5T6uOa8aNqouiKY4fINfoZTnGa8mKgYzzVQuUbvxVN0WgxBKzEnPAFcTyI8TRtj6hih35zapAPNcG6GB3+TRqyj5//ABP6RvrXqqYWsC+nIS6ncMf3oLb2r2H1T3UNvJjDbT3H2FP/APiAvJoL21dCQJIsbv3rG7i9nbaXdiV53HvzXTxKeSCvoq0uQYx3cAcVG/fnPFdMecYHPivGPHcV0kYxi6KVmlfjaPJp1gICMO/yaR+kLra8iA55pzjfMec1y9SnvNOOqKN2zCQg1QuDnxRC+fIABGc1VkhJXdQR4CK8bcd6lyK5jTAwccVIAO+KOVWRH5E54q1Gh81DECW4NXYlHGeaVJlnUCYzxk1YRCMcYqSCMngcVciiBIBpUnZaRW9HIPzUDxbW7d6NLbgx9u1VGhAc5HGKikyFGNcNkCrUCkEN8121tnt7VNChCkYyftUbJ2XbHaQd3NFYIlB+ljQq2RhhvFGLHBXxSpFluBJDgE5wf61ftyVbkHB5qtbOFPPerisjLz3+aXJ8ECUTK0Y5qMSBZNqt/eqLThPp3HmpYNv6iefaqp+iw9ZYIH1CicMmQFBpetZNrcnAxV7/ADCOJfpbLeKtFNWGkaJcl2Oa4nlUcqxP70IF40xG5xn2FSEMVzvzRXRRLczAHOcnvVR7gZ59qq3chRsHvQm7v0jch3waosKXFyB2/tStrHVsVhqaW00ihn8E4AFc6zrtrbW7TS3KRqBwCe9ZpqYh1u7e5nuWVi30Ec4H2p+OCf3EpvoN/irqUfUUsH5NoTFHHtYsCCG+PekV9BtFYCa9kIJx9K4/71Y1Gz1ewG/b+Yhx+qM8gUKk1KVkO+Tb4IAyR9634YyS+L4JJR/2QBZsnB/tUb/SePPeu8MTwO1ckHOSa32YXbLOkXosLkuykhuCfanOy1JJoQytlSKQGGe4zRDRbwRSrBK+EPY+1Kz4VNWi8c9vDG3198x9qn3Ajk4HzQmUiMiRGBHxU0N16ifUaxuHBov0TSvtk4PFSK3bae9VJWyO/Fc284DbfFVttEugtbnjmrULAOAe1U7dtwxnvUoPI4pTXoKw7ZHjsBRCJUyTntQK0uFTuSRRWCVHT5pEotBIvwDJPNQyx7ZSrV3bNt3YP1YyK5vX5Dg8YxxQeyNnsEasx3ftXYQBsg5quZNjZBwD4qx6gBRh2IomirLMZATbjmrViSp2kgEUOFwMnJ5rtb1VIOQCRQ1wWG1cL375ruW8REJ7keaANqDZwDmqk16ADl/2zVbGSxgW83yAk/aiEd0FC880mfnwOzYPmrFvekp+rn5qbG+y7HCTU0QYRsnzXtvcB23M3NLdrdwhTvZc4zya5l1ZImI3DPwe9TZXBVjnFdiMcYNW49agQAFgT7Vmz6/OzbY37e9VbvWLiE7yA3zV7H0U3ZqGp3JuLcSQxgj781m/V2rG0R3ZjlRzu8UIk61mhJV5vTHtSp1Xrza2VjiY4HDsOM/FaMOnluuXQEpquClc6lfazdDDDYjbgo/3oxZO5QBolWQ87wOPsaF6ZamKMfwSMD9fbNWfUdFYk7cf+nsa0zafCDx3FWwumokBXmdkOMYPYntUGp6Rpup4Zk/LXD4zJH2P3FDFubhnfLBccKc9z9qtLd/WJCI3lABHPNKUZQ5Q1tTVMRTle5OK5L/HGPNeuuScEEe9c7fOMiuv/ZzOTlm+DXI3fv7VIO3NckZPmrRTT7LVpfyxDbKzMmOOatpfgHdG37UHZc8c1zzyO1C8aZFkaGRNTEi7WzkivBcJuBU5PxS/HMythqtwyg/pPelvDQayWM1nfBf1N9qIR3at/MKURMQBkE11HesrZGRSXhvkZ5B1jnJGQM81atblkc8nvik6y1Uh/qbv4opb6gjSAg1nyYWMU0+Ry/OFkAj4bj+ldvKxX6jSxDqo3MoI444qzFf5U7iaS8TRdhNrvEgBbJqzDc7o2O7GD5NLF/eoJVMZ7mpINQGDg+at4rJYe/NBiTn4rmS5BYYPj3pbF/8Axm2t9IHH9au2829GJPYc1HDb2UpBd7jaA2TgfNUmuC07EHI8YoJdXk09zsRsRrwMeaLWMYChyucAA1Tht5CXJK0rmTsQBUqzTEYjzV5baJWDj9Lf2qO5Mdud45QcH4oG/wAIsrhbk5becHx3r1rcuu4yHnx5qWe5jhQSgjYfPihms6rBBCJPJHZTRRg2+AdyJZpPy6szP280Im164kDQRxb8/Tk9jQm5v7i8lG4nZipoF9J1eNN7A54PitPjUe+yJOR6mkTXchnvJcITnaKu20Wm2RG1PUOM81G1zuTOGT2OcE/FdyDBDi33Dxx/eqk5P7hsYRXSJ570mTYIwI2HGB/ahzvM8u1jxzlR2Jq5tjfGU+vH0D2qG8lEa5WPaRnOfNVFJdIJ9FKZGQoXl9Mjnnvj2qO4LsXyybguePP2qvfzSTAK+Uz2+9UmklQspBAU8+1a447ViJTSIcA+K5OcngDHavX7CuF/VTzOfj35H+1eSAfyn9q6PKnNeeKtAkJzXgyG5xXcXKj712wGRx4q7oHbxZWYEtmuVLK3GavRKvBwP6VYCr6f6R29qqytvspQTOQFYN374qco5BIQ4Hb5qywAiXAr3+X96BvkYocFSOAlQS21vgdquxB4gMNnI710P1D7V+PAGPegkw1BJHsckyvkNwfOOamN3MFZQ+M+faoW7Cu4QCOQD9JoAqokM7OwUnJFebyMjdj965jA+rio5OJePeqqwkdGWSIEqcA1Zi1RhAIjhSf1HPeqX/N9zUE/aj2p9gz4GHTp4TzuHPY1eTWbe2ikVmzk44pPtCcHk13N3X7ml+FN8lKbqxqPU8rRCNFJCjua5/zK8uVaMLncvtS9a8+nn3pgi+mwyvB29xSp4ox6GwW47jgu2sxDLJiJu4J7V42hOy7Wm4A47nNdFiduSTx70Q01mNnkkk48n4pEsko9DoQj+AXDpItwBvwc8cf7VI6rBMCIxsxyRwftir6km+AJJHpE4P3FSqikZKgnPkVN8n2GorpAhootm6PkjtnvjvXKSNHHvy52n9Lef3ogFX1R9I4Y44rlUVrmUMoI54Iot18MkuOgY9wZJ2VCY+cgkcfapN36BcQmTjG7Hirsqrt/SP1jxX67ABbAA+kUd+gasHTmBd8VzHwG3K57moglpLGLdVUso3DPkVFqfJGeeRVaPi5ixxx4+9MgvjYDfNH/2Q==';
+/* ================= Sadie: her photo, traced over by hand, then saved way too small ================= */
+async function drawScan() {
+  const W = 128, H = 109;
+  const photo = new Image(); photo.src = SADIE_PHOTO;
+  try { await photo.decode(); } catch (e) { return; }
+  // 1. the photo, shrunk way down and brightened (it was taken at night)
   const S = document.createElement('canvas'); S.width = W; S.height = H;
   const s = S.getContext('2d');
-  s.drawImage(P, 0, 0, W, H);
+  s.drawImage(photo, 0, 0, W, H);
   const im = s.getImageData(0, 0, W, H), d = im.data;
-  const PAL = ['#2a1838', '#fffaf3', '#dcd3f2', '#a89fc4', '#7c7594', '#4e4766', '#f4a7b6', '#e7b688', '#d9822b', '#a0602e', '#6a3a1c', '#3e2010', '#c4c96a', '#7a7a30', '#f6e2b8', '#8a2a3a']
+  // 2. squashed to 16 colors with a dot pattern
+  const PAL = ['#1a1020', '#3a2418', '#5e3a22', '#8a5a34', '#b88050', '#e0b080', '#fff8ec', '#e2d8d0', '#b8aca4', '#857874', '#554a4c', '#f0a8a0', '#c87870', '#6f8290', '#c8b8d8', '#a02830']
     .map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const i = (y * W + x) * 4, t = ((BAYER[(y & 3) * 4 + (x & 3)] + .5) / 16 - .5) * 56;
-    const r = d[i] + t, gg = d[i + 1] + t, b = d[i + 2] + t;
+    const i = (y * W + x) * 4, t = ((BAYER[(y & 3) * 4 + (x & 3)] + .5) / 16 - .5) * 44;
+    const lift = v => (v - 14) * 1.42 + 6;
+    const r = lift(d[i]) + t, gg = lift(d[i + 1]) + 4 + t, b = lift(d[i + 2]) + 10 + t;
     let best = PAL[0], bd = 1e9;
     for (const c of PAL) { const dd = (r - c[0]) ** 2 * .3 + (gg - c[1]) ** 2 * .59 + (b - c[2]) ** 2 * .11; if (dd < bd) { bd = dd; best = c; } }
     d[i] = best[0]; d[i + 1] = best[1]; d[i + 2] = best[2]; d[i + 3] = 255;
   }
 
+  jpegCrush(d, W, H, 30); // the scan was saved as a JPEG once already...
+
   // 3. traced over with a mouse: wobbly ink lines, a little off from the photo, some gone over twice
   let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const dot = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return; const j = (y * W + x) * 4; d[j] = 34; d[j + 1] = 18; d[j + 2] = 44; };
+  const dot = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return; const j = (y * W + x) * 4; d[j] = 30; d[j + 1] = 16; d[j + 2] = 40; };
   const line = (x0, y0, x1, y1) => { const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) || 1; for (let k = 0; k <= n; k++) dot(x0 + (x1 - x0) * k / n, y0 + (y1 - y0) * k / n); };
-  const trace = (pts, wob = 1) => { // pts in photo space (240x280)
+  // points are in the 256x218 photo; a smooth curve through them, wobbled, shifted a bit
+  const trace = (pts, wob = 1) => {
+    const curve = [];
+    for (let k = 0; k < pts.length - 1; k++) {
+      const p0 = pts[Math.max(0, k - 1)], p1 = pts[k], p2 = pts[k + 1], p3 = pts[Math.min(pts.length - 1, k + 2)];
+      for (let t = 0; t < 1; t += .125) { const t2 = t * t, t3 = t2 * t; curve.push([0, 1].map(a => .5 * (2 * p1[a] + (-p0[a] + p2[a]) * t + (2 * p0[a] - 5 * p1[a] + 4 * p2[a] - p3[a]) * t2 + (-p0[a] + 3 * p1[a] - 3 * p2[a] + p3[a]) * t3))); }
+    }
+    curve.push(pts[pts.length - 1]);
     const passes = rand() < .35 ? 2 : 1;
     for (let pass = 0; pass < passes; pass++) {
-      const f1 = 3 + rand() * 4, f2 = 9 + rand() * 6, ph1 = rand() * 6, ph2 = rand() * 6, ox = 1.4 + rand() * .8, oy = -.8 + rand() * .6;
+      const f1 = 3 + rand() * 4, f2 = 9 + rand() * 6, ph1 = rand() * 6, ph2 = rand() * 6, ox = 1 + rand() * .8, oy = -.6 + rand() * .6;
       let prev = null;
-      pts.forEach(([x, y], k) => {
-        const u = k / Math.max(1, pts.length - 1);
-        const q = [x / 2 + ox + (Math.sin(u * f1 + ph1) * .9 + Math.sin(u * f2 + ph2) * .4) * wob, y / 2 + oy + (Math.cos(u * f1 + ph2) * .9 + Math.sin(u * f2 + ph1) * .4) * wob];
+      curve.forEach(([x, y], k) => {
+        const u = k / Math.max(1, curve.length - 1);
+        const q = [x / 2 + ox + (Math.sin(u * f1 + ph1) * .7 + Math.sin(u * f2 + ph2) * .3) * wob, y / 2 + oy + (Math.cos(u * f1 + ph2) * .7 + Math.sin(u * f2 + ph1) * .3) * wob];
         if (prev) line(...prev, ...q);
         prev = q;
       });
     }
   };
-  const arc = (cx, cy, rx, ry, a0, a1, rot = 0, n = 40) => Array.from({ length: n + 1 }, (_, k) => {
-    const a = (a0 + (a1 - a0) * k / n) * Math.PI / 180, x = Math.cos(a) * rx, y = Math.sin(a) * ry;
-    return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)];
-  });
-  const seg = (...pts) => { const out = []; for (let k = 0; k < pts.length - 1; k++) for (let t = 0; t < 1; t += .1) out.push([pts[k][0] + (pts[k + 1][0] - pts[k][0]) * t, pts[k][1] + (pts[k + 1][1] - pts[k][1]) * t]); out.push(pts[pts.length - 1]); return out; };
-  const quad = (a, c, b, n = 20) => Array.from({ length: n + 1 }, (_, k) => { const t = k / n, m = 1 - t; return [m * m * a[0] + 2 * m * t * c[0] + t * t * b[0], m * m * a[1] + 2 * m * t * c[1] + t * t * b[1]]; });
-  trace(arc(120, 104, 64, 55, 132, 408, 0, 60));            // head (the ears cover the top)
-  trace(seg([72, 70], [60, 20], [106, 52]));                 // ears
-  trace(seg([134, 52], [180, 20], [168, 70]));
-  trace(seg([74, 64], [67, 34], [96, 55]), .6);              // inside the ears
-  trace(seg([146, 55], [173, 34], [164, 64]), .6);
-  trace(arc(120, 200, 68, 72, -52, 232, 0, 60));            // body
-  for (const x of [98, 142]) { trace(seg([x - 13, 200], [x - 13, 262])); trace(seg([x + 13, 200], [x + 13, 262])); trace(arc(x, 266, 17, 9, 180, 360, 0, 16).concat(arc(x, 266, 17, 9, 0, 180, 0, 16)), .5); }
-  trace(quad([176, 236], [212, 282], [120, 280]).concat(quad([120, 280], [90, 280], [74, 270], 8)));   // tail
-  trace(quad([184, 244], [198, 268], [120, 264]), .7);
-  trace(arc(66, 184, 34, 46, 90, 250, .2, 24), .7);         // back patch
-  trace(arc(146, 102, 24, 19, 0, 360, -.2, 36), .6);        // eye patch
-  trace(quad([60, 88], [90, 70], [110, 84]), .6);            // edge of her gray cap
-  trace(quad([132, 84], [152, 70], [180, 88]), .6);
-  for (const x of [98, 142]) {                               // heavy-lidded eyes
-    trace(seg([x - 13, 101], [x + 13, 101]), .4); trace(seg([x - 12, 102], [x + 12, 102]), .4);
-    trace(arc(x, 104, 12, 8, 0, 180, 0, 16), .4);
-    trace(seg([x + 1, 100], [x + 1, 111]), .2);
-  }
-  trace(seg([111, 119], [129, 119], [120, 130], [111, 119]), .4);   // nose
-  trace(arc(114, 131, 6, 5, 20, 160, 0, 10).reverse().concat(arc(126, 131, 6, 5, 20, 160, 0, 10).reverse()), .4); // mouth
-  for (const [a, b] of [[[62, 122], [22, 114]], [[62, 128], [24, 134]], [[178, 122], [218, 114]], [[178, 128], [216, 134]]]) trace(seg(a, b), .5); // whiskers
-  trace(seg([0, 226], [60, 228]), .8); trace(seg([184, 228], [240, 225]), .8);   // couch cushion
+  trace([[47, 66], [40, 48], [33, 32], [28, 17], [45, 22], [62, 28], [78, 33]]);                 // her left ear
+  trace([[78, 33], [95, 30], [112, 32], [128, 36], [136, 39]], .8);                              // top of her head
+  trace([[136, 39], [150, 28], [163, 20], [174, 17], [171, 33], [164, 48], [156, 62], [155, 70]]); // her right ear
+  trace([[47, 66], [45, 82], [48, 100], [46, 114], [36, 128], [25, 148], [22, 168], [30, 185], [55, 198], [95, 207], [140, 208], [185, 202], [218, 190], [238, 175], [242, 158], [232, 140], [210, 120], [185, 100], [165, 84], [155, 70]]); // the loaf
+  trace([[40, 26], [45, 38], [50, 52]], .5);                                                     // inside the ears
+  trace([[168, 25], [163, 40], [157, 52]], .5);
+  trace([[55, 64], [66, 52], [80, 44], [92, 48], [104, 44], [118, 47], [134, 54], [150, 64]], .6);   // edge of her gray cap
+  trace([[60, 77], [68, 74], [78, 76], [88, 81]], .4); trace([[62, 78], [70, 86], [80, 88], [88, 83]], .4);       // heavy-lidded eyes
+  trace([[112, 81], [122, 77], [132, 76], [141, 78]], .4); trace([[113, 82], [120, 87], [132, 87], [140, 80]], .4);
+  trace([[84, 71], [91, 70], [96, 79], [95, 95], [92, 106], [86, 99], [82, 86], [84, 71]], .5);  // the gray patch by her nose
+  trace([[92, 106], [100, 104], [108, 106], [101, 117], [92, 106]], .3);                          // nose
+  trace([[101, 117], [100, 123], [95, 127]], .3); trace([[100, 123], [106, 127]], .3);            // mouth
+  for (const [a, b] of [[[86, 120], [38, 126]], [[86, 124], [42, 140]], [[118, 118], [172, 124]], [[118, 122], [166, 140]]]) trace([a, b], .6); // whiskers
 
-  // 4. saved as a JPEG at the lowest quality, to fit on a floppy
-  jpegCrush(d, W, H, 14);
+  // 4. ...and again after tracing, at low quality, to fit on a floppy
+  jpegCrush(d, W, H, 38);
   s.putImageData(im, 0, 0);
-  const C = $('scan'), c = C.getContext('2d');
-  c.drawImage(S, 0, 0);
+  $('scan').getContext('2d').drawImage(S, 0, 0);
 }
 
 // A real (tiny) JPEG round trip: colors shared per 2x2 pixels, 8x8 blocks, most detail thrown away.
