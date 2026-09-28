@@ -179,7 +179,7 @@ for (const [device, opts] of DEVICES) {
   // the mole's bubble, the camera following Sadie as usual: it should sit up in the sky above the
   // mole (the camera makes room), not down over the pile
   let above = null;
-  for (let tries = 0; tries < 20 && above === null; tries++) {
+  for (let tries = 0; tries < 60 && above === null; tries++) { // up to about 30 s: the mole may be off to one side a while, burying the barn
     d = await debugInfo(p);
     const vw = await p.evaluate(() => innerWidth);
     if (d.follow && d.mole.sx > 40 && d.mole.sx < vw - 40 && d.mole.sy > 80) {

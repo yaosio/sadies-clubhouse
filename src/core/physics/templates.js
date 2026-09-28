@@ -16,7 +16,7 @@ function buildBall(type, cs) {
   }
   const gIdx = new Int32Array(n); for (let i = 0; i < n; i++) gIdx[i] = i;
   return { type, cs, n, rx: Float64Array.from(rx), ry: Float64Array.from(ry), bnd: Int32Array.from(bnd), clusters, gIdx,
-    gqx: Float64Array.from(rx), gqy: Float64Array.from(ry), shine: [0], shineScale: 2.2 };
+    gqx: Float64Array.from(rx), gqy: Float64Array.from(ry), shine: [0], shineScale: 2.2, speckle: false, holes: false, streak: false, dust: false };
 }
 
 const TEMPLATES = new Map();

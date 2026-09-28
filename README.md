@@ -65,6 +65,9 @@ the backup inside the published page.
   means to help Sadie; when it does, it's by accident.
 - Sadie is a character with moods, not a cursor.
 - The player controls the camera. Once they've moved it, it never moves or zooms by itself.
+- Believable, not accurate: the physics only has to look real, so cheat wherever nobody can tell
+  (never on the squish itself). It's a lost 90s shareware toy pushing the hardware too hard, and
+  sometimes the hardware pushes back: slowing down is fine, stuttering isn't.
 - Add one feature at a time and make sure it's fun before the next.
 
 ## Parked ideas (not now)

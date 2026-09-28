@@ -120,7 +120,13 @@ function bounds(p, mu, floor, res) {
 
 // Sleeping: pieces that have been still for a while stop simulating and act as
 // solid ground until something moving bumps into them. Keeps big towers fast.
-const SLEEP_SPEED = 0.07, SLEEP_TIME = 1.2, WAKE_SPEED = 0.2;
+// A piece is still below SLEEP_SPEED; below DRIFT_SPEED it's only trembling or creeping, which
+// counts as half as still (it isn't going anywhere, and nobody watches a piece shiver for long).
+// In a pile-up (more than CROWD pieces awake) still pieces nod off sooner: after
+// SLEEP_TIME * CROWD / awake seconds, but never under SLEEP_MIN. The cost of a step goes up with
+// every piece awake, so this keeps a big topple from bogging the game down, and it doesn't show:
+// they were barely moving anyway.
+const SLEEP_SPEED = 0.07, DRIFT_SPEED = 0.12, SLEEP_TIME = 1.2, WAKE_SPEED = 0.2, CROWD = 16, SLEEP_MIN = 0.3;
 export const PSTATS = { pairs: 0, touching: 0 }; // profiling counters, reset by the game each frame
 export function wake(p) { if (p.asleep && !p.fossil && !p.fixed) { p.asleep = false; p.still = 0; } } // fossils never wake (core/fossil.js)
 
@@ -134,11 +140,13 @@ function moveFixed(p, h) {
 }
 
 // Finding pairs that might touch. Sleepers don't move during a step, so they go into a grid
-// once per step, and each awake piece only looks in the grid cells around it. The pairs are
-// then sorted into the same order as a plain "every piece against every piece" loop, so the
-// results are exactly the same as checking everything, just without the wasted work.
+// once per step; awake pieces go into a second grid each time round (they move). Each awake piece
+// only looks in the cells around it, in both. The pairs are then sorted into the same order as a
+// plain "every piece against every piece" loop, so the results are exactly the same as checking
+// everything, just without the wasted work (in a pile-up, 50 awake pieces are about 1,200 pairs
+// to check but only a hundred or so are anywhere near each other).
 const CELL = U * 2;
-const grid = new Map();
+const grid = new Map(), awakeGrid = new Map();
 let stamp = new Int32Array(0), stampId = 0, pairBuf = new Float64Array(1024), awakeIdx = new Int32Array(0);
 const cellKey = (cx, cy) => cy * 4096 + cx;
 function buildSleeperGrid(pieces) {
@@ -162,18 +170,34 @@ function addPair(n, key) {
 // Returns how many candidate pairs are in pairBuf (each stored as a * N + b with a < b, sorted).
 function findPairs(pieces, nAwake, ce) {
   const N = pieces.length; let n = 0;
+  for (const list of awakeGrid.values()) list.length = 0;
   for (let i = 0; i < nAwake; i++) {
     const a = awakeIdx[i], A = pieces[a];
-    for (let j = i + 1; j < nAwake; j++) { PSTATS.pairs++; n = addPair(n, a * N + awakeIdx[j]); }
+    const x0 = Math.floor(A.minX / CELL), x1 = Math.floor(A.maxX / CELL), y0 = Math.floor(A.minY / CELL), y1 = Math.floor(A.maxY / CELL);
+    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
+      const k = cellKey(cx, cy); let list = awakeGrid.get(k);
+      if (!list) { list = []; awakeGrid.set(k, list); }
+      list.push(a);
+    }
+  }
+  for (let i = 0; i < nAwake; i++) {
+    const a = awakeIdx[i], A = pieces[a];
     stampId++;
     const x0 = Math.floor((A.minX - ce) / CELL), x1 = Math.floor((A.maxX + ce) / CELL);
     const y0 = Math.floor((A.minY - ce) / CELL), y1 = Math.floor((A.maxY + ce) / CELL);
     for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
-      const list = grid.get(cellKey(cx, cy)); if (!list) continue;
-      for (let q = 0; q < list.length; q++) {
+      const k = cellKey(cx, cy);
+      const list = grid.get(k);
+      if (list) for (let q = 0; q < list.length; q++) {
         const b = list[q]; if (stamp[b] === stampId) continue;
         stamp[b] = stampId; PSTATS.pairs++;
         n = addPair(n, a < b ? a * N + b : b * N + a);
+      }
+      const near = awakeGrid.get(k); // other awake pieces: each pair once, from its lower-numbered piece
+      if (near) for (let q = 0; q < near.length; q++) {
+        const b = near[q]; if (b <= a || stamp[b] === stampId) continue;
+        stamp[b] = stampId; PSTATS.pairs++;
+        n = addPair(n, a * N + b);
       }
     }
   }
@@ -253,14 +277,15 @@ export function physicsStep(pieces, P, dt, floor = null, res = 1) {
       p.v0x = p.v0y = 0;
     }
   }
+  const sleepAfter = nAwake > CROWD ? Math.max(SLEEP_MIN, SLEEP_TIME * CROWD / nAwake) : SLEEP_TIME;
   for (let a = 0; a < N; a++) {
     const p = pieces[a]; if (p.asleep) { p.speed = 0; continue; }
     const b = p.T.bnd; let sum = 0;
     for (let q = 0; q < b.length; q++) { const i = b[q]; sum += Math.abs(p.x[i] - p.px[i]) + Math.abs(p.y[i] - p.py[i]); }
     p.speed = sum / b.length;
     aabb(p);
-    p.still = p.speed < SLEEP_SPEED ? (p.still || 0) + dt : 0;
-    if (p.still > SLEEP_TIME) {
+    p.still = p.speed < SLEEP_SPEED ? p.still + dt : p.speed < DRIFT_SPEED ? p.still + dt / 2 : 0;
+    if (p.still > sleepAfter) {
       p.asleep = true;
       for (let i = 0; i < p.n; i++) { p.px[i] = p.x[i]; p.py[i] = p.y[i]; }
     }

@@ -57,6 +57,9 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
   means to help Sadie; when it does, it's by accident.
 - Sadie is a character with moods, not a cursor.
 - The player controls the camera. Once they've moved it, it never moves or zooms by itself.
+- Believable, not accurate: the physics only has to look real, so cheat wherever nobody can tell
+  (never on the squish itself). It's a lost 90s shareware toy pushing the hardware too hard, and
+  sometimes the hardware pushes back: slowing down is fine, stuttering isn't.
 - One feature at a time. Make sure it's fun before the next.
 
 ## Parked ideas (don't start unless asked)

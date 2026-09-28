@@ -13,7 +13,7 @@ import { vp } from '../render/view.js';
 const perfEl = document.getElementById('perf'), perfList = document.getElementById('perfList'), pcv = document.getElementById('perfCv'), pctx = pcv.getContext('2d');
 const perfToggle = document.getElementById('perfToggle');
 export const prof = { on: !!store.get('jellystack.perf', false), hist: new Float32Array(150), hi: 0, physMs: 0, logicMs: 0, drawMs: 0,
-  frames: 0, sumFrame: 0, sumWork: 0, sumPhys: 0, sumLogic: 0, sumDraw: 0, worst: 0, steps: 0, pairs: 0, touching: 0, lastReport: 0, slow: 0 };
+  frames: 0, sumFrame: 0, sumGame: 0, sumWork: 0, sumPhys: 0, sumLogic: 0, sumDraw: 0, worst: 0, steps: 0, pairs: 0, touching: 0, lastReport: 0, slow: 0 };
 export function setPerf(v) { prof.on = v; perfEl.hidden = !v; perfToggle.checked = v; store.set('jellystack.perf', v); }
 perfToggle.addEventListener('change', () => setPerf(perfToggle.checked));
 setPerf(prof.on);
@@ -21,6 +21,7 @@ function reportPerf(now) {
   const n = Math.max(1, prof.frames), awake = world.pieces.filter(p => !p.asleep).length;
   const rows = [
     ['Frame rate', Math.round(1000 / (prof.sumFrame / n)) + ' fps'],
+    ['Game speed', Math.min(100, Math.round(100 * prof.sumGame / Math.max(1, prof.sumFrame))) + '% of normal'],
     ['Frame work', (prof.sumWork / n).toFixed(1) + ' ms'],
     ['Worst frame', prof.worst.toFixed(1) + ' ms'],
     ['Physics', (prof.sumPhys / n).toFixed(1) + ' ms'],
@@ -35,7 +36,7 @@ function reportPerf(now) {
     ['Mole', `sim takes ${Math.round(mole.strain * 100)}% of the time, tired ${Math.round(mole.feel.tired * 100)}%${mole.napping ? ', napping' : ''}`],
   ];
   perfList.innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
-  Object.assign(prof, { frames: 0, sumFrame: 0, sumWork: 0, sumPhys: 0, sumLogic: 0, sumDraw: 0, steps: 0, pairs: 0, touching: 0 });
+  Object.assign(prof, { frames: 0, sumFrame: 0, sumGame: 0, sumWork: 0, sumPhys: 0, sumLogic: 0, sumDraw: 0, steps: 0, pairs: 0, touching: 0 });
   prof.lastReport = now;
 }
 function drawPerfGraph() {
@@ -55,7 +56,7 @@ function drawPerfGraph() {
   export function recordFrame(t, frameGap, t0, t1, t2, steps) {
   if (prof.on) {
     const work = t2 - t0;
-    prof.frames++; prof.sumFrame += frameGap; prof.sumWork += work; prof.sumPhys += timing.physMs; prof.sumLogic += (t1 - t0) - timing.physMs;
+    prof.frames++; prof.sumFrame += frameGap; prof.sumGame += steps * 1000 / 60; prof.sumWork += work; prof.sumPhys += timing.physMs; prof.sumLogic += (t1 - t0) - timing.physMs;
     prof.sumDraw += t2 - t1; prof.steps += steps; prof.pairs += PSTATS.pairs; prof.touching += PSTATS.touching;
     prof.worst = Math.max(prof.worst * 0.995, work);
     if (work > 20) prof.slow++;

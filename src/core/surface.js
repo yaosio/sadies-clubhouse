@@ -22,22 +22,40 @@ export function rockTop(x0, x1) {
   return h;
 }
 
-export function computeSurface() {
-  surf.set(rock);
-  for (const p of world.pieces) {
-    if (!isGround(p)) continue; // pieces still moving (falling, bouncing) don't count as ground yet
-    const b = p.T.bnd, m = b.length, X = p.x, Y = p.y;
-    for (let q = 0; q < m; q++) {
-      const a = b[q], c = b[q + 1 === m ? 0 : q + 1];
-      let x0 = X[a], y0 = Y[a], x1 = X[c], y1 = Y[c];
-      if (x0 > x1) { let t = x0; x0 = x1; x1 = t; t = y0; y0 = y1; y1 = t; }
-      const i0 = Math.max(0, Math.ceil(x0 / SURF_RES)), i1 = Math.min(SURF_N - 1, Math.floor(x1 / SURF_RES));
-      for (let i = i0; i <= i1; i++) {
-        const t = x1 > x0 ? (i * SURF_RES - x0) / (x1 - x0) : 0, y = y0 + (y1 - y0) * t;
-        if (y > surf[i]) surf[i] = y;
-      }
+// Sleeping pieces don't move, so their part of the outline is worked out once and kept (in
+// `settled`) until one of them wakes, a new one falls asleep, one goes away, or the bedrock
+// changes. Each step then only adds the pieces still moving about on top of it. (The barn counts
+// as asleep but can be moved, so it's always added fresh.)
+const settled = new Float64Array(SURF_N), settledRock = new Float64Array(SURF_N);
+let settledGen = 0, settledCount = -1;
+const keepsStill = p => p.asleep && !p.fixed;
+function addOutline(p, out) {
+  const b = p.T.bnd, m = b.length, X = p.x, Y = p.y;
+  for (let q = 0; q < m; q++) {
+    const a = b[q], c = b[q + 1 === m ? 0 : q + 1];
+    let x0 = X[a], y0 = Y[a], x1 = X[c], y1 = Y[c];
+    if (x0 > x1) { let t = x0; x0 = x1; x1 = t; t = y0; y0 = y1; y1 = t; }
+    const i0 = Math.max(0, Math.ceil(x0 / SURF_RES)), i1 = Math.min(SURF_N - 1, Math.floor(x1 / SURF_RES));
+    for (let i = i0; i <= i1; i++) {
+      const t = x1 > x0 ? (i * SURF_RES - x0) / (x1 - x0) : 0, y = y0 + (y1 - y0) * t;
+      if (y > out[i]) out[i] = y;
     }
   }
+}
+export function computeSurface() {
+  let fresh = settledCount >= 0, count = 0;
+  for (const p of world.pieces) {
+    if (keepsStill(p)) { if (p.surfGen !== settledGen) { fresh = false; break; } count++; }
+    else if (p.surfGen === settledGen) { fresh = false; break; }
+  }
+  if (fresh && count !== settledCount) fresh = false;
+  if (fresh) for (let i = 0; i < SURF_N; i++) if (rock[i] !== settledRock[i]) { fresh = false; break; }
+  if (!fresh) {
+    settledGen++; settledCount = 0; settled.set(rock); settledRock.set(rock);
+    for (const p of world.pieces) if (keepsStill(p)) { p.surfGen = settledGen; settledCount++; addOutline(p, settled); }
+  }
+  surf.set(settled);
+  for (const p of world.pieces) if (!keepsStill(p) && isGround(p)) addOutline(p, surf); // pieces still moving (falling, bouncing) don't count as ground yet
 }
 export function surfAt(x) {
   const f = Math.min(SURF_N - 1.001, Math.max(0, x / SURF_RES)), i = Math.floor(f), t = f - i;
