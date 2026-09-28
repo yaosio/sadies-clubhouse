@@ -45,8 +45,10 @@ The owner doesn't code and installs nothing. Claude does all the building.
 7. Publish: check out `main`, `npm run check` (no `--preview`), then publish `dist/index.html` to
    the game's artifact URL above (Artifact tool, same URL, so the link never changes). Read the live page
    first; if its embedded source differs from `main` (unpack it with `tools/unpack.mjs` and
-   compare), stop and ask before overwriting. Only ever publish from `main`, never a branch, and
-   only from here, so the page always matches GitHub.
+   compare), stop and ask before overwriting. Read it before the check and pass the saved copy as
+   `npm run check -- --live <file>`: if `src/`, `tests/` and `package.json` are exactly what's live
+   (which passed before it was published), the tests are skipped, even in a fresh session. Only
+   ever publish from `main`, never a branch, and only from here, so the page always matches GitHub.
 
 If the repo is ever lost, `node tools/unpack.mjs <page.html> <folder>` rebuilds the project from
 the backup inside the published page.

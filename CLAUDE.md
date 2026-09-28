@@ -38,7 +38,10 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, not in
   version's label; the bare word also appears in the embedded source of the build tool).
   If main's `src/` and `tests/` are exactly what already passed on the branch, the check skips the
   tests by itself, so this is quick.
-- Read the live page first. If its embedded source differs from `main`, stop and ask.
+- Read the live page first. If its embedded source differs from `main`, stop and ask. Then pass
+  the saved copy of it to the check (`npm run check -- --live <file>`): if the game's code is
+  exactly what's already live (say, only docs or art changed), the tests are skipped even in a
+  fresh session.
 - The test page is https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the working branch, built
   with `--preview`, published after every pushed change without asking. It's never the source of
   truth and can be overwritten any time. Publish it from a copy outside `dist/` (the scratchpad),

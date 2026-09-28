@@ -5,10 +5,15 @@
 //   npm run check -- --quick       skip the headless tests (for a quick look while working)
 //   npm run check -- --preview     build and check the test version (the one for the test page)
 //   npm run check -- --retest      run the tests even if they already passed on this exact code
+//   npm run check -- --live <file> the live game page, saved: if its embedded src/, tests/ and
+//                                  package.json are exactly these, the tests count as passed
 //
-// The tests only depend on src/ and tests/, so once they've passed on exactly those files (this
-// session: it's remembered in dist/), they aren't run again until something there changes. That
-// makes the check at merge time quick, since main then has the same code the branch was tested on.
+// The tests only depend on src/, tests/ and package.json, so once they've passed on exactly those
+// files they aren't run again until something there changes. This session remembers it in dist/,
+// which makes the check at merge time quick when the branch was checked here. A fresh session has
+// no memory of it, but the live game page does: it's only ever published after passing, and it
+// carries its own source. So with --live (the page read before publishing anyway), a change that
+// doesn't touch the game's code (docs, art, tools) merges without re-running the tests.
 //
 // In the browser it opens a new game, taps Sadie and the mole to read their thoughts, opens the dev
 // sheet, loads a full board (400 pieces, bedrock melting; made by tools/fullboard.mjs), reloads it
@@ -53,8 +58,32 @@ function hashOf(paths) {
   return h.digest('hex').slice(0, 12);
 }
 mkdirSync(join(root, 'dist'), { recursive: true });
+// Is the code under test exactly what the saved live page was built from?
+function sameAsLive(file) {
+  const m = readFileSync(file, 'utf8').match(/<script type="application\/json" id="jelly-source">([\s\S]*?)<\/script>/);
+  if (!m) return 'no embedded source in ' + file;
+  const live = JSON.parse(m[1]).files, ours = new Set();
+  const walk = p => {
+    if (statSync(join(root, p)).isDirectory()) { for (const f of readdirSync(join(root, p))) walk(join(p, f)); }
+    else ours.add(p);
+  };
+  ['src', 'tests', 'package.json'].forEach(walk);
+  const theirs = Object.keys(live).filter(p => p === 'package.json' || p.startsWith('src/') || p.startsWith('tests/'));
+  for (const p of theirs) if (!ours.has(p)) return p + ' is on the live page but not here';
+  for (const p of ours) if (live[p] !== readFileSync(join(root, p), 'utf8')) return p + ' differs from the live page';
+  return null;
+}
 if (!quick) {
   const passed = join(root, 'dist/tests-passed-' + hashOf(['src', 'tests', 'package.json']));
+  const liveAt = args.indexOf('--live'), liveFile = liveAt >= 0 ? args[liveAt + 1] : null;
+  if (liveFile && !existsSync(passed) && !args.includes('--retest')) {
+    const why = sameAsLive(liveFile);
+    if (why) console.log(`\n== live page\nthe game's code isn't the same as the live page's (${why}), so the tests run`);
+    else {
+      console.log('\n== live page\nthe game\'s code is exactly what the live page was built from, and that passed');
+      writeFileSync(passed, 'same as the live page, ' + new Date().toISOString() + '\n');
+    }
+  }
   if (existsSync(passed) && !args.includes('--retest')) {
     console.log('\n== headless tests\nalready passed on exactly this code (src/ and tests/ unchanged), not running them again');
   } else {
