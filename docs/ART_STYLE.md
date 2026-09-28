@@ -92,9 +92,12 @@ tried way too hard:
   at https://claude.ai/artifact/JeTXaHsXxnPpSYe37qBbMY). Every modern bit leaves the board (the thought
   bubble, tip, pop-ups, round Toys and dev buttons, Sadie's "↑ 3.1" pill, the rounded font). The
   Play Place frame (top strip with ESC BACK and logo, F-key bar) is the same in every activity; the
-  middle is the activity's own: for Dropper World, a row of stamps (who you're watching) and a
-  dashboard (their face, doing, why, up to 4 feelings as LED meters, and an LED sign for news and
-  hints). Board pictures come from `tools/dropper-world/board-shot.mjs`.
+  middle is the activity's own: for Dropper World, stamps (who you're watching) and a dashboard
+  (their face, doing, why, up to 4 feelings as LED meters, and an LED sign for news and hints).
+  Version 2 keeps it small: on a phone the dashboard is one slim strip (face, name, doing; tap for
+  why and feelings, which pop up over the board), the stamps sit in the key bar, and the LED sign
+  only shows over the strip for news. On a wide screen it's a column down the right side, so the
+  board keeps its full height. Board pictures come from `tools/dropper-world/board-shot.mjs`.
 - Phone (portrait) layout: the mock-up is landscape. On a tall screen the logo, toolbar,
   dashboard and F-key bar need rearranging (for example the toolbar as a row, the dashboard
   stacked), without crowding the board.

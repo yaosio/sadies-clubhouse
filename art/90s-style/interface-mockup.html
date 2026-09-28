@@ -54,8 +54,8 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
 .sunk{border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
 .raised{border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi)}
 
-.dev.phone{width:390px;height:844px;grid-template-columns:1fr;grid-template-rows:34px 1fr 44px auto 40px;grid-template-areas:"top" "board" "stamps" "dash" "keys"}
-.dev.wide{width:1000px;height:700px;grid-template-columns:64px 1fr;grid-template-rows:54px 1fr 150px 36px;grid-template-areas:"top top" "stamps board" "dash dash" "keys keys"}
+.dev.phone{width:390px;height:844px;grid-template-columns:1fr;grid-template-rows:34px 1fr auto 40px;grid-template-areas:"top" "board" "dash" "keys"}
+.dev.wide{width:1000px;height:700px;grid-template-columns:minmax(0,1fr) 250px;grid-template-rows:54px 1fr 36px;grid-template-areas:"top top" "board side" "keys keys"}
 
 /* top strip: ESC BACK, logo, plaque */
 .top{grid-area:top;display:flex;align-items:center;gap:14px;padding:0 4px}
@@ -71,7 +71,7 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
 .board{grid-area:board;position:relative;overflow:hidden;background:#2a64d8}
 .shot{position:absolute;image-rendering:pixelated;max-width:none;pointer-events:none}
 .phone .shot{left:-10px;top:-120px}
-.wide .shot{left:-180px;top:-250px}
+.wide .shot{left:-280px;top:-180px}
 .hot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:0;background:transparent;border:0;cursor:pointer;padding:0}
 .hot:hover{outline:2px dotted rgba(255,255,255,.7)}
 .arrow{position:absolute;width:18px;height:20px;margin-left:-9px;pointer-events:none;animation:bob .7s steps(2) infinite;
@@ -80,54 +80,72 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
 @keyframes bob{50%{transform:translateY(-4px)}}
 .ruler{position:absolute;left:5px;font-family:var(--pixel);font-size:10px;color:#fff;text-shadow:1px 1px 0 var(--lo);pointer-events:none}
 
+/* side column (wide screens): stamps on top, then the dashboard. On a phone it isn't a box
+   at all: the stamps move into the key bar and the dashboard is a slim strip. */
+.phone .side{display:contents}
+.wide .side{grid-area:side;display:flex;flex-direction:column;gap:6px;min-height:0}
+
 /* stamps: who you're watching */
-.stamps{grid-area:stamps;display:flex;gap:6px}
-.wide .stamps{flex-direction:column}
-.phone .stamps{align-items:center;padding:0 2px}
-.stamps .cap{font-size:11px;color:var(--muted);margin-right:4px}
-.wide .stamps .cap{display:none}
-.stamp{width:56px;height:56px;padding:0;cursor:pointer;background-color:#5b3bb4;border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);position:relative;display:grid;place-items:center}
-.phone .stamp{width:40px;height:40px}
-.stamp .f{width:44px;height:44px;border:2px solid var(--lo);background-repeat:no-repeat;image-rendering:pixelated}
-.phone .stamp .f{width:30px;height:30px}
+.stamps{display:flex;gap:6px;align-items:center}
+.stamps .cap{display:none}
+.stamp{width:42px;height:42px;padding:0;cursor:pointer;background-color:#5b3bb4;border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);position:relative;display:grid;place-items:center;flex:none}
+.phone .stamp{width:34px;height:34px}
+.phone .stamp.locked{display:none}
+.stamp .f{width:32px;height:32px;border:2px solid var(--lo);background-repeat:no-repeat;image-rendering:pixelated}
+.phone .stamp .f{width:24px;height:24px}
 .stamp[aria-pressed="true"]{background-color:var(--gold);border-color:#fff3a8 #9a6a00 #9a6a00 #fff3a8;box-shadow:0 0 10px rgba(255,207,58,.8)}
 .stamp.locked{background-color:#2b1a66;cursor:default;border-color:#5a4aa8 #120a30 #120a30 #5a4aa8}
-.stamp.locked::before{content:"?";font-size:18px;color:#5a4aa8}
+.stamp.locked::before{content:"?";font-size:15px;color:#5a4aa8}
 .stamp.locked::after{content:"";position:absolute;right:3px;bottom:3px;width:10px;height:8px;background:var(--gold);box-shadow:inset -2px -2px 0 #b8860b}
 .stamp.locked i{position:absolute;right:5px;bottom:10px;width:6px;height:5px;border:2px solid var(--gold);border-bottom:0}
-.phone .stamp.locked::before{font-size:14px}
 
-/* dashboard: the activity's own space */
-.dash{grid-area:dash;display:grid;gap:8px;padding:8px;background:rgba(26,15,64,.35)}
-.phone .dash{grid-template-columns:64px 1fr;grid-template-areas:"face who" "feels feels" "led led"}
-.wide .dash{grid-template-columns:118px minmax(0,1fr) 300px 200px;grid-template-areas:"face who feels led"}
-.face{grid-area:face;width:64px;height:64px;background-repeat:no-repeat;image-rendering:pixelated;background-color:#57c8ff}
-.wide .face{width:118px;height:118px}
-.who{grid-area:who;min-width:0;display:flex;flex-direction:column;gap:1px}
-.who .name{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.who .name b{font-weight:400;font-size:14px;color:var(--gold)}
-.who .name span{font-size:11px;color:var(--pink)}
-.who .doing{font-family:var(--term);font-size:21px;line-height:1.05;color:#fff}
-.who .why{font-family:var(--term);font-size:17px;line-height:1.05;color:var(--muted)}
-.wide .who .name b{font-size:16px}.wide .who .doing{font-size:24px}.wide .who .why{font-size:19px}
-.chip{align-self:flex-start;margin-top:4px;font-size:10px;padding:3px 6px;background:var(--lo);color:var(--gold)}
-.feels{grid-area:feels;display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;align-content:start}
-.wide .feels{grid-template-columns:1fr;gap:4px}
+/* the dashboard. Phone: one slim strip (face, name, what they're doing); tap it for the rest,
+   which pops up over the bottom of the board. Wide: everything, down the side column. */
+.dash{grid-area:dash;position:relative;display:grid;gap:4px 8px;padding:6px;background:rgba(26,15,64,.35)}
+.phone .dash{grid-template-columns:48px minmax(0,1fr) 30px;grid-template-areas:"face who btn";align-items:center;cursor:pointer}
+.wide .dash{flex:1;min-height:0;grid-template-columns:72px minmax(0,1fr);grid-template-rows:auto auto auto 1fr;grid-template-areas:"face name" "doing doing" "more more" "led led";align-content:start;padding:8px}
+.wide .who{display:contents}
+.wide .who .name{grid-area:name;flex-direction:column;align-items:flex-start;gap:4px}
+.wide .who .doing{grid-area:doing;margin:4px 0 6px}
+.wide .more .bar{display:none}
+.face{grid-area:face;width:48px;height:48px;background-repeat:no-repeat;image-rendering:pixelated;background-color:#57c8ff}
+.wide .face{width:72px;height:72px}
+.who{grid-area:who;min-width:0;display:flex;flex-direction:column;gap:2px}
+.who .name{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
+.who .name b{font-weight:400;font-size:13px;color:var(--gold)}
+.who .name span{font-size:10px;color:var(--pink)}
+.who .doing{font-family:var(--term);font-size:20px;line-height:1;color:#fff}
+.wide .who .name b{font-size:15px}.wide .who .doing{font-size:22px}
+.chip{font-style:normal;font-size:9px;padding:2px 5px;background:var(--lo);color:var(--gold);white-space:nowrap}
+.moreBtn{grid-area:btn;width:28px;height:28px;padding:0;font:12px/1 var(--pixel);color:var(--lo);background:linear-gradient(#ece6ff 45%,#cabfff 45%);border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;cursor:pointer}
+.wide .moreBtn{display:none}
+.open .moreBtn{transform:scaleY(-1)}
+.more{grid-area:more;min-width:0}
+.more .bar{display:none}
+.why{font-family:var(--term);font-size:18px;line-height:1.05;color:var(--muted);margin-bottom:8px}
+.phone .more{display:none;position:absolute;left:-3px;right:-3px;bottom:calc(100% + 9px);background:var(--panel);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:5px 5px 0 rgba(0,0,0,.5);z-index:6;cursor:default}
+.phone.open .more{display:block}
+.phone .more .bar{display:flex}
+.phone .more .inner{padding:8px 10px 10px}
+.feels{display:grid;grid-template-columns:1fr;gap:5px}
+.phone .feels{grid-template-columns:1fr 1fr;gap:5px 12px}
 .feel{min-width:0}
-.feel span{display:block;font-family:var(--term);font-size:16px;line-height:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wide .feel span{font-size:17px}
+.feel span{display:block;font-family:var(--term);font-size:17px;line-height:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .meter{display:flex;gap:2px;margin-top:2px}
 .meter i{flex:1;height:9px;background:#24164f;border:1px solid #120a30}
 .meter i.on{border-color:rgba(0,0,0,.35)}
 .led{grid-area:led;background-color:var(--led-bg);background-image:radial-gradient(rgba(109,255,138,.08) 1px,transparent 1.5px);background-size:4px 4px;
-  font-family:var(--term);color:var(--led);text-shadow:0 0 6px rgba(109,255,138,.6);text-align:center;display:grid;place-items:center;padding:6px 8px;min-height:30px}
-.phone .led{font-size:18px;line-height:1}
-.wide .led{font-size:22px;line-height:1.05}
+  font-family:var(--term);color:var(--led);text-shadow:0 0 6px rgba(109,255,138,.6);text-align:center;display:grid;place-items:center;padding:6px 8px}
+.wide .led{font-size:22px;line-height:1.05;margin-top:8px}
+/* on a phone the LED sign only shows up for news, right over the strip, then gets out of the way */
+.phone .led{position:absolute;inset:0;font-size:20px;line-height:1;display:none;z-index:2}
+.phone .dash.news .led{display:grid}
 .led.flash{animation:blink .25s steps(2) 6}
 @keyframes blink{50%{color:var(--led-dim);text-shadow:none}}
 
 /* key bar */
-.keys{grid-area:keys;display:flex;align-items:center;gap:14px;padding:0 4px}
+.keys{grid-area:keys;display:flex;align-items:center;gap:12px;padding:0 4px}
+.phone .f3,.phone .devword{display:none}
 .wide .keys{gap:26px}
 .keys .spacer{flex:1}
 .toys{display:flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 7px;cursor:pointer;font-family:var(--pixel);font-size:12px;color:var(--ink);
@@ -137,8 +155,8 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
 
 /* 90s windows over the board: help, toy box */
 .win{position:absolute;background:var(--panel);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:5px 5px 0 rgba(0,0,0,.5);font-family:var(--pixel);z-index:5}
-.win .bar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#ff5fa8,#b060ff);padding:3px 3px 3px 7px;font-size:11px}
-.win .bar button{font:11px/1 var(--pixel);width:20px;height:18px;padding:0;background:#ece6ff;color:var(--lo);border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;cursor:pointer}
+.win .bar,.more .bar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#ff5fa8,#b060ff);padding:3px 3px 3px 7px;font-size:11px}
+.win .bar button,.more .bar button{font:11px/1 var(--pixel);width:20px;height:18px;padding:0;background:#ece6ff;color:var(--lo);border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;cursor:pointer}
 .win .body{padding:10px 12px;font-family:var(--term);font-size:19px;line-height:1.1}
 .win .body p{margin:0 0 8px}
 .helpwin{left:16px;right:16px;top:40px}
@@ -181,7 +199,7 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
   <header class="head">
     <p class="sub">SADIE'S PLAY PLACE &middot; MOCK-UP, NOTHING BUILT YET</p>
     <h1 class="logo">DROPPER WORLD'S NEW SCREEN</h1>
-    <p class="lede">The thought bubble and every other modern-looking bit leave the board. In their place, a 90s dashboard under the board that always shows whoever you're watching, plus an LED sign for news. Tap Sadie, Chooter or the mole (on the board or on their stamp), open the toy box, or press F1.</p>
+    <p class="lede">The thought bubble and every other modern-looking bit leave the board. In their place, a 90s dashboard that always shows whoever you're watching, plus an LED sign for news. Version 2: on a phone it's one slim strip (tap it for the rest); on a wide screen it moves to a column down the side. Tap Sadie, Chooter or the mole (on the board or on their stamp), open the toy box, or press F1.</p>
   </header>
 
   <div class="switch" role="group" aria-label="Screen size">
@@ -221,32 +239,34 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
         </div>
       </div>
 
-      <div class="stamps" id="stamps">
-        <span class="cap">WATCH:</span>
-        <button class="stamp" data-who="sadie" aria-label="Watch Sadie"><span class="f"></span></button>
-        <button class="stamp" data-who="chooter" aria-label="Watch Chooter"><span class="f"></span></button>
-        <button class="stamp" data-who="mole" aria-label="Watch the mole"><span class="f"></span></button>
-        <span class="stamp locked" aria-label="A friend yet to come"><i></i></span>
-        <span class="stamp locked" aria-label="A friend yet to come"><i></i></span>
-      </div>
-
-      <div class="dash raised">
-        <div class="face sunk" id="face" role="img"></div>
-        <div class="who">
-          <div class="name"><b id="name"></b><span id="mood"></span></div>
-          <div class="doing" id="doing"></div>
-          <div class="why" id="why"></div>
-          <div class="chip" id="chip" hidden></div>
+      <div class="side" id="side">
+        <div class="stamps" id="stamps">
+          <button class="stamp" data-who="sadie" aria-label="Watch Sadie"><span class="f"></span></button>
+          <button class="stamp" data-who="chooter" aria-label="Watch Chooter"><span class="f"></span></button>
+          <button class="stamp" data-who="mole" aria-label="Watch the mole"><span class="f"></span></button>
+          <span class="stamp locked" aria-label="A friend yet to come"><i></i></span>
+          <span class="stamp locked" aria-label="A friend yet to come"><i></i></span>
         </div>
-        <div class="feels" id="feels"></div>
-        <div class="led sunk" id="led" aria-live="polite"></div>
+        <div class="dash raised" id="dash">
+          <div class="face sunk" id="face" role="img"></div>
+          <div class="who">
+            <div class="name"><b id="name"></b><span id="mood"></span><em class="chip" id="chip" hidden></em></div>
+            <div class="doing" id="doing"></div>
+          </div>
+          <button class="moreBtn" id="moreBtn" type="button" aria-expanded="false" aria-label="More about them">&#9650;</button>
+          <div class="more" id="more">
+            <div class="win-bar bar"><span id="moreName"></span><button type="button" id="moreX" aria-label="Close">X</button></div>
+            <div class="inner"><div class="why" id="why"></div><div class="feels" id="feels"></div></div>
+          </div>
+          <div class="led sunk" id="led" aria-live="polite"></div>
+        </div>
       </div>
 
       <div class="keys">
         <button class="key" id="f1" type="button"><kbd>F1</kbd>HELP</button>
-        <button class="key dim" type="button" title="No sound yet"><kbd>F3</kbd>SOUND</button>
-        <span class="spacer"></span>
-        <button class="key dim" type="button" title="Dev tools (for testing)"><kbd>F12</kbd>DEV</button>
+        <button class="key dim f3" type="button" title="No sound yet"><kbd>F3</kbd>SOUND</button>
+        <span class="spacer" id="spacer"></span>
+        <button class="key dim" type="button" title="Dev tools (for testing)"><kbd>F12</kbd><span class="devword">DEV</span></button>
         <button class="toys" id="toys" type="button" aria-pressed="false"><span class="ball"></span>TOYS</button>
       </div>
     </div>
@@ -264,12 +284,12 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
       <p>Everything round, see-through or in the bubbly font goes. The board is left with just the world on it (and the gold arrow over whoever you're watching).</p>
       <div class="swaps">
         <div class="th">NOW</div><div class="th">IN THE MOCK-UP</div>
-        <div class="was">The thought bubble with bars, floating over whoever you tapped</div><div class="now">The dashboard under the board: their face, what they're doing and why, and up to 4 feelings as LED meters. A gold arrow bobs over them on the board.</div>
+        <div class="was">The thought bubble with bars, floating over whoever you tapped</div><div class="now">The dashboard: their face and what they're doing, always showing. Why, and up to 4 feelings as LED meters, one tap away on a phone. A gold arrow bobs over them on the board.</div>
         <div class="was">The "tap the mole, Sadie or anyone" tip at the top</div><div class="now">The LED sign says it at first, and it's in F1 HELP any time</div>
         <div class="was">"Sadie made a friend: Chooter!" popping up in the middle</div><div class="now">The LED sign flashes it (try it above)</div>
         <div class="was">"Tap where to throw it"</div><div class="now">The LED sign, while the TOYS button glows gold</div>
         <div class="was">The round Toys button and its white pop-up list</div><div class="now">A chunky TOYS stamp on the key bar, opening a TOY BOX window</div>
-        <div class="was">Sadie's white "&uarr; 3.1" pill over her head when the hay is too high</div><div class="now">On her dashboard: "HAY &uarr; 3.1 BLOCKS"</div>
+        <div class="was">Sadie's white "&uarr; 3.1" pill over her head when the hay is too high</div><div class="now">A little "HAY &uarr; 3.1" tag next to her name</div>
         <div class="was">The round slider button for dev tools</div><div class="now">An F12 DEV key. The dev panel itself stays as it is for now, since only you use it.</div>
         <div class="was">The height numbers on the ruler lines, in the rounded font</div><div class="now">Same numbers, pixel font. They're part of the world, so they stay on the board.</div>
         <div class="was">The rounded font everywhere</div><div class="now">Two pixel fonts: blocky capitals for labels, a DOS-screen font for sentences</div>
@@ -280,10 +300,11 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
       <h2>HOW THE DASHBOARD WORKS</h2>
       <ul>
         <li>It always shows someone. Sadie to start with, since she's the star.</li>
-        <li>Tap a character on the board, or their stamp in the row, and it switches to them. Tiny characters were hard to hit on a phone; the stamps fix that.</li>
-        <li>Chooter's stamp only shows up once he's moved in. Empty stamps with padlocks are the "more friends coming soon" promise.</li>
-        <li>The words are the characters' own, same as the bubble had: what they're doing, why, and how they feel.</li>
-        <li>The LED sign is for news and hints. When nothing's happening it scrolls the "CHAPTER 2 COMING SOON 1996!" promises.</li>
+        <li><b>Phone:</b> one slim strip under the board with their face, name, mood and what they're doing. Tap it (or the &#9650; key) and a window pops up over the bottom of the board with why they're doing it and their feelings. Tap again to put it away.</li>
+        <li><b>Phone:</b> the LED sign only appears when there's news. It covers the strip for a few seconds, then gets out of the way.</li>
+        <li><b>Phone:</b> the character stamps sit in the key bar, next to F1 HELP and TOYS, so they don't need a row of their own. F3 SOUND is left off the phone to make room.</li>
+        <li><b>Wide screen:</b> everything goes in a column down the right side. Wide screens have width to spare, and the tower grows up, so the board keeps its full height.</li>
+        <li>Tap a character on the board or their stamp to switch. Chooter's stamp shows up once he's moved in; the padlocked empty ones (wide screen only) are the "more friends coming" promise.</li>
         <li>A nice side effect: the camera no longer has to lean up to make room for a bubble, so it moves by itself less.</li>
       </ul>
     </section>
@@ -291,13 +312,13 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
     <section>
       <h2>EACH ACTIVITY GETS ITS OWN</h2>
       <p>The frame belongs to the Play Place and looks the same in every activity: the top strip with ESC BACK and the activity's logo, and the key bar with F1 HELP. The middle is each activity's own. Dropper World fills it with the stamps and this dashboard. A future activity could put a paint palette there, or a scoreboard, or nothing at all.</p>
-      <p>On a phone everything stacks: board, stamps, dashboard, keys. On a wide screen it's laid out like the approved 90s mock-up, with the stamps down the left and the dashboard along the bottom.</p>
+      <p>On a phone the board gets almost the whole screen: only the top strip, the slim dashboard strip and the key bar take space, about a sixth of it (the first version took over a third).</p>
     </section>
 
     <section>
       <h2>YOUR CALL ON THESE</h2>
       <div class="qs">
-        <div class="q"><b>Phone size.</b> The dashboard takes about a quarter of a phone screen. Fine, or should it fold down to one line until you tap someone?</div>
+        <div class="q"><b>Phone strip.</b> Is face, name and what they're doing enough to see at a glance, with the feelings one tap away? Or should one feeling (the strongest) always show too?</div>
         <div class="q"><b>F3 SOUND.</b> There's no sound in the game yet. Keep it greyed out as one of the "full version" promises, or leave it off?</div>
         <div class="q"><b>The mole's piece.</b> The old 90s mock-up had a PIECES box with the next piece. Want the mole's dashboard to show what it's carrying next, or leave that to the board?</div>
         <div class="q"><b>Faces.</b> The mock-up uses close-ups of the game as it looks today. When built, each face would be drawn bigger in pixels and change with their mood (grumpy Sadie, zoomies Chooter). Good?</div>
@@ -321,15 +342,15 @@ const WHO = {
 // spots on the board (board pixels): the character's middle, and the top of its head
 const SPOTS = {
   phone: { sadie: [175, 358, 336], chooter: [140, 306, 288], mole: [137, 70, 42] },
-  wide: { sadie: [455, 338, 312], chooter: [365, 388, 362] },
+  wide: { sadie: [355, 408, 382], chooter: [265, 458, 432] },
 };
-const RULERS = { phone: [[25, 44 - 120], [20, 194 - 120], [15, 344 - 120], [10, 494 - 120]], wide: [[25, 65 - 250], [20, 358 - 250], [15, 652 - 250]] };
+const RULERS = { phone: [[25, 44 - 120], [20, 194 - 120], [15, 344 - 120], [10, 494 - 120], [5, 644 - 120]], wide: [[20, 358 - 180], [15, 652 - 180]] };
 const SEG = ['#39e85a', '#39e85a', '#39e85a', '#8fe83a', '#c9e83a', '#f5d63a', '#ffae3a', '#ff8a3a', '#ff5f7a', '#ff5fa8'];
 const IDLE = ["TAP ANYONE TO SEE WHAT THEY'RE UP TO", '** CHAPTER 2 COMING SOON 1996! **', 'MORE FRIENDS! MORE PIECES!'];
 
 const $ = id => document.getElementById(id);
-const dev = $('dev'), stage = $('stage'), led = $('led');
-let layout = 'phone', who = 'sadie', stuck = true, aiming = false, ledHold = 0, idleI = 0;
+const dev = $('dev'), stage = $('stage'), led = $('led'), dash = $('dash');
+let layout = 'phone', who = 'sadie', stuck = true, aiming = false, newsT = null, idleI = 0, newsUntil = 0;
 
 function faceStyle(el, k, box) {
   const [cx, cy, r] = FACE[k], s = box / r;
@@ -343,21 +364,30 @@ function fit() {
   dev.style.transform = `translateX(-50%) scale(${s})`;
   stage.style.height = Math.ceil((h + 6) * s) + 'px';
 }
-function say(msg, flash) {
-  led.textContent = msg;
-  led.classList.remove('flash'); if (flash) { void led.offsetWidth; led.classList.add('flash'); }
+// News on the LED sign. On a phone the sign covers the strip for a few seconds, then gets out of the way.
+function news(msg, hold) {
+  led.textContent = msg; newsUntil = Date.now() + 3500;
+  led.classList.remove('flash'); void led.offsetWidth; led.classList.add('flash');
+  dash.classList.add('news'); clearTimeout(newsT);
+  if (!hold) newsT = setTimeout(() => dash.classList.remove('news'), 3500);
 }
+function endNews() { clearTimeout(newsT); dash.classList.remove('news'); }
+function setOpen(o) { dev.classList.toggle('open', o); $('moreBtn').setAttribute('aria-expanded', o); }
+
 function render() {
-  dev.className = 'dev ' + layout;
+  const open = dev.classList.contains('open');
+  dev.className = 'dev ' + layout + (open && layout === 'phone' ? ' open' : '');
   $('shot').src = layout === 'phone' ? IMG.phone : IMG.desktop;
+  // the stamps live in the key bar on a phone, at the top of the side column on a wide screen
+  if (layout === 'phone') $('spacer').before($('stamps')); else $('side').prepend($('stamps'));
   document.querySelectorAll('[data-layout]').forEach(b => b.setAttribute('aria-pressed', b.dataset.layout === layout));
-  document.querySelectorAll('.stamp[data-who]').forEach(b => { b.setAttribute('aria-pressed', b.dataset.who === who); faceStyle(b.querySelector('.f'), b.dataset.who, layout === 'phone' ? 30 : 44); });
+  document.querySelectorAll('.stamp[data-who]').forEach(b => { b.setAttribute('aria-pressed', b.dataset.who === who); faceStyle(b.querySelector('.f'), b.dataset.who, layout === 'phone' ? 24 : 32); });
   const c = WHO[who], face = $('face');
-  faceStyle(face, who, layout === 'phone' ? 64 : 118); face.setAttribute('aria-label', c.name + "'s face");
-  $('name').textContent = c.name; $('mood').textContent = c.mood;
+  faceStyle(face, who, layout === 'phone' ? 48 : 72); face.setAttribute('aria-label', c.name + "'s face");
   const st = who === 'sadie' && !stuck ? { doing: "I'm climbing up.", why: "There's hay up there!", mood: 'HAPPY' } : c;
+  $('name').textContent = c.name; $('moreName').textContent = 'ALL ABOUT ' + c.name;
   $('doing').textContent = st.doing; $('why').textContent = st.why; $('mood').textContent = st.mood;
-  $('chip').hidden = !(who === 'sadie' && stuck); $('chip').textContent = 'HAY ↑ 3.1 BLOCKS';
+  $('chip').hidden = !(who === 'sadie' && stuck); $('chip').textContent = 'HAY ↑ 3.1';
   $('feels').replaceChildren(...c.feels.map(([label, v]) => {
     const d = document.createElement('div'); d.className = 'feel';
     const s = document.createElement('span'); s.textContent = label;
@@ -380,23 +410,30 @@ function render() {
   $('toys').setAttribute('aria-pressed', aiming);
   fit();
 }
-function throwBall() { aiming = false; say('WHEEE! CHOOTER IS ON IT!', true); ledHold = 2; render(); }
+function throwBall() { aiming = false; news('WHEEE! CHOOTER IS ON IT!'); render(); }
 
 document.querySelectorAll('[data-layout]').forEach(b => b.onclick = () => { layout = b.dataset.layout; render(); });
 document.querySelectorAll('.stamp[data-who]').forEach(b => b.onclick = () => { who = b.dataset.who; render(); });
-$('f1').onclick = () => { $('helpWin').hidden = !$('helpWin').hidden; $('toyWin').hidden = true; };
+dash.addEventListener('click', e => {
+  if (layout !== 'phone' || $('more').contains(e.target)) return;
+  if (dash.classList.contains('news') && !aiming) { endNews(); return; } // tapping the sign clears it
+  setOpen(!dev.classList.contains('open'));
+});
+$('moreX').onclick = () => setOpen(false);
+$('f1').onclick = () => { $('helpWin').hidden = !$('helpWin').hidden; $('toyWin').hidden = true; setOpen(false); };
 $('helpX').onclick = () => { $('helpWin').hidden = true; };
 $('toys').onclick = () => {
-  if (aiming) { aiming = false; say(IDLE[0]); render(); return; }
-  $('toyWin').hidden = !$('toyWin').hidden; $('helpWin').hidden = true;
+  if (aiming) { aiming = false; endNews(); render(); return; }
+  $('toyWin').hidden = !$('toyWin').hidden; $('helpWin').hidden = true; setOpen(false);
 };
 $('toyX').onclick = () => { $('toyWin').hidden = true; };
-$('pickBall').onclick = () => { $('toyWin').hidden = true; aiming = true; say('TAP WHERE TO THROW IT', true); ledHold = 99; render(); };
+$('pickBall').onclick = () => { $('toyWin').hidden = true; aiming = true; news('TAP WHERE TO THROW IT', true); render(); };
 $('board').addEventListener('click', e => { if (aiming && e.target === $('board')) throwBall(); });
-$('news').onclick = () => { say('SADIE MADE A FRIEND: CHOOTER!', true); ledHold = 2; };
+$('news').onclick = () => news('SADIE MADE A FRIEND: CHOOTER!');
 $('stuck').onclick = () => { stuck = !stuck; $('stuck').setAttribute('aria-pressed', stuck); who = 'sadie'; render(); };
 window.addEventListener('resize', fit);
-setInterval(() => { if (ledHold > 0 && ledHold < 99) { ledHold--; return; } if (ledHold === 99) return; idleI = (idleI + 1) % IDLE.length; say(IDLE[idleI]); }, 3500);
-say(IDLE[0]);
+// when there's no news, the wide screen's sign cycles the hint and the promises
+setInterval(() => { if (aiming || Date.now() < newsUntil) return; idleI = (idleI + 1) % IDLE.length; led.textContent = IDLE[idleI]; }, 3500);
 render();
+news(IDLE[0]); // the first-time hint
 </script>
