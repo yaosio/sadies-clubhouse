@@ -3,3 +3,4 @@ node_modules/
 dist/
 package-lock.json
 __pycache__/
+art/play-place/room3d/room3d.html
