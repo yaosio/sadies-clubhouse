@@ -198,11 +198,3 @@ export function drawChooterInWindow(time) {
   face(t);
   ctx.restore();
 }
-
-// Where he is, for the map strip (null while he's inside).
-export function chooterMapSpot() {
-  const c = chooter;
-  if (!c.met) return c.peek > 0 ? { ...peekSpot(), home: false } : null; // peeking in over the wall
-  if (c.place === 'home') return { x: barnX(), y: barnFloor(), home: true };
-  return { x: c.x, y: c.y, home: false };
-}

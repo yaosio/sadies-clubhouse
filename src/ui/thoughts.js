@@ -10,7 +10,7 @@ import { cam, vp, sxf, syf, camState, roomFor } from '../render/view.js';
 
 const el = document.getElementById('thought'), whoEl = document.getElementById('thoughtWho');
 const doingEl = document.getElementById('thoughtDoing'), whyEl = document.getElementById('thoughtWhy'), feelsEl = document.getElementById('thoughtFeels');
-const TOP_CLEAR = 66;  // screen px kept clear at the top for the map strip
+const TOP_CLEAR = 66;  // screen px kept clear at the top for the dev-tools button
 const SLACK = 40;      // how far past the edge before the bubble swaps sides (so it doesn't flicker on the line)
 const HOLD = 1000;     // ms it stays on a side after swapping
 const MAX_BARS = 4;    // never more feelings than this in one bubble

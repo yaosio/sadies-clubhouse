@@ -47,4 +47,5 @@ window.__jellyDebug = () => ({ cx: sadie.x / U, cy: sadie.y / U, ground: groundA
   chooter: chooter.met ? { x: chooter.x / U, y: chooter.y / U, place: chooter.place, doing: chooter.doing, feel: chooter.feel, mood: chooter.mood } : null, toy: toy.state,
   peek: chooter.met ? null : { heard: chooter.heard, out: chooter.peek, x: peekSpot().x / U, y: peekSpot().y / U, sx: sxf(peekSpot().x), sy: syf(peekSpot().y) } });
 // Point the camera somewhere (in blocks; z = zoom compared to normal), for screenshots.
+window.__jellyFollow = () => setFollow(true);
 window.__jellyLook = (x, y, z = 1) => { setFollow(false); cam.x = x * U; cam.y = y * U; cam.z = camState.fitZ * z; };

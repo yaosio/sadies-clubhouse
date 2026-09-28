@@ -14,7 +14,7 @@ A cozy physics toy, not a game. Sadie is the owner's late cat.
 ## Before changing anything
 Read `README.md`, `docs/ARCHITECTURE.md` and `docs/TUNING.md`. Before changing how a character behaves,
 also read `docs/CHARACTERS.md`: who they are and why they do things comes first. Before changing
-how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, not in the game yet).
+how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going in step by step).
 
 ## Making a change
 1. `npm install`, then edit only the modules involved.
@@ -56,6 +56,7 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, not in
 - The mole decides where pieces go, for its own reasons (everything belongs underground). It never
   means to help Sadie; when it does, it's by accident.
 - Sadie is a character with moods, not a cursor.
+- The player controls the camera. Once they've moved it, it never moves or zooms by itself.
 - One feature at a time. Make sure it's fun before the next.
 
 ## Parked ideas (don't start unless asked)
