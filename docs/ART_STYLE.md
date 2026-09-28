@@ -6,7 +6,7 @@ gummy jelly pieces. Next: Sadie, then the mole, Chooter, hay and barn, then the 
 `art/90s-style/mockup-2.png` (drawn by `art/90s-style/mockup-2.py`). `mockup-1` is the first try,
 kept for reference only.
 
-**New direction (proposal, not approved yet): Sadie's Play Place**, a 90s activity center with
+**Sadie's Play Place** (approved), a 90s activity center with
 several activities, the tower game ("Sadie's Dropper World") being the first. Mock-ups in
 `art/play-place/` (drawn by `clubhouse.py`, using `kit.py`, the shared bits of `mockup-2.py`):
 `clubhouse-wide.png` and `clubhouse-phone.png` (the menu: a room with a cubby shelf, one software
@@ -15,11 +15,12 @@ the owner doesn't want that shown) and PLAY!), the same menu in pseudo-3D (`club
 `clubhouse3d-phone.png`, drawn by `clubhouse3d.py`: a room in perspective worked out per pixel,
 with flat sprites for Sadie and the cursor), and `activity-phone.png` (inside an
 activity, the frame shrinks to a strip with ESC BACK, F1 HELP and the activity's own buttons).
-A real-3D test room (`art/play-place/room3d/`: `room.html`, built into one page with its pictures by
-`make.py`) tries the clubhouse as crappy late-90s 3D: low resolution, corners that snap to the pixel
+**The clubhouse menu is now real** (`src/clubhouse/`), grown from the real-3D test room the owner
+approved: crappy late-90s 3D, low resolution, corners that snap to the pixel
 grid, textures that swim, few colors with dithering, lit per corner; characters stay flat pixel
-sprites that turn to face you. Published on its own test page, never the game's:
-https://claude.ai/artifact/Bh3FjRZvgZxr5padPtgK3J (build with `make.py <file>` outside `dist/`).
+sprites that turn to face you. Its textures and sprites are drawn with the same kit by
+`art/play-place/pictures.py` (run it after changing a drawing). The old test room's page
+(https://claude.ai/artifact/Bh3FjRZvgZxr5padPtgK3J) is left as it was.
 Mock-up 2's dashboard (pieces, hunger) belongs to the tower game, not to the whole Play Place.
 
 ## The idea

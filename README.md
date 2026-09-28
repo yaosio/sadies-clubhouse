@@ -14,8 +14,9 @@ toy, not a game to win.
 
 It's the first activity of **Sadie's Play Place**, a lost 90s shareware activity center: a
 clubhouse with activities in it, Sadie in every one. More activities will come; each lives in its
-own folder, so changing one never means retesting the others (`docs/ARCHITECTURE.md`). There's no
-clubhouse menu yet: the page opens straight into Dropper World.
+own folder, so changing one never means retesting the others (`docs/ARCHITECTURE.md`). The page
+opens in the clubhouse: a room in crappy late-90s 3D with a shelf of software boxes, one per
+activity (the rest are locked, "under construction"). Tap a box, then PLAY!.
 
 The owner doesn't code and installs nothing. Claude does all the building.
 
@@ -37,7 +38,7 @@ The owner doesn't code and installs nothing. Claude does all the building.
 
 ## Making a change (for Claude)
 
-1. `npm install` (just esbuild, the bundler).
+1. `npm install` (esbuild, the bundler, and three.js, for the clubhouse's 3D room).
 2. Edit only the modules involved. Each activity lives in its own folder
    (`src/activities/<name>/`) and never imports from another; see `docs/ARCHITECTURE.md`. In
    Dropper World, `core/` never touches the DOM or imports from `render/`, `ui/` or `input/`.

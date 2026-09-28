@@ -1,0 +1,31 @@
+<!-- The clubhouse menu's screen: src/clubhouse/menu.js puts it in the page, and takes it out again
+     when an activity starts. -->
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<div id="clubhouse">
+  <div id="frame">
+    <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+    <header>
+      <img id="logo" alt="Sadie's Play Place">
+      <div class="tag"><b>SHAREWARE V0.9 BETA</b><i>PLEASE COPY &amp; SHARE!</i></div>
+    </header>
+    <div id="view" class="sunk">
+      <canvas id="room" aria-label="The clubhouse, in 3D"></canvas>
+      <div id="hint">TAP THE FLOOR TO WALK &middot; DRAG TO LOOK</div>
+      <div id="pad" aria-label="Walk and turn">
+        <button data-d="f" aria-label="Walk forward"><i class="up"></i></button><button data-d="l" aria-label="Turn left"><i class="lt"></i></button>
+        <button data-d="r" aria-label="Turn right"><i class="rt"></i></button><button data-d="b" aria-label="Walk back"><i class="dn"></i></button>
+      </div>
+    </div>
+    <div id="dash">
+      <div id="led" class="sunk" aria-live="polite"></div>
+      <button id="play">PLAY!</button>
+    </div>
+    <nav id="keys">
+      <button class="key" data-k="F1"><kbd>F1</kbd>HELP</button>
+      <button class="key" data-k="F3"><kbd>F3</kbd>SOUND</button>
+      <button class="key" data-k="F5"><kbd>F5</kbd>ABOUT</button>
+      <button class="key" data-k="PageDown"><kbd>PGDN</kbd>MORE SHELVES</button>
+      <button class="key" data-k="Escape"><kbd>ESC</kbd>QUIT</button>
+    </nav>
+  </div>
+</div>

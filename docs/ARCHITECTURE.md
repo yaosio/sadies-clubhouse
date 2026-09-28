@@ -8,9 +8,10 @@ World is the first activity. Plain ES modules in `src/`, bundled by esbuild into
 
 ```
 src/main.js, src/index.html     the clubhouse: the shell every activity runs in
+src/clubhouse/                  the clubhouse menu: a 3D room with a box per activity on its shelves
 src/activities/<name>/          one folder per activity: everything that's only its own
 src/shared/                     the toolbox: the few things more than one activity needs
-tests/<name>/                   each activity's own checks
+tests/<name>/                   each activity's own checks (tests/clubhouse/: the menu's)
 tools/<name>/                   each activity's own tools
 ```
 
@@ -21,16 +22,29 @@ whose files changed (see its row below). The toolbox stays small: a change there
 activity is checked again, so something moves into it only once a second activity really needs it.
 
 - **An activity** is a folder in `src/activities/` with a `card.js`: its `id` (the folder name),
-  `name`, `page` (its HTML, from `page.html`), `styles` (its CSS, from `styles.css`), and `start()`,
-  which loads the rest of it. None of an activity's code runs until `start()` is called (the build
+  `name`, `page` (its HTML, from `page.html`), `styles` (its CSS, from `styles.css`), `start()`,
+  which loads the rest of it, and for the menu `box` (its box on the shelf: `front`, a picture,
+  and `side` and `top` colours) and `blurb` (the lines the menu's LED board shows under its name,
+  in capitals, up to about 34 letters each). None of an activity's code runs until `start()` is called (the build
   keeps it waiting), so its modules can look up its page's elements as they load.
 - **The clubhouse** (`src/main.js`) gets every card from the build (`import cards from
   'activities'`: `tools/build.mjs` makes that list from the folders, in folder order, so adding an
-  activity never touches the clubhouse). It runs one activity at a time: it puts that activity's
-  styles and page in, then calls `start()`. There's no menu yet: the page goes into the activity
-  named after the `#` in its address (`#dropper-world`), or the first one. Leaving an activity will
-  reload the page into the clubhouse, so an activity never has to tidy up after itself (its timers,
-  listeners and loop just stop).
+  activity never touches the clubhouse). The page opens on the menu; an address naming an activity
+  after the `#` (`#dropper-world`, used by its checks) goes straight into it. It runs one activity
+  at a time: it puts that activity's styles and page in, then calls `start()`. Leaving an activity
+  will reload the page into the clubhouse (for now there's no button for it; reloading the page
+  does it), so an activity never has to tidy up after itself (its timers, listeners and loop just
+  stop).
+- **The menu** (`src/clubhouse/`, loaded only when the page opens on it) is the clubhouse room in
+  crappy late-90s 3D, made with three.js (the one library, bundled into the page): `room.js` builds
+  the room and the PS1 look (corners snapping to the pixel grid, swimming textures, few colours
+  with dithering, all in its one material), `menu.js` the rest: walking and looking, tapping a box
+  to go and see it, the LED board, the F-keys and PLAY!. Every activity gets a box, in folder order,
+  on the back-wall shelf (6 cubbies), then on the side-wall shelf (MORE SHELVES); empty cubbies get
+  locked "under construction" boxes and a "coming soon" card. PLAY! shows a loading bar, then takes
+  the whole menu out of the page (its screen, look, listeners and 3D drawing) before the activity
+  comes in. Its pictures (`pictures.js`, and Dropper World's `box.js`) are drawn by
+  `art/play-place/pictures.py`; never edit them by hand.
 - **Saves** belong to each activity: its keys start with its own name (Dropper World's is
   `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
   uses `sadies-play-place.<id>.` for its keys. Only an activity knows whether it saves anything,
@@ -119,10 +133,11 @@ simulation needs to tell the screen something, it emits an event (below).
 | `input/controls.js` | Escape closes the dev sheet. No keyboard controls, and no way to move, spin or drop pieces: the mole decides all that. |
 | **tests/ and tools/** | |
 | `tests/run.mjs` | `npm test`: every activity's headless checks, one activity after another (`npm test -- dropper-world` for one). |
+| `tests/clubhouse/browser.mjs` | The menu in headless Chromium as a phone and a desktop (run by `tools/check.mjs` every time: a few seconds): the room draws, the first activity is chosen, tapping a locked box and Sadie, MORE SHELVES there and back, walking with the arrow pad, and PLAY! starting Dropper World with the menu gone from the page. Fails on any page error; screenshots in `dist/check/clubhouse/`. |
 | `tests/dropper-world/run.mjs` | Dropper World's headless checks: the real simulation in Node, seeded. Each numbered section runs in its own process, several at once, about 3.5 minutes in all (`--section=N` runs one). |
 | `tests/dropper-world/browser.mjs` | Dropper World in headless Chromium as a phone and a desktop (run by `tools/check.mjs`): new game (the mole digging up the first hay), tapping Sadie and the mole (its bubble must sit above or beside it, not over the pile), Chooter peeking in, the dev sheet, a full board loaded from a save and reloaded, and how smooth that board is on a phone 4x slower. Fails on any page error; screenshots in `dist/check/dropper-world/`. |
-| `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html` (the clubhouse and every activity), with the source embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
-| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: it opens once (no errors), then each activity's browser checks. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus the clubhouse (files directly in `src/`), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. |
+| `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html` (the clubhouse and every activity), with the source embedded. Squeezed small (three.js is big); the readable source is what's embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
+| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the menu's checks (every time), then each activity's browser checks. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus the clubhouse's shell (files directly in `src/`, not the menu), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. |
 | `tools/dropper-world/fullboard.mjs` | A save of a full board (14 minutes of real play, about 400 pieces, bedrock melting). Its browser checks make one when `core/` changes and keeps it in `dist/`. Handy for any experiment that needs a big tower. |
 | `tools/dropper-world/profile.mjs` | Where the time goes: plays the full board in headless Chromium as a phone slowed down 4x (`--slow N`, `--desktop`, `--seconds N`, `--zoom` to keep zooming in and out, `--zoomed-out` to look at the whole tower), and prints how even the frames are, the game speed (under 100% when it slows down to keep up), which functions take the most time overall and in the slowest frames, and what the browser does besides (garbage collection, putting the picture on screen). A hidden browser has no graphics card, so it blows the pixels up to screen size on the processor ("Commit" in its main-thread events), which a real phone's graphics chip does for free; the game's own code is measured fairly. (Its `--use-angle=swiftshader` pretend graphics chip was tried: far too slow to tell anything.) `--slow 2` is the better guide to a real phone. |
 | `tools/dropper-world/physics-load.mjs` | How hard the physics works on the full board, in Node: one step's cost with few, some and many pieces awake, and how many pieces each drop wakes and for how long. For judging physics speed-ups. |
