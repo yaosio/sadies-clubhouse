@@ -70,5 +70,5 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
 ## Parked ideas (don't start unless asked)
 Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building
 things out of dropped pieces, sky zones with different physics, unlocking piece types, prestige by
-melting the tower, a desktop-toy version, other ideas for the thought bubbles (on a phone they
-can still crowd the board; for now the camera makes room above).
+melting the tower, a desktop-toy version, other ideas for the dashboard (it shows one
+character's thoughts at a time, and only their strongest feeling).

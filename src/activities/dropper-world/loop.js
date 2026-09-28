@@ -11,7 +11,7 @@ import { update, timing } from './core/game.js';
 import { PSTATS } from './core/physics/solver.js';
 import { updateCamera } from './render/view.js';
 import { draw } from './render/scene.js';
-import { drawThoughts } from './ui/thoughts.js';
+import { drawDashboard } from './ui/dashboard.js';
 import { recordFrame } from './ui/perf.js';
 import { gameSpeed } from './core/debug.js';
 import { feelStrain } from './core/mole.js';
@@ -34,7 +34,7 @@ export function frame(t) {
   // how much of the time the simulation is taking: too much and the mole gets tired (sped up in the dev sheet doesn't count)
   if (speed === 1 && frameGap > 0) feelStrain((t1 - t0) / frameGap, dt);
   updateCamera(STEP * steps);
-  draw(t); drawThoughts();
+  draw(t); drawDashboard(t);
   const t2 = performance.now();
   recordFrame(t, frameGap, t0, t1, t2, steps);
   requestAnimationFrame(frame);

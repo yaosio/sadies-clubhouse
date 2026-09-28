@@ -10,18 +10,20 @@ import { chooter, peekSpot } from './core/friends/chooter.js';
 import { toy } from './core/toys.js';
 import { mole } from './core/mole.js';
 import { drp } from './core/dropper.js';
-import { cam, vp, camState, resize, setFollow, sxf, syf } from './render/view.js';
+import { cv, cam, vp, camState, resize, setFollow, sxf, syf } from './render/view.js';
+import { watching } from './ui/dashboard.js';
 import { on } from './core/events.js';
 import { applySettings } from './ui/devPanel.js';
-import './ui/hud.js';
+import './ui/dashboard.js';
 import './ui/toybox.js';
+import './ui/help.js';
 import './ui/perf.js';
 import './input/pointer.js';
 import './input/controls.js';
 import { frame } from './loop.js';
 
 on('reset', () => setFollow(true));
-window.addEventListener('resize', resize);
+new ResizeObserver(resize).observe(document.getElementById('board')); // the board's size, whatever the frame around it does
 
 resize();
 cam.z = camState.fitZ;
@@ -40,12 +42,16 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) saveG
 window.addEventListener('pagehide', saveGame);
 
 // For automated testing in a browser.
+// sx/sy: where on the page (for tapping), the board being inside the frame.
+const px = x => cv.getBoundingClientRect().left + sxf(x), py = y => cv.getBoundingClientRect().top + syf(y);
 window.__jellyDebug = () => ({ time: world.gameTime, cx: sadie.x / U, cy: sadie.y / U, ground: groundAt(sadie.x, sadie.y) / U, state: sadie.state, mood: sadie.mood,
   tx: sadie.target ? sadie.target.x / U : null, ty: sadie.target ? sadie.target.y / U : null, follow: camState.follow, camx: cam.x / U,
-  sx: sxf(sadie.x), sy: syf(sadie.y + 0.6 * U), supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, hayOut: world.hay.filter(h => !h.eaten).map(h => h.st || 'float'), moleHay: drp.hay !== null, trip: sadie.trip ? sadie.trip.phase : null, doing: sadie.doing, feel: sadie.feel,
-  mole: { x: drp.x / U, y: drp.y / U, sx: sxf(drp.x), sy: syf(drp.y + 1.2 * U), doing: mole.doing, who: mole.whoName, tired: mole.feel.tired, napping: mole.napping, strain: mole.strain },
+  sx: px(sadie.x), sy: py(sadie.y + 0.6 * U), supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, hayOut: world.hay.filter(h => !h.eaten).map(h => h.st || 'float'), moleHay: drp.hay !== null, trip: sadie.trip ? sadie.trip.phase : null, doing: sadie.doing, feel: sadie.feel,
+  mole: { x: drp.x / U, y: drp.y / U, sx: px(drp.x), sy: py(drp.y + 1.2 * U), doing: mole.doing, who: mole.whoName, tired: mole.feel.tired, napping: mole.napping, strain: mole.strain },
   chooter: chooter.met ? { x: chooter.x / U, y: chooter.y / U, place: chooter.place, doing: chooter.doing, feel: chooter.feel, mood: chooter.mood } : null, toy: toy.state,
-  peek: chooter.met ? null : { heard: chooter.heard, out: chooter.peek, x: peekSpot().x / U, y: peekSpot().y / U, sx: sxf(peekSpot().x), sy: syf(peekSpot().y) } });
+  peek: chooter.met ? null : { heard: chooter.heard, out: chooter.peek, x: peekSpot().x / U, y: peekSpot().y / U, sx: px(peekSpot().x), sy: py(peekSpot().y) },
+  watching: watching() === sadie ? 'Sadie' : watching() === chooter ? 'Chooter' : watching() === mole ? 'Mole' : null,
+  dash: ['dashName', 'dashMood', 'dashDoing', 'feelLabel', 'dashWhy'].map(id => document.getElementById(id).textContent).join('\n') });
 // Point the camera somewhere (in blocks; z = zoom compared to normal), for screenshots.
 window.__jellyFollow = () => setFollow(true);
 window.__jellyLook = (x, y, z = 1) => { setFollow(false); cam.x = x * U; cam.y = y * U; cam.z = camState.fitZ * z; };

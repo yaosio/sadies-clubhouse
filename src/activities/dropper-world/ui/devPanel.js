@@ -43,15 +43,13 @@ export function applySettings() {
 const $ = id => document.getElementById(id);
 
 // ---------- open, close, shrink, tabs ----------
-// Tell the camera how much of the board the sheet covers, and move the on-screen buttons out
-// of its way (on a phone only while it's shrunk to its title bar, so you can keep playing).
+// Tell the camera how much of the board the sheet covers, so Sadie stays in the part you can see.
 function fitCamera() {
   const open = sheet.classList.contains('open'), side = matchMedia('(min-width: 900px)').matches;
-  camState.insetB = open && !side ? sheet.offsetHeight : 0;
-  camState.insetR = open && side ? sheet.offsetWidth : 0;
-  const app = document.getElementById('app').style;
-  app.setProperty('--dev-b', (open && !side && sheet.classList.contains('shrunk') ? sheet.offsetHeight : 0) + 'px');
-  app.setProperty('--dev-r', camState.insetR + 'px');
+  // (where it will sit once it has slid in: it's pinned to the frame's bottom, or its right on a wide screen)
+  const b = document.getElementById('board').getBoundingClientRect(), app = document.getElementById('app').getBoundingClientRect();
+  camState.insetB = open && !side ? Math.max(0, b.bottom - (app.bottom - sheet.offsetHeight)) : 0;
+  camState.insetR = open && side ? Math.max(0, b.right - (app.right - sheet.offsetWidth)) : 0;
 }
 function openSheet() { sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false'); refresh(); fitCamera(); }
 export function closeSheet() { sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); fitCamera(); }

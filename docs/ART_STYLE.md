@@ -2,7 +2,7 @@
 
 **Status: approved, going in step by step.** Step 1 (on the working branch, not in the real game
 yet): chunky pixels over everything, the new sky, sun, clouds, hills and ground, and the
-gummy jelly pieces. Next: Sadie, then the mole, Chooter, hay and barn, then the interface. The picture to match is
+gummy jelly pieces. Next: Sadie, then the mole, Chooter, hay and barn. The interface is done (see the end). The picture to match is
 `art/90s-style/mockup-2.png` (drawn by `art/90s-style/mockup-2.py`). `mockup-1` is the first try,
 kept for reference only.
 
@@ -87,21 +87,19 @@ tried way too hard:
 - **The never-finished feeling** comes from the promises: "CHAPTER 2 COMING SOON 1996!", locked
   tools, save only in the full version. **No prices and no order buttons** (the owner said no).
 
-## Still to work out
-- **The interface, proposed (not approved yet):** `art/90s-style/interface-mockup.html` (published
-  at https://claude.ai/artifact/JeTXaHsXxnPpSYe37qBbMY). Every modern bit leaves the board (the thought
-  bubble, tip, pop-ups, round Toys and dev buttons, Sadie's "↑ 3.1" pill, the rounded font). The
-  Play Place frame (top strip with ESC BACK and logo, F-key bar) is the same in every activity; the
-  middle is the activity's own: for Dropper World, stamps (who you're watching) and a dashboard
-  (their face, doing, why, their strongest feeling as one LED meter (the owner's call: only the
-  strongest, not all of them), and an LED sign for news and hints).
-  Version 2 keeps it small: on a phone the dashboard is one slim strip (face, name, doing, strongest
-  feeling; tap for why, which pops up over the board), the stamps sit in the key bar, and the LED sign
-  only shows over the strip for news. On a wide screen it's a column down the right side, so the
-  board keeps its full height. Board pictures come from `tools/dropper-world/board-shot.mjs`.
-- Phone (portrait) layout: the mock-up is landscape. On a tall screen the logo, toolbar,
-  dashboard and F-key bar need rearranging (for example the toolbar as a row, the dashboard
-  stacked), without crowding the board.
-- The dashboard, toolbar and F-keys in the mock-up are for looks; which ones do something in the
-  toy is a separate decision. Design pillars still win (no fast clicking, the player doesn't tune
-  physics).
+## The interface as built
+**Built:** mock-up in `art/90s-style/interface-mockup.html` (published
+  at https://claude.ai/artifact/JeTXaHsXxnPpSYe37qBbMY). Every modern bit left the board (the thought
+  bubble, tip, pop-ups, round Toys and dev buttons, Sadie's "↑ 3.1" pill, the light strip under
+  the mole, the rounded font). The frame (top strip with ESC BACK and logo, a key bar with F1 HELP,
+  F12 DEV and TOYS; no F3 SOUND, the owner said drop it) and in the middle Dropper World's own
+  dashboard: stamps (who you're watching) and their face (drawn live by their own drawing code,
+  so it shows their mood), name, mood word, what they're doing, their strongest feeling only (one
+  LED meter; the owner's call) and why, plus an LED sign for news and hints. On a phone it's one
+  slim strip (tap it for why), the stamps sit in the key bar, and the LED sign only shows over the
+  strip for news; on a wide screen, sideways, it's a column down the right. Fonts: Silkscreen
+  (blocky capitals, which the owner loves) for labels, VT323 (a DOS screen) for sentences. No
+  next-piece display (the owner said no). Board pictures for mock-ups come from
+  `tools/dropper-world/board-shot.mjs`. The frame lives in Dropper World for now; it moves to
+  the Play Place's toolbox once a second activity needs it.
+

@@ -1,9 +1,9 @@
-// Draws one frame of the world, back to front: sky (sun, clouds, hills), ruler, walls, ground, hay, drop lane, barn,
+// Draws one frame of the world, back to front: sky (sun, clouds, hills), ruler, walls, ground, hay, barn,
 // pieces, the bedrock, Sadie's rope, Sadie's friends, Sadie, toys, the held piece, the mole, particles.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
 import { COLORS } from '../core/physics/pieceTypes.js';
-import { drp, heldOffsets } from '../core/dropper.js';
+import { drp } from '../core/dropper.js';
 import { rock, rockInfo, SURF_N, SURF_RES } from '../core/surface.js';
 import { bedrock } from '../core/bedrock.js';
 import { ctx, cam, vp, sxf, syf, toWorld, crisp, present } from './view.js';
@@ -173,7 +173,7 @@ export function draw(time) {
   }
   ctx.setLineDash([]);
   crisp(c => {
-    c.font = `700 ${Math.round(Math.max(11, Math.min(15, 13 * cam.z)))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
+    c.font = `${Math.round(Math.max(10, Math.min(13, 11 * cam.z)))}px Silkscreen, ui-monospace, monospace`; // the blocky 90s font
     c.textAlign = 'left'; c.textBaseline = 'middle';
     for (const [hb, Y] of marks) { c.fillStyle = hb > 20 ? 'rgba(255,255,255,0.85)' : 'rgba(42,24,64,0.6)'; c.fillText(hb, rulerX, Y); }
   });
@@ -188,19 +188,11 @@ export function draw(time) {
 
   drawHay(time);
 
-  // drop lane under the held piece
+  // where the mole's piece is (drawn solid, in its hands, after the characters)
   let heldReady = false;
   if (world.held) {
     const T = world.held.T, c = Math.cos(world.held.ang), s = Math.sin(world.held.ang);
     for (let i = 0; i < T.n; i++) { heldX[i] = drp.x + c * T.rx[i] - s * T.ry[i]; heldY[i] = drp.y + s * T.rx[i] + c * T.ry[i]; }
-    const o = heldOffsets(world.held, world.held.ang);
-    const bottom = drp.y + o.y0, laneH = Math.min(5 * U, Math.max(0, bottom)) * cam.z;
-    const lx0 = sxf(drp.x + o.x0), lx1 = sxf(drp.x + o.x1), ly = syf(bottom);
-    if (laneH > 1) {
-      const lane = ctx.createLinearGradient(0, ly, 0, ly + laneH);
-      lane.addColorStop(0, 'rgba(255,255,255,0.32)'); lane.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = lane; ctx.fillRect(lx0, ly, lx1 - lx0, laneH);
-    }
     heldReady = true;
   }
 
@@ -218,7 +210,7 @@ export function draw(time) {
   drawSadie(time);
   drawToy();
   drawEmotes();
-  if (heldReady) drawJelly(world.held.T, heldX, heldY, COLORS[world.held.type], world.supply < 1 ? 0.35 : 0.82 + 0.12 * Math.sin(time * 0.006));
+  if (heldReady) drawJelly(world.held.T, heldX, heldY, COLORS[world.held.type], 1);
   drawMole(time);
 
   // particles

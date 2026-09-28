@@ -16,13 +16,13 @@ import { rockInfo } from '../core/surface.js';
 export const cv = document.getElementById('world');
 const hctx = cv.getContext('2d');
 const lo = document.getElementById('pixels');
-export const ctx = lo.getContext('2d', { alpha: false });
+const loCtx = lo.getContext('2d', { alpha: false });
+export let ctx = loCtx; // what everything draws on: the board's small canvas, or for a moment a face in the dashboard (drawFace)
 export const vp = { vw: 0, vh: 0, dpr: 1, k: 1, P: 1 };  // viewport size in CSS pixels, device pixel ratio (of the sharp canvas);
 // k: small-canvas pixels per CSS pixel; P: CSS pixels per big pixel (use it for 1-pixel lines)
 const BLOCK_PX = 11;                               // about this many big pixels per block at the usual zoom
-export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0, room: null };  // following Sadie? default zoom for this screen;
-// insetB/insetR: screen px along the bottom/right covered by the dev sheet, so Sadie stays in view;
-// room: { y, px } asks the camera to keep px of screen clear above world height y (a thought bubble)
+export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0 };  // following Sadie? default zoom for this screen;
+// insetB/insetR: board px along the bottom/right covered by the dev sheet, so Sadie stays in view
 
 export const cam = { x: W / 2, y: 6 * U, z: 1 };
 export function resize() {
@@ -54,11 +54,6 @@ export function clampCam() {
 // Looking around (drag, pinch, scroll) stops the camera following Sadie for good: from then on it
 // only moves when the player moves it. (A new game starts following her again.)
 export function setFollow(v) { if (camState.follow !== v) { camState.follow = v; emit('followChanged', v); } }
-// the highest the camera will look while following: Sadie always stays well up from the bottom
-const sadieCap = () => sadie.y + (vp.vh / 2 - 150 - camState.insetB) / cam.z;
-const roomY = (y, px) => y - (vp.vh / 2 - px) / cam.z;
-// Could the camera (following Sadie) look up far enough to leave px of screen clear above world height y?
-export const roomFor = (y, px) => camState.follow && roomY(y, px) <= sadieCap();
 
 // Camera follows Sadie (leaning toward her hay) unless the player has taken over. If the mole is
 // nearby but up near the top edge, it looks up a little, as long as Sadie stays well in view.
@@ -72,7 +67,6 @@ export function updateCamera(dt) {
       const moleTop = drp.y + o.y1 + 2 * U, show = moleTop - (vp.vh / 2 - 80) / cam.z, keepSadie = sadie.y + (vp.vh / 2 - 150 - b) / cam.z;
       ty = Math.max(ty, Math.min(show, keepSadie));
     }
-    if (camState.room) ty = Math.max(ty, Math.min(roomY(camState.room.y, camState.room.px), sadieCap())); // room for a thought bubble above someone
     cam.y += (ty - cam.y) * Math.min(1, dt * 3);
     const T = sadie.target, lean = T ? Math.max(-half * 0.5, Math.min(half * 0.5, (T.x - sadie.x) * 0.5)) : 0;
     const r = camState.insetR / 2 / cam.z;
@@ -94,4 +88,22 @@ export function present() {
   hctx.setTransform(vp.dpr, 0, 0, vp.dpr, 0, 0);
   for (const fn of later) { hctx.save(); fn(hctx); hctx.restore(); }
   crispDirty = later.length > 0; later.length = 0;
+}
+
+// A close-up for the dashboard: draw(), run with the camera for a moment pointed at world spot
+// (x, y) so that `span` px of the world fill `face`, a small canvas n big pixels across. The
+// characters' own drawing code does the drawing, so their faces there are the real thing, moods
+// and all, drawn bigger. Nothing else on the board is drawn into it.
+export function drawFace(face, x, y, span, draw) {
+  const fc = face.getContext('2d'), n = face.width;
+  const was = { ...cam }, wasVp = { ...vp };
+  ctx = fc;
+  cam.x = x; cam.y = y; cam.z = n / span;
+  vp.vw = n; vp.vh = n; vp.P = 1; vp.k = 1;
+  try {
+    fc.setTransform(1, 0, 0, 1, 0, 0); fc.imageSmoothingEnabled = false;
+    draw();
+  } finally {
+    ctx = loCtx; Object.assign(cam, was); Object.assign(vp, wasVp);
+  }
 }

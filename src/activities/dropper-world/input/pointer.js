@@ -1,9 +1,10 @@
 // Touch and mouse on the game board: drag to look around, pinch or scroll to zoom, tap a character
-// (Sadie, Chooter, the mole) for their thought bubble; a tap anywhere else closes it. The mole
-// decides where pieces go, so there's nothing to steer.
+// (Sadie, Chooter, the mole) to watch them in the dashboard. The mole decides where pieces go, so
+// there's nothing to steer.
 import { cv, cam, toWorld, clampCam, setFollow } from '../render/view.js';
 import { isAiming, throwAt } from '../ui/toybox.js';
-import { mindAt, showThoughts, hideThoughts, thoughtsFor } from '../ui/thoughts.js';
+import { mindAt, watch, closeWhy } from '../ui/dashboard.js';
+import { showHelp } from '../ui/help.js';
 
 const pointers = new Map();
 let mode = null, pinch = null, panTap = null;
@@ -45,8 +46,8 @@ function endPointer(e) {
   if (mode === 'pan' && panTap && !panTap.moved && performance.now() - panTap.t < 350 && pointers.size === 0) {
     const w = toWorld(panTap.x, panTap.y), who = isAiming() ? null : mindAt(w);
     if (isAiming()) throwAt(w.x, w.y); // a toy picked from the toy box gets thrown there
-    else if (who) { if (who === thoughtsFor()) hideThoughts(); else showThoughts(who); }
-    else hideThoughts();
+    else if (who) watch(who);
+    closeWhy(); showHelp(false); // a tap on the board puts pop-ups away
   }
   if (pointers.size === 1 && mode === 'pinch') { mode = 'pan'; }
   if (pointers.size === 0) { mode = null; cv.classList.remove('dragging'); }
