@@ -12,6 +12,11 @@ taps anyone to see what they're thinking, and throws Chooter his ball. The tower
 once it's big, the weight of everything above melts the deepest pieces into candy bedrock. It's a
 toy, not a game to win.
 
+It's the first activity of **Sadie's Play Place**, a lost 90s shareware activity center: a
+clubhouse with activities in it, Sadie in every one. More activities will come; each lives in its
+own folder, so changing one never means retesting the others (`docs/ARCHITECTURE.md`). There's no
+clubhouse menu yet: the page opens straight into Dropper World.
+
 The owner doesn't code and installs nothing. Claude does all the building.
 
 ## Where things live
@@ -33,12 +38,14 @@ The owner doesn't code and installs nothing. Claude does all the building.
 ## Making a change (for Claude)
 
 1. `npm install` (just esbuild, the bundler).
-2. Edit only the modules involved. `core/` never touches the DOM or imports from `render/`, `ui/`
-   or `input/`.
+2. Edit only the modules involved. Each activity lives in its own folder
+   (`src/activities/<name>/`) and never imports from another; see `docs/ARCHITECTURE.md`. In
+   Dropper World, `core/` never touches the DOM or imports from `render/`, `ui/` or `input/`.
 3. `npm run check -- --preview` runs the headless checks (`npm test`), builds `dist/index.html`
    (the game plus a fresh copy of the source; `--preview` marks it as the test version), and plays
    it in a headless browser as a phone and a desktop. Everything must pass; look at the
-   screenshots in `dist/check/`. If a change is meant to move a test's expected numbers, explain
+   screenshots in `dist/check/`. An activity whose files didn't change since its checks last
+   passed is skipped. If a change is meant to move a test's expected numbers, explain
    why in plain words and update `docs/TUNING.md` to match.
 4. Commit with a plain-English message saying what changed and what to look for in-game, and push
    to a working branch. `dist/`, `node_modules/` and `package-lock.json` stay out of git.
@@ -48,8 +55,8 @@ The owner doesn't code and installs nothing. Claude does all the building.
    the game's artifact URL above (Artifact tool, same URL, so the link never changes). Read the live page
    first; if its embedded source differs from `main` (unpack it with `tools/unpack.mjs` and
    compare), stop and ask before overwriting. Read it before the check and pass the saved copy as
-   `npm run check -- --live <file>`: if `src/`, `tests/` and `package.json` are exactly what's live
-   (which passed before it was published), the tests are skipped, even in a fresh session. Only
+   `npm run check -- --live <file>`: an activity whose code and tests are exactly what's live
+   (which passed before it was published) skips its tests, even in a fresh session. Only
    ever publish from `main`, never a branch, and only from here, so the page always matches GitHub.
 
 If the repo is ever lost, `node tools/unpack.mjs <page.html> <folder>` rebuilds the project from

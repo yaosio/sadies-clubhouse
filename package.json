@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "A cozy physics toy: jelly pieces pile up and Sadie climbs them to collect stars.",
+  "description": "Sadie's Play Place: a lost 90s shareware activity center. Its first activity is Sadie's Dropper World, a cozy physics toy.",
   "scripts": {
     "build": "node tools/build.mjs",
     "check": "node tools/check.mjs",

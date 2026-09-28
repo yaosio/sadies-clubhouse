@@ -21,7 +21,7 @@
 // He isn't a physics piece: like Sadie, he walks on top of the pile. The only way he touches the
 // pieces is the zoomies kick.
 import { U, W, SUBSTEPS } from '../../config.js';
-import { store } from '../../platform/storage.js';
+import { store } from '../../../../shared/storage.js';
 import { world } from '../world.js';
 import { emit } from '../events.js';
 import { emote, spark } from '../effects.js';

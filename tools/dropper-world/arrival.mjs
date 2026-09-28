@@ -3,14 +3,14 @@
 // and when he burst in, and how tall the pile and Sadie were by then. Handy when tuning how a
 // friend turns up.
 //
-//   node tools/arrival.mjs [seeds...]      (default: 7 11 42 99)
+//   node tools/dropper-world/arrival.mjs [seeds...]      (default: 7 11 42 99)
 import { spawnSync } from 'node:child_process';
 
 const seeds = process.argv.slice(2).filter(a => /^\d+$/.test(a));
 if (process.env.ARRIVAL_SEED) {
   let seed = +process.env.ARRIVAL_SEED;
   Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-  const src = new URL('../src/', import.meta.url);
+  const src = new URL('../../src/activities/dropper-world/', import.meta.url);
   const { U } = await import(new URL('config.js', src));
   const { chooter, PEEK_AT } = await import(new URL('core/friends/chooter.js', src));
   const { resetGame, update } = await import(new URL('core/game.js', src));

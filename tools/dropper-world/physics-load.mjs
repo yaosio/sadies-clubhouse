@@ -1,10 +1,10 @@
 // How hard the physics works on a full board, in Node (no browser): loads the full-board save
-// (tools/fullboard.mjs), plays it for a couple of minutes with the mole dropping pieces as usual,
+// (tools/dropper-world/fullboard.mjs), plays it for a couple of minutes with the mole dropping pieces as usual,
 // and prints:
 //   - how long one simulation step takes with few, some and many pieces awake
 //   - how many pieces each drop wakes up, and how long they stay awake
 //
-//   node tools/physics-load.mjs [minutes]
+//   node tools/dropper-world/physics-load.mjs [minutes]
 //
 // It ends with a fingerprint of where every piece ended up: a speed-up that's meant to change
 // nothing must give the same fingerprint as before it.
@@ -15,15 +15,15 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = new URL('../..', import.meta.url).pathname;
 let seed = 7;
 Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
 const mem = {}; // the save is read from "localStorage", like in the browser
 globalThis.localStorage = { getItem: k => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: k => { delete mem[k]; } };
 const boardFile = readdirSync(join(root, 'dist')).find(f => /^fullboard-.*\.json$/.test(f));
-if (!boardFile) { console.error('no full board in dist/: run node tools/fullboard.mjs dist/fullboard-x.json (or npm run check) first'); process.exit(2); }
+if (!boardFile) { console.error('no full board in dist/: run node tools/dropper-world/fullboard.mjs dist/fullboard-x.json (or npm run check) first'); process.exit(2); }
 
-const src = new URL('../src/', import.meta.url);
+const src = new URL('../../src/activities/dropper-world/', import.meta.url);
 const { world } = await import(new URL('core/world.js', src));
 const { update } = await import(new URL('core/game.js', src));
 const { loadGame, SAVE_KEY } = await import(new URL('core/save.js', src));

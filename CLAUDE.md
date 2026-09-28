@@ -1,6 +1,8 @@
-# Sadie's Dropper World
+# Sadie's Play Place
 
-A cozy physics toy, not a game. Sadie is the owner's late cat.
+A lost 90s shareware activity center. Sadie is the owner's late cat, and she's in every activity
+(not always in the same way). The first activity is Sadie's Dropper World, a cozy physics toy, not a
+game. The design pillars below are Dropper World's.
 
 ## The owner
 - Doesn't code, installs nothing, and doesn't know GitHub. Claude does all building, testing,
@@ -18,30 +20,33 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
 
 ## Making a change
 1. `npm install`, then edit only the modules involved.
-2. `core/` never touches the DOM or imports from `render/`, `ui/` or `input/`.
+2. Each activity lives in `src/activities/<name>/` and never imports from another activity or the
+   clubhouse; only from its own folder and `src/shared/` (the toolbox, kept small: a change there
+   retests every activity). In Dropper World, `core/` never touches the DOM or imports from
+   `render/`, `ui/` or `input/`.
 3. `npm run check -- --preview` must pass: it runs `npm test`, builds the test version, and plays
    it in headless Chromium as a phone and a desktop (any page error fails). Look at the screenshots
-   in `dist/check/`. While working, `--quick` skips the tests (about 3.5 minutes; they're skipped
-   anyway if they already passed on exactly this code). If a change is meant to move
+   in `dist/check/`. While working, `--quick` skips the tests (Dropper World's take about 3.5
+   minutes). Each activity's checks are skipped anyway if they already passed on exactly its code. If a change is meant to move
    a test's numbers, explain why in plain words and update `docs/TUNING.md`.
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to
    the working branch. Never commit `dist/`, `node_modules/` or `package-lock.json`.
 5. Publish that build to the test page (below) and give the owner the link, so they can try it.
 6. When the owner says to, open a pull request, merge it into `main`, and publish the real game.
-7. Checking something new by hand? If the script would be useful again, put it in `tools/` (or add
-   it to `tools/check.mjs`), not the scratchpad, which is gone next session.
+7. Checking something new by hand? If the script would be useful again, put it in `tools/<activity>/`
+   (or add it to `tests/<activity>/browser.mjs`), not the scratchpad, which is gone next session.
 
 ## Publishing
 - GitHub `main` is the source of truth. The game page is https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
 - Only publish a build of `main` (`npm run check`, no `--preview`), to that same URL.
   Before publishing, make sure `grep -c '<div id="testBadge"' dist/index.html` is 0 (that's the test
   version's label; the bare word also appears in the embedded source of the build tool).
-  If main's `src/` and `tests/` are exactly what already passed on the branch, the check skips the
-  tests by itself, so this is quick.
+  If main's code is exactly what already passed on the branch, the check skips those tests by
+  itself, so this is quick.
 - Read the live page first. If its embedded source differs from `main`, stop and ask. Then pass
-  the saved copy of it to the check (`npm run check -- --live <file>`): if the game's code is
-  exactly what's already live (say, only docs or art changed), the tests are skipped even in a
-  fresh session.
+  the saved copy of it to the check (`npm run check -- --live <file>`): an activity whose code is
+  exactly what's already live (say, only docs or art changed) skips its tests even in a fresh
+  session.
 - The test page is https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the working branch, built
   with `--preview`, published after every pushed change without asking. It's never the source of
   truth and can be overwritten any time. Publish it from a copy outside `dist/` (the scratchpad),

@@ -1,8 +1,8 @@
 <!doctype html>
 <!--
-  Sadie's Dropper World. Built from separate source modules; the full project (source, tests,
-  docs, build tools) is embedded near the end of this file as JSON, in the script element whose
-  id is jelly-source, shaped {files: {"path": "text"}}.
+  Sadie's Play Place (for now it opens straight into Sadie's Dropper World). Built from separate
+  source modules; the full project (source, tests, docs, build tools) is embedded near the end of
+  this file as JSON, in the script element whose id is jelly-source, shaped {files: {"path": "text"}}.
   Unpack it, then see README.md and docs/ARCHITECTURE.md.
 -->
 <html lang="en">
@@ -12,107 +12,9 @@
 <title>Sadie's Dropper World</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-<style>
-/*@styles*/
-</style>
 </head>
 <body>
-<div id="app">
-  <canvas id="pixels" aria-hidden="true"></canvas>
-  <canvas id="world" aria-label="Game board"></canvas>
-
-  <div class="hud">
-    <div class="hud-right">
-      <button class="icon" id="settingsBtn" aria-label="Open dev tools">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.3"/><circle cx="10" cy="17" r="2.3"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <div class="perf" id="perf" hidden><canvas id="perfCv"></canvas><dl id="perfList"></dl></div>
-  <div class="tip" id="tip">A mole up in the sky drops pieces on anything it thinks should be underground. Tap the mole, Sadie or anyone else to see what they're thinking.</div>
-  <div class="thought" id="thought" hidden><b id="thoughtWho"></b><p id="thoughtDoing"></p><p class="why" id="thoughtWhy"></p><div class="feels" id="thoughtFeels"></div></div>
-  <div class="toast" id="toast"></div>
-
-  <button class="toy-btn" id="toyBtn" aria-label="Toys" aria-expanded="false" hidden>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M5.2 7.2a8 8 0 0 1 0 9.6M18.8 7.2a8 8 0 0 0 0 9.6"/></svg>
-    Toys
-  </button>
-  <div class="toy-tray" id="toyTray" hidden></div>
-  <div class="tip aim-tip" id="aimTip">Tap where to throw it</div>
-
-  <div class="sheet" id="sheet" role="dialog" aria-label="Dev tools" aria-hidden="true">
-    <div class="sheet-top">
-      <div class="sheet-head">
-        <h2>Dev tools</h2>
-        <div class="sheet-btns">
-          <button class="close" id="shrinkSheet" aria-label="Shrink the panel" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
-          <button class="close" id="closeSheet" aria-label="Close dev tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-        </div>
-      </div>
-      <div class="tabs" role="tablist">
-        <button class="tab" role="tab" data-tab="debug" aria-selected="true">Debug</button>
-        <button class="tab" role="tab" data-tab="physics" aria-selected="false">Physics</button>
-        <button class="tab" role="tab" data-tab="info" aria-selected="false">Info</button>
-      </div>
-    </div>
-    <div class="sheet-body">
-      <section class="pane" data-pane="debug">
-        <h3>Speed</h3>
-        <div class="seg" id="speedSeg" role="group" aria-label="Game speed"></div>
-        <h3>Pieces</h3>
-        <div class="actions">
-          <button class="btn" id="rain25">Rain 25 here</button>
-          <button class="btn" id="rain100">Rain 100 everywhere</button>
-          <button class="btn" id="buildPile">Build a tall pile</button>
-          <button class="btn" id="stopRain">Stop</button>
-        </div>
-        <small class="note" id="rainNote">"Here" means around the mole. A tall pile runs at 8× until it settles.</small>
-        <h3>Sadie</h3>
-        <div class="actions">
-          <button class="btn" id="sadieTop">Put her on top</button>
-          <button class="btn" id="fetchBarn">Fetch the barn now</button>
-        </div>
-        <h3>Chooter</h3>
-        <div class="actions">
-          <button class="btn" id="peekChooter">Peek in</button>
-          <button class="btn" id="meetChooter">Meet him now</button>
-          <button class="btn" id="zoomies">Zoomies</button>
-          <button class="btn" id="goHome">Go home</button>
-          <button class="btn" id="comeOut">Come out</button>
-          <button class="btn" id="tease">Feel ignored</button>
-        </div>
-        <h3>Mole</h3>
-        <div class="actions">
-          <button class="btn" id="tireMole">Wear it out</button>
-        </div>
-        <small class="note">It naps until it's rested. It also tires by itself when the game is struggling to keep up.</small>
-        <h3>Board</h3>
-        <div class="actions">
-          <button class="btn warn" id="clearTower">Clear tower</button>
-          <button class="btn warn" id="startOver">Start over</button>
-        </div>
-        <small class="note">The game saves by itself in this browser. Clear tower keeps Chooter and your bests; Start over forgets everything.</small>
-      </section>
-      <section class="pane" data-pane="physics" hidden>
-        <p>For dialing in the feel. Players never see these.</p>
-        <div id="sliders"></div>
-        <div class="actions">
-          <button class="btn" id="resetSettings">Restore defaults</button>
-        </div>
-      </section>
-      <section class="pane" data-pane="info" hidden>
-        <label class="check"><input type="checkbox" id="perfToggle"> Show performance stats</label>
-        <div class="keys" id="pieceCount"></div>
-        <div class="keys">
-          Mouse: click someone to see what they're thinking, drag to look around, wheel to zoom.
-        </div>
-      </section>
-    </div>
-  </div>
-</div>
-
+<!-- the clubhouse (src/main.js) puts the activity here -->
 <script>
 /*@script*/
 </script>
