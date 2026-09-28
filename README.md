@@ -3,12 +3,14 @@
 A cozy physics toy. A mole up in the sky (in a propeller beanie) drops squishy jelly pieces on
 anything it thinks should be underground: the barn, and anyone who looks restless. Sadie (the
 owner's late cat, drawn from a photo) climbs the piles to eat bundles of hay (she thought she was a
-cow) that the mole digs up, flings away in disgust, and that float, just like the mole (it's not the hat), and every so often drags her barn back up out of the pile. Friends turn up because of what
-happens in the world, then move into the barn: the first is Chooter, a black lab/pitbull mix next
-door who hears all the thudding, can't stand it, and bursts in. He gets the zoomies and fetches the
-ball you throw him from the toy box. The player watches, taps anyone to see what they're thinking,
-and throws Chooter his ball. The tower can grow forever: once it's big, the weight of everything above
-melts the deepest pieces into candy bedrock. It's a toy, not a game to win.
+cow), and every so often drags her barn back up out of the pile. The hay comes from the mole: it
+digs it up, flings it away in disgust, and the hay floats, just like the mole (it's not the hat).
+Friends turn up because of what happens in the world, then move into the barn: the first is
+Chooter, a black lab/pitbull mix next door who hears all the thudding, can't stand it, and bursts
+in. He gets the zoomies and fetches the ball you throw him from the toy box. The player watches,
+taps anyone to see what they're thinking, and throws Chooter his ball. The tower can grow forever:
+once it's big, the weight of everything above melts the deepest pieces into candy bedrock. It's a
+toy, not a game to win.
 
 The owner doesn't code and installs nothing. Claude does all the building.
 
@@ -56,8 +58,8 @@ the backup inside the published page.
 ## Design pillars
 
 - The satisfying part is watching pieces squish, pile up, and topple. Protect that above all.
-- No fast clicking. Pieces come one at a time from a supply that refills, never faster than one
-  every 1.5 s.
+- Unhurried: the mole drops at most one piece every 1.5 s (slower when it's tired), so every
+  squish and topple can be watched.
 - Physics feel is tuned by us, never by the player. Variety comes from piece types.
 - The mole decides where pieces go, for its own reasons (everything belongs underground). It never
   means to help Sadie; when it does, it's by accident.

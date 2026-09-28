@@ -50,8 +50,8 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, not in
 
 ## Design pillars (these win over any feature idea)
 - The satisfying part is watching pieces squish, pile up, and topple. Protect that above all.
-- No fast clicking. Pieces come one at a time from a supply that refills, never faster than one
-  every 1.5 s.
+- Unhurried: the mole drops at most one piece every 1.5 s (slower when it's tired), so every
+  squish and topple can be watched.
 - Physics feel is tuned by us, never by the player. Variety comes from piece types.
 - The mole decides where pieces go, for its own reasons (everything belongs underground). It never
   means to help Sadie; when it does, it's by accident.

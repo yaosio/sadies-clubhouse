@@ -139,7 +139,8 @@ joke). The player doesn't steer it: it decides where every piece goes, for its o
   each second the physics takes (`feelStrain`). Over half, it tires (worn out in 8 s); under 35%,
   it rests (fully in 20 s). Tired, it waits up to 4× as long between pieces and flies slower. Once
   it's worn out it `nap`s (no pieces at all, little z's) until it's down to 40%. On a quick
-  device it never tires; on a slow one, or with a huge tower, it slows or stops the tower growing.
+  device it never tires; on a slow one it slows or pauses the tower growing. (A tall tower doesn't
+  tire it by itself: the bedrock keeps the board to about 400 pieces however tall it gets.)
 - Always drops with a full supply, so never faster than one piece every 1.5 s.
 - Activities: `bury` (want 1 + 2 × restless), `barn` (1), `nap` (10, busy until rested).
 - **Envies the bedrock.** For 20 s after pieces melt into the bedrock (`core/bedrock.js`), its
