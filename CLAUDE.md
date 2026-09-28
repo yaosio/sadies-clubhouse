@@ -7,6 +7,9 @@ A cozy physics toy, not a game. Sadie is the owner's late cat.
   committing, merging and publishing.
 - Talk plainly and casually. No jargon.
 - After every change, say what to look for in-game.
+- Don't narrate the work step by step (they can see Claude is working, and the details mean nothing
+  to them). Before building, explain how the thing will work in the game; after, say what changed
+  and what to look for.
 
 ## Before changing anything
 Read `README.md`, `docs/ARCHITECTURE.md` and `docs/TUNING.md`. Before changing how a character behaves,
