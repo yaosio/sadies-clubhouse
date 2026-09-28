@@ -56,6 +56,7 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
 - The mole decides where pieces go, for its own reasons (everything belongs underground). It never
   means to help Sadie; when it does, it's by accident.
 - Sadie is a character with moods, not a cursor.
+- The player controls the camera. Once they've moved it, it never moves or zooms by itself.
 - One feature at a time. Make sure it's fun before the next.
 
 ## Parked ideas (don't start unless asked)

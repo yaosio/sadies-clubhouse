@@ -1,7 +1,7 @@
 // Touch and mouse on the game board: drag to look around, pinch or scroll to zoom, tap a character
 // (Sadie, Chooter, the mole) for their thought bubble; a tap anywhere else closes it. The mole
 // decides where pieces go, so there's nothing to steer.
-import { cv, cam, camState, toWorld, clampCam, setFollow } from '../render/view.js';
+import { cv, cam, toWorld, clampCam, setFollow } from '../render/view.js';
 import { isAiming, throwAt } from '../ui/toybox.js';
 import { mindAt, showThoughts, hideThoughts, thoughtsFor } from '../ui/thoughts.js';
 
@@ -11,7 +11,6 @@ function localXY(e) { const r = cv.getBoundingClientRect(); return { x: e.client
 cv.addEventListener('pointerdown', e => {
   cv.setPointerCapture(e.pointerId);
   const p = localXY(e); pointers.set(e.pointerId, { x: p.x, y: p.y });
-  camState.held = true;
   if (pointers.size === 1) { mode = 'pan'; cv.classList.add('dragging'); panTap = { x: p.x, y: p.y, t: performance.now(), moved: false }; }
   else if (pointers.size === 2) {
     const [a, b] = [...pointers.values()];
@@ -50,7 +49,7 @@ function endPointer(e) {
     else hideThoughts();
   }
   if (pointers.size === 1 && mode === 'pinch') { mode = 'pan'; }
-  if (pointers.size === 0) { mode = null; cv.classList.remove('dragging'); camState.held = false; }
+  if (pointers.size === 0) { mode = null; cv.classList.remove('dragging'); }
 }
 cv.addEventListener('pointerup', endPointer);
 cv.addEventListener('pointercancel', endPointer);
