@@ -7,7 +7,7 @@ import { U, W } from '../config.js';
 import { world } from './world.js';
 import { surf, SURF_N, SURF_RES, rockTop } from './surface.js';
 import { wake } from './physics/solver.js';
-import { aabb } from './physics/body.js';
+import { aabb, LATER } from './physics/body.js';
 import { offersFrom } from './mind/offers.js';
 
 export const BARN_HALF = 2 * U;       // half its width
@@ -27,11 +27,12 @@ function makeBarn(cx) {
   }
   const n = rx.length;
   const T = { type: 'barn', cs: U, n, rx: Float64Array.from(rx), ry: Float64Array.from(ry), bnd: Int32Array.from(rx, (_, i) => i),
-    clusters: [], gIdx: new Int32Array(0), gqx: new Float64Array(0), gqy: new Float64Array(0), shine: [], shineScale: 1 };
+    clusters: [], gIdx: new Int32Array(0), gqx: new Float64Array(0), gqy: new Float64Array(0), shine: [], shineScale: 1,
+    speckle: false, holes: false, streak: false, dust: false }; // same fields as every piece's shape (physics/templates.js)
   const p = { id: 0, type: 'barn', T, n, color: '#c8463d', mat: { kMul: 1, bendMul: 1, invMass: 0, bounce: 0, drag: 1, grip: 1.2 },
     x: new Float64Array(n), y: new Float64Array(n), px: new Float64Array(n), py: new Float64Array(n),
     minX: 0, maxX: 0, minY: 0, maxY: 0, speed: 0, rest: 0, still: 0, asleep: true, fixed: true, kvx: 0, kvy: 0,
-    cnx: 0, cny: 0, cc: 0, v0x: 0, v0y: 0, age: 99, avgSpeed: 0 };
+    cnx: 0, cny: 0, cc: 0, v0x: 0, v0y: 0, ...LATER, age: 99, avgSpeed: 0 };
   for (let i = 0; i < n; i++) { p.x[i] = p.px[i] = cx + rx[i]; p.y[i] = p.py[i] = ry[i]; }
   aabb(p);
   return p;

@@ -40,7 +40,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) saveG
 window.addEventListener('pagehide', saveGame);
 
 // For automated testing in a browser.
-window.__jellyDebug = () => ({ cx: sadie.x / U, cy: sadie.y / U, ground: groundAt(sadie.x, sadie.y) / U, state: sadie.state, mood: sadie.mood,
+window.__jellyDebug = () => ({ time: world.gameTime, cx: sadie.x / U, cy: sadie.y / U, ground: groundAt(sadie.x, sadie.y) / U, state: sadie.state, mood: sadie.mood,
   tx: sadie.target ? sadie.target.x / U : null, ty: sadie.target ? sadie.target.y / U : null, follow: camState.follow, camx: cam.x / U,
   sx: sxf(sadie.x), sy: syf(sadie.y + 0.6 * U), supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, hayOut: world.hay.filter(h => !h.eaten).map(h => h.st || 'float'), moleHay: drp.hay !== null, trip: sadie.trip ? sadie.trip.phase : null, doing: sadie.doing, feel: sadie.feel,
   mole: { x: drp.x / U, y: drp.y / U, sx: sxf(drp.x), sy: syf(drp.y + 1.2 * U), doing: mole.doing, who: mole.whoName, tired: mole.feel.tired, napping: mole.napping, strain: mole.strain },

@@ -64,12 +64,14 @@ await cdp.send('Profiler.enable');
 await cdp.send('Profiler.setSamplingInterval', { interval: 200 });
 await browser.startTracing(page, { categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'v8', 'blink.canvas', 'gpu'] });
 await page.evaluate(() => { window.__frames.length = 0; });
+const gameT0 = (await page.evaluate(() => window.__jellyDebug())).time;
 await cdp.send('Profiler.start');
 await page.waitForTimeout(seconds * 1000);
 const { profile } = await cdp.send('Profiler.stop');
 const frames = await page.evaluate(() => window.__frames);
 const trace = JSON.parse((await browser.stopTracing()).toString());
-const piecesAtEnd = (await page.evaluate(() => window.__jellyDebug())).pieces;
+const endInfo = await page.evaluate(() => window.__jellyDebug()), piecesAtEnd = endInfo.pieces;
+const gameSpeed = (endInfo.time - gameT0) / (frames.length ? (frames[frames.length - 1][0] - frames[0][0]) / 1000 : 1);
 await browser.close(); server.close();
 
 // ---------- frame evenness ----------
@@ -78,7 +80,7 @@ const gaps = frames.slice(1).map((f, i) => f[0] - frames[i][0]).sort((a, b) => a
 const works = frames.map(f => f[1]).sort((a, b) => a - b);
 const ms = v => v.toFixed(1) + ' ms';
 console.log(`\n=== ${desktop ? 'desktop' : 'phone'}, ${slow}x slower, ${seconds} s, ${piecesAtStart} pieces at the start, ${piecesAtEnd} at the end${errors.length ? ', PAGE ERRORS: ' + errors.join(' | ') : ''}`);
-console.log(`\nFRAMES: ${frames.length} in ${seconds} s = ${(frames.length / seconds).toFixed(1)} per second`);
+console.log(`\nFRAMES: ${frames.length} in ${seconds} s = ${(frames.length / seconds).toFixed(1)} per second; the game ran at ${Math.round(100 * gameSpeed)}% speed (under 100: slowed down to keep up)`);
 console.log(`  time between frames: typical ${ms(pct(gaps, 0.5))}, 1 in 10 over ${ms(pct(gaps, 0.9))}, 1 in 100 over ${ms(pct(gaps, 0.99))}, worst ${ms(gaps[gaps.length - 1])}`);
 console.log(`  game's own work per frame: typical ${ms(pct(works, 0.5))}, 1 in 10 over ${ms(pct(works, 0.9))}, 1 in 100 over ${ms(pct(works, 0.99))}, worst ${ms(works[works.length - 1])}`);
 for (const lim of [20, 33, 50, 100]) console.log(`  gaps over ${lim} ms: ${gaps.filter(g => g > lim).length}`);

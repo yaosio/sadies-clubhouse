@@ -6,9 +6,13 @@
 //
 //   node tools/physics-load.mjs [minutes]
 //
+// It ends with a fingerprint of where every piece ended up: a speed-up that's meant to change
+// nothing must give the same fingerprint as before it.
+//
 // Random numbers are seeded, so the same code gives the same run (the times vary a little).
 // Times are for this machine; a slow phone is several times slower.
 import { readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -46,3 +50,6 @@ for (const g of groups) if (g.n) console.log(`  ${g.name}: ${(100 * g.n / steps)
 spells.sort((a, b) => a - b);
 const at = q => spells[Math.min(spells.length - 1, Math.floor(q * spells.length))].toFixed(1);
 console.log(`each drop wakes ${(spells.length / Math.max(1, drops)).toFixed(1)} pieces (counting the dropped one); they stay awake ${at(0.5)} s typically, 1 in 10 over ${at(0.9)} s, longest ${at(1)} s`);
+const h = createHash('sha1');
+for (const p of world.pieces) h.update(p.type + Array.from(p.x, v => v.toFixed(6)).join() + Array.from(p.y, v => v.toFixed(6)).join());
+console.log(`fingerprint of the final board: ${h.digest('hex').slice(0, 12)}`);
