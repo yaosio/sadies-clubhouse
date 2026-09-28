@@ -2,18 +2,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=VT323&family=Atkinson+Hyperlegible:wght@400;700&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Comic+Neue:ital,wght@0,400;0,700;1,400&family=UnifrakturMaguntia&family=Pacifico&family=Bungee&family=Courier+Prime&display=swap">
 <style>
-/* Layout: the playable mock-up (Play Place frame > TypeFitter's own program window) on top,
-   short notes for the owner below. One deliberate look: the Play Place's candy-purple DOS frame
-   around a program that invented its own "desktop publishing" look in 1993. */
+/* Layout: the playable mock-up on top, short notes for the owner below. No windows anywhere:
+   TypeFitter is a DOS program that invented its own look, so its toolbar, page, Sadie and
+   status sign sit straight in the Play Place's candy-purple frame. */
 :root{
   color-scheme:dark;
-  --void:#150c33; --panel:#4a2a9c; --hi:#a99cff; --lo:#1a0f40;
+  --void:#150c33; --panel:#4a2a9c; --hi:#a99cff; --lo:#1a0f40; --deep:#2a1766;
   --gold:#ffcf3a; --pink:#ff6fb4; --ink:#ffffff; --muted:#c9bdff;
-  /* TypeFitter's own look: silver-lavender chrome, a teal desk, magenta-to-navy title bar */
-  --chrome:#dcd8ec; --chrome-hi:#ffffff; --chrome-lo:#5f5a86; --chrome-ink:#1c1838;
-  --desk:#0e6f78; --desk-dot:#14878f; --paper:#fffef8; --rule:#b9b4d6;
-  --ants:#e0103a; --meter-bg:#2a0c24; --heart:#ff3d8b; --heart-off:#5a2448;
-  --led-bg:#07210f; --led:#6dff8a;
+  --paper:#fffef8; --ants:#e0103a; --heart:#ff3d8b; --heart-off:#5a2448;
+  --led-bg:#07210f; --led:#6dff8a; --led-dim:#1f5a2e;
   --pixel:'Silkscreen',ui-monospace,monospace;
   --term:'VT323',ui-monospace,monospace;
   --read:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -25,64 +22,56 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
 
 .head{display:flex;flex-direction:column;gap:6px}
 .eyebrow{font-family:var(--pixel);font-size:12px;letter-spacing:.08em;color:var(--muted);margin:0}
-.logo{font-family:var(--pixel);font-size:clamp(26px,5vw,44px);line-height:1.05;margin:0;letter-spacing:.02em;text-wrap:balance;
-  background:linear-gradient(#fff36b 0 25%,#ffae3a 25% 50%,#ff5fa8 50% 75%,#b060ff 75%);-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(3px 3px 0 var(--lo))}
+.logo,.mlogo,.dlg .title{font-family:var(--pixel);letter-spacing:.02em;
+  background:linear-gradient(#fff36b 0 25%,#ffae3a 25% 50%,#ff5fa8 50% 75%,#b060ff 75%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo{font-size:clamp(26px,5vw,44px);line-height:1.05;margin:0;text-wrap:balance;filter:drop-shadow(3px 3px 0 var(--lo))}
 .lede{max-width:65ch;margin:4px 0 0;color:#e9e3ff}
 
-/* ---------- Play Place frame ---------- */
+/* ---------- the frame is the program ---------- */
 .frame{position:relative;background-color:var(--panel);
   background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 2px,transparent 2px 4px);
   border:4px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:6px 6px 0 rgba(0,0,0,.45);
-  display:flex;flex-direction:column;gap:6px;padding:8px;font-family:var(--pixel);user-select:none}
+  display:flex;flex-direction:column;gap:8px;padding:8px;font-family:var(--pixel);user-select:none}
 .rivet{position:absolute;width:6px;height:6px;background:var(--gold);box-shadow:inset -2px -2px 0 #b8860b}
 .rivet.a{left:2px;top:2px}.rivet.b{right:2px;top:2px}.rivet.c{left:2px;bottom:2px}.rivet.d{right:2px;bottom:2px}
+.sunk{border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.raised{border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi)}
 .strip{display:flex;align-items:center;gap:14px;padding:2px 4px;flex-wrap:wrap}
-.mlogo{font-size:22px;line-height:1;letter-spacing:.02em;
-  background:linear-gradient(#fff36b 0 25%,#ffae3a 25% 50%,#ff5fa8 50% 75%,#b060ff 75%);-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(2px 2px 0 var(--lo))}
+.strip .spacer{flex:1}
+.mlogo{font-size:24px;line-height:1;filter:drop-shadow(2px 2px 0 var(--lo))}
+.mlogo small{font-size:14px}
+.plaque{margin-left:auto;background:var(--lo);padding:5px 10px;font-size:11px;line-height:1.35}
+.plaque b{display:block;color:#6ff2ff;font-weight:400}.plaque span{color:var(--pink)}
 .key{display:inline-flex;align-items:center;gap:6px;font-family:var(--pixel);font-size:12px;letter-spacing:.04em;color:var(--ink);
   background:none;border:0;padding:0;cursor:pointer;text-shadow:1px 1px 0 var(--lo);white-space:nowrap}
-.key kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-gradient(#ece6ff 45%,#cabfff 45%);
-  padding:4px 5px;border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;min-width:24px;text-align:center}
+kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-gradient(#ece6ff 45%,#cabfff 45%);
+  padding:4px 5px;border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;min-width:24px;text-align:center;display:inline-block}
 .key:active kbd{border-color:#6a58d8 #fff #fff #6a58d8;background:var(--gold)}
-.key:focus-visible{outline:2px dashed var(--gold);outline-offset:3px}
-.strip .spacer{flex:1}
+.key:focus-visible,.tool:focus-visible,.fit:focus-visible,.dlg button:focus-visible{outline:2px dashed var(--gold);outline-offset:3px}
 
-/* ---------- the desk (the "screen" TypeFitter runs on) ---------- */
-.desk{border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);padding:14px;
-  background-color:var(--desk);background-image:radial-gradient(var(--desk-dot) 1px,transparent 1.5px);background-size:4px 4px}
+/* tool buttons: chunky stamps with the key that works them, selected ones glow gold */
+.tools{display:flex;flex-wrap:wrap;gap:6px;padding:6px;background:var(--deep)}
+.tool{display:flex;align-items:center;gap:6px;padding:5px 8px 5px 5px;cursor:pointer;color:var(--ink);font:11px/1 var(--pixel);letter-spacing:.04em;
+  background:linear-gradient(#6a44c8,#4a2a9c);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);text-shadow:1px 1px 0 var(--lo)}
 
-/* ---------- TypeFitter's program window ---------- */
-.win{background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:var(--chrome-hi) var(--chrome-lo) var(--chrome-lo) var(--chrome-hi);
-  box-shadow:4px 4px 0 rgba(0,0,0,.35);display:flex;flex-direction:column;position:relative}
-.title{display:flex;align-items:center;gap:8px;padding:3px 4px;color:#fff;font-size:12px;letter-spacing:.04em;
-  background:repeating-linear-gradient(90deg,#c2187a 0 2px,#a0147a 2px 4px);background:linear-gradient(90deg,#c2187a,#6a1a9a 45%,#1a1a6a);}
-.title .tb{width:16px;height:14px;background:var(--chrome);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;flex:none}
-.title span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:1px 1px 0 #000}
-.menu{display:flex;gap:16px;padding:3px 8px;font-family:var(--term);font-size:19px;line-height:1;border-bottom:2px solid var(--chrome-lo)}
-.menu u{text-decoration-thickness:2px}
-.tools{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:2px solid var(--chrome-lo);align-items:stretch}
-.fontbox{display:flex;align-items:center;gap:4px;font-family:var(--term);font-size:18px;background:#fff;padding:0 6px;min-width:150px;
-  border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);cursor:pointer;color:var(--chrome-ink)}
-.fontbox b{flex:1;font-weight:400;white-space:nowrap}
-.fontbox i{font-style:normal;background:var(--chrome);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;font-size:12px;padding:0 3px;line-height:16px}
-.tb-btn{min-width:44px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 5px;cursor:pointer;
-  background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;font-family:var(--pixel);font-size:8px;letter-spacing:.03em}
-.tb-btn .g{font-size:20px;line-height:22px;font-family:'Old Standard TT',Georgia,serif;color:var(--chrome-ink)}
-.tb-btn:active,.tb-btn.on{border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);background:#c9c4e0}
-.tb-btn:disabled,.fontbox:disabled{opacity:.55;cursor:default}
-.tb-btn:focus-visible,.fontbox:focus-visible,.fit:focus-visible,.dlg button:focus-visible{outline:2px dashed var(--ants);outline-offset:2px}
+.tool .g{--gi:#fff;font:20px/22px 'Old Standard TT',Georgia,serif;min-width:22px;text-align:center;color:#fff;text-shadow:none}
+.tool.on{background:linear-gradient(#ffe27a,#ffb428);color:#3a1400;text-shadow:none;border-color:#fff3a0 #a06000 #a06000 #fff3a0}
+.tool.on .g{color:#3a1400;--gi:#3a1400}
+.tool:active{border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.tool:disabled{opacity:.5;cursor:default}
+.tool.font{min-width:190px}
+.tool.font b{font-weight:400;color:var(--gold);margin-left:auto}
+.tool.font.on b{color:#3a1400}
 
-.main{display:grid;grid-template-columns:minmax(0,1fr) 250px;min-height:0}
-.docwrap{display:flex;flex-direction:column;min-width:0;border-right:2px solid var(--chrome-lo)}
-.ruler{height:18px;background:#fff;border-bottom:1px solid var(--rule);position:relative;overflow:hidden;
-  background-image:repeating-linear-gradient(90deg,var(--chrome-ink) 0 1px,transparent 1px 12px),repeating-linear-gradient(90deg,var(--chrome-ink) 0 1px,transparent 1px 96px);
+.main{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:8px;min-height:0}
+.docwrap{display:flex;flex-direction:column;min-width:0;background:var(--paper)}
+.ruler{height:16px;background:#e9e4ff;border-bottom:2px solid var(--lo);
+  background-image:repeating-linear-gradient(90deg,var(--lo) 0 2px,transparent 2px 12px),repeating-linear-gradient(90deg,var(--lo) 0 2px,transparent 2px 96px);
   background-size:auto 5px,auto 11px;background-repeat:repeat-x;background-position:0 100%,0 100%}
-.doc{position:relative;height:300px;overflow:hidden;background:var(--paper);
+.doc{position:relative;flex:1;min-height:320px;overflow:hidden;background:var(--paper);
   background-image:linear-gradient(transparent 29px,#eaf0ff 29px);background-size:100% 30px}
 .zoomer{position:absolute;left:50%;top:50%;width:0;height:0}
-.box{position:absolute;outline:2px dashed var(--ants);outline-offset:0;background:rgba(224,16,58,.04);pointer-events:none}
+.box{position:absolute;outline:2px dashed var(--ants);background:rgba(224,16,58,.04);pointer-events:none}
 .box::before{content:'TEXT BOX 1';position:absolute;left:-2px;top:-17px;font:10px/1 var(--pixel);color:#fff;background:var(--ants);padding:3px 4px;white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){
   .box{outline:none;background-image:linear-gradient(90deg,var(--ants) 50%,transparent 0),linear-gradient(90deg,var(--ants) 50%,transparent 0),linear-gradient(0deg,var(--ants) 50%,transparent 0),linear-gradient(0deg,var(--ants) 50%,transparent 0);
@@ -95,79 +84,79 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
 @keyframes push{to{transform:scale(.965,.94)}}
 .over{position:absolute;font:10px/1 var(--pixel);color:var(--ants);white-space:nowrap}
 
-/* ---------- Sadie's corner ---------- */
-.sadie{display:flex;flex-direction:column;gap:8px;padding:8px;background:#cfcae4;min-width:0}
-.scan{display:flex;flex-direction:column;align-items:center;gap:2px}
-.scan canvas{width:136px;height:166px;image-rendering:pixelated;border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);background:#fff;max-width:100%}
-.scan small{font:10px/1.2 var(--term);font-size:14px;color:var(--chrome-lo)}
-.bubble{position:relative;background:#fff;border:2px solid var(--chrome-ink);padding:8px 10px;font-family:'Comic Neue','Comic Sans MS',cursive;font-size:15px;line-height:1.3;min-height:92px;
-  box-shadow:3px 3px 0 var(--chrome-lo)}
-.bubble::before{content:'';position:absolute;left:54px;top:-12px;border:10px solid transparent;border-bottom:12px solid var(--chrome-ink);border-top:0}
-.bubble::after{content:'';position:absolute;left:57px;top:-8px;border:7px solid transparent;border-bottom:9px solid #fff;border-top:0}
-.bubble b{font-weight:700}
+/* Sadie's corner */
+.sadie{display:flex;flex-direction:column;gap:8px;padding:8px;background:var(--deep);min-width:0}
+.scan{display:flex;flex-direction:column;align-items:center;gap:3px}
+.scan canvas{width:240px;height:280px;max-width:100%;image-rendering:pixelated;border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);background:#000}
+.scan small{font:10px/1.2 var(--pixel);color:var(--muted);letter-spacing:.04em}
+.bubble{position:relative;background:#fff;color:#1a0f40;border:3px solid var(--lo);padding:8px 10px;font-family:'Comic Neue','Comic Sans MS',cursive;font-size:15px;line-height:1.3;min-height:92px;box-shadow:3px 3px 0 var(--lo)}
+.bubble::before{content:'';position:absolute;left:54px;top:-14px;border:11px solid transparent;border-bottom:13px solid var(--lo);border-top:0}
+.bubble::after{content:'';position:absolute;left:58px;top:-9px;border:7px solid transparent;border-bottom:9px solid #fff;border-top:0}
 .meter{display:flex;flex-direction:column;gap:3px}
-.meter .lab{display:flex;justify-content:space-between;font:10px/1 var(--pixel);letter-spacing:.06em}
-.hearts{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:4px;background:var(--meter-bg);border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
+.meter .lab{display:flex;justify-content:space-between;font:10px/1 var(--pixel);letter-spacing:.06em;color:var(--muted)}
+.hearts{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:4px;background:#1a0620}
 .hearts i{aspect-ratio:1;background:var(--heart-off);clip-path:polygon(50% 100%,0 45%,0 18%,18% 0,40% 0,50% 14%,60% 0,82% 0,100% 18%,100% 45%);transition:background .15s}
 .hearts i.on{background:var(--heart)}
 .hearts.bump{animation:bump .25s}
 @keyframes bump{50%{transform:translateY(-2px)}}
-.fit{font:16px/1 var(--pixel);letter-spacing:.06em;padding:12px 6px;cursor:pointer;color:#6a6480;background:#bdb8d4;
-  border:3px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff}
-.fit small{display:block;font-size:9px;margin-top:4px;letter-spacing:.02em}
-.fit.ready{color:#3a1400;background:var(--gold);text-shadow:1px 1px 0 #fff3a0}
+.fit{font:18px/1 var(--pixel);letter-spacing:.06em;padding:12px 6px;cursor:pointer;color:#9a8fd0;background:#3a2280;
+  border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);text-shadow:1px 1px 0 var(--lo)}
+.fit small{display:block;font-size:9px;margin-top:5px;letter-spacing:.02em}
+.fit.ready{color:#3a1400;background:linear-gradient(#ffe27a,#ffb428);text-shadow:1px 1px 0 #fff3a0;border-color:#fff3a0 #a06000 #a06000 #fff3a0;box-shadow:0 0 12px var(--gold)}
 @media (prefers-reduced-motion:no-preference){ .fit.ready{animation:flash .5s steps(2) infinite} @keyframes flash{50%{background:#ff9a3a}} }
 .fit:disabled{cursor:default}
-.fit:active:not(:disabled){border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
 
-.status{display:flex;gap:4px;font-family:var(--term);font-size:17px;line-height:1;border-top:2px solid var(--chrome-lo);padding:3px}
-.status > div{border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.status .brag{flex:1}
-.status .num{font-variant-numeric:tabular-nums}
+/* LED sign: the numbers and the program's bragging */
+.led{display:flex;gap:18px;align-items:center;background:var(--led-bg);color:var(--led);font:20px/1 var(--term);padding:6px 10px;overflow:hidden;
+  text-shadow:0 0 6px rgba(109,255,138,.6);background-image:radial-gradient(var(--led-dim) .8px,transparent 1.2px);background-size:3px 3px}
+.led span{white-space:nowrap;font-variant-numeric:tabular-nums}
+.led .brag{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--gold);text-shadow:0 0 6px rgba(255,207,58,.6)}
 
-/* ---------- dialogs (fitting, winning, readme, help) ---------- */
-.veil{position:absolute;inset:0;background:rgba(20,10,50,.35);display:flex;align-items:center;justify-content:center;padding:12px;z-index:5}
-.dlg{background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;box-shadow:5px 5px 0 rgba(0,0,0,.4);
-  width:min(440px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column}
-.dlg .body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;font-family:var(--term);font-size:20px;line-height:1.15}
+/* pop-up panels: candy purple, no title bars */
+.veil{position:absolute;inset:0;background:rgba(21,12,51,.55);display:flex;align-items:center;justify-content:center;padding:12px;z-index:5}
+.dlg{position:relative;background-color:var(--panel);border:4px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:8px 8px 0 rgba(0,0,0,.55);
+  width:min(460px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:12px 14px}
+.dlg .title{font-size:16px;text-align:center;filter:drop-shadow(2px 2px 0 var(--lo))}
+.dlg .body{display:flex;flex-direction:column;gap:10px;font-family:var(--term);font-size:21px;line-height:1.15;color:#fff}
 .dlg .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.dlg button{font:12px/1 var(--pixel);padding:9px 14px;cursor:pointer;background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;outline:1px solid var(--chrome-ink)}
-.dlg button:active{border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
-.bar{height:22px;padding:2px;background:#fff;border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
-.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,#1a1a8a 0 12px,transparent 12px 14px);transition:width .35s steps(6)}
-.big{font-family:'Bungee',var(--pixel);font-size:30px;line-height:1.05;text-align:center;color:#c2187a;text-shadow:3px 3px 0 var(--gold)}
+.dlg button{display:inline-flex;align-items:center;gap:8px;font:12px/1 var(--pixel);padding:6px 10px 6px 6px;cursor:pointer;color:#fff;background:var(--deep);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);text-shadow:1px 1px 0 var(--lo)}
+.dlg button:active{border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.bar{height:22px;padding:3px;background:var(--led-bg)}
+.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--led) 0 12px,transparent 12px 15px);transition:width .35s steps(6)}
+#step{color:var(--led);font-family:var(--term)}
+.big{font-family:'Bungee',var(--pixel);font-size:30px;line-height:1.05;text-align:center;color:var(--pink);text-shadow:3px 3px 0 var(--lo)}
 .mid{text-align:center}
-.readme{font-family:'Courier Prime','Courier New',monospace;font-size:14px;line-height:1.35;white-space:pre-wrap;background:#fff;padding:10px;border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);margin:0}
-/* dot-matrix certificate */
+.readme{font-family:var(--term);font-size:19px;line-height:1.15;white-space:pre-wrap;background:#0a0a2a;color:#c9c9ff;padding:10px;margin:0;overflow-x:auto}
 .paper{position:relative;background:#fbfbf2;padding:8px 26px;font-family:'Courier Prime','Courier New',monospace;font-size:14px;line-height:1.4;color:#222;min-height:40px;
   background-image:radial-gradient(circle at 9px 12px,#8a86a8 3.5px,transparent 4px),radial-gradient(circle at calc(100% - 9px) 12px,#8a86a8 3.5px,transparent 4px),repeating-linear-gradient(transparent 0 23px,#dff0df 23px 24px);
-  background-size:100% 24px,100% 24px,100% 24px;border-left:1px dashed #bbb;border-right:1px dashed #bbb}
-.paper div{white-space:pre-wrap;text-align:center;opacity:.9;letter-spacing:.02em}
+  background-size:100% 24px,100% 24px,100% 24px}
+.paper div{white-space:pre-wrap;text-align:center;opacity:.9}
 .paper .paw{font-size:22px}
 
-/* ---------- notes ---------- */
 .notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px 32px}
 .notes section{min-width:0}
 .notes h2{font-family:var(--pixel);font-size:15px;letter-spacing:.06em;color:var(--gold);margin:0 0 6px;font-weight:400}
-.notes p,.notes li{color:#e9e3ff;max-width:65ch}
+.notes li{color:#e9e3ff;max-width:65ch}
 .notes ul{padding-left:20px;margin:0}
-.notes p{margin:0 0 8px}
 
 @media (max-width:760px){
   .main{grid-template-columns:1fr}
-  .docwrap{border-right:0;border-bottom:2px solid var(--chrome-lo)}
-  .doc{height:220px}
+  .doc{min-height:220px}
   .sadie{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"scan bubble" "meter meter" "fit fit";align-items:start}
-  .scan{grid-area:scan}.bubble{grid-area:bubble;margin-left:6px}.meter{grid-area:meter}.fit{grid-area:fit}
-  .scan canvas{width:102px;height:125px}
+  .scan{grid-area:scan}.bubble{grid-area:bubble;margin-left:8px}.meter{grid-area:meter}.fit{grid-area:fit}
+  .scan canvas{width:120px;height:140px}
   .bubble{font-size:14px}
-  .bubble::before{left:-12px;top:22px;border:10px solid transparent;border-right:12px solid var(--chrome-ink);border-left:0}
-  .bubble::after{left:-8px;top:25px;border:7px solid transparent;border-right:9px solid #fff;border-left:0}
-  .status .brag{display:none}
-  .desk{padding:8px}
-  .menu{gap:12px;font-size:17px}
+  .bubble::before{left:-14px;top:22px;border:11px solid transparent;border-right:13px solid var(--lo);border-left:0}
+  .bubble::after{left:-9px;top:26px;border:7px solid transparent;border-right:9px solid #fff;border-left:0}
+  .plaque{display:none}
+  .led .brag{display:none}
+  .tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+  .tool{padding:4px;gap:4px;font-size:9px;justify-content:center;flex-direction:column}
+  .tool kbd{display:none}
+  .tool .g{font-size:17px;line-height:18px}
+  .tool.font{min-width:0;grid-column:1/-1;flex-direction:row;padding:8px}
 }
-@media (max-width:420px){ .strip .hide-s{display:none} .mlogo{font-size:18px} }
+@media (max-width:420px){ .mlogo{font-size:18px} .mlogo small{font-size:11px} }
 </style>
 
 <div class="page">
@@ -181,61 +170,56 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
     <i class="rivet a"></i><i class="rivet b"></i><i class="rivet c"></i><i class="rivet d"></i>
     <div class="strip">
       <button class="key" type="button" id="escKey"><kbd>ESC</kbd> BACK</button>
-      <span class="mlogo">TYPEFITTER</span>
+      <span class="mlogo">TYPEFITTER <small>DELUXE 3.1</small></span>
+      <div class="plaque"><b>SHAREWARE V3.1</b><span>PLEASE COPY &amp; SHARE!</span></div>
     </div>
 
-    <div class="desk">
-      <div class="win" id="win">
-        <div class="title"><i class="tb"></i><span>TYPEFITTER DELUXE 3.1 - FITME.FIT</span><i class="tb"></i></div>
-        <div class="menu" aria-hidden="true"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>T</u>ext</span><span>F<u>i</u>t</span><span><u>H</u>elp</span></div>
-        <div class="tools" id="tools">
-          <button class="fontbox" type="button" data-fx="font" title="Change the font"><b id="fontName">TIMELY ROMAN</b><i>▼</i></button>
-          <button class="tb-btn" type="button" data-fx="bold" title="Bold"><span class="g"><b>B</b></span>BOLD</button>
-          <button class="tb-btn" type="button" data-fx="italic" title="Italic"><span class="g"><i>I</i></span>ITALIC</button>
-          <button class="tb-btn" type="button" data-fx="underline" title="Underline"><span class="g"><u>U</u></span>UNDER</button>
-          <button class="tb-btn" type="button" data-fx="outline" title="Outline"><span class="g" style="color:transparent;-webkit-text-stroke:1.2px var(--chrome-ink)">O</span>OUTLINE</button>
-          <button class="tb-btn" type="button" data-fx="shadow" title="Shadow"><span class="g" style="text-shadow:2px 2px 0 #8a86a8">S</span>SHADOW</button>
-          <button class="tb-btn" type="button" data-fx="warp" title="WarpArt"><span class="g" style="font-family:Bungee,sans-serif;font-size:14px;color:#c2187a">⌒A</span>WARPART</button>
-          <button class="tb-btn" type="button" data-fx="bigger" title="Bigger"><span class="g">A<sup style="font-size:11px">+</sup></span>BIGGER</button>
-          <button class="tb-btn" type="button" data-fx="smaller" title="Smaller"><span class="g" style="font-size:15px">A<sup style="font-size:10px">−</sup></span>SMALLER</button>
-          <button class="tb-btn" type="button" data-fx="squeeze" title="Letter spacing"><span class="g" style="font-size:15px">A↔A</span>SPACING</button>
-          <button class="tb-btn" type="button" data-fx="color" title="Color"><span class="g" style="background:linear-gradient(90deg,#e0103a,#ffae3a,#2bb04a,#1a6aff,#b060ff);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700">A</span>COLOR</button>
-          <button class="tb-btn" type="button" data-fx="symbols" title="Secret symbols"><span class="g">♣☺</span>SYMBOLS</button>
-        </div>
-        <div class="main">
-          <div class="docwrap">
-            <div class="ruler" aria-hidden="true"></div>
-            <div class="doc" id="doc">
-              <div class="zoomer" id="zoomer">
-                <div class="box" id="box"></div>
-                <div class="txt" id="txt"></div>
-                <div class="over" id="over"></div>
-              </div>
-            </div>
-          </div>
-          <div class="sadie">
-            <div class="scan"><canvas id="scan" width="136" height="166" aria-label="A scanned picture of Sadie, badly traced and squashed to 16 colors"></canvas><small>SADIE.BMP · 16 COLORS</small></div>
-            <div class="bubble" id="bubble" aria-live="polite"></div>
-            <div class="meter"><div class="lab"><span>TEXT LOVE</span><span id="loveNum">0/10</span></div><div class="hearts" id="hearts"></div></div>
-            <button class="fit" type="button" id="fit" disabled>FIT IT!<small id="fitSub">SADIE ISN'T READY</small></button>
+    <div class="tools sunk" id="tools">
+      <button class="tool font" type="button" data-fx="font" title="Change the font (F2)"><kbd>F2</kbd>FONT<b id="fontName">TIMELY ROMAN</b></button>
+      <button class="tool" type="button" data-fx="bold" title="Bold (B)"><kbd>B</kbd><span class="g"><b>B</b></span>BOLD</button>
+      <button class="tool" type="button" data-fx="italic" title="Italic (I)"><kbd>I</kbd><span class="g"><i>I</i></span>ITALIC</button>
+      <button class="tool" type="button" data-fx="underline" title="Underline (U)"><kbd>U</kbd><span class="g"><u>U</u></span>UNDER</button>
+      <button class="tool" type="button" data-fx="outline" title="Outline (O)"><kbd>O</kbd><span class="g" style="color:transparent;-webkit-text-stroke:1.2px var(--gi)">O</span>OUTLINE</button>
+      <button class="tool" type="button" data-fx="shadow" title="Shadow (S)"><kbd>S</kbd><span class="g" style="text-shadow:2px 2px 0 #1a0f40">S</span>SHADOW</button>
+      <button class="tool" type="button" data-fx="warp" title="WarpArt (W)"><kbd>W</kbd><span class="g" style="font-family:Bungee,sans-serif;font-size:13px;color:var(--pink)">⌒A</span>WARPART</button>
+      <button class="tool" type="button" data-fx="bigger" title="Bigger (+)"><kbd>+</kbd>BIGGER</button>
+      <button class="tool" type="button" data-fx="smaller" title="Smaller (-)"><kbd>−</kbd>SMALLER</button>
+      <button class="tool" type="button" data-fx="squeeze" title="Letter spacing (K)"><kbd>K</kbd><span class="g" style="font-size:14px">A↔A</span>SPACING</button>
+      <button class="tool" type="button" data-fx="color" title="Color (C)"><kbd>C</kbd><span class="g" style="background:linear-gradient(90deg,#ff3d67,#ffae3a,#6dff8a,#6fb4ff,#c98cff);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700">A</span>COLOR</button>
+      <button class="tool" type="button" data-fx="symbols" title="Secret symbols (Y)"><kbd>Y</kbd><span class="g">♣☺</span>SYMBOLS</button>
+    </div>
+
+    <div class="main">
+      <div class="docwrap sunk">
+        <div class="ruler" aria-hidden="true"></div>
+        <div class="doc" id="doc">
+          <div class="zoomer" id="zoomer">
+            <div class="box" id="box"></div>
+            <div class="txt" id="txt"></div>
+            <div class="over" id="over"></div>
           </div>
         </div>
-        <div class="status">
-          <div class="num" id="stSize">TEXT 0×0</div>
-          <div class="num" id="stBox">BOX 0×0</div>
-          <div class="brag" id="stBrag">Ready.</div>
-          <div class="num" id="stZoom">ZOOM 100%</div>
-        </div>
-        <div class="veil" id="veil" hidden></div>
       </div>
+      <div class="sadie sunk">
+        <div class="scan"><canvas id="scan" width="120" height="140" aria-label="Sadie, a photo traced over by hand, squashed to a few colors and badly compressed"></canvas><small>SADIE.JPG · 16 COLORS · 3 KB</small></div>
+        <div class="bubble" id="bubble" aria-live="polite"></div>
+        <div class="meter"><div class="lab"><span>TEXT LOVE</span><span id="loveNum">0/10</span></div><div class="hearts" id="hearts"></div></div>
+        <button class="fit" type="button" id="fit" disabled>FIT IT!<small id="fitSub">SADIE ISN'T READY</small></button>
+      </div>
+    </div>
+
+    <div class="led sunk" aria-live="off">
+      <span id="stSize">TEXT 0x0</span>
+      <span id="stBox">BOX 0x0</span>
+      <span class="brag" id="stBrag">READY.</span>
+      <span id="stZoom">ZOOM 100%</span>
     </div>
 
     <div class="strip">
       <button class="key" type="button" id="helpKey"><kbd>F1</kbd> HELP</button>
       <button class="key" type="button" id="readmeKey"><kbd>F5</kbd> README.TXT</button>
-      <span class="spacer"></span>
-      <span class="key hide-s" style="cursor:default;color:var(--muted)">SHAREWARE V3.1</span>
     </div>
+    <div class="veil" id="veil" hidden></div>
   </div>
 
   <div class="notes">
@@ -245,13 +229,13 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
         <li>Every button changes the text. Sadie gushes about it, with a made-up fact about how the computer does it.</li>
         <li>Her TEXT LOVE meter goes up or down after each change. It looks like she has opinions, but it's a dice roll, rigged to fill somewhere between the 4th and 10th change.</li>
         <li>When it's full, FIT IT! lights up. The program makes a big show of fitting, fails, and says you win anyway. A certificate prints, then a new sentence arrives.</li>
-        <li>The box is always a little too small. The status bar at the bottom tells you by exactly how many pixels, and the box gets closer as Sadie's meter fills.</li>
+        <li>The box is always a little too small. The sign at the bottom tells you the sizes, and the box gets closer as Sadie's meter fills.</li>
       </ul>
     </section>
     <section>
       <h2>STILL TO DECIDE</h2>
       <ul>
-        <li>Sadie here is a quick drawing run through a "bad scanner". In the real thing, she could be traced from her real photo the same way.</li>
+        <li>Sadie here is traced from a stand-in drawing. In the real thing, she'd be traced from her real photo the same way.</li>
         <li>Sounds: grinding disk while fitting, a screechy dot-matrix printer for the certificate?</li>
         <li>Keep old certificates somewhere to flip through, or let each one go?</li>
         <li>More buttons, fewer, or different ones?</li>
@@ -268,100 +252,136 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
-/* ================= Sadie, scanned in 1993 ================= */
+/* ================= Sadie: a photo, traced over by hand, then saved way too small ================= */
 function drawScan() {
-  // 1. a soft "photo" of Sadie sitting on an orange couch, at 240x300
-  const P = document.createElement('canvas'); P.width = 240; P.height = 300;
+  const W = 120, H = 140;
+  // 1. the photo (a stand-in until her real one): Sadie sitting on an orange couch, at 240x280
+  const P = document.createElement('canvas'); P.width = 240; P.height = 280;
   const p = P.getContext('2d');
-  let g = p.createRadialGradient(110, 120, 20, 120, 150, 220);
-  g.addColorStop(0, '#c98a4a'); g.addColorStop(.6, '#9a5a2e'); g.addColorStop(1, '#5a3018');
-  p.fillStyle = g; p.fillRect(0, 0, 240, 300);
-  p.fillStyle = 'rgba(60,30,10,.35)'; p.fillRect(0, 236, 240, 64); // couch cushion seam
+  let g = p.createRadialGradient(100, 90, 20, 120, 140, 230);
+  g.addColorStop(0, '#d8995a'); g.addColorStop(.55, '#a0602e'); g.addColorStop(1, '#5a3018');
+  p.fillStyle = g; p.fillRect(0, 0, 240, 280);
+  p.fillStyle = 'rgba(60,30,10,.35)'; p.fillRect(0, 226, 240, 54);
   const shade = (x, y, r, a, b) => { const q = p.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r * 1.1); q.addColorStop(0, a); q.addColorStop(1, b); return q; };
   const ell = (x, y, rx, ry, f, rot = 0) => { p.beginPath(); p.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); p.fillStyle = f; p.fill(); };
-  // tail around the paws
-  p.lineCap = 'round'; p.strokeStyle = '#8f8a9b'; p.lineWidth = 20;
-  p.beginPath(); p.moveTo(186, 262); p.quadraticCurveTo(205, 296, 120, 292); p.quadraticCurveTo(80, 290, 70, 280); p.stroke();
-  // body
-  ell(120, 215, 70, 78, shade(120, 215, 78, '#ffffff', '#b8b0cc'));
-  p.save(); p.beginPath(); p.ellipse(120, 215, 70, 78, 0, 0, Math.PI * 2); p.clip();
-  ell(64, 196, 36, 50, '#8f8a9b', .2); p.restore();
-  // front legs and paws
-  for (const x of [98, 142]) {
-    p.fillStyle = shade(x, 250, 30, '#ffffff', '#cfc8dc'); p.beginPath(); p.roundRect(x - 13, 206, 26, 76, 12); p.fill();
-    ell(x, 282, 17, 10, '#f4f0f8');
-  }
-  // ears
   const tri = (a, b, c, f) => { p.beginPath(); p.moveTo(...a); p.lineTo(...b); p.lineTo(...c); p.closePath(); p.fillStyle = f; p.fill(); };
-  tri([70, 84], [60, 26], [108, 62], '#8f8a9b'); tri([132, 62], [180, 26], [170, 84], '#8f8a9b');
-  tri([76, 76], [67, 38], [100, 64], '#e9a3b6'); tri([140, 64], [173, 38], [164, 76], '#d9a2b4');
-  // head
-  ell(120, 112, 64, 55, shade(120, 112, 60, '#ffffff', '#c4bcd6'));
-  p.save(); p.beginPath(); p.ellipse(120, 112, 64, 55, 0, 0, Math.PI * 2); p.clip();
-  ell(82, 70, 42, 30, '#8f8a9b', .25); ell(158, 70, 42, 30, '#8f8a9b', -.25); // gray cap
-  ell(121, 72, 10, 24, '#ffffff'); ell(122, 62, 6, 6, '#e7b688'); // white blaze
-  ell(146, 110, 24, 19, '#8f8a9b', -.2); // patch over one eye
+  p.lineCap = 'round'; p.strokeStyle = '#8f8a9b'; p.lineWidth = 20;
+  p.beginPath(); p.moveTo(184, 240); p.quadraticCurveTo(206, 276, 120, 272); p.quadraticCurveTo(84, 270, 72, 262); p.stroke();
+  ell(120, 200, 68, 72, shade(120, 200, 72, '#ffffff', '#b8b0cc'));
+  p.save(); p.beginPath(); p.ellipse(120, 200, 68, 72, 0, 0, Math.PI * 2); p.clip(); ell(66, 184, 34, 46, '#8f8a9b', .2); p.restore();
+  for (const x of [98, 142]) { p.fillStyle = shade(x, 236, 30, '#ffffff', '#d4cde0'); p.fillRect(x - 13, 196, 26, 70); ell(x, 266, 17, 9, '#f4f0f8'); }
+  tri([70, 76], [60, 20], [108, 56], '#8f8a9b'); tri([132, 56], [180, 20], [170, 76], '#8f8a9b');
+  tri([76, 68], [67, 32], [100, 58], '#e9a3b6'); tri([140, 58], [173, 32], [164, 68], '#d9a2b4');
+  ell(120, 104, 64, 55, shade(120, 104, 60, '#ffffff', '#c4bcd6'));
+  p.save(); p.beginPath(); p.ellipse(120, 104, 64, 55, 0, 0, Math.PI * 2); p.clip();
+  ell(82, 62, 42, 30, '#8f8a9b', .25); ell(158, 62, 42, 30, '#8f8a9b', -.25);
+  ell(121, 64, 10, 24, '#ffffff'); ell(122, 54, 6, 6, '#e7b688');
+  ell(146, 102, 24, 19, '#8f8a9b', -.2);
   p.restore();
-  // eyes: heavy lids, unimpressed
-  for (const [x, lid] of [[98, '#3a2658'], [142, '#2c2040']]) {
-    ell(x, 112, 11, 7, '#c4c96a'); ell(x + 1, 113, 3, 6, '#2b2233');
-    p.fillStyle = lid; p.fillRect(x - 13, 102, 26, 9);
-  }
-  // nose split gray and tan, "w" mouth, blush
-  tri([112, 128], [120, 128], [120, 138], '#6a6480'); tri([120, 128], [128, 128], [120, 138], '#e7b688');
-  p.strokeStyle = '#4a3440'; p.lineWidth = 2;
-  p.beginPath(); p.arc(114, 140, 6, .2, Math.PI - .2); p.stroke(); p.beginPath(); p.arc(126, 140, 6, .2, Math.PI - .2); p.stroke();
-  ell(88, 132, 11, 6, 'rgba(255,140,170,.4)'); ell(152, 132, 11, 6, 'rgba(255,140,170,.4)');
-  p.strokeStyle = 'rgba(255,255,255,.85)'; p.lineWidth = 1.5;
-  for (const [a, b, c, d] of [[70, 130, 30, 124], [70, 136, 32, 140], [170, 130, 210, 124], [170, 136, 208, 140]]) { p.beginPath(); p.moveTo(a, b); p.lineTo(c, d); p.stroke(); }
+  for (const x of [98, 142]) { ell(x, 105, 11, 7, '#c4c96a'); ell(x + 1, 106, 3, 6, '#2b2233'); p.fillStyle = '#3a2658'; p.fillRect(x - 12, 96, 24, 8); }
+  tri([112, 120], [120, 120], [120, 130], '#6a6480'); tri([120, 120], [128, 120], [120, 130], '#e7b688');
+  ell(88, 124, 11, 6, 'rgba(255,140,170,.45)'); ell(152, 124, 11, 6, 'rgba(255,140,170,.45)');
 
-  // 2. the scanner: down to 120x150, blurry, noisy, uneven lamp
-  const W = 120, H = 150, S = document.createElement('canvas'); S.width = W; S.height = H;
+  // 2. shrunk to 120x140, then squashed to 16 colors with a dot pattern
+  const S = document.createElement('canvas'); S.width = W; S.height = H;
   const s = S.getContext('2d');
-  try { s.filter = 'blur(0.8px)'; } catch (e) {}
-  s.drawImage(P, 0, 0, W, H); s.filter = 'none';
+  s.drawImage(P, 0, 0, W, H);
   const im = s.getImageData(0, 0, W, H), d = im.data;
-  let seed = 1993; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const PAL = ['#000000', '#ffffff', '#d8d0f0', '#a098b8', '#5f5878', '#c8b848', '#e0a070', '#c8622a', '#7a4020', '#402010', '#f0a0c0', '#b04888', '#3f8f88', '#80803a', '#f8e0c0', '#26245a']
+  const PAL = ['#2a1838', '#fffaf3', '#dcd3f2', '#a89fc4', '#7c7594', '#4e4766', '#f4a7b6', '#e7b688', '#d9822b', '#a0602e', '#6a3a1c', '#3e2010', '#c4c96a', '#7a7a30', '#f6e2b8', '#8a2a3a']
     .map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
-  const buf = new Float32Array(W * H * 3);
+  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const i = (y * W + x), lamp = 18 - x * .28, n = (rand() - .5) * 26;
-    buf[i * 3] = d[i * 4] + lamp + n + 4; buf[i * 3 + 1] = d[i * 4 + 1] + lamp + n + 8; buf[i * 3 + 2] = d[i * 4 + 2] + lamp + n - 6;
+    const i = (y * W + x) * 4, t = ((BAYER[(y & 3) * 4 + (x & 3)] + .5) / 16 - .5) * 56;
+    const r = d[i] + t, gg = d[i + 1] + t, b = d[i + 2] + t;
+    let best = PAL[0], bd = 1e9;
+    for (const c of PAL) { const dd = (r - c[0]) ** 2 * .3 + (gg - c[1]) ** 2 * .59 + (b - c[2]) ** 2 * .11; if (dd < bd) { bd = dd; best = c; } }
+    d[i] = best[0]; d[i + 1] = best[1]; d[i + 2] = best[2]; d[i + 3] = 255;
   }
-  // 16 colors with error-diffusion dithering (the blotchy fur)
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const i = (y * W + x) * 3, r = buf[i], gg = buf[i + 1], b = buf[i + 2];
-    let best = 0, bd = 1e9;
-    for (let k = 0; k < PAL.length; k++) { const c = PAL[k], dd = (r - c[0]) ** 2 * .3 + (gg - c[1]) ** 2 * .59 + (b - c[2]) ** 2 * .11; if (dd < bd) { bd = dd; best = k; } }
-    const c = PAL[best], er = [r - c[0], gg - c[1], b - c[2]];
-    d[(y * W + x) * 4] = c[0]; d[(y * W + x) * 4 + 1] = c[1]; d[(y * W + x) * 4 + 2] = c[2]; d[(y * W + x) * 4 + 3] = 255;
-    const spread = (dx, dy, f) => { const xx = x + dx, yy = y + dy; if (xx < 0 || xx >= W || yy >= H) return; const j = (yy * W + xx) * 3; buf[j] += er[0] * f; buf[j + 1] += er[1] * f; buf[j + 2] += er[2] * f; };
-    spread(1, 0, 7 / 16); spread(-1, 1, 3 / 16); spread(0, 1, 5 / 16); spread(1, 1, 1 / 16);
-  }
-  // scanner streak and a smeared last few rows (the scan ran out)
-  for (let y = 0; y < H; y++) { const j = (y * W + 37) * 4; d[j] = Math.min(255, d[j] + 70); d[j + 1] = Math.min(255, d[j + 1] + 30); d[j + 2] = Math.min(255, d[j + 2] + 60); }
-  for (let y = H - 9; y < H; y++) for (let x = 0; x < W; x++) for (let k = 0; k < 4; k++) d[(y * W + x) * 4 + k] = d[((H - 10) * W + ((x + (y - H + 10) * 2) % W)) * 4 + k];
-  s.putImageData(im, 0, 0);
 
-  // 3. placed crooked on the scanner glass
+  // 3. traced over with a mouse: wobbly ink lines, a little off from the photo, some gone over twice
+  let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const dot = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return; const j = (y * W + x) * 4; d[j] = 34; d[j + 1] = 18; d[j + 2] = 44; };
+  const line = (x0, y0, x1, y1) => { const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) || 1; for (let k = 0; k <= n; k++) dot(x0 + (x1 - x0) * k / n, y0 + (y1 - y0) * k / n); };
+  const trace = (pts, wob = 1) => { // pts in photo space (240x280)
+    const passes = rand() < .35 ? 2 : 1;
+    for (let pass = 0; pass < passes; pass++) {
+      const f1 = 3 + rand() * 4, f2 = 9 + rand() * 6, ph1 = rand() * 6, ph2 = rand() * 6, ox = 1.4 + rand() * .8, oy = -.8 + rand() * .6;
+      let prev = null;
+      pts.forEach(([x, y], k) => {
+        const u = k / Math.max(1, pts.length - 1);
+        const q = [x / 2 + ox + (Math.sin(u * f1 + ph1) * .9 + Math.sin(u * f2 + ph2) * .4) * wob, y / 2 + oy + (Math.cos(u * f1 + ph2) * .9 + Math.sin(u * f2 + ph1) * .4) * wob];
+        if (prev) line(...prev, ...q);
+        prev = q;
+      });
+    }
+  };
+  const arc = (cx, cy, rx, ry, a0, a1, rot = 0, n = 40) => Array.from({ length: n + 1 }, (_, k) => {
+    const a = (a0 + (a1 - a0) * k / n) * Math.PI / 180, x = Math.cos(a) * rx, y = Math.sin(a) * ry;
+    return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)];
+  });
+  const seg = (...pts) => { const out = []; for (let k = 0; k < pts.length - 1; k++) for (let t = 0; t < 1; t += .1) out.push([pts[k][0] + (pts[k + 1][0] - pts[k][0]) * t, pts[k][1] + (pts[k + 1][1] - pts[k][1]) * t]); out.push(pts[pts.length - 1]); return out; };
+  const quad = (a, c, b, n = 20) => Array.from({ length: n + 1 }, (_, k) => { const t = k / n, m = 1 - t; return [m * m * a[0] + 2 * m * t * c[0] + t * t * b[0], m * m * a[1] + 2 * m * t * c[1] + t * t * b[1]]; });
+  trace(arc(120, 104, 64, 55, 132, 408, 0, 60));            // head (the ears cover the top)
+  trace(seg([72, 70], [60, 20], [106, 52]));                 // ears
+  trace(seg([134, 52], [180, 20], [168, 70]));
+  trace(seg([74, 64], [67, 34], [96, 55]), .6);              // inside the ears
+  trace(seg([146, 55], [173, 34], [164, 64]), .6);
+  trace(arc(120, 200, 68, 72, -52, 232, 0, 60));            // body
+  for (const x of [98, 142]) { trace(seg([x - 13, 200], [x - 13, 262])); trace(seg([x + 13, 200], [x + 13, 262])); trace(arc(x, 266, 17, 9, 180, 360, 0, 16).concat(arc(x, 266, 17, 9, 0, 180, 0, 16)), .5); }
+  trace(quad([176, 236], [212, 282], [120, 280]).concat(quad([120, 280], [90, 280], [74, 270], 8)));   // tail
+  trace(quad([184, 244], [198, 268], [120, 264]), .7);
+  trace(arc(66, 184, 34, 46, 90, 250, .2, 24), .7);         // back patch
+  trace(arc(146, 102, 24, 19, 0, 360, -.2, 36), .6);        // eye patch
+  trace(quad([60, 88], [90, 70], [110, 84]), .6);            // edge of her gray cap
+  trace(quad([132, 84], [152, 70], [180, 88]), .6);
+  for (const x of [98, 142]) {                               // heavy-lidded eyes
+    trace(seg([x - 13, 101], [x + 13, 101]), .4); trace(seg([x - 12, 102], [x + 12, 102]), .4);
+    trace(arc(x, 104, 12, 8, 0, 180, 0, 16), .4);
+    trace(seg([x + 1, 100], [x + 1, 111]), .2);
+  }
+  trace(seg([111, 119], [129, 119], [120, 130], [111, 119]), .4);   // nose
+  trace(arc(114, 131, 6, 5, 20, 160, 0, 10).reverse().concat(arc(126, 131, 6, 5, 20, 160, 0, 10).reverse()), .4); // mouth
+  for (const [a, b] of [[[62, 122], [22, 114]], [[62, 128], [24, 134]], [[178, 122], [218, 114]], [[178, 128], [216, 134]]]) trace(seg(a, b), .5); // whiskers
+  trace(seg([0, 226], [60, 228]), .8); trace(seg([184, 228], [240, 225]), .8);   // couch cushion
+
+  // 4. saved as a JPEG at the lowest quality, to fit on a floppy
+  jpegCrush(d, W, H, 14);
+  s.putImageData(im, 0, 0);
   const C = $('scan'), c = C.getContext('2d');
-  c.imageSmoothingEnabled = false;
-  c.fillStyle = '#f2f2ea'; c.fillRect(0, 0, 136, 166);
-  c.fillStyle = '#c8c8c0'; c.fillRect(0, 0, 136, 3); c.fillRect(0, 0, 2, 166); // lid shadow
-  c.save(); c.translate(69, 82); c.rotate(-.06); c.drawImage(S, -60, -75); c.restore();
-  // 4. someone traced her with the mouse, a few pixels off
-  const img = c.getImageData(0, 0, 136, 166), q = img.data;
-  const dot = (x, y) => { x |= 0; y |= 0; if (x < 0 || y < 0 || x >= 136 || y >= 166) return; const j = (y * 136 + x) * 4; q[j] = 20; q[j + 1] = 10; q[j + 2] = 30; };
-  const line = (x0, y0, x1, y1) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0 || 1; for (let t = 0; t <= n; t++) dot(x0 + (x1 - x0) * t / n, y0 + (y1 - y0) * t / n); };
-  const pts = [[70, 84], [60, 26], [104, 60], [120, 56], [136, 60], [180, 26], [170, 84], [184, 115], [174, 146], [186, 172], [194, 215], [188, 258], [196, 284], [172, 296], [120, 298], [68, 294], [52, 256], [48, 210], [58, 168], [68, 146], [56, 115], [70, 84]];
-  seed = 42;
-  const tr = pts.map(([x, y]) => [x / 2 + 12 + (rand() - .5) * 3, y / 2 + 3 + (rand() - .5) * 3]);
-  for (let k = 0; k < tr.length - 1; k++) { if (k === 12) continue; line(...tr[k], ...tr[k + 1]); } // missed a bit by the paws
-  line(tr[0][0], tr[0][1], tr[0][0] - 5, tr[0][1] + 3); // overshoot where the loop didn't meet
-  // eyes traced as two little circles, also off
-  for (const [ex, ey] of [[63, 60], [85, 60]]) for (let a = 0; a < 6.3; a += .4) dot(ex + Math.cos(a) * 4, ey + Math.sin(a) * 3);
-  c.putImageData(img, 0, 0);
+  c.drawImage(S, 0, 0);
+}
+
+// A real (tiny) JPEG round trip: colors shared per 2x2 pixels, 8x8 blocks, most detail thrown away.
+function jpegCrush(d, W, H, quality) {
+  const QY = [16,11,10,16,24,40,51,61,12,12,14,19,26,58,60,55,14,13,16,24,40,57,69,56,14,17,22,29,51,87,80,62,18,22,37,56,68,109,103,77,24,35,55,64,81,104,113,92,49,64,78,87,103,121,120,101,72,92,95,98,112,100,103,99];
+  const QC = [17,18,24,47,99,99,99,99,18,21,26,66,99,99,99,99,24,26,56,99,99,99,99,99,47,66,99,99,99,99,99,99].concat(Array(32).fill(99));
+  const sc = quality < 50 ? 5000 / quality : 200 - quality * 2;
+  const qt = t => t.map(v => Math.max(1, Math.min(255, Math.floor((v * sc + 50) / 100))));
+  const qy = qt(QY), qc = qt(QC);
+  const cos = [], al = u => u ? 1 : Math.SQRT1_2;
+  for (let x = 0; x < 8; x++) { cos[x] = []; for (let u = 0; u < 8; u++) cos[x][u] = Math.cos((2 * x + 1) * u * Math.PI / 16); }
+  const block = (plane, pw, ph, bx, by, q) => {
+    const f = new Float64Array(64), F = new Float64Array(64), t = new Float64Array(64);
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) f[y * 8 + x] = plane[Math.min(ph - 1, by + y) * pw + Math.min(pw - 1, bx + x)] - 128;
+    for (let y = 0; y < 8; y++) for (let u = 0; u < 8; u++) { let s = 0; for (let x = 0; x < 8; x++) s += f[y * 8 + x] * cos[x][u]; t[y * 8 + u] = s * al(u) / 2; }
+    for (let u = 0; u < 8; u++) for (let v = 0; v < 8; v++) { let s = 0; for (let y = 0; y < 8; y++) s += t[y * 8 + u] * cos[y][v]; F[v * 8 + u] = Math.round(s * al(v) / 2 / q[v * 8 + u]) * q[v * 8 + u]; }
+    for (let v = 0; v < 8; v++) for (let x = 0; x < 8; x++) { let s = 0; for (let u = 0; u < 8; u++) s += al(u) * F[v * 8 + u] * cos[x][u]; t[v * 8 + x] = s / 2; }
+    for (let x = 0; x < 8; x++) for (let y = 0; y < 8; y++) { let s = 0; for (let v = 0; v < 8; v++) s += al(v) * t[v * 8 + x] * cos[y][v]; const yy = by + y, xx = bx + x; if (yy < ph && xx < pw) plane[yy * pw + xx] = s / 2 + 128; }
+  };
+  const Y = new Float64Array(W * H), cw = Math.ceil(W / 2), ch = Math.ceil(H / 2), Cb = new Float64Array(cw * ch), Cr = new Float64Array(cw * ch), n = new Float64Array(cw * ch);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, r = d[i], g = d[i + 1], b = d[i + 2], j = (y >> 1) * cw + (x >> 1);
+    Y[y * W + x] = .299 * r + .587 * g + .114 * b;
+    Cb[j] += 128 - .168736 * r - .331264 * g + .5 * b; Cr[j] += 128 + .5 * r - .418688 * g - .081312 * b; n[j]++;
+  }
+  for (let j = 0; j < Cb.length; j++) { Cb[j] /= n[j]; Cr[j] /= n[j]; }
+  for (let by = 0; by < H; by += 8) for (let bx = 0; bx < W; bx += 8) block(Y, W, H, bx, by, qy);
+  for (let by = 0; by < ch; by += 8) for (let bx = 0; bx < cw; bx += 8) { block(Cb, cw, ch, bx, by, qc); block(Cr, cw, ch, bx, by, qc); }
+  const cl = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, j = (y >> 1) * cw + (x >> 1), yy = Y[y * W + x], cb = Cb[j] - 128, cr = Cr[j] - 128;
+    d[i] = cl(yy + 1.402 * cr); d[i + 1] = cl(yy - .344136 * cb - .714136 * cr); d[i + 2] = cl(yy + 1.772 * cb);
+  }
 }
 
 /* ================= the text ================= */
@@ -550,8 +570,9 @@ function newRound(first) {
 const wait = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 250) : ms));
 function dialog(title, inner) {
   const v = $('veil');
-  v.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="${title}"><div class="title"><i class="tb"></i><span>${title}</span></div><div class="body">${inner}</div></div>`;
+  v.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="${title}"><i class="rivet a"></i><i class="rivet b"></i><i class="rivet c"></i><i class="rivet d"></i><div class="title"><span>${title}</span></div><div class="body">${inner}</div></div>`;
   v.hidden = false;
+  v.querySelector('.dlg').scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
   return v.querySelector('.body');
 }
 function closeDialog() { $('veil').hidden = true; $('veil').innerHTML = ''; }
@@ -568,8 +589,8 @@ async function fitIt() {
   $('step').textContent = 'RESULT: The text does not fit.';
   await wait(1300);
   const pct = pick([104, 107, 112, 118, 121, 133, 150]);
-  b.innerHTML = `<div class="big">TEXT FIT: ${pct}%!</div><div class="mid">That's ${pct - 100}% MORE fit than fit!</div><div class="big" style="font-size:36px">YOU WIN!!</div><div class="paper" id="paper" aria-live="polite"></div><div class="row"><button type="button" id="nextBtn" hidden>NEXT SENTENCE</button></div>`;
-  $('veil').querySelector('.title span').textContent = 'CONGRATULATIONS.EXE';
+  b.innerHTML = `<div class="big">TEXT FIT: ${pct}%!</div><div class="mid">That's ${pct - 100}% MORE fit than fit!</div><div class="big" style="font-size:36px">YOU WIN!!</div><div class="paper" id="paper" aria-live="polite"></div><div class="row"><button type="button" id="nextBtn" hidden><kbd>ENTER</kbd>NEXT SENTENCE</button></div>`;
+  $('veil').querySelector('.title span').textContent = 'CONGRATULATIONS!';
   say(pick(['<b>WE DID IT!!</b> Put it on the fridge.', "I knew it would fit. It didn't. <b>But I knew.</b>", '<b>A WINNER!</b> I will tell every cat I know.']));
   const text = SENTENCES[round % SENTENCES.length];
   const lines = ['* * * CERTIFICATE OF FITNESS * * *', '', 'This certifies that the text', `"${text}"`, `was fitted to ${pct}%.`, '', 'Signed,', 'SADIE', '🐾'];
@@ -581,7 +602,7 @@ async function fitIt() {
 
 /* ================= help, readme ================= */
 function info(title, text, btn = 'OK') {
-  const b = dialog(title, `<pre class="readme">${text}</pre><div class="row"><button type="button" id="okBtn">${btn}</button></div>`);
+  const b = dialog(title, `<pre class="readme">${text}</pre><div class="row"><button type="button" id="okBtn"><kbd>ENTER</kbd>${btn}</button></div>`);
   $('okBtn').onclick = closeDialog; $('okBtn').focus();
 }
 const README = `TYPEFITTER DELUXE 3.1
@@ -614,13 +635,18 @@ const HELP = `HOW TO PLAY TYPEFITTER
 /* ================= wire up ================= */
 $('tools').addEventListener('click', e => { const b = e.target.closest('[data-fx]'); if (b) change(b.dataset.fx); });
 $('fit').addEventListener('click', fitIt);
-$('readmeKey').addEventListener('click', () => { if (!busy) info('README.TXT - NOTEPAD', README); });
+$('readmeKey').addEventListener('click', () => { if (!busy) info('README.TXT', README); });
 $('helpKey').addEventListener('click', () => { if (!busy) info('HELP', HELP); });
 $('escKey').addEventListener('click', () => { if (!busy) info('BACK TO THE CLUBHOUSE', 'In the real thing, this goes back to\nthe clubhouse shelf. This is a mock-up,\nso there is nowhere to go.'); });
 document.addEventListener('keydown', e => {
   if (e.key === 'F1') { e.preventDefault(); $('helpKey').click(); }
   if (e.key === 'F5') { e.preventDefault(); $('readmeKey').click(); }
-  if (e.key === 'Escape' && !$('veil').hidden && $('okBtn')) closeDialog();
+  if ((e.key === 'Escape' || e.key === 'Enter') && !$('veil').hidden && $('okBtn')) { e.preventDefault(); closeDialog(); return; }
+  if (e.key === 'Enter' && $('nextBtn') && !$('nextBtn').hidden) { e.preventDefault(); $('nextBtn').click(); return; }
+  if (!$('veil').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  const fx = { F2: 'font', b: 'bold', i: 'italic', u: 'underline', o: 'outline', s: 'shadow', w: 'warp', '+': 'bigger', '=': 'bigger', '-': 'smaller', k: 'squeeze', c: 'color', y: 'symbols' }[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+  if (fx) { e.preventDefault(); change(fx); }
+  if (e.key === ' ' && love >= 10 && !busy && !e.target.closest('button')) { e.preventDefault(); fitIt(); }
 });
 addEventListener('resize', () => requestAnimationFrame(fitView));
 
