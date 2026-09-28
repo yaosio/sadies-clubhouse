@@ -6,6 +6,14 @@ gummy jelly pieces. Next: Sadie, then the mole, Chooter, hay and barn, then the 
 `art/90s-style/mockup-2.png` (drawn by `art/90s-style/mockup-2.py`). `mockup-1` is the first try,
 kept for reference only.
 
+**New direction (proposal, not approved yet): Sadie's Play Place**, a 90s activity center with
+several activities, the tower game ("Sadie's Dropper World") being the first. Mock-ups in
+`art/play-place/` (drawn by `clubhouse.py`, using `kit.py`, the shared bits of `mockup-2.py`):
+`clubhouse-wide.png` and `clubhouse-phone.png` (the menu: a room with a cubby shelf, one software
+box per activity, Sadie on top, a LED board and PLAY!), and `activity-phone.png` (inside an
+activity, the frame shrinks to a strip with ESC BACK, F1 HELP and the activity's own buttons).
+Mock-up 2's dashboard (pieces, hunger) belongs to the tower game, not to the whole Play Place.
+
 ## The idea
 Sadie's Dropper World is a lost software toy: early-90s shareware that was never finished but
 always promised a full version soon. It looks like the 90s as people *remember* them, not as they
