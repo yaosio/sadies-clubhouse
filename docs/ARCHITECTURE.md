@@ -68,6 +68,12 @@ tell the screen something, it emits an event (below).
 | `ui/perf.js` | Performance overlay (the dev sheet's Info tab), including how busy the simulation keeps the mole and how tired it is. |
 | `input/pointer.js` | Touch/mouse on the board: pan, pinch, wheel zoom, throw a toy picked from the toy box, or tap a character for their thought bubble. Nothing steers the mole. |
 | `input/controls.js` | The Follow Sadie button, and Escape to close the dev sheet. No keyboard controls, and no way to move, spin or drop pieces: the mole decides all that. |
+| **tests/ and tools/** | |
+| `tests/run.mjs` | The headless checks (`npm test`): the real simulation in Node, seeded. Each numbered section runs in its own process, several at once, about 3.5 minutes in all (`--section=N` runs one). |
+| `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html`, with the source embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
+| `tools/check.mjs` | `npm run check`: the tests, a build, then the page in headless Chromium as a phone and a desktop: new game, tapping Sadie and the mole, the dev sheet, a full board loaded from a save and reloaded, and how smooth that board is on a phone 4x slower. Fails on any page error; screenshots in `dist/check/`. `--quick` skips the tests, `--preview` checks the test version. The tests are skipped anyway if they already passed on exactly this `src/` and `tests/` (remembered in `dist/`), so the check at merge is quick; `--retest` runs them regardless. |
+| `tools/fullboard.mjs` | A save of a full board (14 minutes of real play, about 400 pieces, bedrock melting). `check.mjs` makes one when `src/core` changes and keeps it in `dist/`. Handy for any experiment that needs a big tower. |
+| `tools/unpack.mjs` | Rebuilds the project folder from a built page's embedded source. |
 
 ## Events
 

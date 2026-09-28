@@ -1,6 +1,8 @@
 // Builds the game into one self-contained page: dist/index.html
 //
-//   node tools/build.mjs
+//   node tools/build.mjs              the real game (what goes on the game page)
+//   node tools/build.mjs --preview    the test version (for the test page): same game, but it says
+//                                     "test version" in the corner and in the tab title
 //
 // The page contains the bundled game plus a copy of every project file (as JSON in a
 // <script type="application/json" id="jelly-source"> tag). That embedded copy is how the
@@ -9,8 +11,10 @@
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const root = new URL('..', import.meta.url).pathname;
+const preview = process.argv.includes('--preview');
 const EMBED = ['README.md', 'CLAUDE.md', '.gitignore', 'package.json', 'docs', 'src', 'tests', 'tools'];
 
 function collect(p, out) {
@@ -48,6 +52,21 @@ put('/*@styles*/', css);
 put('/*@script*/', js.replace(/<\/script/gi, '<\\/script'));
 put('<!--@source-->', `<script type="application/json" id="jelly-source">${json}</script>`);
 
+if (preview) {
+  // which commit this is, so a test page can be matched to its code (not there in an unpacked copy)
+  let commit = '';
+  try { commit = execSync('git rev-parse --short HEAD', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
+  const when = new Date().toISOString().slice(5, 16).replace('T', ' ') + ' UTC';
+  html = html.replace(/<title>(.*?)<\/title>/, '<title>$1 (test version)</title>');
+  const badge = `<div id="testBadge" style="position:fixed;right:12px;top:calc(66px + env(safe-area-inset-top));` +
+    `padding:2px 10px;border-radius:999px;background:#c2410cdd;color:#fff;font:600 11px/1.6 system-ui,sans-serif;` +
+    `pointer-events:none;white-space:nowrap;opacity:.9">test version · ${when}${commit ? ' · ' + commit : ''}</div>`;
+  // just after the board, so thought bubbles and the dev sheet draw over it
+  const board = '<canvas id="world" aria-label="Game board"></canvas>';
+  if (!html.includes(board)) throw new Error('missing the board canvas');
+  html = html.replace(board, board + badge);
+}
+
 mkdirSync(join(root, 'dist'), { recursive: true });
 writeFileSync(join(root, 'dist/index.html'), html);
-console.log(`built dist/index.html  ${(html.length / 1024).toFixed(1)} kB  (game ${(js.length / 1024).toFixed(1)} kB, ${Object.keys(files).length} source files embedded)`);
+console.log(`built dist/index.html${preview ? ' (test version)' : ''}  ${(html.length / 1024).toFixed(1)} kB  (game ${(js.length / 1024).toFixed(1)} kB, ${Object.keys(files).length} source files embedded)`);
