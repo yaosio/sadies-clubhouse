@@ -18,6 +18,14 @@ own folder, so changing one never means retesting the others (`docs/ARCHITECTURE
 opens in the clubhouse: a room in crappy late-90s 3D with a shelf of software boxes, one per
 activity (the rest are locked, "under construction"). Tap a box, then PLAY!.
 
+The second activity is **TypeFitter Deluxe 3.1**: a 1993 program by someone who loved what their
+text engine could do and spent ten minutes on the box. Fonts, bold, outline, shadow, WarpArt,
+secret symbols: every button changes the text, and Sadie (a flat, badly scanned picture traced from
+her real photo) gushes about it with made-up facts about how the computer does it. Her TEXT LOVE
+meter goes up and down (it's rigged: always full by the 10th change), then FIT IT! makes a big show
+of fitting, the text still doesn't fit (it never can: the box is always a few pixels too small),
+and you win anyway, with a certificate.
+
 The owner doesn't code and installs nothing. Claude does all the building.
 
 ## Where things live

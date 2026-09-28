@@ -62,6 +62,23 @@ activity is checked again, so something moves into it only once a second activit
 (Node, no browser) and `tests/<name>/browser.mjs` for its checks in a browser (see Dropper World's
 for the shape; it opens the page at `#<name>`). Nothing else changes.
 
+# TypeFitter (`src/activities/typefitter/`)
+
+A small activity: no simulation, no saves (each visit starts on a fresh sentence). Only `main.js`
+and `text.js` touch the page; `love.js` and `says.js` are plain logic the tests run in Node.
+
+| File | What it does |
+|---|---|
+| `card.js`, `page.html`, `styles.css` | Its card, its screen and its look: TypeFitter's parts straight in the Play Place's candy-purple frame, no windows (its own copy of the frame's look). Top strip (left end free for ESC BACK, measured), tool buttons (each shows its key; gold when on), the page (the text and its box), Sadie's corner (her picture, speech bubble, TEXT LOVE meter, FIT IT!), the LED sign (sizes, zoom, bragging), the key bar (F1 HELP, F5 README.TXT). Phone and any tall screen: stacked, buttons in a grid without their keys. Wide and sideways (700 px+, landscape): Sadie's corner is a column down the right. Pop-ups are candy panels with rivets. |
+| `box.js` | The front of its box on the clubhouse shelf. Drawn by `art/play-place/pictures.py`. |
+| `main.js` | Loaded by `start()`. Wires it all up: a button (or its key) changes the style, Sadie says something, the meter moves; FIT IT! runs the fitting show, the win and the certificate, then NEXT SENTENCE. Escape closes a pop-up (and doesn't leave in the middle of a win). Exposes `window.__typefitter()` for the browser checks. |
+| `love.js` | The TEXT LOVE meter (`makeMeter`: a rigged dice roll, full on a secret change from the 4th to the 10th) and `boxFor` (the box for text of a given size: always too small, closer as the meter fills). |
+| `says.js` | Everything Sadie and the program say: her made-up facts per button, the sentences to fit, the bragging, the fitting steps, README.TXT and HELP. |
+| `text.js` | The text's style and the buttons that change it, drawing it one letter per span (WarpArt bends them, the ransom note mixes fonts), and `layout`: measure it, put the box round it, zoom the page out if it wouldn't be seen whole. |
+| `scan.js`, `photo.js` | Sadie's picture: her real photo (`photo.js`, 256x218 JPEG) shrunk to 128x109, squashed to 16 colors with a dot pattern, traced over with wobbly lines, JPEG-crushed twice (`jpegCrush`, a real 8x8 block round trip). Drawn once at the start. |
+| `tests/typefitter/run.mjs` | Headless: the meter always fills from the 4th to the 10th change and goes down now and then, the box never fits, Sadie has a line for every button, the JPEG crusher smears without wrecking. A second. |
+| `tests/typefitter/browser.mjs` | Phone and desktop: starts, Sadie drawn, no windows, presses buttons until the meter fills (never more than 10, box never fitting), FIT IT!, the win and certificate, NEXT SENTENCE, README.TXT, keys. Screenshots in `dist/check/typefitter/`. |
+
 # Dropper World (`src/activities/dropper-world/`)
 
 Paths below are inside this folder unless they start with `src/`, `tests/` or `tools/`. Three
