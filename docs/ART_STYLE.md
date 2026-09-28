@@ -88,6 +88,13 @@ tried way too hard:
   tools, save only in the full version. **No prices and no order buttons** (the owner said no).
 
 ## Still to work out
+- **The interface, proposed (not approved yet):** `art/90s-style/interface-mockup.html` (published
+  at https://claude.ai/artifact/JeTXaHsXxnPpSYe37qBbMY). Every modern bit leaves the board (the thought
+  bubble, tip, pop-ups, round Toys and dev buttons, Sadie's "↑ 3.1" pill, the rounded font). The
+  Play Place frame (top strip with ESC BACK and logo, F-key bar) is the same in every activity; the
+  middle is the activity's own: for Dropper World, a row of stamps (who you're watching) and a
+  dashboard (their face, doing, why, up to 4 feelings as LED meters, and an LED sign for news and
+  hints). Board pictures come from `tools/dropper-world/board-shot.mjs`.
 - Phone (portrait) layout: the mock-up is landscape. On a tall screen the logo, toolbar,
   dashboard and F-key bar need rearranging (for example the toolbar as a row, the dashboard
   stacked), without crowding the board.
