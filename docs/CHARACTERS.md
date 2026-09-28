@@ -37,8 +37,8 @@ not from rules that name two characters.
   `think()` next to its activities. When you add an activity or a feeling, add its line there too,
   so the bubble never says something that isn't true. At most 4 bars per character: never one bar
   per other character (that won't scale as friends are added). The mole, for example, has one bar
-  for whoever it has its eye on right now. This replaced the old pop-up messages
-  ("Munch munch!", "Zoomies!"); only a new friend still gets one.
+  for whoever it has its eye on right now. There are no pop-up messages ("Munch munch!",
+  "Zoomies!"); only a new friend gets one.
 
 ### Adding an interaction
 
@@ -122,8 +122,7 @@ joke). The player doesn't steer it: it decides where every piece goes, for its o
   it rests (fully in 20 s). Tired, it waits up to 4× as long between pieces and flies slower. Once
   it's worn out it `nap`s (no pieces at all, little z's) until it's down to 40%. On a quick
   device it never tires; on a slow one, or with a huge tower, it slows or stops the tower growing.
-- Always drops with a full supply, so never faster than one piece every 1.5 s (the same top speed
-  as before the mole).
+- Always drops with a full supply, so never faster than one piece every 1.5 s.
 - Activities: `bury` (want 1 + 2 × restless), `barn` (1), `nap` (10, busy until rested).
 - **Envies the bedrock.** For 20 s after pieces melt into the bedrock (`core/bedrock.js`), its
   thoughts add: "And some of the deep ones just turned into bedrock. Lucky things." Nothing is more
