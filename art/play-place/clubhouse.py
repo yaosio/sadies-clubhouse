@@ -256,155 +256,159 @@ def keybar(x0, y0, x1, keys, row_h=12):
         if x + need - 9 > x1: x, y = x0, y + row_h
         x = keycap(x, y, key, label, bool(dim))
 
-TAG = [('SADIE\'S DROPPER WORLD', '#ffd23a'), ('A MOLE DROPS JELLY ON', '#4aff6a'),
-       ('EVERYTHING. SADIE CLIMBS', '#4aff6a'), ('THE PILE FOR HAY.', '#4aff6a')]
+TAG = [('SADIE\'S DROPPER WORLD', '#ffd23a')]
 
-# =====================================================================================
-# 1. The clubhouse menu, landscape (320x240, like the first mock-ups)
-kit.start(320, 240)
-frame()
-logo(10, 8, "SADIE'S PLAY PLACE")
-panel(222, 6, 313, 25, False, 1, '#140a3a')
-text(226, 9, 'SHAREWARE V0.9 BETA', '#2ee6d6')
-text(226, 17, 'PLEASE COPY & SHARE!', '#ff8ce0')
-groove_h(3, kit.W - 4, 28)
+def main():
+    # =====================================================================================
+    # 1. The clubhouse menu, landscape (320x240, like the first mock-ups)
+    kit.start(320, 240)
+    frame()
+    logo(10, 8, "SADIE'S PLAY PLACE")
+    panel(222, 6, 313, 25, False, 1, '#140a3a')
+    text(226, 9, 'SHAREWARE V0.9 BETA', '#2ee6d6')
+    text(226, 17, 'PLEASE COPY & SHARE!', '#ff8ce0')
+    groove_h(3, kit.W - 4, 28)
 
-RX0, RY0, RX1, RY1 = 6, 32, 313, 175
-FY = 150
-wallpaper(RX0, RY0, RX1, FY - 4)
-floor(RX0, FY, RX1, RY1)
-window(30, 52, 96, 108)
-rug(78, 163, 52, 9)
-(shx0, shy0, shx1, shy1), cells = cubby_shelf(152, 84, 3, 2, 42, 34)
-shadow_ellipse((shx0 + shx1) // 2, shy1 + 2, (shx1 - shx0) // 2 + 6, 4)
-fill_shelf(cells)
-# a poster on the wall: the mole's own motto
-px0, py0 = 112, 50
-for y in range(py0, py0 + 30):
-    for x in range(px0, px0 + 30):
-        put(x, y, ramp(x, y, [(0, '#ff84cc'), (1, '#9a3ce8')], (y - py0) / 30))
-for x in range(px0, px0 + 30): put(x, py0, '#ffffff'); put(x, py0 + 29, '#3a1040')
-for y in range(py0, py0 + 30): put(px0, y, '#ffffff'); put(px0 + 29, y, '#3a1040')
-sprite_px(ICONS['mole'], px0 + 10, py0 + 4)
-text(px0 + 3, py0 + 17, 'DIG IT', '#fff27a', '#3a1040')
-put(px0 + 14, py0 - 1, '#ff2a2a'); put(px0 + 15, py0 - 1, '#ff2a2a')  # push pin
-sad = build_sadie(shx0 + 30, shy0)
-shadow_ellipse(shx0 + 31, shy0 + 1, 17, 2)
-clip_room = lambda x, y: RX0 <= x <= RX1 and RY0 <= y <= RY1
-outline(sad, INK, clip_room)
-whiskers(shx0 + 30, shy0, 1, clip_room)
-c0 = cells[0]
-hand(c0[2] - 4, c0[3] + 1)
-sunken(RX0, RY0, RX1, RY1)
+    RX0, RY0, RX1, RY1 = 6, 32, 313, 175
+    FY = 150
+    wallpaper(RX0, RY0, RX1, FY - 4)
+    floor(RX0, FY, RX1, RY1)
+    window(30, 52, 96, 108)
+    rug(78, 163, 52, 9)
+    (shx0, shy0, shx1, shy1), cells = cubby_shelf(152, 84, 3, 2, 42, 34)
+    shadow_ellipse((shx0 + shx1) // 2, shy1 + 2, (shx1 - shx0) // 2 + 6, 4)
+    fill_shelf(cells)
+    # a poster on the wall: the mole's own motto
+    px0, py0 = 112, 50
+    for y in range(py0, py0 + 30):
+        for x in range(px0, px0 + 30):
+            put(x, y, ramp(x, y, [(0, '#ff84cc'), (1, '#9a3ce8')], (y - py0) / 30))
+    for x in range(px0, px0 + 30): put(x, py0, '#ffffff'); put(x, py0 + 29, '#3a1040')
+    for y in range(py0, py0 + 30): put(px0, y, '#ffffff'); put(px0 + 29, y, '#3a1040')
+    sprite_px(ICONS['mole'], px0 + 10, py0 + 4)
+    text(px0 + 3, py0 + 17, 'DIG IT', '#fff27a', '#3a1040')
+    put(px0 + 14, py0 - 1, '#ff2a2a'); put(px0 + 15, py0 - 1, '#ff2a2a')  # push pin
+    sad = build_sadie(shx0 + 30, shy0)
+    shadow_ellipse(shx0 + 31, shy0 + 1, 17, 2)
+    clip_room = lambda x, y: RX0 <= x <= RX1 and RY0 <= y <= RY1
+    outline(sad, INK, clip_room)
+    whiskers(shx0 + 30, shy0, 1, clip_room)
+    c0 = cells[0]
+    hand(c0[2] - 4, c0[3] + 1)
+    sunken(RX0, RY0, RX1, RY1)
 
-groove_h(3, kit.W - 4, 178)
-led_board(8, 183, 250, 220, TAG[:1] + [('A MOLE DROPS JELLY ON EVERYTHING.', '#4aff6a'), ('SADIE CLIMBS THE PILE FOR HAY.', '#4aff6a'),
-                                        ('SAVES YOUR TOWER: YES', '#2ee6d6')])
-play_button(258, 184, 312, 219)
-groove_h(3, kit.W - 4, 222)
-keybar(8, 225, 312, [('F1', 'HELP'), ('F3', 'SOUND'), ('F5', 'ABOUT'), ('PGDN', 'MORE SHELVES'), ('ESC', 'QUIT')])
-kit.save(os.path.join(HERE, 'clubhouse-wide.png'))
+    groove_h(3, kit.W - 4, 178)
+    led_board(8, 183, 250, 220, TAG[:1] + [('A MOLE DROPS JELLY ON EVERYTHING.', '#4aff6a'), ('SADIE CLIMBS THE PILE FOR HAY.', '#4aff6a'),
+                                            ('CHOOTER NEXT DOOR HATES THE THUDS.', '#4aff6a')])
+    play_button(258, 184, 312, 219)
+    groove_h(3, kit.W - 4, 222)
+    keybar(8, 225, 312, [('F1', 'HELP'), ('F3', 'SOUND'), ('F5', 'ABOUT'), ('PGDN', 'MORE SHELVES'), ('ESC', 'QUIT')])
+    kit.save(os.path.join(HERE, 'clubhouse-wide.png'))
 
-# =====================================================================================
-# 2. The clubhouse menu on a phone (portrait, 180x360)
-kit.start(180, 360)
-frame()
-def center_logo(y, s, sx):
-    logo((kit.W - (len(s) * 4 * sx - sx)) // 2, y, s, sx, 3)
-center_logo(8, "SADIE'S", 3)
-center_logo(27, 'PLAY PLACE', 3)
-panel(8, 47, 171, 64, False, 1, '#140a3a')
-for k, (s, c) in enumerate((('SHAREWARE V0.9 BETA', '#2ee6d6'), ('PLEASE COPY & SHARE!', '#ff8ce0'))):
-    text(90 - text_w(s) // 2, 50 + k * 7, s, c)
-groove_h(3, kit.W - 4, 67)
+    # =====================================================================================
+    # 2. The clubhouse menu on a phone (portrait, 180x360)
+    kit.start(180, 360)
+    frame()
+    def center_logo(y, s, sx):
+        logo((kit.W - (len(s) * 4 * sx - sx)) // 2, y, s, sx, 3)
+    center_logo(8, "SADIE'S", 3)
+    center_logo(27, 'PLAY PLACE', 3)
+    panel(8, 47, 171, 64, False, 1, '#140a3a')
+    for k, (s, c) in enumerate((('SHAREWARE V0.9 BETA', '#2ee6d6'), ('PLEASE COPY & SHARE!', '#ff8ce0'))):
+        text(90 - text_w(s) // 2, 50 + k * 7, s, c)
+    groove_h(3, kit.W - 4, 67)
 
-RX0, RY0, RX1, RY1 = 6, 71, 173, 278
-FY = 250
-wallpaper(RX0, RY0, RX1, FY - 4)
-floor(RX0, FY, RX1, RY1)
-window(128, 92, 160, 124)
-rug(90, 273, 56, 4)
-(shx0, shy0, shx1, shy1), cells = cubby_shelf(44, 132, 2, 3, 42, 34)
-shadow_ellipse((shx0 + shx1) // 2, shy1 + 2, (shx1 - shx0) // 2 + 5, 3)
-fill_shelf(cells)
-sad = build_sadie(shx0 + 30, shy0)
-shadow_ellipse(shx0 + 31, shy0 + 1, 17, 2)
-clip_room = lambda x, y: RX0 <= x <= RX1 and RY0 <= y <= RY1
-outline(sad, INK, clip_room)
-whiskers(shx0 + 30, shy0, 1, clip_room)
-c0 = cells[0]
-hand(c0[2] - 4, c0[3] + 1)
-# page arrows either side of the shelf: the shelf goes on past this one (dim when there's no more)
-ay = (shy0 + shy1) // 2
-for (ax, d, col) in ((shx0 - 5, -1, '#1aa89c'), (shx1 + 5, 1, '#1aa89c')):
-    for i in range(7):
-        for j in range(-6 + i, 7 - i): put(ax + d * i, ay + j, col)
-text((shx0 + shx1) // 2 - text_w('SHELF 1 OF 1') // 2 + 1, shy1 + 6, 'SHELF 1 OF 1', '#ffffff', '#3a1a0a')
-sunken(RX0, RY0, RX1, RY1)
+    RX0, RY0, RX1, RY1 = 6, 71, 173, 278
+    FY = 250
+    wallpaper(RX0, RY0, RX1, FY - 4)
+    floor(RX0, FY, RX1, RY1)
+    window(128, 92, 160, 124)
+    rug(90, 273, 56, 4)
+    (shx0, shy0, shx1, shy1), cells = cubby_shelf(44, 132, 2, 3, 42, 34)
+    shadow_ellipse((shx0 + shx1) // 2, shy1 + 2, (shx1 - shx0) // 2 + 5, 3)
+    fill_shelf(cells)
+    sad = build_sadie(shx0 + 30, shy0)
+    shadow_ellipse(shx0 + 31, shy0 + 1, 17, 2)
+    clip_room = lambda x, y: RX0 <= x <= RX1 and RY0 <= y <= RY1
+    outline(sad, INK, clip_room)
+    whiskers(shx0 + 30, shy0, 1, clip_room)
+    c0 = cells[0]
+    hand(c0[2] - 4, c0[3] + 1)
+    # page arrows either side of the shelf: the shelf goes on past this one (dim when there's no more)
+    ay = (shy0 + shy1) // 2
+    for (ax, d, col) in ((shx0 - 5, -1, '#1aa89c'), (shx1 + 5, 1, '#1aa89c')):
+        for i in range(7):
+            for j in range(-6 + i, 7 - i): put(ax + d * i, ay + j, col)
+    text((shx0 + shx1) // 2 - text_w('SHELF 1 OF 1') // 2 + 1, shy1 + 6, 'SHELF 1 OF 1', '#ffffff', '#3a1a0a')
+    sunken(RX0, RY0, RX1, RY1)
 
-groove_h(3, kit.W - 4, 281)
-led_board(8, 286, 118, 321, [('DROPPER WORLD', '#ffd23a'), ('A MOLE DROPS JELLY', '#4aff6a'), ('ON EVERYTHING!', '#4aff6a'), ('SAVES: YES', '#2ee6d6')])
-play_button(124, 286, 171, 321)
-groove_h(3, kit.W - 4, 325)
-keybar(9, 330, 172, [('F1', 'HELP'), ('F3', 'SOUND'), ('F5', 'ABOUT'), ('PGDN', 'MORE'), ('ESC', 'QUIT')], 13)
-kit.save(os.path.join(HERE, 'clubhouse-phone.png'))
+    groove_h(3, kit.W - 4, 281)
+    led_board(8, 286, 118, 321, [('DROPPER WORLD', '#ffd23a'), ('A MOLE DROPS JELLY', '#4aff6a'), ('ON EVERYTHING!', '#4aff6a'), ('SADIE WANTS HAY.', '#4aff6a')])
+    play_button(124, 286, 171, 321)
+    groove_h(3, kit.W - 4, 325)
+    keybar(9, 330, 172, [('F1', 'HELP'), ('F3', 'SOUND'), ('F5', 'ABOUT'), ('PGDN', 'MORE'), ('ESC', 'QUIT')], 13)
+    kit.save(os.path.join(HERE, 'clubhouse-phone.png'))
 
-# =====================================================================================
-# 3. Inside an activity on a phone: the frame shrinks to a strip, the activity gets the screen
-kit.start(180, 360)
-frame()
-keycap(7, 7, 'ESC', '')
-text(26, 9, 'BACK', '#ffffff', '#12082e')
-logo(52, 6, 'DROPPER WORLD', 1, 2)
-groove_h(3, kit.W - 4, 20)
-BX0, BY0, BX1, BY1 = 6, 24, 173, 330
-GROUND = 300
-sky = [(0, '#2438e8'), (0.3, '#2f86ff'), (0.62, '#62d6ff'), (0.86, '#ffb2ea'), (1, '#ffe6a6')]
-for y in range(BY0, GROUND):
+    # =====================================================================================
+    # 3. Inside an activity on a phone: the frame shrinks to a strip, the activity gets the screen
+    kit.start(180, 360)
+    frame()
+    keycap(7, 7, 'ESC', '')
+    text(26, 9, 'BACK', '#ffffff', '#12082e')
+    logo(52, 6, 'DROPPER WORLD', 1, 2)
+    groove_h(3, kit.W - 4, 20)
+    BX0, BY0, BX1, BY1 = 6, 24, 173, 330
+    GROUND = 300
+    sky = [(0, '#2438e8'), (0.3, '#2f86ff'), (0.62, '#62d6ff'), (0.86, '#ffb2ea'), (1, '#ffe6a6')]
+    for y in range(BY0, GROUND):
+        for x in range(BX0, BX1 + 1):
+            put(x, y, ramp(x, y, sky, (y - BY0) / (GROUND - BY0 - 20)))
     for x in range(BX0, BX1 + 1):
-        put(x, y, ramp(x, y, sky, (y - BY0) / (GROUND - BY0 - 20)))
-for x in range(BX0, BX1 + 1):
-    far = GROUND - 40 + 7 * math.sin(x * 0.07) + 3 * math.sin(x * 0.2 + 1)
-    for y in range(int(far), GROUND):
-        put(x, y, ramp(x, y, [(0, '#9af0c8'), (1, '#52c89a')], (y - far) / 18) if y > far + 0.5 else '#2c9c78')
-    for y in range(GROUND, BY1 + 1):
-        dy = y - GROUND
-        c = '#a8ff64' if dy == 0 else '#34d04a' if dy < 4 else '#6a2c10' if dy == 4 else ramp(x, y, [(0, '#d0782e'), (1, '#7a3814')], dy / 30)
-        put(x, y, c)
-# a small pile of gummy pieces, Sadie on top, the mole overhead with one more
-PCOL = [['#6a0048', '#b8127a', '#ff34a4', '#ff84cc'], ['#0c5a18', '#18a038', '#36e04e', '#9aff9a'],
-        ['#8a5a00', '#d0a000', '#ffe030', '#fff6a0'], ['#0a1a8a', '#1a4ae0', '#2f86ff', '#9ad0ff'],
-        ['#4a0a8a', '#7a2ad0', '#b070ff', '#e0c8ff']]
-def gummy(x0, y0, w, h, pal):
-    m = {}
-    for y in range(y0, y0 + h):
-        for x in range(x0, x0 + w):
-            if (x in (x0, x0 + w - 1)) and (y in (y0, y0 + h - 1)): continue
-            n = (-(x - x0) / w + 0.5, -(y - y0) / h + 0.5, 0.7)
-            m[(x, y)] = (0, tone(x, y, pal, 1.6 + 1.6 * (n[0] * 0.5 + n[1] * 0.9)))
-    outline(m, pal[0], lambda x, y: BX0 <= x <= BX1 and BY0 <= y <= BY1)
-    for i in range(3): put(x0 + 2 + i, y0 + 2, '#ffffff')
-    put(x0 + 2, y0 + 3, '#ffffff')
-rnd = random.Random(5)
-for (gx, gy, w, h) in ((40, 286, 22, 14), (63, 288, 30, 12), (95, 284, 16, 16), (112, 290, 26, 10), (139, 286, 20, 14),
-                       (52, 272, 16, 14), (70, 276, 24, 12), (96, 270, 18, 14), (118, 276, 24, 14),
-                       (62, 260, 22, 16), (86, 258, 14, 12), (102, 256, 22, 14), (80, 246, 26, 12)):
-    gummy(gx, gy, w, h, PCOL[rnd.randrange(5)])
-clip_b = lambda x, y: BX0 <= x <= BX1 and BY0 <= y <= BY1
-sad = build_sadie(88, 246)
-outline(sad, INK, clip_b); whiskers(88, 246, 1, clip_b)
-sprite_px(ICONS['mole'], 118, 70, 2)
-gummy(122, 92, 12, 14, PCOL[4])
-sunken(BX0, BY0, BX1, BY1)
-groove_h(3, kit.W - 4, 333)
-x = keycap(8, 339, 'F1', 'HELP')
-x = keycap(x, 339, 'F3', 'SOUND')
-# the activity's own stamp: the Toys button, in the same bar
-cbutton(128, 336, 171, 352, 'up')
-text(150 - text_w('TOYS') // 2 + 5, 342, 'TOYS', '#ffffff', '#12082e')
-for y in range(339, 350):
-    for x in range(133, 143):
-        d = math.hypot(x - 137.5, y - 344)
-        if d < 4.8: put(x, y, '#d8ff30' if (x + y) % 3 else '#a0d010')
-kit.save(os.path.join(HERE, 'activity-phone.png'))
-print('ok')
+        far = GROUND - 40 + 7 * math.sin(x * 0.07) + 3 * math.sin(x * 0.2 + 1)
+        for y in range(int(far), GROUND):
+            put(x, y, ramp(x, y, [(0, '#9af0c8'), (1, '#52c89a')], (y - far) / 18) if y > far + 0.5 else '#2c9c78')
+        for y in range(GROUND, BY1 + 1):
+            dy = y - GROUND
+            c = '#a8ff64' if dy == 0 else '#34d04a' if dy < 4 else '#6a2c10' if dy == 4 else ramp(x, y, [(0, '#d0782e'), (1, '#7a3814')], dy / 30)
+            put(x, y, c)
+    # a small pile of gummy pieces, Sadie on top, the mole overhead with one more
+    PCOL = [['#6a0048', '#b8127a', '#ff34a4', '#ff84cc'], ['#0c5a18', '#18a038', '#36e04e', '#9aff9a'],
+            ['#8a5a00', '#d0a000', '#ffe030', '#fff6a0'], ['#0a1a8a', '#1a4ae0', '#2f86ff', '#9ad0ff'],
+            ['#4a0a8a', '#7a2ad0', '#b070ff', '#e0c8ff']]
+    def gummy(x0, y0, w, h, pal):
+        m = {}
+        for y in range(y0, y0 + h):
+            for x in range(x0, x0 + w):
+                if (x in (x0, x0 + w - 1)) and (y in (y0, y0 + h - 1)): continue
+                n = (-(x - x0) / w + 0.5, -(y - y0) / h + 0.5, 0.7)
+                m[(x, y)] = (0, tone(x, y, pal, 1.6 + 1.6 * (n[0] * 0.5 + n[1] * 0.9)))
+        outline(m, pal[0], lambda x, y: BX0 <= x <= BX1 and BY0 <= y <= BY1)
+        for i in range(3): put(x0 + 2 + i, y0 + 2, '#ffffff')
+        put(x0 + 2, y0 + 3, '#ffffff')
+    rnd = random.Random(5)
+    for (gx, gy, w, h) in ((40, 286, 22, 14), (63, 288, 30, 12), (95, 284, 16, 16), (112, 290, 26, 10), (139, 286, 20, 14),
+                           (52, 272, 16, 14), (70, 276, 24, 12), (96, 270, 18, 14), (118, 276, 24, 14),
+                           (62, 260, 22, 16), (86, 258, 14, 12), (102, 256, 22, 14), (80, 246, 26, 12)):
+        gummy(gx, gy, w, h, PCOL[rnd.randrange(5)])
+    clip_b = lambda x, y: BX0 <= x <= BX1 and BY0 <= y <= BY1
+    sad = build_sadie(88, 246)
+    outline(sad, INK, clip_b); whiskers(88, 246, 1, clip_b)
+    sprite_px(ICONS['mole'], 118, 70, 2)
+    gummy(122, 92, 12, 14, PCOL[4])
+    sunken(BX0, BY0, BX1, BY1)
+    groove_h(3, kit.W - 4, 333)
+    x = keycap(8, 339, 'F1', 'HELP')
+    x = keycap(x, 339, 'F3', 'SOUND')
+    # the activity's own stamp: the Toys button, in the same bar
+    cbutton(128, 336, 171, 352, 'up')
+    text(150 - text_w('TOYS') // 2 + 5, 342, 'TOYS', '#ffffff', '#12082e')
+    for y in range(339, 350):
+        for x in range(133, 143):
+            d = math.hypot(x - 137.5, y - 344)
+            if d < 4.8: put(x, y, '#d8ff30' if (x + y) % 3 else '#a0d010')
+    kit.save(os.path.join(HERE, 'activity-phone.png'))
+    print('ok')
+
+
+if __name__ == '__main__':
+    main()

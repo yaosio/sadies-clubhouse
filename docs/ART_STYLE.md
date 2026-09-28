@@ -10,7 +10,10 @@ kept for reference only.
 several activities, the tower game ("Sadie's Dropper World") being the first. Mock-ups in
 `art/play-place/` (drawn by `clubhouse.py`, using `kit.py`, the shared bits of `mockup-2.py`):
 `clubhouse-wide.png` and `clubhouse-phone.png` (the menu: a room with a cubby shelf, one software
-box per activity, Sadie on top, a LED board and PLAY!), and `activity-phone.png` (inside an
+box per activity, Sadie on top, a LED board saying what the chosen one is (not whether it saves:
+the owner doesn't want that shown) and PLAY!), the same menu in pseudo-3D (`clubhouse3d-wide.png`,
+`clubhouse3d-phone.png`, drawn by `clubhouse3d.py`: a room in perspective worked out per pixel,
+with flat sprites for Sadie and the cursor), and `activity-phone.png` (inside an
 activity, the frame shrinks to a strip with ESC BACK, F1 HELP and the activity's own buttons).
 Mock-up 2's dashboard (pieces, hunger) belongs to the tower game, not to the whole Play Place.
 
