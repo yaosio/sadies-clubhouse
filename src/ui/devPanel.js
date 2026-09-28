@@ -8,10 +8,10 @@ import { U, DEFAULTS, tuning, applyTuning } from '../config.js';
 import { world } from '../core/world.js';
 import { wake } from '../core/physics/solver.js';
 import { drp } from '../core/dropper.js';
-import { chooter } from '../core/friends/chooter.js';
+import { chooter, PEEK_AT } from '../core/friends/chooter.js';
 import { sadie } from '../core/sadie/brain.js';
 import { mole } from '../core/mole.js';
-import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, zoomiesNow, goHomeNow, comeOutNow, teaseNow, tireMoleNow } from '../core/debug.js';
+import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, peekChooterNow, zoomiesNow, goHomeNow, comeOutNow, teaseNow, tireMoleNow } from '../core/debug.js';
 import { camState } from '../render/view.js';
 import { clearTower, startOver } from '../core/save.js';
 
@@ -90,6 +90,7 @@ act('buildPile', () => buildPile(drp.x));
 act('stopRain', stopRain);
 act('sadieTop', sadieToTop);
 act('fetchBarn', fetchBarnNow);
+act('peekChooter', peekChooterNow);
 act('meetChooter', meetChooterNow);
 act('zoomies', zoomiesNow);
 act('goHome', goHomeNow);
@@ -117,6 +118,7 @@ function refresh() {
   $('rainNote').textContent = debug.rain.length ? `${debug.rain.length} pieces still to come${debug.boost ? ', running at 8×' : ''}.`
     : debug.boost ? 'Letting the pile settle at 8×…' : '"Here" means around the mole. A tall pile runs at 8× until it settles.';
   $('fetchBarn').disabled = !!sadie.trip;
+  $('peekChooter').disabled = chooter.met || chooter.heard >= PEEK_AT;
   $('meetChooter').disabled = chooter.met;
   $('zoomies').disabled = !chooter.met || chooter.doing === 'zoom';
   $('goHome').disabled = !chooter.met || chooter.place !== 'out' || chooter.doing === 'home';

@@ -1,8 +1,8 @@
 // Drawing Chooter: a black lab/pitbull mix. Stocky body, broad blocky head, floppy lab ears, a
 // white blaze on his chest, a big pink tongue, a whip of a tail that never stops wagging, and a
 // blue collar with a gold tag. Drawn from the side, facing where he's going.
-import { U } from '../config.js';
-import { chooter } from '../core/friends/chooter.js';
+import { U, W } from '../config.js';
+import { chooter, peekSpot } from '../core/friends/chooter.js';
 import { toy, TOY_R } from '../core/toys.js';
 import { barnX, barnFloor } from '../core/barn.js';
 import { ctx, cam, vp, sxf, syf } from './view.js';
@@ -153,17 +153,8 @@ export function drawChooter(time) {
   ctx.restore();
 }
 
-// His face in the barn's hayloft window while he's home (drawn in the barn's own coordinates:
-// blocks, y up, the window centered at 0, 2.92).
-export function drawChooterInWindow(time) {
-  const c = chooter;
-  if (!c.met || c.place !== 'home') return;
-  const t = time / 1000;
-  const peek = Math.max(0, Math.sin(t * 0.9 + 1)); // pops up now and then
-  if (peek <= 0.05) return;
-  const y = 2.55 + peek * 0.32, tilt = Math.sin(t * 2.3) * 0.12;
-  ctx.save();
-  ctx.translate(0, y); ctx.rotate(tilt); ctx.scale(1.2, 1.2);
+// His face from the front, in blocks, y up, centered at 0,0 (the hayloft window and peeking in).
+function face(t) {
   ctx.lineJoin = 'round';
   ctx.fillStyle = DOG.coat; ctx.strokeStyle = DOG.ink; ctx.lineWidth = 0.03;
   for (const sd of [-1, 1]) { // floppy ears
@@ -175,13 +166,43 @@ export function drawChooterInWindow(time) {
   for (const sd of [-1, 1]) { ctx.fillStyle = DOG.white; ctx.beginPath(); ctx.arc(sd * 0.08, 0.08, 0.04, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = DOG.nose; ctx.beginPath(); ctx.arc(sd * 0.08, 0.08, 0.025, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = DOG.nose; ctx.beginPath(); ctx.ellipse(0, -0.02, 0.05, 0.035, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = DOG.tongue; ctx.beginPath(); ctx.ellipse(0.02, -0.12, 0.04, 0.06 + Math.sin(t * 14) * 0.01, 0, 0, Math.PI * 2); ctx.fill();
+}
+
+// Before they meet: his head poking in from behind the wall nearer Sadie, to see what all the noise is.
+export function drawChooterPeek(time) {
+  const c = chooter;
+  if (c.met || c.peek <= 0) return;
+  const at = peekSpot(), t = time / 1000, S = U * cam.z;
+  const sd = c.peekSide, X = sxf(sd > 0 ? W : 0), Y = syf(at.y);
+  if (Y < -S * 2 || Y > vp.vh + S * 2 || X < -S * 2 || X > vp.vw + S * 2) return;
+  const e = c.peek * c.peek * (3 - 2 * c.peek); // ease in and out
+  ctx.save();
+  ctx.beginPath(); if (sd > 0) ctx.rect(0, 0, X, vp.vh); else ctx.rect(X, 0, vp.vw - X, vp.vh); ctx.clip(); // he's behind the wall: only what's poked past it shows
+  ctx.translate(X, Y); ctx.scale(sd * S, -S); // drawn for the right-hand wall, mirrored for the left
+  ctx.translate(0.45 - e * 0.95, Math.sin(t * 3) * 0.03); ctx.rotate(0.35 + Math.sin(t * 1.7) * 0.1); ctx.scale(1.6, 1.6);
+  face(t);
+  ctx.restore();
+}
+
+// His face in the barn's hayloft window while he's home (drawn in the barn's own coordinates:
+// blocks, y up, the window centered at 0, 2.92).
+export function drawChooterInWindow(time) {
+  const c = chooter;
+  if (!c.met || c.place !== 'home') return;
+  const t = time / 1000;
+  const peek = Math.max(0, Math.sin(t * 0.9 + 1)); // pops up now and then
+  if (peek <= 0.05) return;
+  const y = 2.55 + peek * 0.32, tilt = Math.sin(t * 2.3) * 0.12;
+  ctx.save();
+  ctx.translate(0, y); ctx.rotate(tilt); ctx.scale(1.2, 1.2);
+  face(t);
   ctx.restore();
 }
 
 // Where he is, for the map strip (null while he's inside).
 export function chooterMapSpot() {
   const c = chooter;
-  if (!c.met) return null;
+  if (!c.met) return c.peek > 0 ? { ...peekSpot(), home: false } : null; // peeking in over the wall
   if (c.place === 'home') return { x: barnX(), y: barnFloor(), home: true };
   return { x: c.x, y: c.y, home: false };
 }

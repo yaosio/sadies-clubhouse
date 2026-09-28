@@ -34,7 +34,7 @@ tell the screen something, it emits an event (below).
 | `core/surface.js` | Reading the pile: heightmap `surf` (minimap, hay, the mole's hover height) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). Also holds the bedrock's top (`rock`, `rockAt`, `rockTop`, `rockInfo`): the real floor under everything. |
 | `core/fossil.js` | Turns pieces buried deep in the pile into fossils: permanent ground that never wakes. |
 | `core/bedrock.js` | Once the board has more than 400 pieces, melts the deepest fossils (buried deeper still) into the bedrock, just enough to stay under: they stop being pieces and raise the floor to exactly their top (filling any cave under them, so nothing is left hanging), leaving flecks of their color. This is what lets the tower grow forever without getting slower. |
-| `core/friends/chooter.js` | Chooter, Sadie's first friend: feelings (energy, tired, missing), activities (`greet`, `play`, `zoom` knocking pieces aside, `fetch` the ball, `home` to rest in the barn), his body (trot, leap, fall). Meets Sadie at 15 blocks. Offers `friend` once met. |
+| `core/friends/chooter.js` | Chooter, Sadie's first friend: feelings (energy, tired, missing), activities (`greet`, `play`, `zoom` knocking pieces aside, `fetch` the ball, `home` to rest in the barn), his body (trot, leap, fall). Before they meet he listens from next door (`listen`: the pieces thudding and the barn scraping wind him up), peeks in over the wall nearer Sadie, and bursts in once he can't stand it. Offers `friend` once met. |
 | `core/toys.js` | Toys the player throws for the friends (a ball so far): one out at a time, bounces off the pile without pushing it, vanishes once played with. |
 | `core/barn.js` | Sadie's barn: a fixed building in the pile (pieces land on it and bury it, Sadie can stand on it). Dragged behind Sadie on a trip home, otherwise drops onto whatever is under it. |
 | `core/hay.js` | Sadie's hay: the trail of bundles (always 3 out, a new one placed when one is eaten) and hay riding the pile up/down (never below where it appeared). Offers `food`. Can be picked up (`pickUpHay`, it goes where the carrier puts it) and put down (`putDownHay`, drops onto the pile). |
@@ -53,7 +53,7 @@ tell the screen something, it emits an event (below).
 | `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. The camera never looks more than 2 blocks below the lowest point of the bedrock. |
 | `render/scene.js` | Draws a frame back to front: sky, ruler, walls, ground, hay, drop lane, barn, pieces, the bedrock (marbled candy rock with flecks of what melted in), Sadie's rope, Sadie, held piece, the mole, particles. Skips pieces and hay that are off screen. |
 | `render/barnView.js` | Draws Sadie's barn and the rope she drags it with. |
-| `render/chooterView.js` | Draws Chooter in every mood, and his face in the barn's hayloft window while he's home. |
+| `render/chooterView.js` | Draws Chooter in every mood, his face in the barn's hayloft window while he's home, and his head peeking in over a wall before they meet (mirrored for the left one). |
 | `render/toyView.js` | Draws the toys (the tennis ball). |
 | `render/jelly.js` | Draws one jelly piece (smooth outline, shine, material decorations). |
 | `render/sadieView.js` | Draws Sadie in every mood, and her emotes. |
@@ -73,6 +73,7 @@ tell the screen something, it emits an event (below).
 | `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html`, with the source embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
 | `tools/check.mjs` | `npm run check`: the tests, a build, then the page in headless Chromium as a phone and a desktop: new game, tapping Sadie and the mole, the dev sheet, a full board loaded from a save and reloaded, and how smooth that board is on a phone 4x slower. Fails on any page error; screenshots in `dist/check/`. `--quick` skips the tests, `--preview` checks the test version. The tests are skipped anyway if they already passed on exactly this `src/` and `tests/` (remembered in `dist/`), so the check at merge is quick; `--retest` runs them regardless. |
 | `tools/fullboard.mjs` | A save of a full board (14 minutes of real play, about 400 pieces, bedrock melting). `check.mjs` makes one when `src/core` changes and keeps it in `dist/`. Handy for any experiment that needs a big tower. |
+| `tools/arrival.mjs` | When Chooter first peeks in and bursts in on new boards, for a few random seeds (`node tools/arrival.mjs [seeds]`). For tuning how friends turn up. |
 | `tools/unpack.mjs` | Rebuilds the project folder from a built page's embedded source. |
 
 ## Events
@@ -109,8 +110,8 @@ the mole (tiredness, what to bury, flying there, letting go) → dropper (supply
   `SADIE_DOES` / `CHOOTER_DOES`), rather than a rule naming another character. If it needs a new
   look, add a mood (`core/sadie/mood.js`, drawn in `render/sadieView.js`; Chooter's in
   `render/chooterView.js`).
-- **New friend:** a module in `core/friends/` like `chooter.js` (a height to meet them at, their
-  feelings and activities using `core/mind/`, their offers, their thoughts for the bubble via
+- **New friend:** a module in `core/friends/` like `chooter.js` (a reason they turn up, from something
+  happening in the world, never a height or a time; their feelings and activities using `core/mind/`, their offers, their thoughts for the bubble via
   `mindsFrom`, a reset), called from `core/game.js`;
   add them to `docs/CHARACTERS.md`; a drawing in `render/`; their toy in `ui/toybox.js`'s
   `TOYS` list and `core/toys.js`. Anything random they do must wait until they've been met, so the

@@ -12,7 +12,7 @@ import { drawJelly } from './jelly.js';
 import { drawMole } from './moleView.js';
 import { drawSadie, drawEmotes } from './sadieView.js';
 import { drawBarn, drawRope } from './barnView.js';
-import { drawChooter } from './chooterView.js';
+import { drawChooter, drawChooterPeek } from './chooterView.js';
 import { drawToy } from './toyView.js';
 
 const SKY = [[0, '#ffe3ec'], [12, '#bfe7ff'], [35, '#7f8fe0'], [60, '#3a2f7a'], [95, '#120e33']];
@@ -173,6 +173,7 @@ export function draw(time) {
   drawBedrock();
   drawRope();
   drawChooter(time);
+  drawChooterPeek(time);
   drawSadie(time);
   drawToy();
   drawEmotes();
