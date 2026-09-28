@@ -31,10 +31,12 @@ activity is checked again, so something moves into it only once a second activit
   'activities'`: `tools/build.mjs` makes that list from the folders, in folder order, so adding an
   activity never touches the clubhouse). The page opens on the menu; an address naming an activity
   after the `#` (`#dropper-world`, used by its checks) goes straight into it. It runs one activity
-  at a time: it puts that activity's styles and page in, then calls `start()`. Leaving an activity
-  will reload the page into the clubhouse (for now there's no button for it; reloading the page
-  does it), so an activity never has to tidy up after itself (its timers, listeners and loop just
-  stop).
+  at a time: it puts that activity's styles and page in, then calls `start()`. It also puts
+  an ESC BACK key in the activity's top left corner (its own look, in the menu's keycap style; an
+  activity keeps that corner free). Pressing it, or Escape when the activity didn't use the key for
+  something itself (`preventDefault()`, like Dropper World closing its dev sheet), reloads the page
+  into the clubhouse, so an activity never has to tidy up after itself (its timers, listeners and
+  loop just stop). It must save when the page goes away (`pagehide`), as Dropper World does.
 - **The menu** (`src/clubhouse/`, loaded only when the page opens on it) is the clubhouse room in
   crappy late-90s 3D, made with three.js (the one library, bundled into the page): `room.js` builds
   the room and the PS1 look (corners snapping to the pixel grid, swimming textures, few colours
@@ -133,7 +135,7 @@ simulation needs to tell the screen something, it emits an event (below).
 | `input/controls.js` | Escape closes the dev sheet. No keyboard controls, and no way to move, spin or drop pieces: the mole decides all that. |
 | **tests/ and tools/** | |
 | `tests/run.mjs` | `npm test`: every activity's headless checks, one activity after another (`npm test -- dropper-world` for one). |
-| `tests/clubhouse/browser.mjs` | The menu in headless Chromium as a phone and a desktop (run by `tools/check.mjs` every time: a few seconds): the room draws, the first activity is chosen, tapping a locked box and Sadie, MORE SHELVES there and back, walking with the arrow pad, and PLAY! starting Dropper World with the menu gone from the page. Fails on any page error; screenshots in `dist/check/clubhouse/`. |
+| `tests/clubhouse/browser.mjs` | The menu in headless Chromium as a phone and a desktop (run by `tools/check.mjs` every time: a few seconds): the room draws, the first activity is chosen, tapping a locked box and Sadie, MORE SHELVES there and back, walking with the arrow pad, and PLAY! starting Dropper World with the menu gone from the page, ESC BACK returning to the menu with the tower saved, and Escape going back from a page opened at `#dropper-world`. Fails on any page error; screenshots in `dist/check/clubhouse/`. |
 | `tests/dropper-world/run.mjs` | Dropper World's headless checks: the real simulation in Node, seeded. Each numbered section runs in its own process, several at once, about 3.5 minutes in all (`--section=N` runs one). |
 | `tests/dropper-world/browser.mjs` | Dropper World in headless Chromium as a phone and a desktop (run by `tools/check.mjs`): new game (the mole digging up the first hay), tapping Sadie and the mole (its bubble must sit above or beside it, not over the pile), Chooter peeking in, the dev sheet, a full board loaded from a save and reloaded, and how smooth that board is on a phone 4x slower. Fails on any page error; screenshots in `dist/check/dropper-world/`. |
 | `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html` (the clubhouse and every activity), with the source embedded. Squeezed small (three.js is big); the readable source is what's embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
