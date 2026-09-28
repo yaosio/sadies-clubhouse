@@ -6,6 +6,7 @@
   "description": "A cozy physics toy: jelly pieces pile up and Sadie climbs them to collect stars.",
   "scripts": {
     "build": "node tools/build.mjs",
+    "check": "node tools/check.mjs",
     "test": "node tests/run.mjs",
     "unpack": "node tools/unpack.mjs"
   },

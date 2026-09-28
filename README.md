@@ -19,6 +19,9 @@ The owner doesn't code and installs nothing. Claude does all the building.
   Claude publishes it from the coding session, always built from `main`. The page also carries
   a backup copy of the source, as JSON in `<script type="application/json" id="jelly-source">`.
   If the page and the repo ever disagree, trust the repo and say so.
+- **The test version** is at https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the work in
+  progress, for the owner to try before it's merged. It says "test version" at the bottom and keeps
+  its own save.
 - `docs/ARCHITECTURE.md` is the map of the code. Read it before changing anything.
 - `docs/CHARACTERS.md` is who each character is and why they do what they do, and how feelings,
   offers and activities turn that into behavior.
@@ -29,15 +32,17 @@ The owner doesn't code and installs nothing. Claude does all the building.
 1. `npm install` (just esbuild, the bundler).
 2. Edit only the modules involved. `core/` never touches the DOM or imports from `render/`, `ui/`
    or `input/`.
-3. `npm test` runs the headless checks. They must all pass. If a change is meant to move a test's
-   expected numbers, explain why in plain words and update `docs/TUNING.md` to match.
-4. `npm run build` writes `dist/index.html`: the game plus a fresh copy of the source.
-5. Check it in a headless browser: no console errors, and a screenshot that looks right.
-6. Commit with a plain-English message saying what changed and what to look for in-game, and push
+3. `npm run check -- --preview` runs the headless checks (`npm test`), builds `dist/index.html`
+   (the game plus a fresh copy of the source; `--preview` marks it as the test version), and plays
+   it in a headless browser as a phone and a desktop. Everything must pass; look at the
+   screenshots in `dist/check/`. If a change is meant to move a test's expected numbers, explain
+   why in plain words and update `docs/TUNING.md` to match.
+4. Commit with a plain-English message saying what changed and what to look for in-game, and push
    to a working branch. `dist/`, `node_modules/` and `package-lock.json` stay out of git.
-7. When the owner says so, open a pull request and merge it into `main`.
-8. Publish: check out `main`, `npm test`, `npm run build`, then publish `dist/index.html` to the
-   artifact URL above (Artifact tool, same URL, so the link never changes). Read the live page
+5. Publish that build to the test version's URL above, so the owner can try it.
+6. When the owner says so, open a pull request and merge it into `main`.
+7. Publish: check out `main`, `npm run check` (no `--preview`), then publish `dist/index.html` to
+   the game's artifact URL above (Artifact tool, same URL, so the link never changes). Read the live page
    first; if its embedded source differs from `main` (unpack it with `tools/unpack.mjs` and
    compare), stop and ask before overwriting. Only ever publish from `main`, never a branch, and
    only from here, so the page always matches GitHub.
