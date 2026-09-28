@@ -47,16 +47,28 @@ export function open(cards, enter) {
     const k = Math.max(1, Math.min(narrow ? 3 : 4, Math.floor(room / w)));
     logo.width = w * k; logo.height = h * k;
   }
-  let typing = 0;
+  // The LED board types its lines out. It's one fixed size, so when they don't all fit, it then
+  // steps them up a line at a time (a little wait at each end) and starts over, like a real one.
+  let typing = 0, rolling = 0;
   function say(lines) {
-    const led = $('#led'); clearInterval(typing);
-    led.innerHTML = lines.map((l, i) => `<div class="${i ? '' : 't'}"></div>`).join('');
-    const rows = [...led.children]; let r = 0, c = 0;
+    const led = $('#led'); clearInterval(typing); clearInterval(rolling);
+    led.innerHTML = '<div class="roll">' + lines.map((l, i) => `<div class="${i ? '' : 't'}"></div>`).join('') + '</div>';
+    const roll = led.firstChild, rows = [...roll.children]; let r = 0, c = 0;
     typing = setInterval(() => {
-      if (r >= lines.length) return clearInterval(typing);
+      if (r >= lines.length) { clearInterval(typing); rollLed(led, roll); return; }
       rows[r].textContent = lines[r].slice(0, ++c);
       if (c >= lines[r].length) { r++; c = 0; }
     }, 14);
+  }
+  function rollLed(led, roll) {
+    let tick = 0;
+    rolling = setInterval(() => { // measured every tick: the blocky font arriving late can wrap the lines again
+      const cs = getComputedStyle(led), line = parseFloat(cs.lineHeight) || 16;
+      const room = led.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const extra = Math.max(0, Math.ceil((roll.offsetHeight - room - 1) / line));
+      tick = extra ? (tick + 1) % (extra + 4) : 0; // two ticks' wait at the top, a line a tick, two at the bottom
+      roll.style.transform = `translateY(${-Math.min(extra, Math.max(0, tick - 1)) * line}px)`;
+    }, 1400);
   }
 
   // ---------- the room, and you standing in it ----------
@@ -259,7 +271,7 @@ export function open(cards, enter) {
   }
 
   function close() {
-    cancelAnimationFrame(raf); clearInterval(typing);
+    cancelAnimationFrame(raf); clearInterval(typing); clearInterval(rolling);
     off.abort(); sizer.disconnect();
     room.dispose(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();

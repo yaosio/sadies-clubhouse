@@ -33,10 +33,10 @@
 #clubhouse #pad i.up{border-bottom-color:#fff;border-top-width:0}#clubhouse #pad i.dn{border-top-color:#fff;border-bottom-width:0}
 #clubhouse #pad i.lt{border-right-color:#fff;border-left-width:0}#clubhouse #pad i.rt{border-left-color:#fff;border-right-width:0}
 #clubhouse #dash{display:flex;gap:8px;align-items:stretch}
-/* one fixed size, like a real LED board: text typing into it never pushes the room smaller */
-#clubhouse #led{flex:1;min-width:0;height:78px;overflow:hidden;padding:6px 8px;background:#06140a;
+/* one fixed size, like a real LED board (whole lines: 4 of 16 px, plus padding and edges): text typing into it never pushes the room smaller */
+#clubhouse #led{flex:1;min-width:0;height:82px;overflow:hidden;padding:6px 8px;box-sizing:border-box;background:#06140a;
   background-image:radial-gradient(#0e2a14 1px,transparent 1.2px);background-size:3px 3px;
-  font-size:12px;line-height:1.3;color:var(--led);letter-spacing:.04em;text-transform:uppercase}
+  font-size:12px;line-height:16px;color:var(--led);letter-spacing:.04em;text-transform:uppercase}
 #clubhouse #led .t{color:var(--led-hi)}
 #clubhouse #play{flex:0 0 auto;min-width:96px;font:700 22px/1 var(--px);color:#fff;letter-spacing:.04em;text-shadow:2px 2px 0 #8a2a00;cursor:pointer;
   background:linear-gradient(#fff6b0,var(--gold) 45%,#ff9a1e);border:3px solid;border-color:#fffbe0 #8a4a00 #8a4a00 #fffbe0;border-radius:4px}
@@ -50,7 +50,7 @@
 @media (max-width:560px){
   #clubhouse header{justify-content:center}
   #clubhouse .tag{width:100%;text-align:center}
-  #clubhouse #led{font-size:11px;height:92px}
+  #clubhouse #led{font-size:11px;line-height:15px;height:93px} /* whole lines: 5 of 15 px, plus padding and edges */
   #clubhouse #play{min-width:84px;font-size:18px}
   #clubhouse #keys{gap:4px 10px}
 }

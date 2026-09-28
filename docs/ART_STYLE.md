@@ -90,7 +90,7 @@ tried way too hard:
 ## The interface as built
 **Built:** mock-up in `art/90s-style/interface-mockup.html` (published
   at https://claude.ai/artifact/JeTXaHsXxnPpSYe37qBbMY). Every modern bit left the board (the thought
-  bubble, tip, pop-ups, round Toys and dev buttons, Sadie's "↑ 3.1" pill, the light strip under
+  bubble, tip, pop-ups, round Toys and dev buttons, Sadie's "↑ 3.1" pill (gone altogether: the owner said how far she is from the hay doesn't matter), the light strip under
   the mole, the rounded font). The frame (top strip with ESC BACK and logo, a key bar with F1 HELP,
   F12 DEV and TOYS; no F3 SOUND, the owner said drop it) and in the middle Dropper World's own
   dashboard: stamps (who you're watching) and their face (drawn live by their own drawing code,

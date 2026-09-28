@@ -92,6 +92,13 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
     check(`${device}: the board and dashboard stay one size`, seen.size === 1, [...seen].join(' / '));
     const clash = await p.evaluate(() => { const b = document.getElementById('clubBack').getBoundingClientRect(), l = document.querySelector('.mlogo').getBoundingClientRect(); return b.right > l.left ? `ESC BACK ends at ${Math.round(b.right)} px, the name starts at ${Math.round(l.left)} px` : ''; });
     check(`${device}: ESC BACK doesn't cover the name`, !clash, clash);
+    // every box of words in the dashboard shows whole lines (never half a line cut off), and nothing's cut off sideways
+    const cut = await p.evaluate(() => [...document.querySelectorAll('#dash .scroll, #dash .name, #dash .feel span')].filter(e => e.offsetParent).flatMap(e => {
+      const line = parseFloat(getComputedStyle(e).lineHeight), bad = [];
+      if (e.classList.contains('scroll') && Math.abs(e.clientHeight / line - Math.round(e.clientHeight / line)) > 0.05) bad.push(`${e.id || e.className} is ${e.clientHeight} px tall, lines are ${line} px`);
+      if (e.scrollWidth > e.clientWidth + 1) bad.push(`${e.id || e.className} is cut off sideways`);
+      return bad; }));
+    check(`${device}: the dashboard's words are never cut off`, !cut.length, cut.join('; '));
     check(`${device}: the dashboard shows Sadie's face`, await faceDrawn(p) > 0.1, `${Math.round(await faceDrawn(p) * 100)}% of the picture drawn`);
 
     // it flies about, so look right at it and tap where it is now (a few tries, in case it moved)

@@ -13,7 +13,7 @@
 import { U } from '../config.js';
 import { on } from '../core/events.js';
 import { minds } from '../core/mind/thoughts.js';
-import { sadie, REACH } from '../core/sadie/brain.js';
+import { sadie } from '../core/sadie/brain.js';
 import { chooter, peekSpot } from '../core/friends/chooter.js';
 import { mole } from '../core/mole.js';
 import { world } from '../core/world.js';
@@ -43,12 +43,6 @@ function moodWord(who) {
   if (who === sadie) return SADIE_MOODS[sadie.mood] || 'UNIMPRESSED';
   if (who === chooter) return !chooter.met ? 'CURIOUS' : chooter.place === 'home' ? 'SLEEPY' : CHOOTER_MOODS[chooter.mood] || 'WIGGLY';
   return drp.hay !== null ? 'DISGUSTED' : mole.napping ? 'ASLEEP' : mole.feel.tired > 0.6 ? 'WORN OUT' : 'BUSY';
-}
-// How much higher the pile needs to be before Sadie can reach her hay (while she's stuck under it).
-function reachChip() {
-  const c = sadie;
-  if (!(c.state === 'wait' || c.pace) || !c.target || c.target.y <= c.y + REACH) return '';
-  return 'HAY ↑ ' + ((c.target.y - REACH - c.y) / U).toFixed(1);
 }
 
 // Where each face is (world px) and how much of the world a close-up shows, and what draws it.
@@ -130,18 +124,26 @@ on('friendMet', name => say(`SADIE MADE A FRIEND: ${name.toUpperCase()}!`));
 
 // ---------- boxes that never change size ----------
 // The dashboard is one size, like a 90s program's panel: when the words don't fit their box, they
-// wait a moment, roll slowly up to show the rest, wait, and start again.
-const HOLD = 2500, ROLL = 0.012; // ms to wait at each end; px per ms
-const rollers = [...document.querySelectorAll('.scroll')].map(box => ({ box, inner: box.firstElementChild, text: '', t0: 0, over: 0, checked: -1e9, y: 0 }));
+// wait, then step up a whole line at a time like an old terminal (never half a line showing),
+// wait at the end, and start again. Each box is a whole number of lines tall (styles.css).
+const HOLD = 3000, STEP = 1600; // ms to wait at each end; ms per line
+const rollers = [...document.querySelectorAll('.scroll')].map(box => ({ box, inner: box.firstElementChild, text: '', t0: 0, lines: 0, line: 20, checked: -1e9, y: 0, fit: box.id === 'dashWhyBox' }));
 function rollText(now) {
   for (const r of rollers) {
     const text = r.inner.textContent;
     if (text !== r.text) { r.text = text; r.t0 = now; r.checked = -1e9; }
-    if (now - r.checked > 1000) { r.checked = now; r.over = Math.max(0, r.inner.offsetHeight - r.box.clientHeight); } // how much doesn't fit
+    if (now - r.checked > 1000) { // how many lines don't fit
+      r.checked = now; r.line = parseFloat(getComputedStyle(r.box).lineHeight) || 20;
+      if (r.fit) { // on a wide screen, "why" gets as many whole lines as its space holds (it depends on the screen, not the words)
+        const h = wide.matches ? Math.max(1, Math.floor(r.box.parentElement.clientHeight / r.line)) * r.line + 'px' : '';
+        if (r.box.style.height !== h) r.box.style.height = h;
+      }
+      r.lines = r.box.clientHeight ? Math.max(0, Math.ceil((r.inner.offsetHeight - r.box.clientHeight - 1) / r.line)) : 0;
+    }
     let y = 0;
-    if (r.over > 0) {
-      const run = r.over / ROLL, k = (now - r.t0) % (HOLD + run + HOLD);
-      y = Math.round(k < HOLD ? 0 : k < HOLD + run ? (k - HOLD) * ROLL : r.over);
+    if (r.lines > 0) {
+      const k = (now - r.t0) % (HOLD + r.lines * STEP + HOLD);
+      y = Math.min(r.lines, Math.max(0, Math.floor((k - HOLD) / STEP) + 1)) * r.line;
     }
     if (y !== r.y) { r.y = y; r.inner.style.transform = `translateY(${-y}px)`; }
   }
@@ -164,8 +166,6 @@ export function drawDashboard(time) {
   set('whyTitle', `WHY, ${name}?`); set('feelLabel', top.label);
   const lit = Math.round(Math.max(0, Math.min(1, top.value)) * SEGS);
   if (shown.lit !== lit) { shown.lit = lit; segs.forEach((s, i) => { s.className = i < lit ? 'on' : ''; s.style.background = i < lit ? SEG_COLORS[i] : ''; }); }
-  const chip = watched === sadie ? reachChip() : '';
-  if (shown.chip !== chip) { shown.chip = chip; $('dashChip').textContent = chip; $('dashChip').hidden = !chip; }
   faceEl.setAttribute('aria-label', name + "'s face");
   rollText(time);
   stamps.querySelector('[data-who="chooter"]').hidden = !chooter.met;

@@ -33,7 +33,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
    Phone (and any tall screen): top strip, board, dashboard strip, key bar, stacked.
    Wide screen, sideways: the dashboard is a column down the right, so the board keeps its height. */
 #app{position:relative;height:100%;overflow:hidden;display:grid;gap:5px;padding:4px 6px 6px;
-  grid-template-columns:minmax(0,1fr);grid-template-rows:38px minmax(0,1fr) 94px 38px;grid-template-areas:"top" "board" "side" "keys";
+  grid-template-columns:minmax(0,1fr);grid-template-rows:38px minmax(0,1fr) 98px 38px;grid-template-areas:"top" "board" "side" "keys";
   background-color:var(--candy);color:#fff;font-family:var(--pixel);
   background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 2px,transparent 2px 4px);
   border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi)}
@@ -112,9 +112,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .name{display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden;height:15px;flex:none}
 .name b{font-weight:400;font-size:13px;color:var(--gold)}
 .name span{font-size:10px;color:var(--pink)}
-.chip{font-style:normal;font-size:9px;padding:2px 5px;background:var(--lo);color:var(--gold);white-space:nowrap}
-.chip[hidden]{display:none}
-.doing{font-family:var(--term);font-size:20px;line-height:20px;color:#fff;height:40px;flex:none}
+.doing{font-family:var(--term);font-size:20px;line-height:22px;color:#fff;height:44px;flex:none} /* boxes of text: a whole number of lines tall */
 /* a box that never changes size: when its words don't fit, they slowly roll up and back (ui/dashboard.js) */
 .scroll{overflow:hidden;position:relative}
 .scroll > div{will-change:transform}
@@ -125,10 +123,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .meter i.on{border-color:rgba(0,0,0,.35)}
 .more-btn{grid-area:btn;width:28px;height:28px;padding:0;font:12px/1 var(--pixel);color:var(--lo);background:linear-gradient(#ece6ff 45%,#cabfff 45%);border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff}
 .dash.open .more-btn{transform:scaleY(-1)}
-.why{font-family:var(--term);font-size:19px;line-height:20px;color:var(--lav)}
+.why{font-family:var(--term);font-size:19px;line-height:21px;color:var(--lav)}
 .why-box{display:none;position:absolute;left:-3px;right:-3px;bottom:calc(100% + 8px);z-index:6;cursor:default;
   background:var(--candy);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:5px 5px 0 rgba(0,0,0,.5)}
-.why-box .why{margin:8px 10px 10px;height:80px}
+.why-box .why{margin:8px 10px 10px;height:84px}
 .dash.open .why-box{display:block}
 /* the LED sign: on a phone it only shows for news, right over the strip, then gets out of the way */
 .led{grid-area:led;display:none;position:absolute;inset:0;z-index:2;place-items:center;text-align:center;padding:4px 8px;
@@ -146,29 +144,29 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   .stamp canvas{width:32px;height:32px}
   .stamp.locked{display:grid}
   .dash{flex:1;min-height:0;overflow:hidden;cursor:default;align-items:start;align-content:start;padding:8px;
-    grid-template-columns:72px minmax(0,1fr);grid-template-rows:72px 66px 34px 100px minmax(0,1fr);grid-template-areas:"face name" "doing doing" "feel feel" "why why" "led led"}
+    grid-template-columns:72px minmax(0,1fr);grid-template-rows:72px 76px 34px 110px minmax(0,1fr);grid-template-areas:"face name" "doing doing" "feel feel" "why why" "led led"}
   .face{width:72px;height:72px}
   .who{display:contents}
   .name{grid-area:name;flex-direction:column;align-items:flex-start;gap:4px;height:auto}
   .name b{font-size:15px}
   .name span{font-size:12px}
-  .doing{grid-area:doing;font-size:22px;line-height:22px;height:66px;margin-top:4px}
+  .doing{grid-area:doing;font-size:22px;line-height:24px;height:72px;margin-top:4px}
   .feel{grid-area:feel;height:auto;flex-direction:column;align-items:stretch;gap:3px}
   .feel span{max-width:none}
   .meter i{height:11px}
   .more-btn{display:none}
-  .why-box{grid-area:why;display:block;position:static;background:none;border:0;box-shadow:none}
+  .why-box{grid-area:why;display:block;position:static;background:none;border:0;box-shadow:none;align-self:stretch;min-height:0}
   .why-box .bar{display:none}
-  .why-box .why{margin:0;height:100px}
+  .why-box .why{margin:0;height:105px}
   .led{display:grid;position:static;min-height:0;overflow:hidden;margin-top:6px;font-size:22px;line-height:1.05;align-self:stretch}
 }
 
 /* a wide screen that's short (a phone on its side): a smaller face, and the sign makes way for why */
 @media (min-width:700px) and (orientation:landscape) and (max-height:620px){
-  .dash{grid-template-rows:48px 44px 34px minmax(0,1fr) 0}
+  .dash{grid-template-rows:48px 54px 34px minmax(0,1fr) 0}
   .face{width:48px;height:48px}
-  .doing{height:44px}
-  .why-box .why{height:100%}
+  .doing{height:48px;line-height:24px}
+  .why-box .why{height:21px} /* grown to as many whole lines as fit (ui/dashboard.js) */
   .led{display:none}
   .dash.news .led{display:grid;position:absolute;inset:0}
 }

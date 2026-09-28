@@ -41,14 +41,14 @@
     <div class="dash" id="dash">
       <canvas class="face" id="face" width="26" height="26" role="img"></canvas>
       <div class="who">
-        <div class="name"><b id="dashName"></b><span id="dashMood"></span><em class="chip" id="dashChip" hidden></em></div>
+        <div class="name"><b id="dashName"></b><span id="dashMood"></span></div>
         <div class="doing scroll"><div id="dashDoing"></div></div>
         <div class="feel"><span id="feelLabel"></span><div class="meter" id="feelMeter"></div></div>
       </div>
       <button class="more-btn" id="moreBtn" type="button" aria-expanded="false" aria-label="Why?">&#9650;</button>
       <div class="why-box" id="whyBox">
         <div class="bar"><span id="whyTitle"></span><button type="button" id="whyX" aria-label="Close">X</button></div>
-        <div class="why scroll"><div id="dashWhy"></div></div>
+        <div class="why scroll" id="dashWhyBox"><div id="dashWhy"></div></div>
       </div>
       <div class="led" id="led" aria-live="polite"></div>
     </div>
