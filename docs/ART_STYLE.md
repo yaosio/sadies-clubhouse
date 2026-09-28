@@ -1,7 +1,7 @@
 # Art style: the misremembered 90s
 
 **Status: approved, going in step by step.** Step 1 (on the working branch, not in the real game
-yet): chunky dithered pixels over everything, the new sky, sun, clouds, hills and ground, and the
+yet): chunky pixels over everything, the new sky, sun, clouds, hills and ground, and the
 gummy jelly pieces. Next: Sadie, then the mole, Chooter, hay and barn, then the interface. The picture to match is
 `art/90s-style/mockup-2.png` (drawn by `art/90s-style/mockup-2.py`). `mockup-1` is the first try,
 kept for reference only.
@@ -24,7 +24,10 @@ program that never existed.
 - Draw everything at a small size (the mock-up is 320x240) and scale it up with hard edges, so
   every pixel is a visible square. Pixels stay the same size on screen whatever the camera does.
   In the game a block is about 11 big pixels across at the usual zoom (`BLOCK_PX` in
-  `render/view.js`), and the whole picture is dithered down to 8 levels per color there.
+  `render/view.js`).
+- The dots are part of each drawing (`render/pixels.js`): flat colors, with dot patterns where one
+  fades into the next. **Not a filter over the whole screen**: that was tried and made the game
+  stutter on the owner's phone.
 - Shading uses a 4x4 ordered dither (Bayer) between a few fixed tones per material, lit from the
   top left. Skies and gradients are dithered bands, never smooth.
 - Characters and pieces get a thick 1-pixel dark outline, plus inner lines where one part overlaps

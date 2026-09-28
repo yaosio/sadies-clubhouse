@@ -4,6 +4,7 @@
 // streak, sugar dust, stone speckles). Lit from the top left, like everything else.
 import { ctx, cam, vp, sxf, syf } from './view.js';
 import { shade } from './color.js';
+import { dots } from './pixels.js';
 
 let sxBuf = new Float64Array(64), syBuf = new Float64Array(64);
 function smoothPath(n) {
@@ -25,7 +26,8 @@ export function drawJelly(T, X, Y, color, alpha, time) {
   smoothPath(n);
   ctx.fillStyle = color; ctx.fill();
   ctx.save(); ctx.clip();
-  ctx.lineWidth = cs * 0.45; ctx.strokeStyle = shade(color, -0.2); ctx.stroke();  // darker rim, lighter middle
+  ctx.lineWidth = cs * 0.7; ctx.strokeStyle = dots(shade(color, -0.2), 0.5); ctx.stroke(); // darker rim, dotted into
+  ctx.lineWidth = cs * 0.4; ctx.strokeStyle = shade(color, -0.2); ctx.stroke();            // the lighter middle
   // rim light: the outline nudged up-left, so its bottom-right edges fall just inside the shape
   ctx.translate(-1.5 * P, -1.5 * P); ctx.lineWidth = P * 1.2; ctx.strokeStyle = shade(color, 0.55); ctx.stroke();
   ctx.restore();
