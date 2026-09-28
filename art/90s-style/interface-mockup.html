@@ -103,10 +103,10 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
    which pops up over the bottom of the board. Wide: everything, down the side column. */
 .dash{grid-area:dash;position:relative;display:grid;gap:4px 8px;padding:6px;background:rgba(26,15,64,.35)}
 .phone .dash{grid-template-columns:48px minmax(0,1fr) 30px;grid-template-areas:"face who btn";align-items:center;cursor:pointer}
-.wide .dash{flex:1;min-height:0;grid-template-columns:72px minmax(0,1fr);grid-template-rows:auto auto auto 1fr;grid-template-areas:"face name" "doing doing" "more more" "led led";align-content:start;padding:8px}
+.wide .dash{flex:1;min-height:0;grid-template-columns:72px minmax(0,1fr);grid-template-rows:auto auto auto auto 1fr;grid-template-areas:"face name" "doing doing" "feel feel" "more more" "led led";align-content:start;padding:8px}
 .wide .who{display:contents}
 .wide .who .name{grid-area:name;flex-direction:column;align-items:flex-start;gap:4px}
-.wide .who .doing{grid-area:doing;margin:4px 0 6px}
+.wide .who .doing{grid-area:doing;margin:4px 0 2px}
 .wide .more .bar{display:none}
 .face{grid-area:face;width:48px;height:48px;background-repeat:no-repeat;image-rendering:pixelated;background-color:#57c8ff}
 .wide .face{width:72px;height:72px}
@@ -127,13 +127,14 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
 .phone.open .more{display:block}
 .phone .more .bar{display:flex}
 .phone .more .inner{padding:8px 10px 10px}
-.feels{display:grid;grid-template-columns:1fr;gap:5px}
-.phone .feels{grid-template-columns:1fr 1fr;gap:5px 12px}
-.feel{min-width:0}
-.feel span{display:block;font-family:var(--term);font-size:17px;line-height:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.meter{display:flex;gap:2px;margin-top:2px}
+.feels{margin-top:3px}
+.wide .feels{grid-area:feel;margin:0 0 8px}
+.feel{display:flex;align-items:center;gap:8px;min-width:0}
+.feel span{flex:none;max-width:60%;font-family:var(--term);font-size:17px;line-height:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meter{flex:1;display:flex;gap:2px}
 .meter i{flex:1;height:9px;background:#24164f;border:1px solid #120a30}
 .meter i.on{border-color:rgba(0,0,0,.35)}
+.phone .why{margin:0}
 .led{grid-area:led;background-color:var(--led-bg);background-image:radial-gradient(rgba(109,255,138,.08) 1px,transparent 1.5px);background-size:4px 4px;
   font-family:var(--term);color:var(--led);text-shadow:0 0 6px rgba(109,255,138,.6);text-align:center;display:grid;place-items:center;padding:6px 8px}
 .wide .led{font-size:22px;line-height:1.05;margin-top:8px}
@@ -252,11 +253,12 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
           <div class="who">
             <div class="name"><b id="name"></b><span id="mood"></span><em class="chip" id="chip" hidden></em></div>
             <div class="doing" id="doing"></div>
+            <div class="feels" id="feels"></div>
           </div>
           <button class="moreBtn" id="moreBtn" type="button" aria-expanded="false" aria-label="More about them">&#9650;</button>
           <div class="more" id="more">
             <div class="win-bar bar"><span id="moreName"></span><button type="button" id="moreX" aria-label="Close">X</button></div>
-            <div class="inner"><div class="why" id="why"></div><div class="feels" id="feels"></div></div>
+            <div class="inner"><div class="why" id="why"></div></div>
           </div>
           <div class="led sunk" id="led" aria-live="polite"></div>
         </div>
@@ -284,7 +286,7 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
       <p>Everything round, see-through or in the bubbly font goes. The board is left with just the world on it (and the gold arrow over whoever you're watching).</p>
       <div class="swaps">
         <div class="th">NOW</div><div class="th">IN THE MOCK-UP</div>
-        <div class="was">The thought bubble with bars, floating over whoever you tapped</div><div class="now">The dashboard: their face and what they're doing, always showing. Why, and up to 4 feelings as LED meters, one tap away on a phone. A gold arrow bobs over them on the board.</div>
+        <div class="was">The thought bubble with bars, floating over whoever you tapped</div><div class="now">The dashboard: their face and what they're doing, always showing. Their strongest feeling right now as one LED meter. Why they're doing it is one tap away on a phone. A gold arrow bobs over them on the board.</div>
         <div class="was">The "tap the mole, Sadie or anyone" tip at the top</div><div class="now">The LED sign says it at first, and it's in F1 HELP any time</div>
         <div class="was">"Sadie made a friend: Chooter!" popping up in the middle</div><div class="now">The LED sign flashes it (try it above)</div>
         <div class="was">"Tap where to throw it"</div><div class="now">The LED sign, while the TOYS button glows gold</div>
@@ -300,11 +302,12 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
       <h2>HOW THE DASHBOARD WORKS</h2>
       <ul>
         <li>It always shows someone. Sadie to start with, since she's the star.</li>
-        <li><b>Phone:</b> one slim strip under the board with their face, name, mood and what they're doing. Tap it (or the &#9650; key) and a window pops up over the bottom of the board with why they're doing it and their feelings. Tap again to put it away.</li>
+        <li><b>Phone:</b> one slim strip under the board with their face, name, mood, what they're doing, and their strongest feeling as one LED meter. Tap it (or the &#9650; key) and a small window pops up over the bottom of the board saying why they're doing it. Tap again to put it away.</li>
         <li><b>Phone:</b> the LED sign only appears when there's news. It covers the strip for a few seconds, then gets out of the way.</li>
         <li><b>Phone:</b> the character stamps sit in the key bar, next to F1 HELP and TOYS, so they don't need a row of their own. F3 SOUND is left off the phone to make room.</li>
         <li><b>Wide screen:</b> everything goes in a column down the right side. Wide screens have width to spare, and the tower grows up, so the board keeps its full height.</li>
         <li>Tap a character on the board or their stamp to switch. Chooter's stamp shows up once he's moved in; the padlocked empty ones (wide screen only) are the "more friends coming" promise.</li>
+        <li>Only the strongest feeling shows, not all of them. When a different one takes over (Sadie gets hungrier than she is impatient), the meter switches to it. It's the thing driving what they do, so it's the one worth seeing.</li>
         <li>A nice side effect: the camera no longer has to lean up to make room for a bubble, so it moves by itself less.</li>
       </ul>
     </section>
@@ -318,7 +321,6 @@ body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:1
     <section>
       <h2>YOUR CALL ON THESE</h2>
       <div class="qs">
-        <div class="q"><b>Phone strip.</b> Is face, name and what they're doing enough to see at a glance, with the feelings one tap away? Or should one feeling (the strongest) always show too?</div>
         <div class="q"><b>F3 SOUND.</b> There's no sound in the game yet. Keep it greyed out as one of the "full version" promises, or leave it off?</div>
         <div class="q"><b>The mole's piece.</b> The old 90s mock-up had a PIECES box with the next piece. Want the mole's dashboard to show what it's carrying next, or leave that to the board?</div>
         <div class="q"><b>Faces.</b> The mock-up uses close-ups of the game as it looks today. When built, each face would be drawn bigger in pixels and change with their mood (grumpy Sadie, zoomies Chooter). Good?</div>
@@ -388,7 +390,8 @@ function render() {
   $('name').textContent = c.name; $('moreName').textContent = 'ALL ABOUT ' + c.name;
   $('doing').textContent = st.doing; $('why').textContent = st.why; $('mood').textContent = st.mood;
   $('chip').hidden = !(who === 'sadie' && stuck); $('chip').textContent = 'HAY ↑ 3.1';
-  $('feels').replaceChildren(...c.feels.map(([label, v]) => {
+  const top = c.feels.reduce((a, b) => b[1] > a[1] ? b : a); // only the strongest feeling shows
+  $('feels').replaceChildren(...[top].map(([label, v]) => {
     const d = document.createElement('div'); d.className = 'feel';
     const s = document.createElement('span'); s.textContent = label;
     const m = document.createElement('div'); m.className = 'meter';
