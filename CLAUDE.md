@@ -69,6 +69,13 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
   sometimes the hardware pushes back: slowing down is fine, stuttering isn't.
 - One feature at a time. Make sure it's fun before the next.
 
+## Next up (the owner's note, left 2026-09-28)
+The next activity is a **text-fitting activity**: a new activity of its own in the Play Place (its
+own folder in `src/activities/`, its own box on the clubhouse shelf). The catch: it's actually
+impossible for the player to fit the text into the box. (It's a joke on the long fight to make
+Dropper World's dashboard text fit its boxes.) Start the way Dropper World's 90s screen started:
+talk through how it would work, then a mock-up, before building.
+
 ## Parked ideas (don't start unless asked)
 Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building
 things out of dropped pieces, sky zones with different physics, unlocking piece types, prestige by
