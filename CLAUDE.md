@@ -13,7 +13,8 @@ A cozy physics toy, not a game. Sadie is the owner's late cat.
 
 ## Before changing anything
 Read `README.md`, `docs/ARCHITECTURE.md` and `docs/TUNING.md`. Before changing how a character behaves,
-also read `docs/CHARACTERS.md`: who they are and why they do things comes first.
+also read `docs/CHARACTERS.md`: who they are and why they do things comes first. Before changing
+how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, not in the game yet).
 
 ## Making a change
 1. `npm install`, then edit only the modules involved.
