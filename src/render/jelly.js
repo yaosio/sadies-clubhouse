@@ -4,6 +4,7 @@
 // streak, sugar dust, stone speckles). Lit from the top left, like everything else.
 // A sleeping piece doesn't move, so it's drawn once into its own little picture and that's stamped
 // every frame after (drawPiece): with a big tower, most pieces are asleep.
+// While zooming, those pictures are stretched instead of redrawn (see mayRedraw).
 import { ctx, cam, vp, sxf, syf } from './view.js';
 import { shade } from './color.js';
 import { dots } from './pixels.js';
@@ -68,10 +69,16 @@ export function drawJelly(T, X, Y, color, alpha, g = ctx) {
 }
 
 const PAD = 3; // big pixels of room around a piece for its outline and shine
+// Zooming changes every sleeping piece's size, and redrawing hundreds of them each frame of a pinch
+// made drawing four times slower. So while the zoom is moving, their pictures are just stretched;
+// once it holds still they're redrawn, a couple of milliseconds' worth a frame.
+let zSeen = 0, zStill = true, bakeBy = 0;
+export function startFrame() { zStill = Math.abs(cam.z / zSeen - 1) < 0.001; zSeen = cam.z; bakeBy = performance.now() + 2; }
+export const mayRedraw = () => zStill && performance.now() < bakeBy;
 export function drawPiece(p) {
   if (!p.asleep) { p.spr = null; drawJelly(p.T, p.x, p.y, p.color, 1); return; }
   let s = p.spr;
-  if (!s || s.P !== vp.P || Math.abs(cam.z / s.z - 1) > 0.02) s = p.spr = bake(p);
+  if (!s || s.P !== vp.P || (Math.abs(cam.z / s.z - 1) > 0.02 && mayRedraw())) s = p.spr = bake(p);
   const k = cam.z / s.z;
   ctx.drawImage(s.c, sxf(p.minX) + s.ox * k, syf(p.maxY) + s.oy * k, s.c.width * vp.P * k, s.c.height * vp.P * k);
 }

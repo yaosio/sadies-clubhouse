@@ -7,7 +7,7 @@ import { drp, heldOffsets } from '../core/dropper.js';
 import { rock, rockInfo, SURF_N, SURF_RES } from '../core/surface.js';
 import { bedrock } from '../core/bedrock.js';
 import { ctx, cam, vp, sxf, syf, toWorld, crisp, present } from './view.js';
-import { drawJelly, drawPiece } from './jelly.js';
+import { drawJelly, drawPiece, startFrame, mayRedraw } from './jelly.js';
 import { drawMole } from './moleView.js';
 import { drawSadie, drawEmotes } from './sadieView.js';
 import { drawBarn, drawRope } from './barnView.js';
@@ -26,12 +26,13 @@ const pyf = (y, f) => vp.vh / 2 - (y - cam.y * f) * cam.z;
 const CLOUDS = Array.from({ length: 26 }, (_, i) => ({ x: ((i * 37) % 48) * U * 1.6 - 12 * U, y: (4 + i * 1.7 + (i * 7 % 5)) * U, s: 0.8 + (i * 13 % 7) / 10, v: 3 + (i * 11 % 5) }));
 const PUFFS = [[-1.2, 0, 0.55], [-0.5, 0.25, 0.75], [0.35, 0.35, 0.85], [1.1, 0.05, 0.6], [0.2, -0.1, 0.6]];
 // Each cloud is drawn once into its own little picture (redrawn only when the zoom changes) and
-// stamped on the pixel grid after that: a cloud never changes shape.
+// stamped on the pixel grid after that: a cloud never changes shape. Stretched while zooming.
 function drawCloud(c, X, Y, r) {
   const P = vp.P;
   let s = c.spr;
-  if (!s || s.P !== P || Math.abs(r / s.r - 1) > 0.02) s = c.spr = bakeCloud(s, r);
-  ctx.drawImage(s.c, snap(X - s.r * 3 - P), snap(Y - s.r * 3 - P), s.c.width * P, s.c.height * P);
+  if (!s || s.P !== P || (Math.abs(r / s.r - 1) > 0.02 && mayRedraw())) s = c.spr = bakeCloud(s, r);
+  const k = r / s.r; // stretched while zooming, like the pieces
+  ctx.drawImage(s.c, snap(X - (s.r * 3 + P) * k), snap(Y - (s.r * 3 + P) * k), s.c.width * P * k, s.c.height * P * k);
 }
 function bakeCloud(s, r) {
   const P = vp.P, k = vp.k, c = s ? s.c : document.createElement('canvas');
@@ -135,6 +136,7 @@ function drawBedrock() {
 }
 
 export function draw(time) {
+  startFrame();
   ctx.imageSmoothingEnabled = false; // stamped pictures (sleeping pieces, clouds) keep hard pixel edges
   ctx.setTransform(vp.k, 0, 0, vp.k, 0, 0);
   // sky: color changes with altitude
@@ -171,7 +173,7 @@ export function draw(time) {
   }
   ctx.setLineDash([]);
   crisp(c => {
-    c.font = `700 ${Math.max(11, Math.min(15, 13 * cam.z))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
+    c.font = `700 ${Math.round(Math.max(11, Math.min(15, 13 * cam.z)))}px "Baloo 2", ui-rounded, system-ui, sans-serif`;
     c.textAlign = 'left'; c.textBaseline = 'middle';
     for (const [hb, Y] of marks) { c.fillStyle = hb > 20 ? 'rgba(255,255,255,0.85)' : 'rgba(42,24,64,0.6)'; c.fillText(hb, rulerX, Y); }
   });
