@@ -28,7 +28,7 @@ function collect(p, out) {
   else out[relative(root, full)] = readFileSync(full, 'utf8');
 }
 
-// the test version's label: in an activity's page where it says <!--@badge-->, else at the end
+// the test version's label: in each activity's page where it says <!--@badge-->, else at the end
 let when = '', commit = '', badgePlaced = false;
 if (preview) {
   // which commit this is, so a test page can be matched to its code (not there in an unpacked copy)
@@ -55,7 +55,7 @@ const clubhouse = {
     b.onLoad({ filter: /\.html$/ }, a => {
       let text = readFileSync(a.path, 'utf8');
       if (text.includes('<!--@badge-->')) {
-        text = text.replace('<!--@badge-->', preview && !badgePlaced ? badge() : '');
+        text = text.replace('<!--@badge-->', preview ? badge() : ''); // every activity's page (only one is ever in the page at a time)
         if (preview) badgePlaced = true;
       }
       return { contents: text, loader: 'text' };
