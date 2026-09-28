@@ -11,16 +11,18 @@
 // Each activity is checked on its own, so a change to one never means retesting the others:
 //   - its headless tests (tests/<activity>/run.mjs) depend only on its own folder
 //     (src/activities/<activity>/), its tests, the shared toolbox (src/shared/) and package.json;
-//   - its browser checks (tests/<activity>/browser.mjs) depend on those plus the clubhouse (the files
-//     directly in src/) and the build and check tools.
+//   - its browser checks (tests/<activity>/browser.mjs) depend on those plus the clubhouse's shell
+//     (the files directly in src/; not the menu in src/clubhouse/, which an activity never needs)
+//     and the build and check tools.
 // Once either has passed on exactly those files it isn't run again until one of them changes. This
 // session remembers it in dist/, which makes the check at merge time quick when the branch was
 // checked here. A fresh session has no memory of it, but the live game page does: it's only ever
 // published after passing, and it carries its own source. So with --live (the page read before
 // publishing anyway), an activity whose code the change doesn't touch skips its tests.
 //
-// The browser checks always build the page and open it once, to see the clubhouse starts without
-// errors. Screenshots go in dist/check/<activity>/ to look at.
+// The browser checks always build the page and play the clubhouse menu (tests/clubhouse/browser.mjs:
+// quick, and it shows every activity's box, so it runs every time). Screenshots go in
+// dist/check/clubhouse/ and dist/check/<activity>/ to look at.
 //
 // Needs Playwright with Chromium (already on Claude's cloud machines; not a project dependency).
 import { spawnSync } from 'node:child_process';
@@ -133,17 +135,13 @@ await new Promise(ok => server.listen(0, '127.0.0.1', ok));
 const page = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch();
 
+// the clubhouse menu: every time, since it shows every activity's box (a few seconds)
 console.log('\n== the clubhouse in a browser');
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
-  const p = await ctx.newPage(), errors = [];
-  p.on('pageerror', e => errors.push(e.message));
-  p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  await p.goto(page); await p.waitForTimeout(2000);
-  await p.screenshot({ path: join(outDir, 'clubhouse.png') });
-  check('the page opens without errors', !errors.length, errors.slice(0, 3).join(' | '));
-  await ctx.close();
+  const dir = join(outDir, 'clubhouse');
+  rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
+  const { default: checks } = await import(join(root, 'tests/clubhouse/browser.mjs'));
+  await checks({ browser, page, check: (name, ok, detail) => check(`clubhouse: ${name}`, ok, detail), run, hashOf, root, outDir: dir });
 }
 
 const mode = preview ? 'preview' : 'real';

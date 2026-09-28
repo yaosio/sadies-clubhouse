@@ -1,9 +1,12 @@
-# Builds the real-3D test room (art/play-place/room3d/room.html) into one page: draws every texture
-# and sprite with the same 90s kit as the mock-ups, and embeds them as pictures inside the page.
-# Run: pip install pillow, then python3 art/play-place/room3d/make.py <out.html>
+# Draws the clubhouse's pictures (the 3D room's textures and sprites) with the same 90s kit as the
+# mock-ups, and writes them where the game's build picks them up, as small PNGs inside JS files:
+#   src/clubhouse/pictures.js                 the room, Sadie, the locked boxes, the logo...
+#   src/activities/dropper-world/box.js       the front of Dropper World's box on the shelf
+# Run after changing a drawing (pip install pillow): python3 art/play-place/pictures.py
 import base64, io, json, math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+sys.path.insert(0, HERE)
 from PIL import Image
 import kit
 from kit import put, ramp, tone, text, text_w, logo, build_sadie, outline, whiskers, ICONS, PADLOCK, GOLD, INK
@@ -31,7 +34,7 @@ def wood():
             g = math.sin(y * 0.9 + 2.5 * math.sin(x * 0.2)) * 0.5 + 0.5
             put(x, y, tone(x, y, cb.WOOD, 2.4 + 0.9 * g - (0.6 if (y % 11 == 0) else 0)))
 A['wood'] = png(wood, 32, 32)
-A['dropper'] = png(lambda: c3._dropper(40, 44), 40, 44)
+BOX = png(lambda: c3._dropper(40, 44), 40, 44)
 A['card'] = png(lambda: c3._card(34, 26), 34, 26)
 def locked():
     for y in range(44):
@@ -120,7 +123,12 @@ def weave():
         for x in range(5): put(x, y, '#34257e' if (x + 2 * y) % 5 == 0 else '#3b2a8c')
 A['weave'] = png(weave, 5, 5)
 
-html = open(os.path.join(HERE, 'room.html')).read().replace('/*ASSETS*/{}', json.dumps(A))
-out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'room3d.html')
-open(out, 'w').write(html)
-print(out, len(html) // 1024, 'KB')
+def write(path, what, body):
+    with open(os.path.join(ROOT, path), 'w') as f:
+        f.write(f'// {what}\n// Drawn by art/play-place/pictures.py: change the drawing there and run it, never edit this file.\n{body}\n')
+    print(path, os.path.getsize(os.path.join(ROOT, path)) // 1024, 'KB')
+
+write('src/clubhouse/pictures.js', "The clubhouse's pictures: the 3D room's textures and sprites, as PNGs.",
+      'export default {\n' + ''.join(f'  {k}: {json.dumps(v)},\n' for k, v in A.items()) + '};')
+write('src/activities/dropper-world/box.js', "The front of Dropper World's box on the clubhouse shelf, as a PNG.",
+      f'export default {json.dumps(BOX)};')

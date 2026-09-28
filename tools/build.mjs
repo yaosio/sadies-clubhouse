@@ -1,6 +1,6 @@
 // Builds the game into one self-contained page: dist/index.html
 //
-// The page is the clubhouse (src/main.js) plus every activity in src/activities/: each folder with
+// The page is the clubhouse (src/main.js, and its menu in src/clubhouse/) plus every activity in src/activities/: each folder with
 // a card.js is one, found here so adding an activity never changes the clubhouse's code. An
 // activity's .html and .css files come in as text (its card hands them to the clubhouse).
 //
@@ -72,6 +72,7 @@ const result = await build({
   target: 'es2020',
   write: false,
   legalComments: 'none',
+  minify: true,   // three.js (the clubhouse's 3D) is big; readable source travels in the page anyway
 });
 const js = result.outputFiles[0].text;
 let html = readFileSync(join(root, 'src/index.html'), 'utf8');
