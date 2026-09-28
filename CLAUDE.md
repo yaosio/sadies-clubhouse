@@ -57,4 +57,5 @@ also read `docs/CHARACTERS.md`: who they are and why they do things comes first.
 ## Parked ideas (don't start unless asked)
 Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building
 things out of dropped pieces, sky zones with different physics, unlocking piece types, prestige by
-melting the tower, a desktop-toy version.
+melting the tower, a desktop-toy version, other ideas for the thought bubbles (on a phone they
+can still crowd the board; for now the camera makes room above).
