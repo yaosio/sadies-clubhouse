@@ -124,14 +124,18 @@ on('friendMet', name => say(`SADIE MADE A FRIEND: ${name.toUpperCase()}!`));
 
 // ---------- boxes that never change size ----------
 // The dashboard is one size, like a 90s program's panel: when the words don't fit their box, they
-// wait, then step up a whole line at a time like an old terminal (never half a line showing),
-// wait at the end, and start again. Each box is a whole number of lines tall (styles.css).
+// wait, then glide up a line at a time (always coming to rest on whole lines), wait at the end,
+// and glide back to the start. Each box is a whole number of lines tall (styles.css).
 const HOLD = 3000, STEP = 1600; // ms to wait at each end; ms per line
 const rollers = [...document.querySelectorAll('.scroll')].map(box => ({ box, inner: box.firstElementChild, text: '', t0: 0, lines: 0, line: 20, checked: -1e9, y: 0, fit: box.id === 'dashWhyBox' }));
 function rollText(now) {
   for (const r of rollers) {
     const text = r.inner.textContent;
-    if (text !== r.text) { r.text = text; r.t0 = now; r.checked = -1e9; }
+    if (r.snapped) { r.inner.style.transition = ''; r.snapped = false; } // gliding again after a jump
+    if (text !== r.text) { // new words start at the top straight away, no gliding
+      r.text = text; r.t0 = now; r.checked = -1e9;
+      if (r.y) { r.inner.style.transition = 'none'; r.inner.style.transform = ''; r.y = 0; r.snapped = true; }
+    }
     if (now - r.checked > 1000) { // how many lines don't fit
       r.checked = now; r.line = parseFloat(getComputedStyle(r.box).lineHeight) || 20;
       if (r.fit) { // on a wide screen, "why" gets as many whole lines as its space holds (it depends on the screen, not the words)

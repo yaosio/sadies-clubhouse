@@ -38,6 +38,7 @@
   background-image:radial-gradient(#0e2a14 1px,transparent 1.2px);background-size:3px 3px;
   font-size:12px;line-height:16px;color:var(--led);letter-spacing:.04em;text-transform:uppercase}
 #clubhouse #led .t{color:var(--led-hi)}
+#clubhouse #led .roll{transition:transform .6s ease-in-out} /* glides up a line at a time */
 #clubhouse #play{flex:0 0 auto;min-width:96px;font:700 22px/1 var(--px);color:#fff;letter-spacing:.04em;text-shadow:2px 2px 0 #8a2a00;cursor:pointer;
   background:linear-gradient(#fff6b0,var(--gold) 45%,#ff9a1e);border:3px solid;border-color:#fffbe0 #8a4a00 #8a4a00 #fffbe0;border-radius:4px}
 #clubhouse #play:active,#clubhouse #play.down{border-color:#8a4a00 #fffbe0 #fffbe0 #8a4a00;transform:translateY(1px)}

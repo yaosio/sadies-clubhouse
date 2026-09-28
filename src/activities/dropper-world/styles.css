@@ -112,18 +112,18 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .name{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;height:20px;line-height:20px;flex:none} /* its own line height, so the font can't poke out of it */
 .name b{font-weight:400;font-size:13px;color:var(--gold)}
 .name span{font-size:10px;color:var(--pink)}
-.doing{font-family:var(--term);font-size:20px;line-height:22px;color:#fff;height:44px;flex:none} /* boxes of text: a whole number of lines tall */
+.doing{font-family:var(--term);font-size:18px;line-height:22px;color:#fff;height:44px;flex:none} /* boxes of text: a whole number of lines tall, the letters a size under the line so there is room to spare */
 /* a box that never changes size: when its words don't fit, they slowly roll up and back (ui/dashboard.js) */
 .scroll{overflow:hidden;position:relative}
-.scroll > div{will-change:transform}
+.scroll > div{will-change:transform;transition:transform .7s ease-in-out} /* glides up to the next line */
 .feel{display:flex;align-items:center;gap:8px;min-width:0;height:20px;flex:none}
-.feel span{flex:none;max-width:70%;font-family:var(--term);font-size:17px;line-height:20px;color:var(--lav);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feel span{flex:none;max-width:70%;font-family:var(--term);font-size:16px;line-height:20px;color:var(--lav);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .meter{flex:1;display:flex;gap:2px}
 .meter i{flex:1;height:9px;background:#24164f;border:1px solid #120a30}
 .meter i.on{border-color:rgba(0,0,0,.35)}
 .more-btn{grid-area:btn;width:28px;height:28px;padding:0;font:12px/1 var(--pixel);color:var(--lo);background:linear-gradient(#ece6ff 45%,#cabfff 45%);border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff}
 .dash.open .more-btn{transform:scaleY(-1)}
-.why{font-family:var(--term);font-size:19px;line-height:21px;color:var(--lav)}
+.why{font-family:var(--term);font-size:17px;line-height:21px;color:var(--lav)}
 .why-box{display:none;position:absolute;left:-3px;right:-3px;bottom:calc(100% + 8px);z-index:6;cursor:default;
   background:var(--candy);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:5px 5px 0 rgba(0,0,0,.5)}
 .why-box .why{margin:8px 10px 10px;height:84px}
@@ -150,7 +150,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   .name{grid-area:name;flex-direction:column;align-items:flex-start;gap:4px;height:auto}
   .name b{font-size:15px}
   .name span{font-size:12px}
-  .doing{grid-area:doing;font-size:22px;line-height:24px;height:72px;margin-top:4px}
+  .doing{grid-area:doing;font-size:20px;line-height:24px;height:72px;margin-top:4px}
   .feel{grid-area:feel;height:auto;flex-direction:column;align-items:stretch;gap:3px}
   .feel span{max-width:none}
   .meter i{height:11px}
