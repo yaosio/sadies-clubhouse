@@ -1,6 +1,8 @@
 // Chooter: Sadie's first friend, a black lab/pitbull mix (see docs/CHARACTERS.md). Manic,
 // energetic, and he loves absolutely everybody. Everything he does is play to him, even when
-// it's annoying. Sadie meets him the first time she climbs high enough, and he moves into her barn.
+// it's annoying. Before they meet he's just next door, listening: every thud, squish and topple,
+// and Sadie dragging her barn about, winds him up (it sounds like SO much fun), and once he can't
+// stand it any longer he bursts in to meet her. Later he moves into her barn.
 //
 // What he does comes from how he feels, through the shared thinking in mind/think.js:
 //   energy  - winds up on its own. Once he's full of it he gets the zoomies: he tears back and
@@ -34,7 +36,6 @@ import { offers, offersFrom } from '../mind/offers.js';
 import { think, switchTo, done } from '../mind/think.js';
 import { mindsFrom } from '../mind/thoughts.js';
 
-export const MEET_AT = 15 * U;                   // Sadie meets him the first time she stands this high
 const TROT = 2.2 * U, RUN = 4.2 * U, ZOOM = 6.5 * U;
 const G = 1400, JUMP_MAX = 2.6 * U, ZOOM_JUMP_MAX = 3.2 * U; // he can leap up ledges this tall
 const KICK = 5 * U, KICK_UP = 3.5 * U;           // how hard the zoomies knock a piece (px/s)
@@ -52,11 +53,18 @@ const IGNORED_FILL = 75;        // seconds of playing next to Sadie, with no att
 const UNIMPRESSED = 0.25;       // how much it stings when she's not impressed with the ball
 const freshFeelings = () => ({ energy: 0, tired: 0, missing: 0, ignored: 0 });
 
+// ---------- before they meet: he can hear it all from next door ----------
+export const HEAR_FULL = 3500;  // how much noise it takes to wind him all the way up (a new board makes about 850 a minute)
+export const HEAR_FASTEST = 150; // he can't get worked up any faster than this many seconds, however loud it is
+const HAUL_NOISE = 60;          // the barn scraping along behind Sadie, per second (as loud as a lot of thuds)
+export const PEEK_AT = 0.6;     // this wound up, he can't help peeking in at the edge of the board
+
 // place: out | home | door (going in or out through the cat flap) | dig (digging into a buried barn)
 // doing: greet | play | zoom | fetch | tease | home (see think.js); carrying: he has the ball in his
 // mouth; loot: the hay he's snatched
 export const chooter = {
   met: !!store.get('sadie.chooter.met', false), movedIn: !!store.get('sadie.chooter.movedIn', false),
+  heard: 0, ringing: 0, peek: 0, peekPhase: 0, peekSide: 1, // before they meet: how wound up he is by all the noise, and how far his head is poking in
   place: 'out', doing: null, x: 0, y: 0, vx: 0, vy: 0, air: false, dir: 1, phase: 0, mood: 'happy', carrying: false, loot: null, hay: null,
   feel: freshFeelings(), windUp: 1 / 55, outFor: 95, restFor: 35,
   actT: 0, spotT: 0, spot: 0, stuckT: 0, doorT: 0, doorIn: false, doorX: 0, barkT: 0, hopT: 0, pant: 0,
@@ -79,10 +87,12 @@ export function resetChooter() {
 }
 export function meetChooter() {
   const c = chooter;
-  c.met = true; store.set('sadie.chooter.met', true);
-  // he comes bounding in from the far side of the board, along the top of the pile
-  c.x = sadie.x > W / 2 ? 0.6 * U : W - 0.6 * U; c.y = groundAt(c.x, 1e9); c.dir = Math.sign(sadie.x - c.x) || 1;
+  if (c.heard < PEEK_AT) c.peekSide = sadie.x < W / 2 ? -1 : 1; // never peeked (the dev sheet): the side nearer her
+  c.met = true; store.set('sadie.chooter.met', true); c.heard = 1; c.ringing = 0; c.peek = 0;
+  // he bursts in over the wall where he's been peeking, with a big leap onto the pile
+  c.dir = -c.peekSide; c.x = c.peekSide > 0 ? W - 0.6 * U : 0.6 * U; c.y = groundAt(c.x, 1e9);
   Object.assign(c, { place: 'out', doing: null, carrying: false, loot: null, hay: null, vx: 0, vy: 0, air: false, stuckT: 0 });
+  jump(1.2 * U, c.dir * RUN); bark(); landDust(12);
   newOuting(); c.windUp = 1 / 55; c.feel.energy = 1 - (FIRST_ZOOM + 10) * c.windUp; c.feel.missing = 1;
   emit('friendMet', 'Chooter');
 }
@@ -382,10 +392,58 @@ mindsFrom(() => !chooter.met ? [] : chooter.place === 'home'
 // Start an activity right now (the dev sheet's buttons).
 export function chooterDo(name) { if (chooter.met && chooter.doing !== name) switchTo(chooter, CHOOTER_DOES, name); }
 
+// ---------- before they meet: listening from next door ----------
+// How much noise there was this tick: every piece that suddenly slows down (landing, squishing into
+// the pile, a topple coming to a stop) makes a thud, heavier ones louder; and the barn scrapes
+// along while Sadie drags it. No random numbers here, so nothing before he arrives changes.
+export function listen(dt) {
+  let noise = 0;
+  for (const p of world.pieces) {
+    if (p.fixed || p.asleep) { p.hearSpeed = 0; continue; }
+    const drop = (p.hearSpeed || 0) - p.speed;
+    if (drop > 0) noise += drop / p.mat.invMass;
+    p.hearSpeed = p.speed;
+  }
+  if (sadie.trip && sadie.trip.phase === 'haul' && sadie.heave) noise += HAUL_NOISE * dt;
+  return noise;
+}
+// Winding up, peeking in once he's close, and bursting in once he can't stand it any longer.
+function wait(dt) {
+  const c = chooter;
+  // what he hears rings in his ears and winds him up from there, only so fast however loud it is
+  c.ringing += listen(dt) / HEAR_FULL;
+  const take = Math.min(c.ringing, dt / HEAR_FASTEST);
+  c.ringing -= take; c.heard = Math.min(1, c.heard + take);
+  if (c.heard >= 1) { meetChooter(); return; }
+  // peeking: his head pops in for a few seconds now and then, more often the more wound up he is
+  const close = c.heard >= PEEK_AT, k = (c.heard - PEEK_AT) / (1 - PEEK_AT);
+  if (close) c.peekPhase = (c.peekPhase + dt / (22 - 14 * k)) % 1; else c.peekPhase = 0.6; // first peek a few seconds after he's wound up enough
+  const out = close && c.peekPhase > 0.72;
+  if (out && c.peek === 0) { // he's run round to the side nearer Sadie, where the noise is
+    c.peekSide = sadie.x < W / 2 ? -1 : 1;
+    const at = peekSpot(); emote('?!', '#3a2658', at.x - c.peekSide * 0.6 * U, at.y + 0.9 * U, -c.peekSide * 10, 30); // what WAS that?!
+  }
+  c.peek = Math.max(0, Math.min(1, c.peek + (out ? dt : -dt) * 3));
+}
+export const peekSpot = () => { // the middle of his head, peeking in over the wall on his side
+  const sd = chooter.peekSide, x = sd > 0 ? W - 0.35 * U : 0.35 * U;
+  return { x, y: groundAt(sd > 0 ? W - 0.3 * U : 0.3 * U, 1e9) + 0.5 * U };
+};
+function waitingThinks() {
+  const c = chooter;
+  return { doing: c.peek > 0 ? "I'm peeking in to see what all the noise is!" : "I'm listening at the wall.", why: 'Thuds! Squishes! Things falling over! It sounds like SO much fun in there!',
+    feelings: [{ label: "I'm getting excited", value: c.heard }] };
+}
+mindsFrom(() => { // tap his head where it pokes in (he's just behind the wall between peeks, so the bubble stays)
+  if (chooter.met || chooter.heard < PEEK_AT) return [];
+  const at = peekSpot();
+  return [{ who: chooter, name: 'Chooter', x: at.x, y: at.y - 0.5 * U, h: U, think: waitingThinks }];
+});
+
 // ---------- each tick ----------
 export function updateChooter(dt) {
   const c = chooter;
-  if (!c.met) { if (sadie.state !== 'climb' && sadie.y >= MEET_AT) meetChooter(); return; }
+  if (!c.met) { wait(dt); return; }
   c.barkT = Math.max(0, c.barkT - dt); c.pant = Math.max(0, c.pant - dt);
   const f = c.feel;
   if (c.place === 'home') drift(f, { tired: -1 / c.restFor }, dt);

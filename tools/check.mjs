@@ -149,6 +149,18 @@ for (const [device, opts] of DEVICES) {
   await shot(p, `${device}-3-mole-thinks`);
   check(`${device}: tapping the mole shows what it's thinking`, /mole/i.test(moleSays), JSON.stringify(moleSays.split('\n')[0]));
 
+  // Chooter, before they meet: "Peek in" in the dev sheet, then look at his head and tap it
+  await p.click('#settingsBtn'); await wait(p, 400); await p.click('#peekChooter'); await p.click('#closeSheet');
+  await p.waitForFunction(() => window.__jellyDebug().peek?.out >= 1, null, { timeout: 15000 }).catch(() => {});
+  d = await debugInfo(p);
+  await p.evaluate(k => window.__jellyLook(k.x < 24 ? k.x + 3 : k.x - 3, k.y, 2), d.peek); await wait(p, 100); // from inside the board
+  d = await debugInfo(p);
+  await shot(p, `${device}-3b-chooter-peeks`);
+  await tap(p, d.peek.sx + (d.peek.x < 24 ? 8 : -8), d.peek.sy); await wait(p, 400);
+  const chooterSays = await thought(p);
+  await shot(p, `${device}-3c-chooter-thinks`);
+  check(`${device}: before they meet, Chooter peeks in and can be tapped`, d.peek.out >= 1 && /noise/i.test(chooterSays), JSON.stringify(chooterSays.split('\n').slice(0, 2).join(' / ')));
+
   await p.click('#settingsBtn'); await wait(p, 500);
   await shot(p, `${device}-4-dev-sheet`);
   const sheetOpen = await p.evaluate(() => document.getElementById('sheet').classList.contains('open'));

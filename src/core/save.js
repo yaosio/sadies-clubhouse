@@ -31,6 +31,7 @@ export const SAVE_VERSION = 1;
 const PROGRESS_KEYS = ['jellystack.best', 'jellystack.climbBest', 'sadie.chooter.met', 'sadie.chooter.movedIn'];
 
 const r2 = v => Math.round(v * 100) / 100; // positions to 1/100 px: plenty, and keeps the save small
+const r4 = v => Math.round(v * 1e4) / 1e4;
 const pick = (o, keys) => { const out = {}; for (const k of keys) if (o[k] !== undefined) out[k] = o[k]; return out; };
 const SADIE_KEYS = ['x', 'y', 'vy', 'dir', 'state', 'phase', 'climbAhead', 'run', 'running', 'feel'];
 const CHOOTER_KEYS = ['place', 'doing', 'x', 'y', 'vx', 'vy', 'air', 'dir', 'phase', 'feel', 'windUp', 'outFor', 'restFor', 'zoomLen',
@@ -55,6 +56,7 @@ export function snapshot() {
     trail: { x: trail.x, dir: trail.dir },
     sadie: pick(sadie, SADIE_KEYS),
     chooter: chooter.met ? pick(chooter, CHOOTER_KEYS) : null,
+    listening: chooter.met ? null : { heard: r4(chooter.heard), ringing: r4(chooter.ringing), side: chooter.peekSide }, // how wound up he is next door
     bedrock: bedrock.melted ? { rock: Array.from(rock, r2), melted: bedrock.melted, flecks: bedrock.flecks } : null,
   };
 }
@@ -106,6 +108,7 @@ export function restore(s) {
     chooter.carrying = false; chooter.loot = chooter.hay = null; chooter.ballDone = undefined;
     chooter.feel = Object.assign({ energy: 0, tired: 0, missing: 0, ignored: 0 }, chooter.feel);
   }
+  if (!chooter.met) { const l = s.listening || {}; Object.assign(chooter, { heard: l.heard || 0, ringing: l.ringing || 0, peekSide: l.side === -1 ? -1 : 1, peek: 0 }); } // saves from before he listened: he starts from quiet
   toy.state = 'none';
   emit('nextChanged', world.nextType);
 }
@@ -124,6 +127,6 @@ export function clearTower() { resetGame(); saveGame(); }
 // Forget everything: the board, bests, friends. (The dev sheet's physics settings stay.)
 export function startOver() {
   for (const k of [SAVE_KEY, ...PROGRESS_KEYS]) store.remove(k);
-  world.best = 0; world.climbBest = 0; chooter.met = false; chooter.movedIn = false;
+  world.best = 0; world.climbBest = 0; chooter.met = false; chooter.movedIn = false; chooter.heard = chooter.ringing = 0;
   resetGame();
 }

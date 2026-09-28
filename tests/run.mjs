@@ -224,19 +224,37 @@ if (wanted(6)) {
   check('Sadie never teleports upward during the trip', maxRise < 0.1, `fastest rise ${(maxRise * 60).toFixed(1)} blocks/s`);
 }
 
-// 7. Chooter: meets Sadie, gets the zoomies, fetches a ball, goes home to the barn and comes back out
+// 7. Chooter: hears the noise and bursts in, meets Sadie, gets the zoomies, fetches a ball, goes home and comes back out
 if (wanted(7)) {
-  const { chooter, meetChooter, updateChooter, MEET_AT } = await import('../src/core/friends/chooter.js');
+  const { chooter, meetChooter, PEEK_AT, HEAR_FASTEST } = await import('../src/core/friends/chooter.js');
   const { toy, throwToy } = await import('../src/core/toys.js');
   const { drp } = await import('../src/core/dropper.js');
+  const { snapshot, restore } = await import('../src/core/save.js');
+  const dbg = await import('../src/core/debug.js');
+  const { minds } = await import('../src/core/mind/thoughts.js');
   const dt = 1 / 60;
-  chooter.met = false;
+  // a new board: all the thudding winds him up next door; he peeks in, then bursts in
+  chooter.met = false; chooter.heard = chooter.ringing = 0;
   resetGame();
-  let met = 0; on('friendMet', () => met++);
-  sadie.y = MEET_AT - U; sadie.state = 'walk'; updateChooter(dt); const early = met;
-  sadie.y = MEET_AT; updateChooter(dt);
-  check('Sadie meets Chooter the first time she stands 15 blocks up', early === 0 && met === 1 && chooter.met);
-  chooter.met = false;
+  let met = 0, metAt = null, peekAt = null, tappable = false, nearSide = false, saved = null; on('friendMet', () => met++);
+  for (let f = 0; f < 10 * 3600 && !chooter.met; f++) {
+    update(dt);
+    const t = (f + 1) * dt;
+    if (peekAt === null && chooter.peek > 0.5) { peekAt = t; tappable = minds().some(m => m.who === chooter); nearSide = chooter.peekSide === (sadie.x < W / 2 ? -1 : 1); }
+    if (f === 3 * 3600) saved = { heard: chooter.heard, s: JSON.parse(JSON.stringify(snapshot())) };
+    if (chooter.met) metAt = t;
+  }
+  const mins = s => s === null ? 'never' : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+  check('a few minutes of just Sadie and the mole, then Chooter bursts in', met === 1 && metAt > 180 && metAt < 7 * 60, `in at ${mins(metAt)}`);
+  check('he peeks in first, over the wall nearer Sadie, and you can tap him to see why', peekAt !== null && metAt - peekAt > 30 && tappable && nearSide, `first peek at ${mins(peekAt)}`);
+  chooter.met = false; restore(saved.s);
+  check('how wound up he is survives closing the page', Math.abs(chooter.heard - saved.heard) < 0.001, `${(saved.heard * 100).toFixed(1)}% before, ${(chooter.heard * 100).toFixed(1)}% after`);
+  // however much noise there is (a downpour of pieces), he can only get so worked up so fast
+  chooter.heard = chooter.ringing = 0; resetGame(); dbg.rainPieces(300, U, W - U, 0.05);
+  for (let f = 0; f < 60 * 60; f++) update(dt);
+  dbg.stopRain();
+  check(`even in a downpour, he takes at least ${HEAR_FASTEST / 60} minutes to arrive`, !chooter.met && chooter.heard <= 60 / HEAR_FASTEST + 0.001, `${(chooter.heard * 100).toFixed(0)}% wound up after a minute of it`);
+  chooter.met = false; chooter.heard = chooter.ringing = 0;
   resetGame();
   for (let f = 0; f < 90 * 60; f++) update(dt); // let the mole grow a pile first
   meetChooter();

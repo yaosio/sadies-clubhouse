@@ -7,7 +7,7 @@ import { SHAPES } from './physics/pieceTypes.js';
 import { makePiece } from './physics/body.js';
 import { localTop, groundAt, highestPoint } from './surface.js';
 import { sadie, pickTarget, sadieDo } from './sadie/brain.js';
-import { chooter, meetChooter } from './friends/chooter.js';
+import { chooter, meetChooter, PEEK_AT } from './friends/chooter.js';
 import { tireMole } from './mole.js';
 
 export const SPEEDS = [1, 2, 4, 8];
@@ -67,6 +67,8 @@ export function fetchBarnNow() { sadieDo('fetchBarn'); }
 
 // ---------- Chooter ----------
 export function meetChooterNow() { if (!chooter.met) meetChooter(); }
+// Before they meet: wound up enough that he starts peeking in (the rest still takes the noise).
+export function peekChooterNow() { if (!chooter.met) chooter.heard = Math.max(chooter.heard, PEEK_AT); }
 // These change how he feels, and he does the rest: full of energy (and rested, so he comes out
 // of the barn first if he's home) gives the zoomies; worn out sends him home.
 export function zoomiesNow() { if (!chooter.met) return; chooter.feel.energy = 1; chooter.feel.tired = 0; }
