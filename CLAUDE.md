@@ -30,7 +30,8 @@ also read `docs/CHARACTERS.md`: who they are and why they do things comes first.
 ## Publishing
 - GitHub `main` is the source of truth. The game page is https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
 - Only publish a build of `main` (`npm run check`, no `--preview`), to that same URL.
-  Before publishing, make sure `dist/index.html` has no `testBadge` in it (that's the test version).
+  Before publishing, make sure `grep -c '<div id="testBadge"' dist/index.html` is 0 (that's the test
+  version's label; the bare word also appears in the embedded source of the build tool).
   If main's `src/` and `tests/` are exactly what already passed on the branch, the check skips the
   tests by itself, so this is quick.
 - Read the live page first. If its embedded source differs from `main`, stop and ask.
