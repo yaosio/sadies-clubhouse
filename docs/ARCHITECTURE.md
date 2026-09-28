@@ -19,7 +19,7 @@ tell the screen something, it emits an event (below).
 
 | File | What it does |
 |---|---|
-| `main.js` | Boots everything: sizes the canvas, applies tuning, loads the saved game (or starts a board), saves every 5 s and when the page is hidden or closed, starts the loop. Also exposes `window.__jellyDebug()` for browser tests. |
+| `main.js` | Boots everything: sizes the canvas, applies tuning, loads the saved game (or starts a board), saves once a minute and when the page is hidden or closed, starts the loop. Also exposes `window.__jellyDebug()` for browser tests. |
 | `loop.js` | Fixed 1/60 s simulation steps (max 3 catch-up steps, each run 1–8 times over at the dev sheet's speed setting), then tells the mole how much of the time the simulation took (`feelStrain`; not while sped up), then camera, draw, HUD, perf recording. |
 | `config.js` | Board size (`U` = 30 px per block, 48 blocks wide), solver constants, dev-panel defaults, and the live `tuning` object (`tuning.set` = panel values, `tuning.P` = solver numbers). |
 | `platform/storage.js` | Safe localStorage wrapper (get, set, remove; never throws). The one place that touches browser storage, so a different home for saves (itch.io, a desktop app) only changes this file. |
