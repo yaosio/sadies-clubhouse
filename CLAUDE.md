@@ -17,7 +17,8 @@ also read `docs/CHARACTERS.md`: who they are and why they do things comes first.
 2. `core/` never touches the DOM or imports from `render/`, `ui/` or `input/`.
 3. `npm run check -- --preview` must pass: it runs `npm test`, builds the test version, and plays
    it in headless Chromium as a phone and a desktop (any page error fails). Look at the screenshots
-   in `dist/check/`. While working, `--quick` skips the 7-minute tests. If a change is meant to move
+   in `dist/check/`. While working, `--quick` skips the tests (about 3.5 minutes; they're skipped
+   anyway if they already passed on exactly this code). If a change is meant to move
    a test's numbers, explain why in plain words and update `docs/TUNING.md`.
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to
    the working branch. Never commit `dist/`, `node_modules/` or `package-lock.json`.
@@ -30,6 +31,8 @@ also read `docs/CHARACTERS.md`: who they are and why they do things comes first.
 - GitHub `main` is the source of truth. The game page is https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
 - Only publish a build of `main` (`npm run check`, no `--preview`), to that same URL.
   Before publishing, make sure `dist/index.html` has no `testBadge` in it (that's the test version).
+  If main's `src/` and `tests/` are exactly what already passed on the branch, the check skips the
+  tests by itself, so this is quick.
 - Read the live page first. If its embedded source differs from `main`, stop and ask.
 - The test page is https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the working branch, built
   with `--preview`, published after every pushed change without asking. It's never the source of

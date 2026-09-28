@@ -238,6 +238,18 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
 (keeps the dev sheet's physics settings). Both need a second tap within 3 s.
 
 ## What the tests expect (`tests/run.mjs`, seeded, so results repeat exactly)
+(Since the tests started running side by side, each numbered section runs in its own process: a
+fresh game and its own fresh stream of random numbers, instead of carrying on from whatever the
+section before it left behind (the pile, Chooter already met, the bests, how much of the random
+stream was used). That cut the tests from about 7 minutes to about 3.5, and moved most of the
+numbers below a little; the rules they check are the same and all still pass well inside their
+limits. The ones that moved most: the mole test no longer sees Chooter (in a fresh game he doesn't
+turn up within its 3 minutes; before, he'd been met in an earlier section), the teasing test has
+him snatch the hay once instead of twice, and the barn test's pile ends up lower over the roof.
+Bedrock's numbers didn't move: it already started from a fresh board. The mole's "slows down"
+check also now counts the quiet stretch just before it nods off, since in the fresh run it only
+got one piece out once tired, leaving no gap between two to measure. Older notes in brackets
+below are history from before this.)
 (Numbers from the Chooter test onward moved a little when deep pieces that never quite fall asleep
 started turning into fossils too, see Fossils: a longer game's pile settles a little differently,
 and the tests share one stream of random numbers. Chooter now brings back 5 of 5 balls (was 7),
@@ -248,50 +260,50 @@ pieces on Sadie and 14 on Chooter (was 27 and 17) and its slowest tired gap is a
 the results are identical.)
 - 150-piece mixed pile: no broken numbers, deepest overlap about 0.6 px, about 140 asleep.
 - Ball dropped from 6 blocks: bounces to 3.37, 2.13, 1.52 blocks.
-- 70 pieces on one spot: a mound peaking around 12.5 blocks.
+- 70 pieces on one spot: a mound peaking around 10.7 blocks (was 12.5).
 - Two minutes of play, nobody steering the mole: she never rises faster than about 4 blocks
   per second, never stays buried, hay never sinks below where it appeared, there are always 3
   bundles out, each new one 10–18 blocks from the last, new hay always starts out of her reach, she
   eats about 8 bundles (the check wants at least 4), and her longest wait between snacks is about
-  25 s (the check allows up to 40). Time spent fetching her barn doesn't count as waiting. (With a
+  26 s (the check allows up to 40). Time spent fetching her barn doesn't count as waiting. (With a
   pretend helpful player keeping the dropper near her, before the mole, it was 6 bundles and 39 s:
   the mole comes straight over once she's impatient, so she does better on her own now.)
-- 110 pieces on one spot (peak about 15 blocks): 12 become fossils, all buried at least 8 blocks,
+- 110 pieces on one spot (peak about 14.6 blocks): 15 become fossils (was 12), all buried at least 8 blocks,
   and a boulder landing on top wakes none of them. (These numbers moved from 18 fossils and an
   18-block peak only because the tests share one stream of random numbers and the play test before
   it now uses a different amount of them. They moved again, from 15 and 16 blocks, when the mole
   took over the dropping, for the same reason.)
 - The mole burying the barn (on its own now; it used to be a pretend player dropping on it): the
-  pile gets about 3.4 blocks over its roof, Sadie fetches it once (about 31 s), and it ends up about
-  8.5 blocks higher with nothing near it higher than its roof, inside the walls, with no piece sunk
-  into it more than about 0.6 px. (Before the mole: about 5 blocks, 22 s, 8 blocks, 0.5 px. The
+  pile gets about 2.2 blocks over its roof, Sadie fetches it once (about 18 s), and it ends up about
+  6.7 blocks higher with nothing near it higher than its roof, inside the walls, with no piece sunk
+  into it more than about 0.7 px. (Was 3.4 blocks, 31 s and 8.5 blocks before the sections ran
+  apart.) (Before the mole: about 5 blocks, 22 s, 8 blocks, 0.5 px. The
   mole spreads its pieces over the whole barn and wanders off to Sadie when she's impatient, so
   the heap is lower and the trip a bit longer.) (Moved from about 20 s, 6
   blocks and 0.3 px when her behavior moved onto feelings: "a minute since the last trip" became a
   feeling that wears off, which can land a frame differently, and in a pile one frame is enough to
   make a different trip. Everything before this test came out exactly the same.)
 - Chooter: meets Sadie only once she's 15 blocks up. On a pile the mole grew for 90 s, over 4
-  minutes he greets her (about 15 s, running in from the far side), has 3 bouts of zoomies knocking
-  about 26 pieces, brings back all 5 balls thrown for him, moves into the barn and comes back out, and
-  never gets stuck in the pile or leaves the board. This test runs after the others, so it doesn't
-  change their numbers.
-- Debug tools (runs after the play tests): raining 100 pieces drops them all in about 8 s with no
-  piece sunk into another more than about 1 px; "Build a tall pile" peaks around 17.5 blocks and goes
-  back to normal speed; "Put her on top" puts Sadie about 17.5 blocks up, standing; the Sadie and Chooter
+  minutes he greets her (about 10 s, running in from the far side), has 3 bouts of zoomies knocking
+  about 27 pieces, brings back all 7 balls thrown for him, moves into the barn and comes back out, and
+  never gets stuck in the pile or leaves the board.
+- Debug tools: raining 100 pieces drops them all in about 8 s with no
+  piece sunk into another more than about 1 px; "Build a tall pile" peaks around 19.4 blocks and goes
+  back to normal speed; "Put her on top" puts Sadie about 19.5 blocks up, standing; the Sadie and Chooter
   buttons each start what they say; clearing the tower stops any rain.
-- Saving: a game saved after 70 s of play (39 pieces, 20 still moving, Chooter met) comes back the
+- Saving: a game saved after 70 s of play (46 pieces, 22 still moving, Chooter met) comes back the
   same after a JSON round trip, then plays on for 20 s with Sadie never stuck in the pile and no
-  piece sunk into another more than about 0.6 px; a save from another version is
+  piece sunk into another more than about 1.5 px (the check allows 2.5); a save from another version is
   refused; Clear tower keeps Chooter; Start over forgets him.
 - The Chooter, debug and save numbers above moved a little when the characters moved onto
   feelings: Chooter now draws his random numbers at different moments, and the tests share one
   stream of random numbers. His behavior's rules are the same. (They moved again when he learned to
   tease Sadie, for the same reason plus the time he spends teasing. And again when the mole took
   over the dropping: it builds a different pile than the pretend player did.)
-- Teasing: on a pile the mole grew for 90 s, over 4 minutes, Chooter snatches Sadie's hay twice
-  (first after about 22 s), she runs after it most of the time and catches him both times (it can also
-  end with him dropping it at 20 s),
-  nobody turns back and forth more than about twice a second (21 turns in 23 s), there are always
+- Teasing: on a pile the mole grew for 90 s, over 4 minutes, Chooter snatches Sadie's hay once
+  (after about 155 s; it was twice, first after 22 s, before the sections ran apart), she runs
+  after it the whole time and catches him (it can also end with him dropping it at 20 s),
+  nobody turns back and forth more than about twice a second (11 turns in 15 s), there are always
   3 bundles out, and he never gets stuck in the pile. (Before the fix for sticking to one way to
   run this caught him twice; the fix changed when random numbers get used, so the run differs.)
 - Cornered: Chooter carrying the hay near the right wall with Sadie 2.5 blocks behind
@@ -301,14 +313,16 @@ the results are identical.)
   mole) every half second. They always have something to say (24 different "doing" lines come up), nobody has more than 4
   feeling bars, every feeling bar is between 0 and 1, and reading thoughts
   never uses a random number (so tapping a character can't change what happens next).
-- The mole (runs last, so no earlier numbers moved): 3 minutes of a fresh game. Every piece lands
-  either within 1.5 blocks of whoever it's burying (32 on Sadie, 14 on Chooter once she met him)
-  or on the barn (64), none anywhere else, and whenever Sadie is at least half impatient the mole
+- The mole: 3 minutes of a fresh game. Every piece lands
+  either within 1.5 blocks of whoever it's burying (37 on Sadie; Chooter doesn't turn up in time)
+  or on the barn (78), none anywhere else, and whenever Sadie is at least half impatient the mole
   is burying someone. Never two pieces closer than 1.5 s. Then a pretend struggling game (the
-  simulation taking 80% of each second): the gaps between pieces stretch to about 4.6 s, it's
+  simulation taking 80% of each second): the gaps between pieces (or the quiet stretch before its
+  nap) stretch to about 5.8 s, it's
   napping after 8 s and drops nothing while it naps, and 12 s after the game calms down it's back
   to work.
-- Bedrock (runs last, so no earlier numbers moved): a fresh board has none. Raining 700 pieces over
+- Bedrock: a fresh board has none. (The slowest section, about 3.5 minutes on its own: 700 pieces
+  raining into a messy heap make every step of the game work hard.) Raining 700 pieces over
   the whole board: nothing melts until there are more than 400 (the first melt comes at 406), then
   about 375 melt into bedrock (2–39 blocks up), leaving about 390 pieces (from about 520 at the
   most, since pieces rain in faster than deep ones become fossils). Where the bedrock rises it's

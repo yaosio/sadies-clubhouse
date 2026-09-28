@@ -1,9 +1,14 @@
 // Checks everything before a change goes anywhere: the headless tests, a fresh build, and the built
 // page played in a real (hidden) browser, as a phone and as a desktop.
 //
-//   npm run check                  everything (the tests take about 7 minutes)
+//   npm run check                  everything (the tests take about 3.5 minutes)
 //   npm run check -- --quick       skip the headless tests (for a quick look while working)
 //   npm run check -- --preview     build and check the test version (the one for the test page)
+//   npm run check -- --retest      run the tests even if they already passed on this exact code
+//
+// The tests only depend on src/ and tests/, so once they've passed on exactly those files (this
+// session: it's remembered in dist/), they aren't run again until something there changes. That
+// makes the check at merge time quick, since main then has the same code the branch was tested on.
 //
 // In the browser it opens a new game, taps Sadie and the mole to read their thoughts, opens the dev
 // sheet, loads a full board (400 pieces, bedrock melting; made by tools/fullboard.mjs), reloads it
@@ -36,13 +41,7 @@ function run(label, cmd, cmdArgs) {
   return r.status === 0;
 }
 
-// ---------- 1. the headless tests, and the build ----------
-if (!quick) check('headless tests (npm test)', run('headless tests', 'node', ['tests/run.mjs']));
-if (!run('build', 'node', ['tools/build.mjs', ...(preview ? ['--preview'] : [])])) {
-  console.log('\nthe build failed, nothing else to check'); process.exit(1);
-}
-
-// ---------- 2. a full board to load (remade only when the game's code changes) ----------
+// ---------- 1. the headless tests (unless they passed on this exact code already), and the build ----------
 function hashOf(paths) {
   const h = createHash('sha1');
   const add = p => {
@@ -54,6 +53,24 @@ function hashOf(paths) {
   return h.digest('hex').slice(0, 12);
 }
 mkdirSync(join(root, 'dist'), { recursive: true });
+if (!quick) {
+  const passed = join(root, 'dist/tests-passed-' + hashOf(['src', 'tests', 'package.json']));
+  if (existsSync(passed) && !args.includes('--retest')) {
+    console.log('\n== headless tests\nalready passed on exactly this code (src/ and tests/ unchanged), not running them again');
+  } else {
+    const ok = run('headless tests', 'node', ['tests/run.mjs']);
+    check('headless tests (npm test)', ok);
+    if (ok) {
+      for (const f of readdirSync(join(root, 'dist'))) if (f.startsWith('tests-passed-')) rmSync(join(root, 'dist', f));
+      writeFileSync(passed, new Date().toISOString() + '\n');
+    }
+  }
+}
+if (!run('build', 'node', ['tools/build.mjs', ...(preview ? ['--preview'] : [])])) {
+  console.log('\nthe build failed, nothing else to check'); process.exit(1);
+}
+
+// ---------- 2. a full board to load (remade only when the game's code changes) ----------
 const boardFile = join(root, 'dist/fullboard-' + hashOf(['src/core', 'src/config.js', 'tools/fullboard.mjs']) + '.json');
 if (!existsSync(boardFile)) {
   for (const f of readdirSync(join(root, 'dist'))) if (/^fullboard-.*\.json$/.test(f)) rmSync(join(root, 'dist', f));

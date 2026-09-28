@@ -1,9 +1,49 @@
 // Headless checks for the simulation. Runs the real game code in Node, no browser needed:
 //
-//   node tests/run.mjs
+//   node tests/run.mjs                 all of them
+//   node tests/run.mjs --section=14    just one numbered section (below)
 //
 // The simulation (src/core) never touches the screen, which is what makes this possible.
-// Random numbers are seeded so every run is the same.
+//
+// Each numbered section runs in its own Node process, several at once (one per processor), so the
+// whole lot takes minutes less. That also means each section starts from a fresh game and its own
+// fresh random numbers (seeded, so every run is the same), and nothing one section does can change
+// another's numbers.
+import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { cpus } from 'node:os';
+
+const only = process.argv.find(a => a.startsWith('--section='));
+const wanted = n => only && +only.slice(10) === n;
+
+if (!only) {
+  const me = new URL(import.meta.url).pathname;
+  const sections = [...readFileSync(me, 'utf8').matchAll(/^\/\/ (\d+)\. (.*)$/gm)].map(m => ({ n: +m[1], title: m[2] }));
+  // the long ones first, so they don't end up last and alone
+  const LONG = [14, 13, 4, 6, 7, 10, 9];
+  const queue = [...sections].sort((a, b) => (LONG.includes(b.n) ? LONG.length - LONG.indexOf(b.n) : 0) - (LONG.includes(a.n) ? LONG.length - LONG.indexOf(a.n) : 0));
+  const results = new Map(), t0 = Date.now();
+  const runOne = s => new Promise(done => {
+    const t = Date.now(), c = spawn(process.execPath, [me, `--section=${s.n}`]);
+    let text = '';
+    c.stdout.on('data', d => text += d); c.stderr.on('data', d => text += d);
+    c.on('close', code => { results.set(s.n, { text, code, secs: (Date.now() - t) / 1000 }); done(); });
+  });
+  const worker = async () => { while (queue.length) await runOne(queue.shift()); };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(cpus().length, sections.length)) }, worker));
+  let bad = 0;
+  for (const s of sections) {
+    const r = results.get(s.n);
+    console.log(`\n-- ${s.n}. ${s.title}  (${r.secs.toFixed(0)} s)`);
+    process.stdout.write(r.text.replace(/\n?all checks passed\n?$|\n?\d+ check\(s\) failed\n?$/, '\n'));
+    const fails = (r.text.match(/^FAIL/gm) || []).length;
+    if (r.code !== 0) bad += Math.max(1, fails);
+  }
+  console.log(`\n${sections.length} sections in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+  console.log(bad ? `${bad} check(s) failed` : 'all checks passed');
+  process.exit(bad ? 1 : 0);
+}
+
 let seed = 20260926;
 Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
 
@@ -57,7 +97,7 @@ const hasNaN = pieces => pieces.some(p => { for (let i = 0; i < p.n; i++) if (!i
 const P = physParams({ ...DEFAULTS });
 
 // 1. A big mixed pile stays stable
-{
+if (wanted(1)) {
   const types = Object.keys(SHAPES), pieces = [];
   for (let k = 0; k < 150; k++) {
     const x = W * 0.35 + Math.random() * W * 0.3;
@@ -73,7 +113,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 2. The bouncy ball bounces like it used to
-{
+if (wanted(2)) {
   const pcs = [makePiece('ball', U, W / 2, 6 * U, 0)]; const peaks = []; let prev = 0;
   for (let f = 0; f < 400; f++) { physicsStep(pcs, P, 1 / 60); const v = pcs[0].y[0] - pcs[0].py[0]; if (prev > 0 && v <= 0) peaks.push(pcs[0].y[0] / U); prev = v; }
   check('ball dropped from 6 blocks bounces to about 3.4', peaks[0] > 3.0 && peaks[0] < 3.8, `first bounce ${peaks[0]?.toFixed(2)}`);
@@ -81,7 +121,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 3. Pieces dropped on one spot make a mound (not a flat layer, not a spire)
-{
+if (wanted(3)) {
   const types = Object.keys(SHAPES), pieces = [], cx = W / 2;
   for (let k = 0; k < 70; k++) {
     let top = 0; for (const p of pieces) if (p.maxX > cx - 2 * U && p.minX < cx + 2 * U) top = Math.max(top, p.maxY);
@@ -94,7 +134,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 4. Two minutes of real play: Sadie, the mole, hay and her barn, all together (nobody steers the mole)
-{
+if (wanted(4)) {
   resetGame();
   let maxRise = 0, sunkFrames = 0, longestSunk = 0, hayBelowStart = 0, prevY = sadie.y;
   let lastMeal = 0, longestWait = 0, eaten = 0, badGap = 0, hayOut = true, inReach = 0;
@@ -129,7 +169,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 5. Deep in a tall pile, settled pieces become fossils: permanent ground that nothing wakes
-{
+if (wanted(5)) {
   const types = Object.keys(SHAPES), pieces = [], cx = W / 2;
   for (let k = 0; k < 110; k++) {
     let top = 0; for (const p of pieces) if (p.maxX > cx - 2 * U && p.minX < cx + 2 * U) top = Math.max(top, p.maxY);
@@ -153,7 +193,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 6. Sadie's barn: bury it, and she rushes back and drags it up to the top of the pile
-{
+if (wanted(6)) {
   resetGame();
   let trips = 0, home = 0, buriedMax = 0, maxRise = 0, prevY = sadie.y, outside = 0, coverAfter = null, tripSecs = 0, floor0 = 0, roofGap = 0;
   on('homeRush', () => { trips++; floor0 = barn.piece.minY; });
@@ -185,7 +225,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 7. Chooter: meets Sadie, gets the zoomies, fetches a ball, goes home to the barn and comes back out
-{
+if (wanted(7)) {
   const { chooter, meetChooter, updateChooter, MEET_AT } = await import('../src/core/friends/chooter.js');
   const { toy, throwToy } = await import('../src/core/toys.js');
   const { drp } = await import('../src/core/dropper.js');
@@ -230,7 +270,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 8. Debug tools (the dev sheet): raining pieces, a quick tall pile, and making things happen now
-{
+if (wanted(8)) {
   const dbg = await import('../src/core/debug.js');
   const { chooter } = await import('../src/core/friends/chooter.js');
   const dt = 1 / 60;
@@ -267,7 +307,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 9. Saving: a game saved mid-play comes back exactly as it was, and carries on without trouble
-{
+if (wanted(9)) {
   const { snapshot, restore, clearTower, startOver } = await import('../src/core/save.js');
   const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
   const { barn, barnX } = await import('../src/core/barn.js');
@@ -304,7 +344,7 @@ const P = physParams({ ...DEFAULTS });
 }
 
 // 10. Chooter teases Sadie: fed up with being ignored, he snatches her hay; she chases him for it
-{
+if (wanted(10)) {
   const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
   const dt = 1 / 60;
   resetGame();
@@ -338,7 +378,7 @@ const P = physParams({ ...DEFAULTS });
 
 // 11. Cornered: Chooter runs out of room against the wall with Sadie right behind him. Neither of
 // them should flip back and forth; she gets her hay.
-{
+if (wanted(11)) {
   const { chooter, meetChooter, chooterDo } = await import('../src/core/friends/chooter.js');
   const { pickUpHay } = await import('../src/core/hay.js');
   const dt = 1 / 60;
@@ -360,7 +400,7 @@ const P = physParams({ ...DEFAULTS });
 
 // 12. Thought bubbles: tapping Sadie, Chooter or the mole always has something sensible to say, and
 // reading their thoughts never changes the game.
-{
+if (wanted(12)) {
   const { chooter, meetChooter } = await import('../src/core/friends/chooter.js');
   const { minds } = await import('../src/core/mind/thoughts.js');
   const dt = 1 / 60;
@@ -386,7 +426,7 @@ const P = physParams({ ...DEFAULTS });
 // 13. The mole decides where pieces go: on anyone restless (it thinks they want to be buried),
 // otherwise on the barn. Never faster than one piece every 1.5 s, and a struggling game tires it:
 // slower, then a nap with no pieces at all, then back to work once things calm down.
-{
+if (wanted(13)) {
   const { mole } = await import('../src/core/mole.js');
   const { REGEN } = await import('../src/core/dropper.js');
   const { chooter } = await import('../src/core/friends/chooter.js');
@@ -417,7 +457,9 @@ const P = physParams({ ...DEFAULTS });
     const t = f * dt, strained = t < 25;
     mole.strain = strained ? 0.8 : 0;
     update(dt);
-    if (mole.napping && napAt === null) napAt = t;
+    // the quiet stretch just before it nods off counts as slowing down too (it may only get one
+    // piece out once it's tired, so there'd be no gap between two to measure)
+    if (mole.napping && napAt === null) { napAt = t; slowGap = Math.max(slowGap, t - Math.max(0, last)); }
     if (!mole.napping && napAt !== null && wokeAt === null) wokeAt = t;
     if (world.pieces.length > n) {
       const g = dropped(t);
@@ -435,7 +477,7 @@ const P = physParams({ ...DEFAULTS });
 
 // 14. Bedrock: once the board has more than 400 pieces, fossils buried 12 blocks deep melt into the
 // floor, so the tower can grow forever without the number of pieces growing with it. (Runs last, so no earlier numbers moved.)
-{
+if (wanted(14)) {
   const { rock, rockAt, rockInfo, surf, SURF_N, SURF_RES } = await import('../src/core/surface.js');
   const { bedrock, MELT_DEPTH, MAX_PIECES } = await import('../src/core/bedrock.js');
   const { rainPieces } = await import('../src/core/debug.js');
