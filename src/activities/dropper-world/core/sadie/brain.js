@@ -176,7 +176,7 @@ function sadieThinks() {
   return { doing, why, feelings: [
     { label: "I'm hungry", value: c.feel.hunger },
     { label: 'I feel at home', value: c.feel.settled },
-    { label: "I'm worried about my barn", value: clamp01(barnWorry()) },
+    { label: "I'm worried", value: clamp01(barnWorry()) },
     { label: "I'm impatient", value: c.feel.impatient },
   ] };
 }

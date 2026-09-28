@@ -36,7 +36,8 @@ not from rules that name two characters.
   absolutely everybody!"), true to who they are in this file. Each character writes its own
   `think()` next to its activities. When you add an activity or a feeling, add its line there too,
   so the dashboard never says something that isn't true. At most 4 feelings per character (the
-  dashboard shows the strongest; the owner chose one meter over all of them, to save room): never one
+  dashboard shows the strongest; the owner chose one meter over all of them, to save room), each label short enough to fit it
+  ("I'm worried", "Bury the barn!"): never one
   feeling per other character (that won't scale as friends are added). The mole, for example, has one bar
   for whoever it has its eye on right now. There are no pop-up messages ("Munch munch!",
   "Zoomies!"); only a new friend gets one.

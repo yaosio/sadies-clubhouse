@@ -143,11 +143,11 @@ function moleThinks() {
   if (drp.hay === null && !c.napping && world.gameTime - bedrock.lastMelt < 20) why += ' And some of the deep ones just turned into bedrock. Lucky things.';
   if (!c.napping && t > 0.3) why += " I'm getting tired, though, so I'm taking it slow.";
   const feelings = [{ label: "I'm tired", value: t }];
-  if (barn.piece) feelings.push({ label: 'The barn needs burying', value: clamp01(-barnCover() / ROOF) });
+  if (barn.piece) feelings.push({ label: 'Bury the barn!', value: clamp01(-barnCover() / ROOF) });
   // one bar, for whoever it has its eye on (the most restless creature around), however many there are
   let eye = null;
   for (const o of offers('restless')) if (o.how > 0 && (!eye || o.how > eye.how)) eye = o;
-  feelings.push(eye ? { label: `${eye.name} wants to be buried`, value: clamp01(eye.how) } : { label: 'Nobody wants burying right now', value: 0 });
+  feelings.push(eye ? { label: `Bury ${eye.name}!`, value: clamp01(eye.how) } : { label: 'Nobody to bury', value: 0 });
   return { doing, why, feelings };
 }
 mindsFrom(() => {

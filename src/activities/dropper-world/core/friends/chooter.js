@@ -432,7 +432,7 @@ export const peekSpot = () => { // the middle of his head, peeking in over the w
 function waitingThinks() {
   const c = chooter;
   return { doing: c.peek > 0 ? "I'm peeking in to see what all the noise is!" : "I'm listening at the wall.", why: 'Thuds! Squishes! Things falling over! It sounds like SO much fun in there!',
-    feelings: [{ label: "I'm getting excited", value: c.heard }] };
+    feelings: [{ label: "I'm excited", value: c.heard }] };
 }
 mindsFrom(() => { // tap his head where it pokes in (he's just behind the wall between peeks, so the bubble stays)
   if (chooter.met || chooter.heard < PEEK_AT) return [];

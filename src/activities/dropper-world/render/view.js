@@ -25,9 +25,12 @@ export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0 };  // fol
 // insetB/insetR: board px along the bottom/right covered by the dev sheet, so Sadie stays in view
 
 export const cam = { x: W / 2, y: 6 * U, z: 1 };
+// Resizing the canvases wipes them, so it only happens when the board's size really changed; it
+// says whether it did, so the picture can be drawn again straight away (or that frame shows black).
 export function resize() {
-  const r = cv.getBoundingClientRect(); vp.vw = r.width; vp.vh = r.height;
-  const dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (r.width === vp.vw && r.height === vp.vh && Math.min(2, dpr) === vp.dpr) return false;
+  vp.vw = r.width; vp.vh = r.height;
   vp.dpr = Math.min(2, dpr);
   cv.width = Math.round(vp.vw * vp.dpr); cv.height = Math.round(vp.vh * vp.dpr);
   const oldFit = camState.fitZ;
@@ -40,6 +43,7 @@ export function resize() {
   lo.style.width = lo.width * vp.P + 'px'; lo.style.height = lo.height * vp.P + 'px'; // a hair past the edge, never squeezed
   crispDirty = true;
   cam.z = cam.z === 1 && oldFit === 1 ? camState.fitZ : cam.z * (camState.fitZ / oldFit);
+  return true;
 }
 export const sxf = x => (x - cam.x) * cam.z + vp.vw / 2;
 export const syf = y => vp.vh / 2 - (y - cam.y) * cam.z;

@@ -128,6 +128,25 @@ let hinted = true;
 cv.addEventListener('pointerdown', () => { if (hinted) { hinted = false; if (held && led.textContent === HINT) hush(); } });
 on('friendMet', name => say(`SADIE MADE A FRIEND: ${name.toUpperCase()}!`));
 
+// ---------- boxes that never change size ----------
+// The dashboard is one size, like a 90s program's panel: when the words don't fit their box, they
+// wait a moment, roll slowly up to show the rest, wait, and start again.
+const HOLD = 2500, ROLL = 0.012; // ms to wait at each end; px per ms
+const rollers = [...document.querySelectorAll('.scroll')].map(box => ({ box, inner: box.firstElementChild, text: '', t0: 0, over: 0, checked: -1e9, y: 0 }));
+function rollText(now) {
+  for (const r of rollers) {
+    const text = r.inner.textContent;
+    if (text !== r.text) { r.text = text; r.t0 = now; r.checked = -1e9; }
+    if (now - r.checked > 1000) { r.checked = now; r.over = Math.max(0, r.inner.offsetHeight - r.box.clientHeight); } // how much doesn't fit
+    let y = 0;
+    if (r.over > 0) {
+      const run = r.over / ROLL, k = (now - r.t0) % (HOLD + run + HOLD);
+      y = Math.round(k < HOLD ? 0 : k < HOLD + run ? (k - HOLD) * ROLL : r.over);
+    }
+    if (y !== r.y) { r.y = y; r.inner.style.transform = `translateY(${-y}px)`; }
+  }
+}
+
 // ---------- each frame ----------
 const faceEl = $('face'), meter = $('feelMeter');
 for (let i = 0; i < SEGS; i++) meter.append(document.createElement('i'));
@@ -148,6 +167,7 @@ export function drawDashboard(time) {
   const chip = watched === sadie ? reachChip() : '';
   if (shown.chip !== chip) { shown.chip = chip; $('dashChip').textContent = chip; $('dashChip').hidden = !chip; }
   faceEl.setAttribute('aria-label', name + "'s face");
+  rollText(time);
   stamps.querySelector('[data-who="chooter"]').hidden = !chooter.met;
 
   // faces: the big one every other frame, one stamp every few frames

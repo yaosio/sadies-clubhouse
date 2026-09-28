@@ -80,6 +80,18 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
       return { share: b.width * b.height / (innerWidth * innerHeight), old: ['thought', 'tip', 'toast', 'aimTip'].filter(id => document.getElementById(id)) }; });
     check(`${device}: the board gets most of the screen, with nothing modern left on it`, frame.share > 0.6 && !frame.old.length,
       `board ${Math.round(frame.share * 100)}% of the screen${frame.old.length ? ', still there: ' + frame.old.join(', ') : ''}`);
+    // the ESC BACK key never covers the name, and the board and dashboard never change size (a
+    // resize wipes the board's picture): watch them while switching who's watched and news comes in
+    const sizes = () => p.evaluate(() => ['board', 'dash'].map(id => { const r = document.getElementById(id).getBoundingClientRect(); return `${r.width}x${r.height}`; }).join(' '));
+    const firstSize = await sizes(), seen = new Set([firstSize]);
+    for (const who of ['mole', 'sadie', 'mole', 'sadie']) {
+      await p.evaluate(w => { const b = document.querySelector(`.stamp[data-who="${w}"]`); b.click(); }, who); await wait(p, 700); seen.add(await sizes());
+    }
+    await p.evaluate(() => document.getElementById('dash').click()); await wait(p, 300); seen.add(await sizes()); // the "why" pop-up (phone)
+    await p.evaluate(() => document.getElementById('dash').click()); await wait(p, 300);
+    check(`${device}: the board and dashboard stay one size`, seen.size === 1, [...seen].join(' / '));
+    const clash = await p.evaluate(() => { const b = document.getElementById('clubBack').getBoundingClientRect(), l = document.querySelector('.mlogo').getBoundingClientRect(); return b.right > l.left ? `ESC BACK ends at ${Math.round(b.right)} px, the name starts at ${Math.round(l.left)} px` : ''; });
+    check(`${device}: ESC BACK doesn't cover the name`, !clash, clash);
     check(`${device}: the dashboard shows Sadie's face`, await faceDrawn(p) > 0.1, `${Math.round(await faceDrawn(p) * 100)}% of the picture drawn`);
 
     // it flies about, so look right at it and tap where it is now (a few tries, in case it moved)

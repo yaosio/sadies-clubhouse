@@ -33,7 +33,8 @@
 #clubhouse #pad i.up{border-bottom-color:#fff;border-top-width:0}#clubhouse #pad i.dn{border-top-color:#fff;border-bottom-width:0}
 #clubhouse #pad i.lt{border-right-color:#fff;border-left-width:0}#clubhouse #pad i.rt{border-left-color:#fff;border-right-width:0}
 #clubhouse #dash{display:flex;gap:8px;align-items:stretch}
-#clubhouse #led{flex:1;min-width:0;min-height:72px;padding:6px 8px;background:#06140a;
+/* one fixed size, like a real LED board: text typing into it never pushes the room smaller */
+#clubhouse #led{flex:1;min-width:0;height:78px;overflow:hidden;padding:6px 8px;background:#06140a;
   background-image:radial-gradient(#0e2a14 1px,transparent 1.2px);background-size:3px 3px;
   font-size:12px;line-height:1.3;color:var(--led);letter-spacing:.04em;text-transform:uppercase}
 #clubhouse #led .t{color:var(--led-hi)}
@@ -49,7 +50,7 @@
 @media (max-width:560px){
   #clubhouse header{justify-content:center}
   #clubhouse .tag{width:100%;text-align:center}
-  #clubhouse #led{font-size:11px}
+  #clubhouse #led{font-size:11px;height:92px}
   #clubhouse #play{min-width:84px;font-size:18px}
   #clubhouse #keys{gap:4px 10px}
 }

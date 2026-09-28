@@ -84,11 +84,17 @@ export function open(cards, enter) {
   const aim = (x, z) => Math.atan2(-(x - cam.position.x), -(z - cam.position.z));
   const SHELF1 = () => aim(-0.2, ZB), SHELF2 = () => aim(-RW, 1.2);
 
+  let drawnAt = '';  // the drawing size last set
   function resize() {
+    fitLogo();
     const v = $('#view'), w = v.clientWidth, h = v.clientHeight;
     if (!w || !h) return;
     const k = Math.max(1, Math.floor(Math.min(w, h) / 200)); // big chunky pixels, but never under 200 across
     const iw = Math.ceil(w / k), ih = Math.ceil(h / k);
+    // resizing wipes the picture, so only when the size really changed, and then draw it again
+    // straight away (otherwise that frame shows black)
+    if (drawnAt === iw + 'x' + ih) return;
+    drawnAt = iw + 'x' + ih;
     renderer.setSize(iw, ih, false); res.set(iw, ih);
     cam.aspect = iw / ih;
     const hfov = 78 * Math.PI / 180;
@@ -97,7 +103,7 @@ export function open(cards, enter) {
     if (!walk.moved) cam.position.set(tall ? -0.2 : 0.15, EYE, tall ? 1.55 : -0.2);
     cam.updateProjectionMatrix();
     if (!look.touched && look.toYaw === null) look.yaw = SHELF1();
-    fitLogo();
+    renderer.render(scene, cam);
   }
   const sizer = new ResizeObserver(resize);
   sizer.observe($('#view'));
