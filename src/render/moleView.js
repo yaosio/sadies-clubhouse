@@ -1,7 +1,7 @@
 // The mole: a round velvety mole in a propeller beanie, hanging onto the piece it's about to drop
 // with its big pink digging hands. Squints (moles barely see), droops when tired, snoozes when
 // worn out, and stares aghast at any hay it digs up. A faint shimmer under whatever it carries:
-// something keeps it up there, and it's not the hat. Shows an edge marker when it's off screen.
+// something keeps it up there, and it's not the hat.
 import { U } from '../config.js';
 import { world } from '../core/world.js';
 import { drp, heldOffsets, NO_PIECE } from '../core/dropper.js';
@@ -21,7 +21,7 @@ export function drawMole(time) {
   const dt = Math.min(0.1, (time - lastT) / 1000); lastT = time;
   propAng += dt * (nap ? 4 : 22 - 12 * tired);
   const onScreen = bx > -S * 2 && bx < vp.vw + S * 2 && by > -S * 2 && by < vp.vh + S * 2;
-  if (!onScreen) { drawMoleMarker(bx, by); return; }
+  if (!onScreen) return;
   const k = drp.claw, pieceTop = syf(topY), hay = drp.hay !== null;
   const half = Math.max(0.5 * S, (o.x1 - o.x0) / 2 * z);
   drawShimmer(bx, syf(drp.y + o.y0), S, time, 7);
@@ -80,15 +80,4 @@ export function drawMole(time) {
     for (let q = 1; q <= 4; q++) ctx.lineTo(bx - 0.12 * S + q * 0.06 * S, by + (q % 2 ? 0.16 : 0.2) * S);
     ctx.stroke();
   } else if (!nap) { ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1, 0.04 * S); ctx.beginPath(); ctx.arc(bx, by + 0.14 * S, 0.07 * S, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke(); }
-}
-function drawMoleMarker(bx, by) {
-  const m = 26, x = Math.min(vp.vw - m, Math.max(m, bx)), y = Math.min(vp.vh - 110, Math.max(160, by));
-  const a = Math.atan2(by - y, bx - x);
-  ctx.save(); ctx.translate(x, y);
-  ctx.fillStyle = FUR; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = PINK; ctx.beginPath(); ctx.ellipse(0, 2, 5, 4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.rotate(a); ctx.fillStyle = FUR;
-  ctx.beginPath(); ctx.moveTo(24, 0); ctx.lineTo(15, -6); ctx.lineTo(15, 6); ctx.closePath(); ctx.fill();
-  ctx.restore();
 }

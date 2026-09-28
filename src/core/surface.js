@@ -1,4 +1,4 @@
-// Reading the shape of the pile: a heightmap (for the minimap, hay and dropper) and exact
+// Reading the shape of the pile: a heightmap (for hay and the dropper) and exact
 // solid spans in a vertical slice (so Sadie can tell a floor from an overhang above her head).
 // Also the top of the bedrock (core/bedrock.js melts the deepest pieces into it): the real floor.
 import { U, W } from '../config.js';

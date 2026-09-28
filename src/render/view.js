@@ -18,9 +18,10 @@ export const vp = { vw: 0, vh: 0, dpr: 1, k: 1, P: 1 };  // viewport size in CSS
 // k: small-canvas pixels per CSS pixel; P: CSS pixels per big pixel (use it for 1-pixel lines)
 const BLOCK_PX = 11;                               // about this many big pixels per block at the usual zoom
 let Pd = 1;                                        // device pixels per big pixel (a whole number, so they're all the same size)
-export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0, room: null };  // following Sadie? default zoom for this screen;
+export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0, room: null, held: false };  // following Sadie? default zoom for this screen;
 // insetB/insetR: screen px along the bottom/right covered by the dev sheet, so Sadie stays in view;
-// room: { y, px } asks the camera to keep px of screen clear above world height y (a thought bubble)
+// room: { y, px } asks the camera to keep px of screen clear above world height y (a thought bubble);
+// held: a finger (or the mouse) is down on the board, so the camera waits
 
 export const cam = { x: W / 2, y: 6 * U, z: 1 };
 export function resize() {
@@ -45,7 +46,10 @@ export function clampCam() {
   const floor = rockInfo.low > 0 ? rockInfo.low - 2 * U + vp.vh / 2 / cam.z : -6 * U;
   cam.y = Math.min(Math.max(world.topAll, floor) + 60 * U, Math.max(floor, cam.y));
 }
-export function setFollow(v) { camState.follow = v; emit('followChanged', v); }
+// Looking around stops the camera following Sadie; left alone for BACK_AFTER seconds, it goes back to her.
+const BACK_AFTER = 6;
+let lookedAt = 0;
+export function setFollow(v) { if (!v) lookedAt = performance.now(); if (camState.follow !== v) { camState.follow = v; emit('followChanged', v); } }
 // the highest the camera will look while following: Sadie always stays well up from the bottom
 const sadieCap = () => sadie.y + (vp.vh / 2 - 150 - camState.insetB) / cam.z;
 const roomY = (y, px) => y - (vp.vh / 2 - px) / cam.z;
@@ -53,8 +57,9 @@ const roomY = (y, px) => y - (vp.vh / 2 - px) / cam.z;
 export const roomFor = (y, px) => camState.follow && roomY(y, px) <= sadieCap();
 
 // Camera follows Sadie (leaning toward her hay) unless the player has taken over. If the mole is
-// nearby but up behind the map strip, it looks up a little, as long as Sadie stays well in view.
+// nearby but up near the top edge, it looks up a little, as long as Sadie stays well in view.
 export function updateCamera(dt) {
+  if (!camState.follow && performance.now() - lookedAt > BACK_AFTER * 1000 && !camState.held) setFollow(true);
   if (camState.follow) {
     const b = camState.insetB, minY = rockInfo.low + (vp.vh / 2 - 120 - b) / cam.z;
     let ty = Math.max(minY, sadie.y + (vp.vh * 0.1 - b / 2) / cam.z);

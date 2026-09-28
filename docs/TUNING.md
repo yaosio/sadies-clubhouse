@@ -105,8 +105,7 @@ being lifted on top (which flung pieces up into the air). Each piece leaves flec
 color in the rock (the newest 300 are kept) and a little glimmer.
 - The bedrock is the floor: pieces, Sadie, Chooter, the ball and the barn all stand on it. Before
   anything has melted it's flat ground at 0.
-- The camera never looks more than 2 blocks below its lowest point. The map strip starts a block
-  under its lowest point. Heights (the ruler, bests) still count from the real ground.
+- The camera never looks more than 2 blocks below its lowest point. Heights (the ruler, bests) still count from the real ground.
 - It's saved as its height every quarter block (193 numbers) plus the flecks, so a save stays small
   however tall the tower gets. Saves from before bedrock load with none.
 - Why: however tall the tower gets, only the top 400 pieces stay pieces, so the game costs about
@@ -137,7 +136,7 @@ lightness, so heavy pieces thud louder), and the barn scraping along behind Sadi
 3500 of that winds him all the way up; a new board makes about 850 a minute. What he hears rings in
 his ears and winds him up at most 1/150 a second, so even a downpour takes at least 2.5 minutes.
 At 60% he starts peeking in (his head, from behind whichever wall is nearer Sadie as the peek starts, at the top of the pile there),
-every 22 s at first and every 8 s near the end; you can tap him, and he's a dot on the map strip while
+every 22 s at first and every 8 s near the end; you can tap him while
 his head is in. At 100% he bursts in over that
 wall with a leap and a bark. With the mole building, `node tools/arrival.mjs` gives a first peek at
 about 2:50–3:05 and an arrival at about 4:10–4:40 (between 160 and 175 pieces). A slow device whose

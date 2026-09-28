@@ -7,7 +7,7 @@ import { drp, heldOffsets } from '../core/dropper.js';
 import { rock, rockInfo, SURF_N, SURF_RES } from '../core/surface.js';
 import { bedrock } from '../core/bedrock.js';
 import { ctx, cam, vp, sxf, syf, toWorld, crisp, present } from './view.js';
-import { drawJelly } from './jelly.js';
+import { drawJelly, drawPiece } from './jelly.js';
 import { drawMole } from './moleView.js';
 import { drawSadie, drawEmotes } from './sadieView.js';
 import { drawBarn, drawRope } from './barnView.js';
@@ -124,6 +124,7 @@ function drawBedrock() {
 }
 
 export function draw(time) {
+  ctx.imageSmoothingEnabled = false; // stamped pictures (sleeping pieces) keep hard pixel edges
   ctx.setTransform(vp.k, 0, 0, vp.k, 0, 0);
   // sky: color changes with altitude
   const skyTops = [], skyCols = [];
@@ -195,7 +196,7 @@ export function draw(time) {
   for (const p of world.pieces) {
     // only pieces on screen (with a little margin for the outline); the barn draws itself
     if (p.fixed || syf(p.maxY) > vp.vh + 10 || syf(p.minY) < -10 || sxf(p.maxX) < -10 || sxf(p.minX) > vp.vw + 10) continue;
-    drawJelly(p.T, p.x, p.y, p.color, 1, time);
+    drawPiece(p);
   }
   drawBedrock();
   drawRope();
@@ -204,7 +205,7 @@ export function draw(time) {
   drawSadie(time);
   drawToy();
   drawEmotes();
-  if (heldReady) drawJelly(world.held.T, heldX, heldY, COLORS[world.held.type], world.supply < 1 ? 0.35 : 0.82 + 0.12 * Math.sin(time * 0.006), time);
+  if (heldReady) drawJelly(world.held.T, heldX, heldY, COLORS[world.held.type], world.supply < 1 ? 0.35 : 0.82 + 0.12 * Math.sin(time * 0.006));
   drawMole(time);
 
   // particles

@@ -31,7 +31,7 @@ tell the screen something, it emits an event (below).
 | `core/physics/templates.js` | Builds each type's rest shape (point lattice per block, or rings for the ball). |
 | `core/physics/body.js` | Creates a live piece; bounding boxes. |
 | `core/physics/solver.js` | The soft-body solver: integration, shape matching, finding nearby pairs (sleeper grid), collisions, friction, floor (the bedrock heightmap, or flat ground; a point that runs into the side of a step in the bedrock is pushed out sideways, like off a wall)/walls, bounce, sleeping, and fixed pieces (the barn) that only move when told to. Pure math. |
-| `core/surface.js` | Reading the pile: heightmap `surf` (minimap, hay, the mole's hover height) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). Also holds the bedrock's top (`rock`, `rockAt`, `rockTop`, `rockInfo`): the real floor under everything. |
+| `core/surface.js` | Reading the pile: heightmap `surf` (hay, the mole's hover height) and `groundAt` (exact solid spans so Sadie can tell floor from overhang). Also holds the bedrock's top (`rock`, `rockAt`, `rockTop`, `rockInfo`): the real floor under everything. |
 | `core/fossil.js` | Turns pieces buried deep in the pile into fossils: permanent ground that never wakes. |
 | `core/bedrock.js` | Once the board has more than 400 pieces, melts the deepest fossils (buried deeper still) into the bedrock, just enough to stay under: they stop being pieces and raise the floor to exactly their top (filling any cave under them, so nothing is left hanging), leaving flecks of their color. This is what lets the tower grow forever without getting slower. |
 | `core/friends/chooter.js` | Chooter, Sadie's first friend: feelings (energy, tired, missing), activities (`greet`, `play`, `zoom` knocking pieces aside, `fetch` the ball, `home` to rest in the barn), his body (trot, leap, fall). Before they meet he listens from next door (`listen`: the pieces thudding and the barn scraping wind him up), peeks in over the wall nearer Sadie, and bursts in once he can't stand it. Offers `friend` once met. |
@@ -50,26 +50,25 @@ tell the screen something, it emits an event (below).
 | `core/sadie/brain.js` | Sadie (`sadie` object): feelings (hunger, settled), activities (`eat`: nearest hay, wait, pace; `fetchBarn`: drag the barn up), her body (walk, run, climb, fall). Offers `friend`. |
 | `core/sadie/mood.js` | Sadie's mood from her state and events, blinking, emote timing. |
 | **render/** | |
-| `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera. The chunky pixels: everything draws on a small hidden canvas (`ctx`, still in screen pixels; `vp.P` is one big pixel), and `present()` blows it up with hard edges. Numbers and emotes go on sharp afterwards (`crisp`). There's no effect over the whole screen (one was tried and made phones stutter). The camera never looks more than 2 blocks below the lowest point of the bedrock. |
+| `render/view.js` | Canvas, viewport, camera (`cam`), world/screen conversion, follow-Sadie camera (dragging or zooming stops it following; left alone for 6 s it goes back to Sadie). The chunky pixels: everything draws on a small hidden canvas (`ctx`, still in screen pixels; `vp.P` is one big pixel), and `present()` blows it up with hard edges. Numbers and emotes go on sharp afterwards (`crisp`). There's no effect over the whole screen (one was tried and made phones stutter). The camera never looks more than 2 blocks below the lowest point of the bedrock. |
 | `render/hayView.js` | Draws the hay bales: tumbling while flung, then glowing and floating with a twinkle under them (the mystery float, drawn under the mole too). |
 | `render/scene.js` | Draws a frame back to front: sky (sun, drifting clouds and two rows of hills that move slower than the board), ruler, walls, ground, hay, drop lane, barn, pieces, the bedrock (marbled candy rock with flecks of what melted in), Sadie's rope, Sadie, held piece, the mole, particles. Skips pieces and hay that are off screen. |
 | `render/barnView.js` | Draws Sadie's barn and the rope she drags it with. |
 | `render/chooterView.js` | Draws Chooter in every mood, his face in the barn's hayloft window while he's home, and his head peeking in over a wall before they meet (mirrored for the left one). |
 | `render/toyView.js` | Draws the toys (the tennis ball). |
-| `render/jelly.js` | Draws one jelly piece as a gummy shape (darker rim, rim light on the bottom right, dark outline in its own color, white shine, material decorations). |
+| `render/jelly.js` | Draws one jelly piece as a gummy shape (darker rim, rim light on the bottom right, dark outline in its own color, white shine, material decorations). A sleeping piece is drawn once into its own little picture (`p.spr`) and stamped after that (`drawPiece`), redrawn only when it wakes or the zoom changes: with a big tower most pieces are asleep, so this is what keeps drawing cheap. |
 | `render/sadieView.js` | Draws Sadie in every mood, and her emotes. |
-| `render/moleView.js` | Draws the mole (squinting, drooping when tired, snoozing when napping, aghast at hay it dug up) holding its piece or the hay, or an edge marker when it's off screen. |
+| `render/moleView.js` | Draws the mole (squinting, drooping when tired, snoozing when napping, aghast at hay it dug up) holding its piece or the hay. |
 | `render/color.js` | Color helpers. |
 | `render/pixels.js` | The 90s dotted shading, drawn into each thing: `dots(color, amount)` (a see-through pattern of big pixels), `bands()` (colors fading in dotted bands, for sky, hills, ground, bedrock), `snap()` (round to the pixel grid). |
 | **ui/ and input/** | |
 | `ui/hud.js` | The first-run tip (gone at the first touch of the board) and the one pop-up left (a new friend). Listens to simulation events. It's a toy, so there's no score, height, supply or next-piece display on screen (the numbers still exist in the world for saves and tests). |
 | `ui/thoughts.js` | The thought bubble: tap Sadie, Chooter (his face in the hayloft window while he's home) or the mole to see what they're doing, why, and how they feel. Follows them each frame: above their head if it fits, and if it doesn't, the camera (following Sadie) looks up to make room, as long as Sadie stays well in view (`roomFor`, `camState.room`); failing that, beside them on a wide screen, and only then below their feet. It picks a side when it opens and only moves once it's 40 px past an edge (or above comes free), and not again for a second, so it never flickers. Smaller print on phones, so it covers less. A tap anywhere else closes it. |
-| `ui/minimap.js` | The map strip, from just under the bedrock's lowest point up (the bedrock shown at the bottom); tap or drag to look there. |
 | `ui/toybox.js` | The Toys button and its tray (shows once Sadie has a friend). Pick a toy, then tap the board; the mole throws it there. |
 | `ui/devPanel.js` | The dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons, clear tower), Physics (sliders, restore defaults), Info (perf toggle, piece count, mouse help). A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens 900 px and wider. It tells the camera (`camState.insetB`/`insetR`) and the on-screen buttons (`--dev-b`/`--dev-r`) how much it covers. |
 | `ui/perf.js` | Performance overlay (the dev sheet's Info tab), including how busy the simulation keeps the mole and how tired it is. |
 | `input/pointer.js` | Touch/mouse on the board: pan, pinch, wheel zoom, throw a toy picked from the toy box, or tap a character for their thought bubble. Nothing steers the mole. |
-| `input/controls.js` | The Follow Sadie button, and Escape to close the dev sheet. No keyboard controls, and no way to move, spin or drop pieces: the mole decides all that. |
+| `input/controls.js` | Escape closes the dev sheet. No keyboard controls, and no way to move, spin or drop pieces: the mole decides all that. |
 | **tests/ and tools/** | |
 | `tests/run.mjs` | The headless checks (`npm test`): the real simulation in Node, seeded. Each numbered section runs in its own process, several at once, about 3.5 minutes in all (`--section=N` runs one). |
 | `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html`, with the source embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
@@ -93,7 +92,7 @@ tell the screen something, it emits an event (below).
 | `toyThrown` (kind) | toys | nobody yet |
 | `nextChanged` (type) | dropper | nobody right now (the next-piece preview was removed) |
 | `reset` | game | main (camera follows Sadie again) |
-| `followChanged` (on/off) | render/view | hud (Follow Sadie button look) |
+| `followChanged` (on/off) | render/view | nobody right now (the Follow Sadie button was removed) |
 
 ## Tick order (`core/game.js`)
 

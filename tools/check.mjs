@@ -165,7 +165,7 @@ for (const [device, opts] of DEVICES) {
   await shot(p, `${device}-0b-hay-flung`);
   await wait(p, 6400);
   d = await debugInfo(p);
-  await p.click('#topBtn'); await wait(p, 1500); // back to following Sadie
+  await p.evaluate(() => window.__jellyFollow()); await wait(p, 1500); // back to following Sadie
   d = await debugInfo(p);
   await shot(p, `${device}-1-new-game`);
   check(`${device}: a new game starts and the mole drops pieces`, d.pieces > 0, `${d.pieces} pieces after 8 s`);
