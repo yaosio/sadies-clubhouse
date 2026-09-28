@@ -1,0 +1,633 @@
+<title>TypeFitter Deluxe 3.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=VT323&family=Atkinson+Hyperlegible:wght@400;700&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Comic+Neue:ital,wght@0,400;0,700;1,400&family=UnifrakturMaguntia&family=Pacifico&family=Bungee&family=Courier+Prime&display=swap">
+<style>
+/* Layout: the playable mock-up (Play Place frame > TypeFitter's own program window) on top,
+   short notes for the owner below. One deliberate look: the Play Place's candy-purple DOS frame
+   around a program that invented its own "desktop publishing" look in 1993. */
+:root{
+  color-scheme:dark;
+  --void:#150c33; --panel:#4a2a9c; --hi:#a99cff; --lo:#1a0f40;
+  --gold:#ffcf3a; --pink:#ff6fb4; --ink:#ffffff; --muted:#c9bdff;
+  /* TypeFitter's own look: silver-lavender chrome, a teal desk, magenta-to-navy title bar */
+  --chrome:#dcd8ec; --chrome-hi:#ffffff; --chrome-lo:#5f5a86; --chrome-ink:#1c1838;
+  --desk:#0e6f78; --desk-dot:#14878f; --paper:#fffef8; --rule:#b9b4d6;
+  --ants:#e0103a; --meter-bg:#2a0c24; --heart:#ff3d8b; --heart-off:#5a2448;
+  --led-bg:#07210f; --led:#6dff8a;
+  --pixel:'Silkscreen',ui-monospace,monospace;
+  --term:'VT323',ui-monospace,monospace;
+  --read:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+html{background:var(--void)}
+[hidden]{display:none!important}
+body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:24px 48px}
+.page{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+
+.head{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-family:var(--pixel);font-size:12px;letter-spacing:.08em;color:var(--muted);margin:0}
+.logo{font-family:var(--pixel);font-size:clamp(26px,5vw,44px);line-height:1.05;margin:0;letter-spacing:.02em;text-wrap:balance;
+  background:linear-gradient(#fff36b 0 25%,#ffae3a 25% 50%,#ff5fa8 50% 75%,#b060ff 75%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(3px 3px 0 var(--lo))}
+.lede{max-width:65ch;margin:4px 0 0;color:#e9e3ff}
+
+/* ---------- Play Place frame ---------- */
+.frame{position:relative;background-color:var(--panel);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 2px,transparent 2px 4px);
+  border:4px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:6px 6px 0 rgba(0,0,0,.45);
+  display:flex;flex-direction:column;gap:6px;padding:8px;font-family:var(--pixel);user-select:none}
+.rivet{position:absolute;width:6px;height:6px;background:var(--gold);box-shadow:inset -2px -2px 0 #b8860b}
+.rivet.a{left:2px;top:2px}.rivet.b{right:2px;top:2px}.rivet.c{left:2px;bottom:2px}.rivet.d{right:2px;bottom:2px}
+.strip{display:flex;align-items:center;gap:14px;padding:2px 4px;flex-wrap:wrap}
+.mlogo{font-size:22px;line-height:1;letter-spacing:.02em;
+  background:linear-gradient(#fff36b 0 25%,#ffae3a 25% 50%,#ff5fa8 50% 75%,#b060ff 75%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(2px 2px 0 var(--lo))}
+.key{display:inline-flex;align-items:center;gap:6px;font-family:var(--pixel);font-size:12px;letter-spacing:.04em;color:var(--ink);
+  background:none;border:0;padding:0;cursor:pointer;text-shadow:1px 1px 0 var(--lo);white-space:nowrap}
+.key kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-gradient(#ece6ff 45%,#cabfff 45%);
+  padding:4px 5px;border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;min-width:24px;text-align:center}
+.key:active kbd{border-color:#6a58d8 #fff #fff #6a58d8;background:var(--gold)}
+.key:focus-visible{outline:2px dashed var(--gold);outline-offset:3px}
+.strip .spacer{flex:1}
+
+/* ---------- the desk (the "screen" TypeFitter runs on) ---------- */
+.desk{border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);padding:14px;
+  background-color:var(--desk);background-image:radial-gradient(var(--desk-dot) 1px,transparent 1.5px);background-size:4px 4px}
+
+/* ---------- TypeFitter's program window ---------- */
+.win{background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:var(--chrome-hi) var(--chrome-lo) var(--chrome-lo) var(--chrome-hi);
+  box-shadow:4px 4px 0 rgba(0,0,0,.35);display:flex;flex-direction:column;position:relative}
+.title{display:flex;align-items:center;gap:8px;padding:3px 4px;color:#fff;font-size:12px;letter-spacing:.04em;
+  background:repeating-linear-gradient(90deg,#c2187a 0 2px,#a0147a 2px 4px);background:linear-gradient(90deg,#c2187a,#6a1a9a 45%,#1a1a6a);}
+.title .tb{width:16px;height:14px;background:var(--chrome);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;flex:none}
+.title span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:1px 1px 0 #000}
+.menu{display:flex;gap:16px;padding:3px 8px;font-family:var(--term);font-size:19px;line-height:1;border-bottom:2px solid var(--chrome-lo)}
+.menu u{text-decoration-thickness:2px}
+.tools{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:2px solid var(--chrome-lo);align-items:stretch}
+.fontbox{display:flex;align-items:center;gap:4px;font-family:var(--term);font-size:18px;background:#fff;padding:0 6px;min-width:150px;
+  border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);cursor:pointer;color:var(--chrome-ink)}
+.fontbox b{flex:1;font-weight:400;white-space:nowrap}
+.fontbox i{font-style:normal;background:var(--chrome);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;font-size:12px;padding:0 3px;line-height:16px}
+.tb-btn{min-width:44px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 5px;cursor:pointer;
+  background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;font-family:var(--pixel);font-size:8px;letter-spacing:.03em}
+.tb-btn .g{font-size:20px;line-height:22px;font-family:'Old Standard TT',Georgia,serif;color:var(--chrome-ink)}
+.tb-btn:active,.tb-btn.on{border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);background:#c9c4e0}
+.tb-btn:disabled,.fontbox:disabled{opacity:.55;cursor:default}
+.tb-btn:focus-visible,.fontbox:focus-visible,.fit:focus-visible,.dlg button:focus-visible{outline:2px dashed var(--ants);outline-offset:2px}
+
+.main{display:grid;grid-template-columns:minmax(0,1fr) 250px;min-height:0}
+.docwrap{display:flex;flex-direction:column;min-width:0;border-right:2px solid var(--chrome-lo)}
+.ruler{height:18px;background:#fff;border-bottom:1px solid var(--rule);position:relative;overflow:hidden;
+  background-image:repeating-linear-gradient(90deg,var(--chrome-ink) 0 1px,transparent 1px 12px),repeating-linear-gradient(90deg,var(--chrome-ink) 0 1px,transparent 1px 96px);
+  background-size:auto 5px,auto 11px;background-repeat:repeat-x;background-position:0 100%,0 100%}
+.doc{position:relative;height:300px;overflow:hidden;background:var(--paper);
+  background-image:linear-gradient(transparent 29px,#eaf0ff 29px);background-size:100% 30px}
+.zoomer{position:absolute;left:50%;top:50%;width:0;height:0}
+.box{position:absolute;outline:2px dashed var(--ants);outline-offset:0;background:rgba(224,16,58,.04);pointer-events:none}
+.box::before{content:'TEXT BOX 1';position:absolute;left:-2px;top:-17px;font:10px/1 var(--pixel);color:#fff;background:var(--ants);padding:3px 4px;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){
+  .box{outline:none;background-image:linear-gradient(90deg,var(--ants) 50%,transparent 0),linear-gradient(90deg,var(--ants) 50%,transparent 0),linear-gradient(0deg,var(--ants) 50%,transparent 0),linear-gradient(0deg,var(--ants) 50%,transparent 0);
+    background-repeat:repeat-x,repeat-x,repeat-y,repeat-y;background-size:10px 2px,10px 2px,2px 10px,2px 10px;background-position:0 0,0 100%,0 0,100% 0;animation:ants .6s linear infinite}
+  @keyframes ants{to{background-position:10px 0,-10px 100%,0 -10px,100% 10px}}
+}
+.txt{position:absolute;left:0;top:0;white-space:nowrap;line-height:1.15;color:#111}
+.txt span{display:inline-block;white-space:pre}
+.txt.push{animation:push .5s ease-in-out infinite alternate}
+@keyframes push{to{transform:scale(.965,.94)}}
+.over{position:absolute;font:10px/1 var(--pixel);color:var(--ants);white-space:nowrap}
+
+/* ---------- Sadie's corner ---------- */
+.sadie{display:flex;flex-direction:column;gap:8px;padding:8px;background:#cfcae4;min-width:0}
+.scan{display:flex;flex-direction:column;align-items:center;gap:2px}
+.scan canvas{width:136px;height:166px;image-rendering:pixelated;border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);background:#fff;max-width:100%}
+.scan small{font:10px/1.2 var(--term);font-size:14px;color:var(--chrome-lo)}
+.bubble{position:relative;background:#fff;border:2px solid var(--chrome-ink);padding:8px 10px;font-family:'Comic Neue','Comic Sans MS',cursive;font-size:15px;line-height:1.3;min-height:92px;
+  box-shadow:3px 3px 0 var(--chrome-lo)}
+.bubble::before{content:'';position:absolute;left:54px;top:-12px;border:10px solid transparent;border-bottom:12px solid var(--chrome-ink);border-top:0}
+.bubble::after{content:'';position:absolute;left:57px;top:-8px;border:7px solid transparent;border-bottom:9px solid #fff;border-top:0}
+.bubble b{font-weight:700}
+.meter{display:flex;flex-direction:column;gap:3px}
+.meter .lab{display:flex;justify-content:space-between;font:10px/1 var(--pixel);letter-spacing:.06em}
+.hearts{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:4px;background:var(--meter-bg);border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
+.hearts i{aspect-ratio:1;background:var(--heart-off);clip-path:polygon(50% 100%,0 45%,0 18%,18% 0,40% 0,50% 14%,60% 0,82% 0,100% 18%,100% 45%);transition:background .15s}
+.hearts i.on{background:var(--heart)}
+.hearts.bump{animation:bump .25s}
+@keyframes bump{50%{transform:translateY(-2px)}}
+.fit{font:16px/1 var(--pixel);letter-spacing:.06em;padding:12px 6px;cursor:pointer;color:#6a6480;background:#bdb8d4;
+  border:3px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff}
+.fit small{display:block;font-size:9px;margin-top:4px;letter-spacing:.02em}
+.fit.ready{color:#3a1400;background:var(--gold);text-shadow:1px 1px 0 #fff3a0}
+@media (prefers-reduced-motion:no-preference){ .fit.ready{animation:flash .5s steps(2) infinite} @keyframes flash{50%{background:#ff9a3a}} }
+.fit:disabled{cursor:default}
+.fit:active:not(:disabled){border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
+
+.status{display:flex;gap:4px;font-family:var(--term);font-size:17px;line-height:1;border-top:2px solid var(--chrome-lo);padding:3px}
+.status > div{border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.status .brag{flex:1}
+.status .num{font-variant-numeric:tabular-nums}
+
+/* ---------- dialogs (fitting, winning, readme, help) ---------- */
+.veil{position:absolute;inset:0;background:rgba(20,10,50,.35);display:flex;align-items:center;justify-content:center;padding:12px;z-index:5}
+.dlg{background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;box-shadow:5px 5px 0 rgba(0,0,0,.4);
+  width:min(440px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column}
+.dlg .body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;font-family:var(--term);font-size:20px;line-height:1.15}
+.dlg .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.dlg button{font:12px/1 var(--pixel);padding:9px 14px;cursor:pointer;background:var(--chrome);color:var(--chrome-ink);border:2px solid;border-color:#fff var(--chrome-lo) var(--chrome-lo) #fff;outline:1px solid var(--chrome-ink)}
+.dlg button:active{border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
+.bar{height:22px;padding:2px;background:#fff;border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo)}
+.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,#1a1a8a 0 12px,transparent 12px 14px);transition:width .35s steps(6)}
+.big{font-family:'Bungee',var(--pixel);font-size:30px;line-height:1.05;text-align:center;color:#c2187a;text-shadow:3px 3px 0 var(--gold)}
+.mid{text-align:center}
+.readme{font-family:'Courier Prime','Courier New',monospace;font-size:14px;line-height:1.35;white-space:pre-wrap;background:#fff;padding:10px;border:2px solid;border-color:var(--chrome-lo) #fff #fff var(--chrome-lo);margin:0}
+/* dot-matrix certificate */
+.paper{position:relative;background:#fbfbf2;padding:8px 26px;font-family:'Courier Prime','Courier New',monospace;font-size:14px;line-height:1.4;color:#222;min-height:40px;
+  background-image:radial-gradient(circle at 9px 12px,#8a86a8 3.5px,transparent 4px),radial-gradient(circle at calc(100% - 9px) 12px,#8a86a8 3.5px,transparent 4px),repeating-linear-gradient(transparent 0 23px,#dff0df 23px 24px);
+  background-size:100% 24px,100% 24px,100% 24px;border-left:1px dashed #bbb;border-right:1px dashed #bbb}
+.paper div{white-space:pre-wrap;text-align:center;opacity:.9;letter-spacing:.02em}
+.paper .paw{font-size:22px}
+
+/* ---------- notes ---------- */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px 32px}
+.notes section{min-width:0}
+.notes h2{font-family:var(--pixel);font-size:15px;letter-spacing:.06em;color:var(--gold);margin:0 0 6px;font-weight:400}
+.notes p,.notes li{color:#e9e3ff;max-width:65ch}
+.notes ul{padding-left:20px;margin:0}
+.notes p{margin:0 0 8px}
+
+@media (max-width:760px){
+  .main{grid-template-columns:1fr}
+  .docwrap{border-right:0;border-bottom:2px solid var(--chrome-lo)}
+  .doc{height:220px}
+  .sadie{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"scan bubble" "meter meter" "fit fit";align-items:start}
+  .scan{grid-area:scan}.bubble{grid-area:bubble;margin-left:6px}.meter{grid-area:meter}.fit{grid-area:fit}
+  .scan canvas{width:102px;height:125px}
+  .bubble{font-size:14px}
+  .bubble::before{left:-12px;top:22px;border:10px solid transparent;border-right:12px solid var(--chrome-ink);border-left:0}
+  .bubble::after{left:-8px;top:25px;border:7px solid transparent;border-right:9px solid #fff;border-left:0}
+  .status .brag{display:none}
+  .desk{padding:8px}
+  .menu{gap:12px;font-size:17px}
+}
+@media (max-width:420px){ .strip .hide-s{display:none} .mlogo{font-size:18px} }
+</style>
+
+<div class="page">
+  <header class="head">
+    <p class="eyebrow">SADIE'S PLAY PLACE · ACTIVITY 2 · MOCK-UP</p>
+    <h1 class="logo">TypeFitter Deluxe 3.1</h1>
+    <p class="lede">A playable mock-up. Make the text fancy with the buttons, watch Sadie's TEXT LOVE meter, and press FIT IT! when it lights up. The text will never fit. You'll win anyway.</p>
+  </header>
+
+  <div class="frame" id="frame">
+    <i class="rivet a"></i><i class="rivet b"></i><i class="rivet c"></i><i class="rivet d"></i>
+    <div class="strip">
+      <button class="key" type="button" id="escKey"><kbd>ESC</kbd> BACK</button>
+      <span class="mlogo">TYPEFITTER</span>
+    </div>
+
+    <div class="desk">
+      <div class="win" id="win">
+        <div class="title"><i class="tb"></i><span>TYPEFITTER DELUXE 3.1 - FITME.FIT</span><i class="tb"></i></div>
+        <div class="menu" aria-hidden="true"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>T</u>ext</span><span>F<u>i</u>t</span><span><u>H</u>elp</span></div>
+        <div class="tools" id="tools">
+          <button class="fontbox" type="button" data-fx="font" title="Change the font"><b id="fontName">TIMELY ROMAN</b><i>▼</i></button>
+          <button class="tb-btn" type="button" data-fx="bold" title="Bold"><span class="g"><b>B</b></span>BOLD</button>
+          <button class="tb-btn" type="button" data-fx="italic" title="Italic"><span class="g"><i>I</i></span>ITALIC</button>
+          <button class="tb-btn" type="button" data-fx="underline" title="Underline"><span class="g"><u>U</u></span>UNDER</button>
+          <button class="tb-btn" type="button" data-fx="outline" title="Outline"><span class="g" style="color:transparent;-webkit-text-stroke:1.2px var(--chrome-ink)">O</span>OUTLINE</button>
+          <button class="tb-btn" type="button" data-fx="shadow" title="Shadow"><span class="g" style="text-shadow:2px 2px 0 #8a86a8">S</span>SHADOW</button>
+          <button class="tb-btn" type="button" data-fx="warp" title="WarpArt"><span class="g" style="font-family:Bungee,sans-serif;font-size:14px;color:#c2187a">⌒A</span>WARPART</button>
+          <button class="tb-btn" type="button" data-fx="bigger" title="Bigger"><span class="g">A<sup style="font-size:11px">+</sup></span>BIGGER</button>
+          <button class="tb-btn" type="button" data-fx="smaller" title="Smaller"><span class="g" style="font-size:15px">A<sup style="font-size:10px">−</sup></span>SMALLER</button>
+          <button class="tb-btn" type="button" data-fx="squeeze" title="Letter spacing"><span class="g" style="font-size:15px">A↔A</span>SPACING</button>
+          <button class="tb-btn" type="button" data-fx="color" title="Color"><span class="g" style="background:linear-gradient(90deg,#e0103a,#ffae3a,#2bb04a,#1a6aff,#b060ff);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700">A</span>COLOR</button>
+          <button class="tb-btn" type="button" data-fx="symbols" title="Secret symbols"><span class="g">♣☺</span>SYMBOLS</button>
+        </div>
+        <div class="main">
+          <div class="docwrap">
+            <div class="ruler" aria-hidden="true"></div>
+            <div class="doc" id="doc">
+              <div class="zoomer" id="zoomer">
+                <div class="box" id="box"></div>
+                <div class="txt" id="txt"></div>
+                <div class="over" id="over"></div>
+              </div>
+            </div>
+          </div>
+          <div class="sadie">
+            <div class="scan"><canvas id="scan" width="136" height="166" aria-label="A scanned picture of Sadie, badly traced and squashed to 16 colors"></canvas><small>SADIE.BMP · 16 COLORS</small></div>
+            <div class="bubble" id="bubble" aria-live="polite"></div>
+            <div class="meter"><div class="lab"><span>TEXT LOVE</span><span id="loveNum">0/10</span></div><div class="hearts" id="hearts"></div></div>
+            <button class="fit" type="button" id="fit" disabled>FIT IT!<small id="fitSub">SADIE ISN'T READY</small></button>
+          </div>
+        </div>
+        <div class="status">
+          <div class="num" id="stSize">TEXT 0×0</div>
+          <div class="num" id="stBox">BOX 0×0</div>
+          <div class="brag" id="stBrag">Ready.</div>
+          <div class="num" id="stZoom">ZOOM 100%</div>
+        </div>
+        <div class="veil" id="veil" hidden></div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <button class="key" type="button" id="helpKey"><kbd>F1</kbd> HELP</button>
+      <button class="key" type="button" id="readmeKey"><kbd>F5</kbd> README.TXT</button>
+      <span class="spacer"></span>
+      <span class="key hide-s" style="cursor:default;color:var(--muted)">SHAREWARE V3.1</span>
+    </div>
+  </div>
+
+  <div class="notes">
+    <section>
+      <h2>HOW IT PLAYS</h2>
+      <ul>
+        <li>Every button changes the text. Sadie gushes about it, with a made-up fact about how the computer does it.</li>
+        <li>Her TEXT LOVE meter goes up or down after each change. It looks like she has opinions, but it's a dice roll, rigged to fill somewhere between the 4th and 10th change.</li>
+        <li>When it's full, FIT IT! lights up. The program makes a big show of fitting, fails, and says you win anyway. A certificate prints, then a new sentence arrives.</li>
+        <li>The box is always a little too small. The status bar at the bottom tells you by exactly how many pixels, and the box gets closer as Sadie's meter fills.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>STILL TO DECIDE</h2>
+      <ul>
+        <li>Sadie here is a quick drawing run through a "bad scanner". In the real thing, she could be traced from her real photo the same way.</li>
+        <li>Sounds: grinding disk while fitting, a screechy dot-matrix printer for the certificate?</li>
+        <li>Keep old certificates somewhere to flip through, or let each one go?</li>
+        <li>More buttons, fewer, or different ones?</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ================= Sadie, scanned in 1993 ================= */
+function drawScan() {
+  // 1. a soft "photo" of Sadie sitting on an orange couch, at 240x300
+  const P = document.createElement('canvas'); P.width = 240; P.height = 300;
+  const p = P.getContext('2d');
+  let g = p.createRadialGradient(110, 120, 20, 120, 150, 220);
+  g.addColorStop(0, '#c98a4a'); g.addColorStop(.6, '#9a5a2e'); g.addColorStop(1, '#5a3018');
+  p.fillStyle = g; p.fillRect(0, 0, 240, 300);
+  p.fillStyle = 'rgba(60,30,10,.35)'; p.fillRect(0, 236, 240, 64); // couch cushion seam
+  const shade = (x, y, r, a, b) => { const q = p.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r * 1.1); q.addColorStop(0, a); q.addColorStop(1, b); return q; };
+  const ell = (x, y, rx, ry, f, rot = 0) => { p.beginPath(); p.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); p.fillStyle = f; p.fill(); };
+  // tail around the paws
+  p.lineCap = 'round'; p.strokeStyle = '#8f8a9b'; p.lineWidth = 20;
+  p.beginPath(); p.moveTo(186, 262); p.quadraticCurveTo(205, 296, 120, 292); p.quadraticCurveTo(80, 290, 70, 280); p.stroke();
+  // body
+  ell(120, 215, 70, 78, shade(120, 215, 78, '#ffffff', '#b8b0cc'));
+  p.save(); p.beginPath(); p.ellipse(120, 215, 70, 78, 0, 0, Math.PI * 2); p.clip();
+  ell(64, 196, 36, 50, '#8f8a9b', .2); p.restore();
+  // front legs and paws
+  for (const x of [98, 142]) {
+    p.fillStyle = shade(x, 250, 30, '#ffffff', '#cfc8dc'); p.beginPath(); p.roundRect(x - 13, 206, 26, 76, 12); p.fill();
+    ell(x, 282, 17, 10, '#f4f0f8');
+  }
+  // ears
+  const tri = (a, b, c, f) => { p.beginPath(); p.moveTo(...a); p.lineTo(...b); p.lineTo(...c); p.closePath(); p.fillStyle = f; p.fill(); };
+  tri([70, 84], [60, 26], [108, 62], '#8f8a9b'); tri([132, 62], [180, 26], [170, 84], '#8f8a9b');
+  tri([76, 76], [67, 38], [100, 64], '#e9a3b6'); tri([140, 64], [173, 38], [164, 76], '#d9a2b4');
+  // head
+  ell(120, 112, 64, 55, shade(120, 112, 60, '#ffffff', '#c4bcd6'));
+  p.save(); p.beginPath(); p.ellipse(120, 112, 64, 55, 0, 0, Math.PI * 2); p.clip();
+  ell(82, 70, 42, 30, '#8f8a9b', .25); ell(158, 70, 42, 30, '#8f8a9b', -.25); // gray cap
+  ell(121, 72, 10, 24, '#ffffff'); ell(122, 62, 6, 6, '#e7b688'); // white blaze
+  ell(146, 110, 24, 19, '#8f8a9b', -.2); // patch over one eye
+  p.restore();
+  // eyes: heavy lids, unimpressed
+  for (const [x, lid] of [[98, '#3a2658'], [142, '#2c2040']]) {
+    ell(x, 112, 11, 7, '#c4c96a'); ell(x + 1, 113, 3, 6, '#2b2233');
+    p.fillStyle = lid; p.fillRect(x - 13, 102, 26, 9);
+  }
+  // nose split gray and tan, "w" mouth, blush
+  tri([112, 128], [120, 128], [120, 138], '#6a6480'); tri([120, 128], [128, 128], [120, 138], '#e7b688');
+  p.strokeStyle = '#4a3440'; p.lineWidth = 2;
+  p.beginPath(); p.arc(114, 140, 6, .2, Math.PI - .2); p.stroke(); p.beginPath(); p.arc(126, 140, 6, .2, Math.PI - .2); p.stroke();
+  ell(88, 132, 11, 6, 'rgba(255,140,170,.4)'); ell(152, 132, 11, 6, 'rgba(255,140,170,.4)');
+  p.strokeStyle = 'rgba(255,255,255,.85)'; p.lineWidth = 1.5;
+  for (const [a, b, c, d] of [[70, 130, 30, 124], [70, 136, 32, 140], [170, 130, 210, 124], [170, 136, 208, 140]]) { p.beginPath(); p.moveTo(a, b); p.lineTo(c, d); p.stroke(); }
+
+  // 2. the scanner: down to 120x150, blurry, noisy, uneven lamp
+  const W = 120, H = 150, S = document.createElement('canvas'); S.width = W; S.height = H;
+  const s = S.getContext('2d');
+  try { s.filter = 'blur(0.8px)'; } catch (e) {}
+  s.drawImage(P, 0, 0, W, H); s.filter = 'none';
+  const im = s.getImageData(0, 0, W, H), d = im.data;
+  let seed = 1993; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const PAL = ['#000000', '#ffffff', '#d8d0f0', '#a098b8', '#5f5878', '#c8b848', '#e0a070', '#c8622a', '#7a4020', '#402010', '#f0a0c0', '#b04888', '#3f8f88', '#80803a', '#f8e0c0', '#26245a']
+    .map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
+  const buf = new Float32Array(W * H * 3);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x), lamp = 18 - x * .28, n = (rand() - .5) * 26;
+    buf[i * 3] = d[i * 4] + lamp + n + 4; buf[i * 3 + 1] = d[i * 4 + 1] + lamp + n + 8; buf[i * 3 + 2] = d[i * 4 + 2] + lamp + n - 6;
+  }
+  // 16 colors with error-diffusion dithering (the blotchy fur)
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 3, r = buf[i], gg = buf[i + 1], b = buf[i + 2];
+    let best = 0, bd = 1e9;
+    for (let k = 0; k < PAL.length; k++) { const c = PAL[k], dd = (r - c[0]) ** 2 * .3 + (gg - c[1]) ** 2 * .59 + (b - c[2]) ** 2 * .11; if (dd < bd) { bd = dd; best = k; } }
+    const c = PAL[best], er = [r - c[0], gg - c[1], b - c[2]];
+    d[(y * W + x) * 4] = c[0]; d[(y * W + x) * 4 + 1] = c[1]; d[(y * W + x) * 4 + 2] = c[2]; d[(y * W + x) * 4 + 3] = 255;
+    const spread = (dx, dy, f) => { const xx = x + dx, yy = y + dy; if (xx < 0 || xx >= W || yy >= H) return; const j = (yy * W + xx) * 3; buf[j] += er[0] * f; buf[j + 1] += er[1] * f; buf[j + 2] += er[2] * f; };
+    spread(1, 0, 7 / 16); spread(-1, 1, 3 / 16); spread(0, 1, 5 / 16); spread(1, 1, 1 / 16);
+  }
+  // scanner streak and a smeared last few rows (the scan ran out)
+  for (let y = 0; y < H; y++) { const j = (y * W + 37) * 4; d[j] = Math.min(255, d[j] + 70); d[j + 1] = Math.min(255, d[j + 1] + 30); d[j + 2] = Math.min(255, d[j + 2] + 60); }
+  for (let y = H - 9; y < H; y++) for (let x = 0; x < W; x++) for (let k = 0; k < 4; k++) d[(y * W + x) * 4 + k] = d[((H - 10) * W + ((x + (y - H + 10) * 2) % W)) * 4 + k];
+  s.putImageData(im, 0, 0);
+
+  // 3. placed crooked on the scanner glass
+  const C = $('scan'), c = C.getContext('2d');
+  c.imageSmoothingEnabled = false;
+  c.fillStyle = '#f2f2ea'; c.fillRect(0, 0, 136, 166);
+  c.fillStyle = '#c8c8c0'; c.fillRect(0, 0, 136, 3); c.fillRect(0, 0, 2, 166); // lid shadow
+  c.save(); c.translate(69, 82); c.rotate(-.06); c.drawImage(S, -60, -75); c.restore();
+  // 4. someone traced her with the mouse, a few pixels off
+  const img = c.getImageData(0, 0, 136, 166), q = img.data;
+  const dot = (x, y) => { x |= 0; y |= 0; if (x < 0 || y < 0 || x >= 136 || y >= 166) return; const j = (y * 136 + x) * 4; q[j] = 20; q[j + 1] = 10; q[j + 2] = 30; };
+  const line = (x0, y0, x1, y1) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0 || 1; for (let t = 0; t <= n; t++) dot(x0 + (x1 - x0) * t / n, y0 + (y1 - y0) * t / n); };
+  const pts = [[70, 84], [60, 26], [104, 60], [120, 56], [136, 60], [180, 26], [170, 84], [184, 115], [174, 146], [186, 172], [194, 215], [188, 258], [196, 284], [172, 296], [120, 298], [68, 294], [52, 256], [48, 210], [58, 168], [68, 146], [56, 115], [70, 84]];
+  seed = 42;
+  const tr = pts.map(([x, y]) => [x / 2 + 12 + (rand() - .5) * 3, y / 2 + 3 + (rand() - .5) * 3]);
+  for (let k = 0; k < tr.length - 1; k++) { if (k === 12) continue; line(...tr[k], ...tr[k + 1]); } // missed a bit by the paws
+  line(tr[0][0], tr[0][1], tr[0][0] - 5, tr[0][1] + 3); // overshoot where the loop didn't meet
+  // eyes traced as two little circles, also off
+  for (const [ex, ey] of [[63, 60], [85, 60]]) for (let a = 0; a < 6.3; a += .4) dot(ex + Math.cos(a) * 4, ey + Math.sin(a) * 3);
+  c.putImageData(img, 0, 0);
+}
+
+/* ================= the text ================= */
+const FONTS = [
+  { name: 'TIMELY ROMAN', css: "'Old Standard TT',Georgia,serif" },
+  { name: 'COMIC SANDS', css: "'Comic Neue','Comic Sans MS',cursive" },
+  { name: 'GOTHICK', css: "'UnifrakturMaguntia',serif" },
+  { name: 'FANCY SCRIPT', css: "'Pacifico',cursive" },
+  { name: 'DOS CLASSIC', css: "'VT323',monospace" },
+  { name: 'BILLBOARD', css: "'Bungee',Impact,sans-serif" },
+  { name: 'RANSOM NOTE', css: null },
+];
+const SIZES = [22, 30, 40, 52, 66, 84, 104];
+const WARPS = ['none', 'arch', 'wave', 'space', 'grow'];
+const WARP_NAMES = { none: 'NO WARP', arch: 'ARCH', wave: 'WAVE', space: 'OFF INTO SPACE', grow: 'GROWING' };
+const SPACINGS = [0, .18, .45, -.06];
+const COLORS = ['ink', 'red', 'rainbow', 'chrome'];
+const LOUD = ['#e0103a', '#ff8a00', '#e8c000', '#1aa84a', '#1a6aff', '#8a2be2', '#ff3d8b'];
+const SYMS = '☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼';
+const SENTENCES = ['Sadie thought she was a cow.', 'Please copy and share!', 'Hay is a vegetable.', 'Fonts! Fonts! Fonts!', 'Now with 256 colors.', 'This sentence fits.', 'The box is fine.', 'Coming soon: 1994!'];
+
+let st, round = 0, love = 0, goal = 0, changes = 0, busy = false;
+function freshStyle() { return { font: Math.floor(Math.random() * 3), bold: false, italic: false, underline: false, outline: false, shadow: false, warp: 0, size: 3, space: 0, color: 0, symbols: false }; }
+
+function render() {
+  const t = $('txt'), f = FONTS[st.font], text = SENTENCES[round % SENTENCES.length];
+  t.textContent = '';
+  t.style.fontFamily = f.css || FONTS[0].css;
+  t.style.fontSize = SIZES[st.size] + 'px';
+  t.style.fontWeight = st.bold ? 700 : 400;
+  t.style.fontStyle = st.italic ? 'italic' : 'normal';
+  t.style.letterSpacing = SPACINGS[st.space] + 'em';
+  t.style.transform = st.warp === 3 ? 'perspective(260px) rotateX(38deg)' : '';
+  t.style.transformOrigin = '50% 100%';
+  const chars = [...text], n = chars.length;
+  let si = 0;
+  chars.forEach((ch, i) => {
+    const s = document.createElement('span');
+    let shown = ch;
+    if (st.symbols && ch !== ' ') shown = SYMS[(ch.toLowerCase().charCodeAt(0) + si++) % SYMS.length];
+    s.textContent = ch === ' ' ? ' ' : shown;
+    if (st.underline) { s.style.textDecoration = 'underline'; s.style.textDecorationThickness = '.07em'; s.style.textUnderlineOffset = '.12em'; }
+    let fill = '#111';
+    if (COLORS[st.color] === 'red') fill = '#d0102a';
+    if (COLORS[st.color] === 'rainbow') fill = LOUD[i % LOUD.length];
+    if (COLORS[st.color] === 'chrome') { s.style.backgroundImage = 'linear-gradient(#ffffff 0%,#9aa0c8 45%,#2a2a5a 50%,#b8c0ff 80%,#ffffff)'; s.style.webkitBackgroundClip = 'text'; s.style.backgroundClip = 'text'; fill = 'transparent'; }
+    if (st.outline) { s.style.webkitTextStroke = Math.max(1, SIZES[st.size] / 40) + 'px ' + (fill === 'transparent' || fill === '#111' ? '#111' : fill); fill = 'transparent'; }
+    s.style.color = fill;
+    if (st.shadow) s.style.textShadow = `${Math.max(2, SIZES[st.size] / 16)}px ${Math.max(2, SIZES[st.size] / 16)}px 0 #9a96b8`;
+    if (!f.css) { // ransom note: every letter cut from a different magazine
+      const r = FONTS[(i * 5 + round) % 6]; s.style.fontFamily = r.css;
+      if (ch !== ' ') { s.style.background = ['#fff6a0', '#ffffff', '#d8f0ff', '#ffd8e8'][i % 4]; s.style.padding = '0 .05em'; s.style.margin = '0 .03em'; }
+      s.style.rotate = (((i * 37) % 13) - 6) + 'deg';
+    }
+    const u = n > 1 ? i / (n - 1) : 0, sz = SIZES[st.size];
+    if (WARPS[st.warp] === 'arch') { s.style.transform = `translateY(${-Math.sin(u * Math.PI) * sz * .9}px) rotate(${(u - .5) * -50}deg)`; }
+    if (WARPS[st.warp] === 'wave') { s.style.transform = `translateY(${Math.sin(i * .8) * sz * .3}px)`; }
+    if (WARPS[st.warp] === 'grow') { s.style.fontSize = (.45 + u * 1.1) + 'em'; }
+    t.appendChild(s);
+  });
+  requestAnimationFrame(fitView);
+}
+
+// place the box (always a bit too small), zoom the page so everything is visible
+let zoom = 1;
+function fitView() {
+  const t = $('txt'), z = $('zoomer'), doc = $('doc');
+  t.style.left = '0px'; t.style.top = '0px';
+  z.style.transform = `scale(${zoom})`;
+  const measure = () => {
+    const o = z.getBoundingClientRect(); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const s of t.children) { const r = s.getBoundingClientRect(); if (!r.width) continue; x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top); x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); }
+    return { x: (x0 - o.left) / zoom, y: (y0 - o.top) / zoom, w: (x1 - x0) / zoom, h: (y1 - y0) / zoom };
+  };
+  let m = measure();
+  // center the text on the zoomer's origin
+  t.style.left = (-m.x - m.w / 2) + 'px'; t.style.top = (-m.y - m.h / 2) + 'px';
+  m = measure();
+  const dw = doc.clientWidth, dh = doc.clientHeight;
+  zoom = Math.min(1, (dw - 36) / (m.w + 8), (dh - 50) / (m.h + 30));
+  z.style.transform = `scale(${zoom})`;
+  // the box: the fuller Sadie's meter, the closer it gets. Never close enough.
+  const v = love / 10;
+  const bw = Math.min(m.w * (0.74 + 0.22 * v), m.w - 5), bh = Math.min(m.h * (0.8 + 0.16 * v), m.h - 3);
+  const b = $('box');
+  b.style.width = bw + 'px'; b.style.height = bh + 'px';
+  b.style.left = (m.x + m.w / 2 - bw / 2) + 'px'; b.style.top = (m.y + m.h / 2 - bh / 2) + 'px';
+  const ov = $('over');
+  ov.textContent = `${Math.round(m.w - bw)} PX TOO WIDE ►`;
+  ov.style.left = (m.x + m.w / 2 + bw / 2) + 'px'; ov.style.transform = 'translateX(-100%)'; ov.style.top = (m.y + m.h / 2 + bh / 2 + 4) + 'px';
+  ov.style.fontSize = (10 / zoom) + 'px';
+  $('box').style.setProperty('--z', zoom);
+  $('stSize').textContent = `TEXT ${Math.round(m.w)}×${Math.round(m.h)}`;
+  $('stBox').textContent = `BOX ${Math.round(bw)}×${Math.round(bh)}`;
+  $('stZoom').textContent = `ZOOM ${Math.round(zoom * 100)}%`;
+}
+
+/* ================= Sadie's opinions ================= */
+const SAYS = {
+  font: { name: () => FONTS[st.font].name, facts: ['Every font lives in its own tiny folder. They fight if you put two together.', 'Fonts are made by pressing real letters into a warm floppy disk.', 'This font came on 11 floppy disks. The 11th one was just the letter Q.'] },
+  bold: { name: () => st.bold ? 'BOLD' : 'NOT BOLD', facts: ['Bold letters are regular letters that ate a big breakfast.', 'To make bold, the computer types every letter twice, really fast.'] },
+  italic: { name: () => st.italic ? 'ITALICS' : 'STRAIGHT LETTERS', facts: ['Italics are typed on a keyboard tilted exactly 12 degrees.', 'Italic letters lean because they are running late.'] },
+  underline: { name: () => st.underline ? 'UNDERLINE' : 'NO UNDERLINE', facts: ['The underline is its own letter. It is the widest letter there is.', 'Underlines hold the words up so they do not fall off the screen.'] },
+  outline: { name: () => st.outline ? 'OUTLINE' : 'FILLED IN', facts: ['Outline letters are hollowed out by hand with a tiny eraser.', 'The insides of outline letters get saved for later. Nothing is wasted.'] },
+  shadow: { name: () => st.shadow ? 'SHADOW' : 'NO SHADOW', facts: ['Shadows need a light bulb inside your monitor. Do not touch it, it is HOT.', 'Every shadow is really another letter wearing a gray coat.'] },
+  warp: { name: () => WARP_NAMES[WARPS[st.warp]], facts: ['Letters bend easier when the computer is warm. That is why it hums.', 'WarpArt was invented when somebody sat on a floppy disk. I was there.', 'The arch is load-bearing. Please do not remove it.'] },
+  bigger: { name: () => 'BIGGER', facts: ['Big letters use more electricity. You can hear it.', 'Every size of every letter is stored separately. There are 4,000 of them.'] },
+  smaller: { name: () => 'SMALLER', facts: ['Small letters are the same letters, just farther away.', 'Shrink a letter enough and it turns into a dot. Dots are letters too.'] },
+  squeeze: { name: () => 'SPACING', facts: ['Moving letters apart is called kerning. Kern is my cousin.', 'Letters do not mind being squeezed. They are used to living on disks.'] },
+  color: { name: () => ({ ink: 'BLACK', red: 'RED', rainbow: 'RAINBOW', chrome: 'CHROME' })[COLORS[st.color]], facts: ['Color text needs a color monitor AND a color keyboard.', 'Red letters are 3% heavier. It is science.', 'Chrome letters are polished once a week by the computer.'] },
+  symbols: { name: () => st.symbols ? 'SECRET SYMBOLS' : 'REGULAR LETTERS', facts: ['These are the secret letters. Only cats and printers can read them.', 'The computer hides these under the regular letters. Now you know.'] },
+};
+const UP = ['I LOVE this!', 'YES. More of that.', 'Ooh!', 'Beautiful!', 'THIS is what computers are for.', 'Gorgeous.'];
+const DOWN = ['Hmm.', 'Not sure about this.', 'Ehh...', 'I liked it before.', 'Interesting choice.', 'Oh. Okay.'];
+function say(html) { $('bubble').innerHTML = html; }
+
+/* ================= the meter: looks picky, it's a dice roll ================= */
+function drawMeter() {
+  const h = $('hearts');
+  if (!h.children.length) for (let i = 0; i < 10; i++) h.appendChild(document.createElement('i'));
+  [...h.children].forEach((e, i) => e.classList.toggle('on', i < love));
+  $('loveNum').textContent = `${love}/10`;
+  h.classList.remove('bump'); void h.offsetWidth; h.classList.add('bump');
+  const ready = love >= 10, fit = $('fit');
+  fit.disabled = !ready || busy; fit.classList.toggle('ready', ready && !busy);
+  $('fitSub').textContent = ready ? 'SHE LOVES IT!' : "SADIE ISN'T READY";
+}
+function roll() {
+  changes++;
+  const before = love;
+  if (changes >= goal) love = 10;
+  else {
+    let v = Math.round((changes / goal) * 10 + rnd(-2.5, 1.8));
+    if (Math.random() < .22) v = before - Math.ceil(rnd(1, 3)); // she changed her mind
+    love = Math.max(0, Math.min(9, v));
+  }
+  return love >= before;
+}
+
+const BRAGS = ['Did you SEE that anti-aliasing??', 'Rendered in only 0.4 seconds!', 'Letters: perfect. Box: probably fine.', 'No jaggies! (some jaggies)', 'Powered by the TurboType engine.', 'That kerning, though.', 'Smooth as a brand new mouse ball.'];
+
+function change(fx) {
+  if (busy || love >= 10 && fx === null) return;
+  switch (fx) {
+    case 'font': st.font = (st.font + 1) % FONTS.length; $('fontName').textContent = FONTS[st.font].name; break;
+    case 'bold': st.bold = !st.bold; break;
+    case 'italic': st.italic = !st.italic; break;
+    case 'underline': st.underline = !st.underline; break;
+    case 'outline': st.outline = !st.outline; break;
+    case 'shadow': st.shadow = !st.shadow; break;
+    case 'warp': st.warp = (st.warp + 1) % WARPS.length; break;
+    case 'bigger': st.size = Math.min(SIZES.length - 1, st.size + 1); break;
+    case 'smaller': st.size = Math.max(0, st.size - 1); break;
+    case 'squeeze': st.space = (st.space + 1) % SPACINGS.length; break;
+    case 'color': st.color = (st.color + 1) % COLORS.length; break;
+    case 'symbols': st.symbols = !st.symbols; break;
+  }
+  syncButtons();
+  render();
+  const wasFull = love >= 10;
+  const up = wasFull ? true : roll();
+  const S = SAYS[fx], name = S.name(), fact = pick(S.facts);
+  if (love >= 10 && !wasFull) say(`<b>${name}!!</b> PERFECT!! It's the most beautiful text I've ever seen. <b>PRESS THE BUTTON!!</b>`);
+  else if (wasFull) say(`<b>${name}!</b> Still perfect. ${fact} <b>Press FIT IT!</b>`);
+  else if (up) say(`<b>${name}!</b> ${pick(UP)} ${fact}`);
+  else say(`<b>${name}?</b> ${pick(DOWN)} ${fact}`);
+  $('stBrag').textContent = pick(BRAGS);
+  drawMeter();
+}
+function syncButtons() {
+  const on = { bold: st.bold, italic: st.italic, underline: st.underline, outline: st.outline, shadow: st.shadow, warp: st.warp > 0, squeeze: st.space > 0, color: st.color > 0, symbols: st.symbols };
+  document.querySelectorAll('#tools [data-fx]').forEach(b => { b.classList.toggle('on', !!on[b.dataset.fx]); b.disabled = busy; });
+  $('fontName').textContent = FONTS[st.font].name;
+}
+
+function newRound(first) {
+  if (!first) round++;
+  st = freshStyle(); love = 0; changes = 0; goal = 4 + Math.floor(Math.random() * 7); // 4 to 10 changes
+  syncButtons(); render(); drawMeter();
+  say(first ? "Hi! I'm Sadie. I <b>LOVE</b> text. Make this text fancy and I'll tell you how the computer does it."
+            : pick(["New sentence! It's so plain. Make it BEAUTIFUL.", 'Ooh, fresh words. Do something to them.', "This one looks like it's never been bolded. Poor thing."]));
+  $('stBrag').textContent = 'Ready.';
+}
+
+/* ================= FIT IT! ================= */
+const wait = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 250) : ms));
+function dialog(title, inner) {
+  const v = $('veil');
+  v.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="${title}"><div class="title"><i class="tb"></i><span>${title}</span></div><div class="body">${inner}</div></div>`;
+  v.hidden = false;
+  return v.querySelector('.body');
+}
+function closeDialog() { $('veil').hidden = true; $('veil').innerHTML = ''; }
+
+async function fitIt() {
+  if (busy || love < 10) return;
+  busy = true; syncButtons(); drawMeter();
+  say('Here we go! <b>Fingers crossed.</b> Paws crossed.');
+  const b = dialog('FITTING TEXT...', `<div id="step">Measuring letters...</div><div class="bar"><i id="barFill"></i></div>`);
+  $('txt').classList.add('push');
+  const steps = ['Measuring letters...', 'Calculating kerning...', 'Asking the box nicely...', 'Pushing...', 'Pushing HARDER...', 'Almost...'];
+  for (let i = 0; i < steps.length; i++) { $('step').textContent = steps[i]; $('barFill').style.width = ((i + 1) / steps.length * 100) + '%'; await wait(650); }
+  $('txt').classList.remove('push');
+  $('step').textContent = 'RESULT: The text does not fit.';
+  await wait(1300);
+  const pct = pick([104, 107, 112, 118, 121, 133, 150]);
+  b.innerHTML = `<div class="big">TEXT FIT: ${pct}%!</div><div class="mid">That's ${pct - 100}% MORE fit than fit!</div><div class="big" style="font-size:36px">YOU WIN!!</div><div class="paper" id="paper" aria-live="polite"></div><div class="row"><button type="button" id="nextBtn" hidden>NEXT SENTENCE</button></div>`;
+  $('veil').querySelector('.title span').textContent = 'CONGRATULATIONS.EXE';
+  say(pick(['<b>WE DID IT!!</b> Put it on the fridge.', "I knew it would fit. It didn't. <b>But I knew.</b>", '<b>A WINNER!</b> I will tell every cat I know.']));
+  const text = SENTENCES[round % SENTENCES.length];
+  const lines = ['* * * CERTIFICATE OF FITNESS * * *', '', 'This certifies that the text', `"${text}"`, `was fitted to ${pct}%.`, '', 'Signed,', 'SADIE', '🐾'];
+  const paper = $('paper');
+  for (const l of lines) { const dv = document.createElement('div'); dv.textContent = l || ' '; if (l === '🐾') dv.className = 'paw'; paper.appendChild(dv); await wait(380); }
+  const nb = $('nextBtn'); nb.hidden = false; nb.focus();
+  nb.onclick = () => { closeDialog(); busy = false; newRound(false); };
+}
+
+/* ================= help, readme ================= */
+function info(title, text, btn = 'OK') {
+  const b = dialog(title, `<pre class="readme">${text}</pre><div class="row"><button type="button" id="okBtn">${btn}</button></div>`);
+  $('okBtn').onclick = closeDialog; $('okBtn').focus();
+}
+const README = `TYPEFITTER DELUXE 3.1
+(c) 1993 Pixley Type Works. Please copy & share!
+
+Hi! Thank you for trying TypeFitter.
+
+I spent two years on the text engine and about
+ten minutes on the box. So: the text does not
+fit in the box. It will never fit in the box.
+I checked. Many times.
+
+But LOOK at that kerning.
+
+You win anyway. Every time. That's the deal.
+
+ - Dale Pixley, author
+
+P.S. Sadie is my cat. She knows everything
+about fonts. Most of it is wrong.`;
+const HELP = `HOW TO PLAY TYPEFITTER
+
+1. Make the text fancy with the buttons.
+2. Sadie tells you what she thinks.
+3. When her TEXT LOVE meter is full,
+   press FIT IT!
+4. It won't fit.
+5. You win.`;
+
+/* ================= wire up ================= */
+$('tools').addEventListener('click', e => { const b = e.target.closest('[data-fx]'); if (b) change(b.dataset.fx); });
+$('fit').addEventListener('click', fitIt);
+$('readmeKey').addEventListener('click', () => { if (!busy) info('README.TXT - NOTEPAD', README); });
+$('helpKey').addEventListener('click', () => { if (!busy) info('HELP', HELP); });
+$('escKey').addEventListener('click', () => { if (!busy) info('BACK TO THE CLUBHOUSE', 'In the real thing, this goes back to\nthe clubhouse shelf. This is a mock-up,\nso there is nowhere to go.'); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'F1') { e.preventDefault(); $('helpKey').click(); }
+  if (e.key === 'F5') { e.preventDefault(); $('readmeKey').click(); }
+  if (e.key === 'Escape' && !$('veil').hidden && $('okBtn')) closeDialog();
+});
+addEventListener('resize', () => requestAnimationFrame(fitView));
+
+drawScan();
+newRound(true);
+// load every font up front, so switching fonts never shows a stand-in
+if (document.fonts) Promise.all(["Old Standard TT", "Comic Neue", "UnifrakturMaguntia", "Pacifico", "VT323", "Bungee", "Courier Prime"].flatMap(f => [`400 40px "${f}"`, `700 40px "${f}"`, `italic 400 40px "${f}"`].map(q => document.fonts.load(q).catch(() => {}))))
+  .then(() => { render(); });
+})();
+</script>
