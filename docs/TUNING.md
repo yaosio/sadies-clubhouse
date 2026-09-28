@@ -222,7 +222,9 @@ For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
 - Clear tower also stops any rain.
 
 ## Saving (`core/save.js`)
-Saved in the browser every 5 s, and when the page is hidden or closed, under the key
+Saved in the browser once a minute, and when the page is hidden or closed (those are the saves
+that matter; the timed one only covers a crash, losing at most a minute). It was every 5 s, but a
+full board's save takes a slow phone about 30 ms, a small hitch. Saved under the key
 `sadies-dropper-world.save` (a name no other game on a shared site like itch.io will use). Each
 browser and device keeps its own game. Piece positions are kept to 1/100 px; a 50-piece board is
 about 24 KB. The bedrock keeps the board to about 400 pieces however tall the tower

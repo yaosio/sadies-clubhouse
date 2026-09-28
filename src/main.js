@@ -31,9 +31,11 @@ cam.y = (vp.vh / 2 - 120) / cam.z;
 cam.x = sadie.x; cam.y = Math.max(cam.y, sadie.y); // start looking at Sadie, wherever she was left
 requestAnimationFrame(frame);
 
-// Save every few seconds, and whenever the page is hidden or closed (switching apps on a phone
-// counts, and is often the last chance).
-setInterval(saveGame, 5000);
+// Save once a minute, and whenever the page is hidden or closed (switching apps on a phone
+// counts, and is often the last chance). Those are the saves that matter; the timed one only
+// covers a crash. A full board's save (about 200 KB) costs a slow phone a frame or two, so not
+// more often than this.
+setInterval(saveGame, 60000);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
 window.addEventListener('pagehide', saveGame);
 
