@@ -3,7 +3,8 @@
 //
 // It opens the page (the 3D room with its shelf), checks the first activity's box is chosen, taps a
 // locked box and Sadie, turns to the second shelf and back, walks back with the arrow pad, then taps
-// the first activity's box and presses PLAY!: the menu must leave the page completely and the activity start. Any error
+// the first activity's box and presses PLAY!: the menu must leave the page completely and the activity start; then ESC BACK must bring the menu
+// back with the tower saved, and Escape too when the page came in straight by address. Any error
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 
@@ -71,6 +72,26 @@ export default async function ({ browser, page, check, outDir }) {
     const left = await p.evaluate(() => ({ menu: !!document.getElementById('clubhouse'), hook: !!window.__clubhouse, title: document.title, pieces: window.__jellyDebug?.().pieces }));
     check(`${device}: PLAY! starts Dropper World`, inside && left.pieces >= 0, `title ${JSON.stringify(left.title)}`);
     check(`${device}: ...and the menu is gone from the page`, !left.menu && !left.hook);
+
+    // ESC BACK (the clubhouse's key in the activity's corner) goes back to the menu, tower saved
+    const count = left.pieces;
+    await p.click('#clubBack', { timeout: 3000 }).catch(() => {});
+    const home = await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 20, null, { timeout: 10000 }).then(() => true, () => false);
+    await p.waitForTimeout(500);
+    await shot('7-back');
+    check(`${device}: ESC BACK goes back to the clubhouse`, home && !(await p.evaluate(() => !!document.getElementById('app'))));
+    await p.click('#clubhouse #play', { timeout: 3000 }).catch(() => {});
+    await p.waitForFunction(() => window.__jellyDebug && document.getElementById('app'), null, { timeout: 8000 }).catch(() => {});
+    const again = await p.evaluate(() => window.__jellyDebug?.().pieces);
+    check(`${device}: ...and PLAY! again finds the tower as it was`, again >= count && count > 0, `${count} pieces before, ${again} after`);
+
+    // straight in by address (#dropper-world), then the Escape key goes back too
+    await p.goto(page + '#dropper-world');
+    await p.waitForFunction(() => window.__jellyDebug && document.getElementById('clubBack'), null, { timeout: 8000 }).catch(() => {});
+    await p.waitForTimeout(500);
+    await p.keyboard.press('Escape');
+    const home2 = await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 5, null, { timeout: 10000 }).then(() => true, () => false);
+    check(`${device}: the Escape key goes back too (even when it came in by address)`, home2 && !(await p.evaluate(() => location.hash)));
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }

@@ -38,7 +38,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   border-radius:14px;padding:8px 14px;font-size:15px;font-weight:600;max-width:min(88vw,380px);text-align:center;pointer-events:none;
   transition:opacity .4s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .tip.hide{opacity:0}
-.perf{position:absolute;top:11px;left:12px;background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:8px 10px 6px;
+.perf{position:absolute;top:62px;left:12px;background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:8px 10px 6px;
   font-size:12.5px;line-height:1.35;font-variant-numeric:tabular-nums;pointer-events:none;width:210px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .perf canvas{display:block;width:100%;height:36px;margin-bottom:4px}
 .perf dl{display:grid;grid-template-columns:auto 1fr;gap:0 10px;margin:0}
