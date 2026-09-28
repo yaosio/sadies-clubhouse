@@ -25,14 +25,25 @@ const pyf = (y, f) => vp.vh / 2 - (y - cam.y * f) * cam.z;
 // Lumpy clouds, spread up the sky, drifting.
 const CLOUDS = Array.from({ length: 26 }, (_, i) => ({ x: ((i * 37) % 48) * U * 1.6 - 12 * U, y: (4 + i * 1.7 + (i * 7 % 5)) * U, s: 0.8 + (i * 13 % 7) / 10, v: 3 + (i * 11 % 5) }));
 const PUFFS = [[-1.2, 0, 0.55], [-0.5, 0.25, 0.75], [0.35, 0.35, 0.85], [1.1, 0.05, 0.6], [0.2, -0.1, 0.6]];
-function drawCloud(X, Y, r) {
+// Each cloud is drawn once into its own little picture (redrawn only when the zoom changes) and
+// stamped on the pixel grid after that: a cloud never changes shape.
+function drawCloud(c, X, Y, r) {
   const P = vp.P;
-  const puffs = (grow, dy) => { ctx.beginPath(); for (const [dx, dy0, pr] of PUFFS) { ctx.moveTo(X + dx * r + pr * r + grow, Y - dy0 * r + dy); ctx.arc(X + dx * r, Y - dy0 * r + dy, pr * r + grow, 0, Math.PI * 2); } };
-  ctx.save(); ctx.beginPath(); ctx.rect(X - 3 * r, Y - 3 * r, 6 * r, 3 * r + 0.3 * r); ctx.clip(); // flat bottoms
-  puffs(P, 0); ctx.fillStyle = '#9ab8f0'; ctx.fill();       // soft blue edge
-  puffs(0, 0); ctx.fillStyle = '#d8ecff'; ctx.fill();       // shaded underside
-  puffs(-P, -0.25 * r); ctx.fillStyle = '#ffffff'; ctx.fill();
-  ctx.restore();
+  let s = c.spr;
+  if (!s || s.P !== P || Math.abs(r / s.r - 1) > 0.02) s = c.spr = bakeCloud(s, r);
+  ctx.drawImage(s.c, snap(X - s.r * 3 - P), snap(Y - s.r * 3 - P), s.c.width * P, s.c.height * P);
+}
+function bakeCloud(s, r) {
+  const P = vp.P, k = vp.k, c = s ? s.c : document.createElement('canvas');
+  c.width = Math.ceil(6 * r * k) + 3; c.height = Math.ceil(3.3 * r * k) + 3;
+  const g = c.getContext('2d'), X = 3 * r + P, Y = 3 * r + P; // its middle, inside the little picture
+  g.setTransform(k, 0, 0, k, 0, 0);
+  const puffs = (grow, dy) => { g.beginPath(); for (const [dx, dy0, pr] of PUFFS) { g.moveTo(X + dx * r + pr * r + grow, Y - dy0 * r + dy); g.arc(X + dx * r, Y - dy0 * r + dy, pr * r + grow, 0, Math.PI * 2); } };
+  g.beginPath(); g.rect(X - 3 * r, Y - 3 * r, 6 * r, 3 * r + 0.3 * r); g.clip(); // flat bottoms
+  puffs(P, 0); g.fillStyle = '#9ab8f0'; g.fill();       // soft blue edge
+  puffs(0, 0); g.fillStyle = '#d8ecff'; g.fill();       // shaded underside
+  puffs(-P, -0.25 * r); g.fillStyle = '#ffffff'; g.fill();
+  return { c, P, r };
 }
 // The chunky sun with rays, far away: up in the corner of the sky, setting as the camera climbs.
 function drawSun(time) {
@@ -124,7 +135,7 @@ function drawBedrock() {
 }
 
 export function draw(time) {
-  ctx.imageSmoothingEnabled = false; // stamped pictures (sleeping pieces) keep hard pixel edges
+  ctx.imageSmoothingEnabled = false; // stamped pictures (sleeping pieces, clouds) keep hard pixel edges
   ctx.setTransform(vp.k, 0, 0, vp.k, 0, 0);
   // sky: color changes with altitude
   const skyTops = [], skyCols = [];
@@ -145,7 +156,7 @@ export function draw(time) {
     const span = W * 2.2, x = ((c.x + time * 0.001 * c.v) % span + span) % span - W * 0.6;
     const X = pxf(x, 0.6), Y = pyf(c.y, 0.6), r = 0.9 * U * c.s * cam.z;
     if (Y < -2 * r || Y > vp.vh + r || X < -3 * r || X > vp.vw + 3 * r) continue;
-    drawCloud(X, Y, r);
+    drawCloud(c, X, Y, r);
   }
   drawHills(0.5, 1.4 * U, 2.6 * U, 1.3, '#8af0c0', '#4ac8a0', '#2a9a8a');
   drawHills(0.8, 0.3 * U, 1.5 * U, 4.1, '#7af060', '#3ec84a', '#1e8a3a');
