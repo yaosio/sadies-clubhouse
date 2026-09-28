@@ -1,0 +1,72 @@
+# Art style: the misremembered 90s
+
+**Status: approved as the look to aim for, not in the game yet.** The picture to match is
+`art/90s-style/mockup-2.png` (drawn by `art/90s-style/mockup-2.py`). `mockup-1` is the first try,
+kept for reference only.
+
+## The idea
+Sadie's Dropper World is a lost software toy: early-90s shareware that was never finished but
+always promised a full version soon. It looks like the 90s as people *remember* them, not as they
+were. Anyone seeing it should think "yeah, that's from the 90s", even though it does things no
+90s PC could. Early DOS, mid-90s multimedia and late-90s shine are mashed together into one
+program that never existed.
+
+- **Colors:** bright and loud, like Kid Pix. Never drab.
+- **True to the 90s:** chunky low-res pixels, a small palette, ordered dithering (checkerboard
+  and crosshatch dots) instead of smooth gradients, tiny blocky text.
+- **Impossible for the 90s ("strangely well made"):** smooth squishy physics with many pieces,
+  shading that's too careful and soft for the era, expressive characters, glossy highlights,
+  sparkles and lens flare, crisp on any screen.
+
+## Pixels and color
+- Draw everything at a small size (the mock-up is 320x240) and scale it up with hard edges, so
+  every pixel is a visible square. Pixels stay the same size on screen whatever the camera does.
+- Shading uses a 4x4 ordered dither (Bayer) between a few fixed tones per material, lit from the
+  top left. Skies and gradients are dithered bands, never smooth.
+- Characters and pieces get a thick 1-pixel dark outline, plus inner lines where one part overlaps
+  another (Sadie's legs over her body, her head over her body).
+- Late-90s touches are allowed on top: white glossy shines on jelly, 4-point sparkles, lens flare
+  rings, a chrome glint on the logo.
+
+## Sadie
+Same cat as in the game (`src/render/sadieView.js`): white dilute calico, gray cap and back
+patch, gray patch over one eye, nose split gray and tan, a permanently unimpressed half-lidded
+stare, gray tail. In pixels: white fur shades toward lavender (never plain gray), a heavy dark
+upper lid over yellow-green eyes, a flat little "w" mouth, dithered pink blush on her cheeks, and
+whiskers as single thin pixel lines outside the outline.
+
+## Jelly pieces
+One gummy shape per piece (not separate blocks stuck together): rounded corners, filleted inside
+corners, a bright candy color with a darker rim and a lighter center, a white shine per block, a
+bright rim light on the bottom right, and a darker outline in the piece's own color family. When
+one lands it squishes wide, with dust puffs and little "boing" marks.
+
+## The world
+Dithered sky from deep blue through cyan to pink at the horizon; a chunky sun with rays; lumpy
+outlined clouds; rolling far and near hills; a bright grass strip with tufts over brown dirt
+speckled with pebbles and candy sprinkles (a nod to the candy bedrock).
+
+## The interface: a DOS game that built its own
+No gray Windows look. It's a DOS program that had no Windows to copy, so it invented its own and
+tried way too hard:
+- **Panels:** candy purple with a faint woven texture, raised and sunken edges in lavender and
+  deep indigo, gold rivets in the corners.
+- **Logo:** big blocky letters with a stripe of color per scanline (yellow, orange, pink, purple),
+  a thick dark outline and a hard drop shadow.
+- **Tag plaque:** "SHAREWARE V0.9 BETA / PLEASE COPY & SHARE!"
+- **Stamp toolbar:** chunky rounded buttons with little pictures (mole in beanie, jelly, hay,
+  paw). The selected one glows gold; "full version only" ones are dark with a padlock.
+- **Dashboard** (like a 90s action game's status bar, but for a cat): Sadie's face drawn bigger
+  on the left (her mood shows here), the piece supply as slots with a refill bar, her mood in
+  words and a hunger meter, and a green LED message board.
+- **F-key bar:** "F1 HELP, F2 SAVE (FULL VER.), F3 SOUND, F5 ABOUT, ESC QUIT" with little keycaps.
+- **The never-finished feeling** comes from the promises: "CHAPTER 2 COMING SOON 1996!", locked
+  tools, save only in the full version. **No prices and no order buttons** (the owner said no).
+
+## Still to work out
+- Phone (portrait) layout: the mock-up is landscape. On a tall screen the logo, toolbar,
+  dashboard and F-key bar need rearranging (for example the toolbar as a row, the dashboard
+  stacked), without crowding the board.
+- The dashboard, toolbar and F-keys in the mock-up are for looks; which ones do something in the
+  toy is a separate decision. Design pillars still win (no fast clicking, the player doesn't tune
+  physics).
