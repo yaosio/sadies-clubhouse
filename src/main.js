@@ -42,7 +42,7 @@ window.addEventListener('pagehide', saveGame);
 // For automated testing in a browser.
 window.__jellyDebug = () => ({ cx: sadie.x / U, cy: sadie.y / U, ground: groundAt(sadie.x, sadie.y) / U, state: sadie.state, mood: sadie.mood,
   tx: sadie.target ? sadie.target.x / U : null, ty: sadie.target ? sadie.target.y / U : null, follow: camState.follow, camx: cam.x / U,
-  sx: sxf(sadie.x), sy: syf(sadie.y + 0.6 * U), supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, trip: sadie.trip ? sadie.trip.phase : null, doing: sadie.doing, feel: sadie.feel,
+  sx: sxf(sadie.x), sy: syf(sadie.y + 0.6 * U), supply: world.supply, pieces: world.pieces.length, hay: world.hayEaten, hayOut: world.hay.filter(h => !h.eaten).map(h => h.st || 'float'), moleHay: drp.hay !== null, trip: sadie.trip ? sadie.trip.phase : null, doing: sadie.doing, feel: sadie.feel,
   mole: { x: drp.x / U, y: drp.y / U, sx: sxf(drp.x), sy: syf(drp.y + 1.2 * U), doing: mole.doing, who: mole.whoName, tired: mole.feel.tired, napping: mole.napping, strain: mole.strain },
   chooter: chooter.met ? { x: chooter.x / U, y: chooter.y / U, place: chooter.place, doing: chooter.doing, feel: chooter.feel, mood: chooter.mood } : null, toy: toy.state,
   peek: chooter.met ? null : { heard: chooter.heard, out: chooter.peek, x: peekSpot().x / U, y: peekSpot().y / U, sx: sxf(peekSpot().x), sy: syf(peekSpot().y) } });

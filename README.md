@@ -3,7 +3,7 @@
 A cozy physics toy. A mole up in the sky (in a propeller beanie) drops squishy jelly pieces on
 anything it thinks should be underground: the barn, and anyone who looks restless. Sadie (the
 owner's late cat, drawn from a photo) climbs the piles to eat bundles of hay (she thought she was a
-cow), and every so often drags her barn back up out of the pile. Friends turn up because of what
+cow) that the mole digs up, flings away in disgust, and that float, just like the mole (it's not the hat), and every so often drags her barn back up out of the pile. Friends turn up because of what
 happens in the world, then move into the barn: the first is Chooter, a black lab/pitbull mix next
 door who hears all the thudding, can't stand it, and bursts in. He gets the zoomies and fetches the
 ball you throw him from the toy box. The player watches, taps anyone to see what they're thinking,
@@ -66,4 +66,5 @@ the backup inside the published page.
 
 Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building
 things out of dropped pieces, sky zones with different physics, unlocking piece types, prestige by
-melting the tower, a desktop-toy version.
+melting the tower, a desktop-toy version, other ideas for the thought bubbles (on a phone they
+can still crowd the board; for now the camera makes room above).

@@ -1,11 +1,13 @@
 // The mole: a round velvety mole in a propeller beanie, hanging onto the piece it's about to drop
 // with its big pink digging hands. Squints (moles barely see), droops when tired, snoozes when
-// worn out. Shows an edge marker when it's off screen.
+// worn out, and stares aghast at any hay it digs up. A faint shimmer under whatever it carries:
+// something keeps it up there, and it's not the hat. Shows an edge marker when it's off screen.
 import { U } from '../config.js';
 import { world } from '../core/world.js';
 import { drp, heldOffsets, NO_PIECE } from '../core/dropper.js';
 import { mole } from '../core/mole.js';
 import { ctx, cam, vp, sxf, syf } from './view.js';
+import { drawBale, drawShimmer } from './hayView.js';
 
 const FUR = '#6b5a66', FUR_DARK = '#4a3c48', BELLY = '#8a7885', PINK = '#ff9db5', PINK_DARK = '#e0708f', INK = '#2a1840';
 let propAng = 0, lastT = 0;
@@ -20,8 +22,11 @@ export function drawMole(time) {
   propAng += dt * (nap ? 4 : 22 - 12 * tired);
   const onScreen = bx > -S * 2 && bx < vp.vw + S * 2 && by > -S * 2 && by < vp.vh + S * 2;
   if (!onScreen) { drawMoleMarker(bx, by); return; }
-  const k = drp.claw, pieceTop = syf(topY);
+  const k = drp.claw, pieceTop = syf(topY), hay = drp.hay !== null;
   const half = Math.max(0.5 * S, (o.x1 - o.x0) / 2 * z);
+  drawShimmer(bx, syf(drp.y + o.y0), S, time, 7);
+  // hay it just dug up, held out at arm's length and shaking (ew)
+  if (hay) drawBale(bx + Math.sin(time * 0.06) * 0.05 * S, syf(drp.y + 0.4 * U), S);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
   // arms down to the piece, and the hands gripping its top corners (they fling open when it lets go)
@@ -61,6 +66,7 @@ export function drawMole(time) {
     const ex = bx + sd * 0.24 * S;
     ctx.beginPath();
     if (nap) ctx.arc(ex, ey - 0.02 * S, 0.07 * S, 0.15 * Math.PI, 0.85 * Math.PI); // asleep: little u's
+    else if (hay) { ctx.moveTo(ex + 0.07 * S, ey); ctx.arc(ex, ey, 0.07 * S, 0, Math.PI * 2); } // aghast: eyes wide open for once
     else { ctx.moveTo(ex - sd * 0.08 * S, ey); ctx.lineTo(ex + sd * 0.08 * S, ey + tired * 0.08 * S); } // squint; the outer ends droop when tired
     ctx.stroke();
   }
@@ -69,7 +75,11 @@ export function drawMole(time) {
   ctx.fillStyle = PINK; ctx.strokeStyle = PINK_DARK; ctx.lineWidth = Math.max(1, 0.04 * S);
   ctx.beginPath(); ctx.ellipse(bx, by + 0.02 * S, 0.16 * S, 0.12 * S, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(bx - 0.05 * S, by - 0.02 * S, 0.035 * S, 0, Math.PI * 2); ctx.fill();
-  if (!nap) { ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1, 0.04 * S); ctx.beginPath(); ctx.arc(bx, by + 0.14 * S, 0.07 * S, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke(); }
+  if (hay) { // a wobbly "ew" mouth
+    ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1, 0.04 * S); ctx.beginPath(); ctx.moveTo(bx - 0.12 * S, by + 0.2 * S);
+    for (let q = 1; q <= 4; q++) ctx.lineTo(bx - 0.12 * S + q * 0.06 * S, by + (q % 2 ? 0.16 : 0.2) * S);
+    ctx.stroke();
+  } else if (!nap) { ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1, 0.04 * S); ctx.beginPath(); ctx.arc(bx, by + 0.14 * S, 0.07 * S, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke(); }
 }
 function drawMoleMarker(bx, by) {
   const m = 26, x = Math.min(vp.vw - m, Math.max(m, bx)), y = Math.min(vp.vh - 110, Math.max(160, by));

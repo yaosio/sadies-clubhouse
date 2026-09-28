@@ -7,7 +7,7 @@ import { emit } from './events.js';
 import { physicsStep } from './physics/solver.js';
 import { surf, computeSurface, groundAt, rock, rockInfo, SURF_RES } from './surface.js';
 import { resetHay, updateHay } from './hay.js';
-import { drp, SUPPLY_MAX, drawFromBag, spawn, updateDropper } from './dropper.js';
+import { drp, SUPPLY_MAX, drawFromBag, updateDropper } from './dropper.js';
 import { sadie, updateSadie, freshFeelings } from './sadie/brain.js';
 import { updateMood } from './sadie/mood.js';
 import { updateEffects } from './effects.js';
@@ -23,7 +23,7 @@ export const timing = { physMs: 0 }; // read by the performance overlay
 
 export function resetGame() {
   world.pieces = []; world.held = null; world.bag = []; world.nextType = drawFromBag();
-  drp.x = drp.tX = W / 2; drp.y = 3 * U; drp.claw = 0; world.spawnTimer = 0; world.particles = [];
+  drp.x = drp.tX = W / 2; drp.y = 3 * U; drp.claw = 0; drp.hay = null; world.spawnTimer = 0; world.particles = [];
   world.topAll = world.topSettled = 0; world.fossils = 0; world.supply = SUPPLY_MAX; resetBedrock(); surf.fill(0);
   resetBarn(W / 2 - 4.5 * U);
   Object.assign(sadie, { x: W / 2, y: 0, vy: 0, dir: 1, state: 'walk', phase: 0, target: null, cheer: 0, pace: null, waitT: 0, scared: 0, mood: 'neutral', run: 0, running: false,
@@ -31,7 +31,7 @@ export function resetGame() {
   world.emotes = [];
   resetHay(sadie.x);
   resetChooter(); resetMole(); toy.state = 'none'; stopRain();
-  spawn();
+  // (empty-handed: the mole starts by digging up Sadie's first hay)
   emit('reset');
 }
 

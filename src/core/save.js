@@ -17,7 +17,7 @@ import { makePiece, aabb } from './physics/body.js';
 import { getTemplate } from './physics/templates.js';
 import { computeSurface, rock } from './surface.js';
 import { bedrock, setBedrock } from './bedrock.js';
-import { trail } from './hay.js';
+import { trail, makeBundle } from './hay.js';
 import { drp, clampHeld } from './dropper.js';
 import { barn, resetBarn } from './barn.js';
 import { sadie, freshFeelings } from './sadie/brain.js';
@@ -50,10 +50,12 @@ export function snapshot() {
     v: SAVE_VERSION,
     world: pick(world, ['hayEaten', 'supply', 'gameTime', 'spawnTimer', 'bag', 'nextType']),
     held: world.held && { type: world.held.type, cs: world.held.cs, ang: world.held.tAng },
-    drp: { x: r2(drp.x), tX: r2(drp.tX), y: r2(drp.y) },
+    drp: { x: r2(drp.x), tX: r2(drp.tX), y: r2(drp.y), hay: drp.hay === null ? null : r2(drp.hay) },
     pieces,
-    hay: world.hay.filter(h => !h.eaten).map(h => h.carried ? { x: r2(h.x), y: r2(h.y0), y0: r2(h.y0) } : { x: r2(h.x), y: r2(h.y), y0: r2(h.y0) }), // snatched hay goes back to its spot
-    trail: { x: trail.x, dir: trail.dir },
+    hay: world.hay.filter(h => !h.eaten).map(h => h.carried ? { x: r2(h.x), y: r2(h.y0), y0: r2(h.y0) } // snatched hay goes back to its spot
+      : h.st ? { x: r2(h.x), y: r2(h.y), y0: r2(h.y0), st: h.st, vx: r2(h.vx), vy: r2(h.vy), rot: r2(h.rot), spin: r2(h.spin), rest: r2(h.rest), t: r2(h.t) } // still flying, or floating up
+      : { x: r2(h.x), y: r2(h.y), y0: r2(h.y0) }),
+    trail: { x: trail.x, dir: trail.dir, wait: r2(trail.wait) },
     sadie: pick(sadie, SADIE_KEYS),
     chooter: chooter.met ? pick(chooter, CHOOTER_KEYS) : null,
     listening: chooter.met ? null : { heard: r4(chooter.heard), ringing: r4(chooter.ringing), side: chooter.peekSide }, // how wound up he is next door
@@ -90,11 +92,11 @@ export function restore(s) {
   world.held = s.held && s.held.type in SHAPES ? { type: s.held.type, cs: s.held.cs, T: getTemplate(s.held.type, s.held.cs), ang: s.held.ang, tAng: s.held.ang } : null;
   if (!(world.nextType in SHAPES)) world.nextType = 'O';
   world.bag = (world.bag || []).filter(t => t in SHAPES);
-  Object.assign(drp, s.drp); clampHeld();
+  Object.assign(drp, { hay: null }, s.drp); if (world.held) drp.hay = null; clampHeld();
   if (s.bedrock) setBedrock(s.bedrock.rock, s.bedrock.melted, s.bedrock.flecks); // saves from before bedrock have none
   computeSurface();
-  world.hay = s.hay.map(h => ({ x: h.x, y: h.y, y0: h.y0, eaten: false, pop: 0, up: 0, down: 0 }));
-  Object.assign(trail, s.trail);
+  world.hay = s.hay.map(h => Object.assign(makeBundle(h.x, h.y, h.y0), h.st ? pick(h, ['st', 'vx', 'vy', 'rot', 'spin', 'rest', 't']) : {}));
+  Object.assign(trail, { wait: 0 }, s.trail);
   // Sadie picks up where she was, but any trip home, pacing or hay she was after starts over
   Object.assign(sadie, { feel: freshFeelings() }, s.sadie, { trip: null, heave: false, pace: null, waitT: 0, target: null, cheer: 0, scared: 0, doing: null });
   sadie.feel = Object.assign(freshFeelings(), sadie.feel);

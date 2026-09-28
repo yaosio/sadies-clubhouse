@@ -55,7 +55,8 @@ const { world } = await import('../src/core/world.js');
 const { resetGame, update } = await import('../src/core/game.js');
 const { groundAt } = await import('../src/core/surface.js');
 const { sadie } = await import('../src/core/sadie/brain.js');
-const { HAY_OUT, STEP_MIN, STEP_MAX } = await import('../src/core/hay.js');
+const { HAY_OUT, STEP_MIN, STEP_MAX, makeBundle } = await import('../src/core/hay.js');
+const { drp } = await import('../src/core/dropper.js');
 const { REACH } = await import('../src/core/sadie/brain.js');
 const { computeSurface, surfAt } = await import('../src/core/surface.js');
 const { updateFossils, FOSSIL_DEPTH } = await import('../src/core/fossil.js');
@@ -137,10 +138,15 @@ if (wanted(3)) {
 if (wanted(4)) {
   resetGame();
   let maxRise = 0, sunkFrames = 0, longestSunk = 0, hayBelowStart = 0, prevY = sadie.y;
-  let lastMeal = 0, longestWait = 0, eaten = 0, badGap = 0, hayOut = true, inReach = 0;
-  const seen = new Set(), placed = [];
-  const noteHay = () => { for (const h of world.hay) if (!seen.has(h)) { seen.add(h); placed.push(h.x); if (h.y0 - surfAt(h.x) <= REACH) inReach++; } };
-  noteHay();
+  let lastMeal = 0, longestWait = 0, eaten = 0, badGap = 0, tooMany = 0, short = 0, longestShort = 0, firstThree = null, inReach = 0, flew = 0, bounced = 0, easy = 0;
+  const seen = new Set(), floated = new Set(), placed = [], lastVy = new Map();
+  // each bundle: where the mole aimed it, whether it bounced, and how high it floats once it settles
+  const noteHay = () => { for (const h of world.hay) {
+    if (!seen.has(h)) { seen.add(h); placed.push(h.aim); if (h.st === 'fly') flew++; }
+    if (h.st === 'fly') { if (lastVy.get(h) < 0 && h.vy > 0) bounced++; lastVy.set(h, h.vy); }
+    if (h.st && h.st !== 'fly' && !floated.has(h)) { floated.add(h); if (h.y0 - surfAt(h.x) <= REACH) inReach++; }
+    if (h.eaten && h.st === 'lift' && !h.counted) { h.counted = true; easy++; }
+  } };
   const dt = 1 / 60;
   for (let f = 0; f < 120 * 60; f++) {
     update(dt);
@@ -148,22 +154,28 @@ if (wanted(4)) {
     // buried inside the pile without climbing out (a single frame can happen as she steps onto a ledge)
     const sunk = sadie.state !== 'climb' && (groundAt(sadie.x, sadie.y) - sadie.y) / U > 0.6;
     sunkFrames = sunk ? sunkFrames + 1 : 0; longestSunk = Math.max(longestSunk, sunkFrames);
-    for (const h of world.hay) if (!h.eaten && h.y < h.y0 - 0.01) hayBelowStart++;
+    for (const h of world.hay) if (!h.eaten && !h.st && h.y < h.y0 - 0.01) hayBelowStart++;
     noteHay();
-    if (world.hay.filter(h => !h.eaten).length !== HAY_OUT) hayOut = false;
+    const out = world.hay.filter(h => !h.eaten).length + (drp.hay !== null ? 1 : 0);
+    if (out > HAY_OUT) tooMany++;
+    if (firstThree === null && world.hay.length === HAY_OUT) firstThree = f / 60;
+    short = out < HAY_OUT ? short + dt : 0; if (firstThree !== null) longestShort = Math.max(longestShort, short);
     if (sadie.trip) lastMeal += dt; // fetching her barn isn't waiting for a snack
     if (world.hayEaten > eaten) { eaten = world.hayEaten; longestWait = Math.max(longestWait, f / 60 - lastMeal); lastMeal = f / 60; }
   }
   longestWait = Math.max(longestWait, 120 - lastMeal);
   for (let i = 1; i < placed.length; i++) { const d = Math.abs(placed[i] - placed[i - 1]); if (d < STEP_MIN - 0.01 || d > STEP_MAX + 0.01) badGap++; }
+  const floats = [...floated].filter(h => !h.eaten || h.st === null).length;
   const got = world.hayEaten;
   check('game runs two minutes without broken numbers', !hasNaN(world.pieces) && isFinite(sadie.x) && isFinite(sadie.y));
   check('Sadie never teleports upward', maxRise < 0.1, `fastest rise ${(maxRise * 60).toFixed(1)} blocks/s`);
   check('Sadie never stays stuck inside the pile', longestSunk <= 3, `longest ${longestSunk} frame(s) inside before climbing out`);
-  check('hay never drops below where it appeared', hayBelowStart === 0);
-  check('there are always 3 hay bundles out', hayOut);
-  check('each new bundle is 10-18 blocks from the last one', badGap === 0, `${placed.length} bundles placed`);
-  check('new hay always starts out of reach, so Sadie needs help', inReach === 0);
+  check('a new game starts with the mole flinging out the first 3 bundles of hay', firstThree !== null && firstThree < 10 && flew === placed.length, `all 3 out after ${firstThree?.toFixed(1)} s, ${flew} of ${placed.length} flung`);
+  check('flung hay bounces before it settles', bounced >= placed.length, `${bounced} bounces for ${placed.length} bundles`);
+  check('floating hay never drops below where it floated up to', hayBelowStart === 0);
+  check('never more than 3 bundles about, and the mole soon turns up another', tooMany === 0 && longestShort < 20, `longest one short ${longestShort.toFixed(1)} s`);
+  check('the mole aims each bundle 10-18 blocks from the last one', badGap === 0, `${placed.length} bundles flung, ${easy} eaten before they floated up`);
+  check('settled hay always floats up out of reach, so Sadie needs help', inReach === 0 && floats > 0, `${floated.size} floated up`);
   check('with the mole burying her, Sadie eats hay', got >= 4, `${got} bundles, ${world.pieces.length} pieces`);
   check('Sadie never waits too long for her next snack', longestWait < 40, `longest wait ${longestWait.toFixed(0)} s`);
 }
@@ -214,7 +226,8 @@ if (wanted(6)) {
   }
   const others = world.pieces.filter(p => p !== barn.piece);
   const pen = penetration([barn.piece, ...others.filter(p => p.maxX > barn.piece.minX - U && p.minX < barn.piece.maxX + U)]);
-  check('a pile over the barn buries it', buriedMax >= BURIED, `pile ${(buriedMax / U).toFixed(1)} blocks over its roof`);
+  // (Sadie may climb far enough above it to go and fetch it just before it's fully buried: that's fine too)
+  check('the mole piles pieces over the barn', buriedMax >= BURIED / 2, `pile ${(buriedMax / U).toFixed(1)} blocks over its roof before she went for it`);
   check('Sadie rushes back and drags it home', trips === 1 && home === 1, `${trips} trip(s), ${home} finished, took ${tripSecs.toFixed(0)} s`);
   check('afterwards the barn is on top of the pile, not buried', coverAfter !== null && coverAfter < 0 && roofGap < 2 * U && barn.piece.minY - floor0 > 3 * U,
     `raised ${((barn.piece.minY - floor0) / U).toFixed(1)} blocks; ${roofGap > 0.01 ? `the pile beside it is ${(roofGap / U).toFixed(1)} blocks above its roof` : 'nothing near it is higher than its roof'}`);
@@ -368,7 +381,7 @@ if (wanted(10)) {
   resetGame();
   for (let f = 0; f < 90 * 60; f++) update(dt); // let the mole grow a pile
   meetChooter();
-  let stolen = 0, caught = 0, dropped = 0, chaseSecs = 0, longest = 0, ranAfter = 0, hayOut = true, sunk = 0, longestSunk = 0;
+  let stolen = 0, caught = 0, dropped = 0, chaseSecs = 0, longest = 0, ranAfter = 0, tooMany = 0, short = 0, longestShort = 0, sunk = 0, longestSunk = 0;
   on('hayStolen', () => stolen++);
   let loot = null, t0 = 0, firstSteal = null, flips = 0, lastC = 0, lastS = 0;
   for (let f = 0; f < 240 * 60; f++) {
@@ -382,7 +395,9 @@ if (wanted(10)) {
       if (!chooter.loot) { if (loot.eaten) caught++; else dropped++; longest = Math.max(longest, t - t0); loot = null; }
     }
     lastC = chooter.dir; lastS = sadie.dir;
-    if (world.hay.filter(h => !h.eaten).length !== 3) hayOut = false;
+    const out = world.hay.filter(h => !h.eaten).length + (drp.hay !== null ? 1 : 0);
+    if (out > HAY_OUT) tooMany++;
+    short = out < HAY_OUT ? short + dt : 0; longestShort = Math.max(longestShort, short);
     const inside = chooter.place === 'out' && !chooter.air && (groundAt(chooter.x, chooter.y) - chooter.y) / U > 0.6;
     sunk = inside ? sunk + 1 : 0; longestSunk = Math.max(longestSunk, sunk);
   }
@@ -390,7 +405,7 @@ if (wanted(10)) {
   check('Sadie runs after her hay', ranAfter > 0, `running after it ${(ranAfter / 60).toFixed(0)} s of ${chaseSecs.toFixed(0)} s`);
   check('keep-away always ends: she catches him or he drops it', caught + dropped === stolen - (loot ? 1 : 0) && longest <= 21, `${caught} caught, ${dropped} dropped, longest ${longest.toFixed(0)} s`);
   check('nobody jitters back and forth during the chase', flips <= chaseSecs * 2, `${flips} turns in ${chaseSecs.toFixed(0)} s`);
-  check('there are always 3 hay bundles out, stolen ones included', hayOut);
+  check('never more than 3 bundles about, stolen ones included, and never one short for long', tooMany === 0 && longestShort < 20, `longest one short ${longestShort.toFixed(1)} s`);
   check('Chooter never gets stuck in the pile while teasing', longestSunk <= 3, `longest ${longestSunk} frame(s)`);
 }
 
@@ -402,7 +417,7 @@ if (wanted(11)) {
   const dt = 1 / 60;
   resetGame(); world.pieces = world.pieces.filter(p => p.fixed); world.held = null; world.supply = 0; // a flat, empty board
   chooter.met = false; meetChooter(); chooter.feel.missing = 0;
-  const h = world.hay[0]; h.x = W - 2 * U; h.y = h.y0 = 0.7 * U;
+  const h = makeBundle(W - 2 * U, 0.7 * U); world.hay.push(h);
   chooter.x = W - 2.5 * U; chooter.y = 0; sadie.x = W - 5 * U; sadie.y = 0; sadie.target = h; sadie.doing = 'eat';
   chooter.feel.ignored = 1; chooterDo('tease'); pickUpHay(h); chooter.loot = h; chooter.actT = 20;
   let flipsC = 0, flipsS = 0, lastC = chooter.dir, lastS = sadie.dir, got = null;

@@ -125,17 +125,47 @@ async function open(device, opts, save) {
 for (const [device, opts] of DEVICES) {
   const tap = (p, x, y) => opts.hasTouch ? p.touchscreen.tap(x, y) : p.mouse.click(x, y);
 
-  // a new game
+  // a new game: the mole digs up the first hay and flings it, then drops pieces
   let p = await open(device, opts);
-  await wait(p, 8000);
+  await p.waitForFunction(() => window.__jellyDebug().moleHay, null, { timeout: 5000 }).catch(() => {});
   let d = await debugInfo(p);
+  await p.evaluate(m => window.__jellyLook(m.x, m.y - 1, 2), d.mole); await wait(p, 100);
+  await shot(p, `${device}-0-mole-digs-hay`);
+  check(`${device}: a new game starts with the mole digging up hay`, d.moleHay);
+  await p.evaluate(() => window.__jellyLook(24, 3, 0.5)); await wait(p, 1500);
+  await shot(p, `${device}-0b-hay-flung`);
+  await wait(p, 6400);
+  d = await debugInfo(p);
+  await p.click('#topBtn'); await wait(p, 1500); // back to following Sadie
+  d = await debugInfo(p);
   await shot(p, `${device}-1-new-game`);
   check(`${device}: a new game starts and the mole drops pieces`, d.pieces > 0, `${d.pieces} pieces after 8 s`);
+  check(`${device}: ...and has flung out 3 bundles of hay`, d.hayOut.length + d.hay >= 3, `${d.hayOut.join(', ')}${d.hay ? `, and Sadie has eaten ${d.hay}` : ''}`);
 
   await tap(p, d.sx, d.sy); await wait(p, 400);
   const sadieSays = await thought(p);
   await shot(p, `${device}-2-sadie-thinks`);
   check(`${device}: tapping Sadie shows what she's thinking`, /sadie/i.test(sadieSays), JSON.stringify(sadieSays.split('\n')[0]));
+
+  // the mole's bubble, the camera following Sadie as usual: it should sit up in the sky above the
+  // mole (the camera makes room), not down over the pile
+  let above = null;
+  for (let tries = 0; tries < 20 && above === null; tries++) {
+    d = await debugInfo(p);
+    const vw = await p.evaluate(() => innerWidth);
+    if (d.follow && d.mole.sx > 40 && d.mole.sx < vw - 40 && d.mole.sy > 80) {
+      await tap(p, d.mole.sx, d.mole.sy); await wait(p, 1500);
+      if (/mole/i.test(await thought(p))) {
+        d = await debugInfo(p);
+        const box = await p.evaluate(() => document.getElementById('thought').getBoundingClientRect().toJSON());
+        // above it, or off to one side of it (a wide screen): either way not over the pile below it
+        above = box.bottom <= d.mole.sy + 4 || box.right <= d.mole.sx - 20 || box.left >= d.mole.sx + 20 ? true
+          : `bubble ${Math.round(box.left)}-${Math.round(box.right)} across, bottom at ${Math.round(box.bottom)} px; the mole at ${Math.round(d.mole.sx)}, ${Math.round(d.mole.sy)} px`;
+      }
+    } else await wait(p, 500);
+  }
+  await shot(p, `${device}-2b-mole-bubble-above`);
+  check(`${device}: the mole's thought bubble sits above it or beside it, not over the pile`, above === true, above === null ? 'never got to tap it' : above === true ? '' : above);
 
   // it flies about, so look right at it and tap where it is now (a few tries, in case it moved)
   let moleSays = '';

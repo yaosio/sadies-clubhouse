@@ -9,8 +9,9 @@ import { rockInfo } from '../core/surface.js';
 export const cv = document.getElementById('world');
 export const ctx = cv.getContext('2d');
 export const vp = { vw: 0, vh: 0, dpr: 1 };        // viewport size in CSS pixels and device pixel ratio
-export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0 };  // following Sadie? default zoom for this screen;
-// insetB/insetR: screen px along the bottom/right covered by the dev sheet, so Sadie stays in view
+export const camState = { follow: true, fitZ: 1, insetB: 0, insetR: 0, room: null };  // following Sadie? default zoom for this screen;
+// insetB/insetR: screen px along the bottom/right covered by the dev sheet, so Sadie stays in view;
+// room: { y, px } asks the camera to keep px of screen clear above world height y (a thought bubble)
 
 export const cam = { x: W / 2, y: 6 * U, z: 1 };
 export function resize() {
@@ -32,6 +33,11 @@ export function clampCam() {
   cam.y = Math.min(Math.max(world.topAll, floor) + 60 * U, Math.max(floor, cam.y));
 }
 export function setFollow(v) { camState.follow = v; emit('followChanged', v); }
+// the highest the camera will look while following: Sadie always stays well up from the bottom
+const sadieCap = () => sadie.y + (vp.vh / 2 - 150 - camState.insetB) / cam.z;
+const roomY = (y, px) => y - (vp.vh / 2 - px) / cam.z;
+// Could the camera (following Sadie) look up far enough to leave px of screen clear above world height y?
+export const roomFor = (y, px) => camState.follow && roomY(y, px) <= sadieCap();
 
 // Camera follows Sadie (leaning toward her hay) unless the player has taken over. If the mole is
 // nearby but up behind the map strip, it looks up a little, as long as Sadie stays well in view.
@@ -45,6 +51,7 @@ export function updateCamera(dt) {
       const moleTop = drp.y + o.y1 + 2 * U, show = moleTop - (vp.vh / 2 - 80) / cam.z, keepSadie = sadie.y + (vp.vh / 2 - 150 - b) / cam.z;
       ty = Math.max(ty, Math.min(show, keepSadie));
     }
+    if (camState.room) ty = Math.max(ty, Math.min(roomY(camState.room.y, camState.room.px), sadieCap())); // room for a thought bubble above someone
     cam.y += (ty - cam.y) * Math.min(1, dt * 3);
     const T = sadie.target, lean = T ? Math.max(-half * 0.5, Math.min(half * 0.5, (T.x - sadie.x) * 0.5)) : 0;
     const r = camState.insetR / 2 / cam.z;
