@@ -18,7 +18,8 @@ activity, the frame shrinks to a strip with ESC BACK, F1 HELP and the activity's
 A real-3D test room (`art/play-place/room3d/`: `room.html`, built into one page with its pictures by
 `make.py`) tries the clubhouse as crappy late-90s 3D: low resolution, corners that snap to the pixel
 grid, textures that swim, few colors with dithering, lit per corner; characters stay flat pixel
-sprites that turn to face you. Published on its own test page, never the game's.
+sprites that turn to face you. Published on its own test page, never the game's:
+https://claude.ai/artifact/Bh3FjRZvgZxr5padPtgK3J (build with `make.py <file>` outside `dist/`).
 Mock-up 2's dashboard (pieces, hunger) belongs to the tower game, not to the whole Play Place.
 
 ## The idea
