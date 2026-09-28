@@ -9,8 +9,9 @@ import { makePiece } from './physics/body.js';
 import { localTop } from './surface.js';
 
 export const SUPPLY_MAX = 5, REGEN = 1.5;
-// where the mole is (x, y: the middle of the piece it holds) and where it's flying to (tX)
-export const drp = { x: W / 2, tX: W / 2, y: 3 * U, claw: 0, fly: 6 * U };
+// where the mole is (x, y: the middle of the piece it holds) and where it's flying to (tX); hay:
+// seconds it's been holding a bundle of hay it dug up instead of a piece (null when it isn't)
+export const drp = { x: W / 2, tX: W / 2, y: 3 * U, claw: 0, fly: 6 * U, hay: null };
 
 export function drawFromBag() {
   if (!world.bag.length) { world.bag = Object.keys(SHAPES); for (let i = world.bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [world.bag[i], world.bag[j]] = [world.bag[j], world.bag[i]]; } }
@@ -69,7 +70,7 @@ export function updateDropper(dt) {
     drp.claw = Math.max(0, drp.claw - dt * 2.5);
   }
   if (world.held) world.held.ang += (world.held.tAng - world.held.ang) * Math.min(1, dt * 18);
-  else {
+  else if (drp.hay === null) {
     world.spawnTimer -= dt; if (world.spawnTimer <= 0) spawn();
   }
 }

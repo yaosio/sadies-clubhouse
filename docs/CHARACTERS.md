@@ -18,7 +18,7 @@ not from rules that name two characters.
 
   | Offer | Who offers it now |
   |---|---|
-  | `food` | each hay bundle (`hay.js`), even while someone's carrying it (then it's `moving`) |
+  | `food` | each hay bundle (`hay.js`) once it's landed, even while someone's carrying it (then it's `moving`) |
   | `home` | the barn (`barn.js`) |
   | `fetch` | a thrown ball nobody's played with yet (`toys.js`) |
   | `friend` | Sadie, and Chooter once met (their own files) |
@@ -127,6 +127,14 @@ joke). The player doesn't steer it: it decides where every piece goes, for its o
   her hay. It never means to help.
 - **The barn is a home, and homes belong underground.** When nobody's restless, `barn` (want 1):
   it drops pieces all over the barn. Sadie drags it back out, of course, and it starts again.
+- **Hay doesn't belong underground.** Digging for its next piece, it now and then comes up with a
+  bundle of hay instead (whenever fewer than 3 are about). It's shocked ("Hay?! Down there?!"),
+  stares at it in disgust, and flings it away. That's the only reason Sadie has any hay: the mole
+  has no idea it's feeding her. It doesn't aim to help, just along the same trail as the last one.
+- **Floats, and it's not the hat.** Nobody knows what keeps it up there; everyone assumes it's the
+  propeller beanie. It isn't. Hay it flings gets the same mystery float once it settles (a faint
+  twinkle under both). For 10 s after a throw its thoughts add: "Everyone thinks it's the hat.
+  It's not the hat."
 - **Gets tired** (`tired`). This is the game looking after itself. The screen tells it how much of
   each second the physics takes (`feelStrain`). Over half, it tires (worn out in 8 s); under 35%,
   it rests (fully in 20 s). Tired, it waits up to 4× as long between pieces and flies slower. Once

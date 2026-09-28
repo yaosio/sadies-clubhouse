@@ -125,12 +125,22 @@ async function open(device, opts, save) {
 for (const [device, opts] of DEVICES) {
   const tap = (p, x, y) => opts.hasTouch ? p.touchscreen.tap(x, y) : p.mouse.click(x, y);
 
-  // a new game
+  // a new game: the mole digs up the first hay and flings it, then drops pieces
   let p = await open(device, opts);
-  await wait(p, 8000);
+  await p.waitForFunction(() => window.__jellyDebug().moleHay, null, { timeout: 5000 }).catch(() => {});
   let d = await debugInfo(p);
+  await p.evaluate(m => window.__jellyLook(m.x, m.y - 1, 2), d.mole); await wait(p, 100);
+  await shot(p, `${device}-0-mole-digs-hay`);
+  check(`${device}: a new game starts with the mole digging up hay`, d.moleHay);
+  await p.evaluate(() => window.__jellyLook(24, 3, 0.5)); await wait(p, 1500);
+  await shot(p, `${device}-0b-hay-flung`);
+  await wait(p, 6400);
+  d = await debugInfo(p);
+  await p.evaluate(s => window.__jellyLook(s.cx, s.cy + 3, 1), d); await wait(p, 100); // back on Sadie
+  d = await debugInfo(p);
   await shot(p, `${device}-1-new-game`);
   check(`${device}: a new game starts and the mole drops pieces`, d.pieces > 0, `${d.pieces} pieces after 8 s`);
+  check(`${device}: ...and has flung out 3 bundles of hay`, d.hayOut.length + d.hay >= 3, `${d.hayOut.join(', ')}${d.hay ? `, and Sadie has eaten ${d.hay}` : ''}`);
 
   await tap(p, d.sx, d.sy); await wait(p, 400);
   const sadieSays = await thought(p);
