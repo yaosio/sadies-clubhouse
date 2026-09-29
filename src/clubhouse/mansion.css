@@ -25,7 +25,7 @@
 /* Sadie's letter */
 #mansion #letter{position:absolute;inset:0;display:grid;place-items:center;background:#0a062890;padding:16px}
 #mansion #letter .card{display:grid;gap:12px;justify-items:center;width:min(600px,100%)}
-#mansion #letterArt{width:100%;height:auto;image-rendering:pixelated;aspect-ratio:240/152;box-shadow:4px 4px 0 #0a0628a0}
+#mansion #letterArt{width:100%;height:auto;image-rendering:pixelated;aspect-ratio:360/228;box-shadow:4px 4px 0 #0a0628a0}
 #mansion button#ok,#mansion #menu button{font-family:var(--px);font-size:13px;color:var(--ink);background:var(--gold);border:0;padding:8px 24px;
   box-shadow:0 3px 0 #8a5a10;cursor:pointer}
 #mansion button:focus-visible{outline:2px solid #ff8ec8;outline-offset:2px}

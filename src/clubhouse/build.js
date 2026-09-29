@@ -57,7 +57,7 @@ export function doorway(scene, { pos, yaw, w, h, leaves, trim = 0xffd23a }) {
   return {
     group, see, w, h, yaw, pos: new Vector3(...pos), normal,
     setOpen(k) {           // 0 shut, 1 wide open (the leaves swing away from you, into the doorway)
-      for (const [hinge, s] of hinges) hinge.rotation.y = s * k * 1.75;
+      for (const [hinge, s] of hinges) hinge.rotation.y = s * k * 1.4;   // not quite flat, so they stay in sight
       see.material.uniforms.uOn.value = 0;
     },
     // a point in this doorway's own terms: x across, z out into the place (negative: through the door)

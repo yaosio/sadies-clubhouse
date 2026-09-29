@@ -31,7 +31,7 @@ export function buildHall(T, cards) {
     return add(new Mesh(wallGeometry(FW + 0.02, h, hole?.[0], hole?.[1]), mat), [x, y0, z], [0, th + Math.PI, 0]);
   }
   // a flat thing on wall k, `across` from its middle, facing in
-  function onWall(k, w, h, mat, y, across = 0, inset = 0.03) {
+  function onWall(k, w, h, mat, y, across = 0, inset = 0.05) {
     const th = faceAngle(k), [x, z] = at(A - inset, th), c = Math.cos(th), s = Math.sin(th);
     return plane(w, h, mat, [x - c * across, y, z + s * across], [0, th + Math.PI, 0], 2);
   }
@@ -43,7 +43,7 @@ export function buildHall(T, cards) {
     wall(k, L2, TOP - L2, brick);
     // the wainscot and its gold rail, round the ground floor (in two pieces either side of the front door)
     const pieces = k === FRONT ? [[-(FW / 2 + 1.0) / 2, FW / 2 - 1.0], [(FW / 2 + 1.0) / 2, FW / 2 - 1.0]] : [[0, FW]];
-    for (const [c, w] of pieces) { onWall(k, w, 1.1, psx(T.wainscot, { rx: w / 0.9, ry: 1, decal: true }), 0.55, c, 0.02); onWall(k, w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), 1.12, c, 0.02); }
+    for (const [c, w] of pieces) { onWall(k, w, 1.1, psx(T.wainscot, { rx: w / 0.9, ry: 1, decal: true }), 0.55, c, 0.04); onWall(k, w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), 1.12, c, 0.08); }
     if (card) {
       const th = faceAngle(k), [x, z] = at(A, th);
       const tex = doorTexture(card);
@@ -62,8 +62,8 @@ export function buildHall(T, cards) {
   // the floor, the rug round the post, and a tarp for a roof
   const floorAt = (geo, y, mat, down) => { const m = new Mesh(keep(geo), mat); m.rotation.x = down ? Math.PI / 2 : -Math.PI / 2; m.position.y = y; scene.add(m); return m; };
   const polyStart = Math.PI / N - Math.PI / 2;   // lines the polygon up with the walls
-  floorAt(new CircleGeometry(R, N, polyStart), 0, psx(T.checker, { rx: 1 / 1.4, ry: 1 / 1.4 }));
-  floorAt(new RingGeometry(1.2, 3.6, 24, 1), 0.01, psx(T.carpet, { rx: 6, ry: 6, decal: true }));
+  floorAt(new CircleGeometry(R, N, polyStart), 0, psx(T.checker, { rx: 2 * R / 1.4, ry: 2 * R / 1.4 })).renderOrder = -2;
+  floorAt(new RingGeometry(1.2, 3.6, 24, 1), 0, psx(T.carpet, { rx: 6, ry: 6, onFloor: true })).renderOrder = -1;
   floorAt(new CircleGeometry(R, N, polyStart), TOP, psx(T.tarp, { rx: 8, ry: 8, unlit: 0.55 }), true);
 
   // ---------- the trunk: a giant scratching post, clawed to bits at the bottom, with perches ----------
@@ -109,12 +109,12 @@ export function buildHall(T, cards) {
 
   // ---------- the ground floor, round the walls ----------
   // tall windows, one throwing a sunbeam across the floor
-  onWall(3, 1.5, 3.1, psx(T.window, { unlit: 0.7, decal: true }), 2.2);
-  onWall(12, 1.5, 3.1, psx(T.window, { unlit: 0.7, decal: true }), 2.2);
-  const beam = new Mesh(keep(new PlaneGeometry(1.5, 3.2)), psx(null, { tint: 0xffe040, unlit: 1, fade: 0.45, side: DoubleSide, decal: true }));
-  { const [x, z] = at(R - 2.4, faceAngle(3) - 0.1); beam.position.set(x, 0.03, z); beam.rotation.set(-Math.PI / 2, 0, faceAngle(3) + 0.2); scene.add(beam); }
+  onWall(3, 1.5, 3.1, psx(T.window, { unlit: 0.7, decal: true }), 2.2, 0, 0.12);
+  onWall(12, 1.5, 3.1, psx(T.window, { unlit: 0.7, decal: true }), 2.2, 0, 0.12);
+  const beam = new Mesh(keep(new PlaneGeometry(1.5, 3.2)), psx(null, { tint: 0xffe040, unlit: 1, fade: 0.45, side: DoubleSide, onFloor: true })); beam.renderOrder = -1;
+  { const [x, z] = at(R - 2.4, faceAngle(3) - 0.1); beam.position.set(x, 0, z); beam.rotation.set(-Math.PI / 2, 0, faceAngle(3) + 0.2); scene.add(beam); }
   // an archway to a new wing, taped off
-  onWall(5, 2.4, 3.2, psx(T.dark, { decal: true }), 1.6);
+  onWall(5, 2.4, 3.2, psx(T.dark, { decal: true }), 1.6, 0, 0.12);
   { const th = faceAngle(5), [x, z] = at(A - 0.7, th);
     for (const y of [0.95, 0.55]) box(2.3, 0.18, 0.08, psx(T.hazard, { rx: 4, ry: 1, unlit: 0.3 }), [x, y, z], [0, th, 0]);
     onWall(5, 1.8, 0.8, psx(T.wingSign, { unlit: 0.4, decal: true }), 3.7); }

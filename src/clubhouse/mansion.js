@@ -60,7 +60,7 @@ export async function open(cards, enter) {
   renderer.outputColorSpace = LinearSRGBColorSpace;
   const through = new WebGLRenderTarget(320, 240, { minFilter: NearestFilter, magFilter: NearestFilter });
   for (const s of sides) s.d.see.material.uniforms.pic.value = through.texture;
-  const cam = new PerspectiveCamera(70, 1, 0.05, 400); cam.rotation.order = 'YXZ';
+  const cam = new PerspectiveCamera(70, 1, 0.1, 300);   // not too near: phones' depth is coarse cam.rotation.order = 'YXZ';
   const vcam = new PerspectiveCamera(); vcam.matrixAutoUpdate = false; vcam.matrixWorldAutoUpdate = false;
 
   let drawnAt = '';
@@ -377,25 +377,27 @@ export async function open(cards, enter) {
   raf = requestAnimationFrame(frame);
 }
 
-// Sadie's letter: wobbly handwriting drawn small, blown up in big square pixels.
+// Sadie's letter: handwriting in hard pixels, big and bold enough to read easily.
 function drawLetter(c) {
   const g = c.getContext('2d'), W = c.width, H = c.height;
   const px = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
   px('#6a3a88', 0, 0, W, H); px('#fff4e4', 1, 1, W - 2, H - 2);
   for (let x = 3; x < W - 3; x++) { px(x % 6 < 3 ? '#ff8ec8' : '#8ad8ff', x, 3); px(x % 6 < 3 ? '#ff8ec8' : '#8ad8ff', x, H - 4); }
-  for (let y = 18; y < H - 12; y += 17) for (let x = 10; x < W - 10; x += 2) px('#dccff4', x, y + 15);
+  for (let y = 26; y < H - 16; y += 26) for (let x = 14; x < W - 14; x += 2) px('#dccff4', x, y + 22);
   const t = document.createElement('canvas'); t.width = W; t.height = H; const k = t.getContext('2d');
-  k.font = '17px "Patrick Hand", "Comic Sans MS", cursive'; k.fillStyle = '#000'; k.textBaseline = 'top';
+  // written twice, a hair apart, so the strokes are thick enough to survive being made into pixels
+  const write = (text, x, y) => { k.fillText(text, x, y); k.fillText(text, x + 0.7, y); k.fillText(text, x, y + 0.5); };
+  k.font = '25px "Patrick Hand", "Comic Sans MS", "Trebuchet MS", sans-serif'; k.fillStyle = '#000'; k.textBaseline = 'top';
   ['Dear friend,', 'I have decided to share my', 'clubhouse with all my friends.', 'You are invited.', 'Come in. Wipe your paws.', 'Do not sit in my chair.']
-    .forEach((l, i) => k.fillText(l, 12 + (i % 2), 16 + i * 17));
-  k.font = '22px "Patrick Hand", "Comic Sans MS", cursive'; k.fillText('Sadie', W - 88, 14 + 6 * 17);
+    .forEach((l, i) => write(l, 18, 20 + i * 26));
+  k.font = '32px "Patrick Hand", "Comic Sans MS", "Trebuchet MS", sans-serif'; write('Sadie', W - 130, 16 + 6 * 26);
   const d = k.getImageData(0, 0, W, H);
-  for (let i = 0; i < d.data.length; i += 4) { const on = d.data[i + 3] > 90; d.data[i] = 42; d.data[i + 1] = 26; d.data[i + 2] = 110; d.data[i + 3] = on ? 255 : 0; }
+  for (let i = 0; i < d.data.length; i += 4) { const on = d.data[i + 3] > 80; d.data[i] = 42; d.data[i + 1] = 26; d.data[i + 2] = 110; d.data[i + 3] = on ? 255 : 0; }
   k.putImageData(d, 0, 0); g.drawImage(t, 0, 0);
   // her paw print, in pink ink, and a wax seal
-  const pawX = W - 30, pawY = H - 30, pink = '#e0509a';
+  const pawX = W - 40, pawY = H - 36, pink = '#e0509a';
   px(pink, pawX, pawY + 7, 8, 6); px(pink, pawX + 1, pawY + 13, 6, 1);
   for (const [x, y] of [[-2, 3], [1, 0], [5, 0], [8, 3]]) px(pink, pawX + x, pawY + y, 3, 3);
-  for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (x * x + y * y < 40) px((x + y) % 3 ? '#e83a3a' : '#a02030', W - 16 + x, 12 + y);
-  px('#ffb0b0', W - 18, 11, 4, 3);
+  for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (x * x + y * y < 40) px((x + y) % 3 ? '#e83a3a' : '#a02030', W - 20 + x, 16 + y);
+  px('#ffb0b0', W - 22, 15, 4, 3);
 }

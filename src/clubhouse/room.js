@@ -18,13 +18,13 @@ export function buildRoom(T, card, boxImage) {
   add(new Mesh(wallGeometry(2 * W, H), paper), [0, 0, D], [0, Math.PI, 0]);
   add(new Mesh(wallGeometry(2 * D, H), paper), [-W, 0, 0], [0, Math.PI / 2, 0]);
   add(new Mesh(wallGeometry(2 * D, H), paper), [W, 0, 0], [0, -Math.PI / 2, 0]);
-  plane(2 * W, 2 * D, psx(T.wood, { rx: 2 * W / 1.2, ry: 2 * D / 1.2 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 8);
+  plane(2 * W, 2 * D, psx(T.wood, { rx: 2 * W / 1.2, ry: 2 * D / 1.2 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 8).renderOrder = -2;
   plane(2 * W, 2 * D, psx(null, { tint: 0xfff3ea }), [0, H, 0], [Math.PI / 2, 0, 0], 6);
-  plane(3.2, 2.4, psx(T.carpet, { rx: 4, ry: 3, decal: true }), [0, 0.01, 0.4], [-Math.PI / 2, 0, 0], 4);
+  plane(3.2, 2.4, psx(T.carpet, { rx: 4, ry: 3, onFloor: true }), [0, 0, 0.4], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
   const door = doorway(scene, { pos: [0, 0, -D], yaw: 0, w: 1.5, h: 2.45, leaves: [T.leafL, T.leafR], trim: col });
   const art = boxImage ? tex(boxImage.width, boxImage.height, g => g.drawImage(boxImage, 0, 0)) : T.dark;
   // the poster on the side wall, and a lamp
-  plane(1.3, 1.43, psx(art, { decal: true, unlit: 0.2 }), [-W + 0.02, 1.7, 0.6], [0, Math.PI / 2, 0], 2);
+  plane(1.3, 1.43, psx(art, { decal: true, unlit: 0.2 }), [-W + 0.05, 1.7, 0.6], [0, Math.PI / 2, 0], 2);
   cyl(0.25, 0.35, 0.3, 8, psx(null, { tint: 0xfff08a, unlit: 0.8 }), [0, H - 0.15, 0.5]);
 
   // the desk and the computer: a beige monitor with the program's picture on its screen

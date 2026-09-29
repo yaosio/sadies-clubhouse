@@ -11,14 +11,14 @@ import { kit, wallGeometry, doorway } from './build.js';
 export function buildOutside(T) {
   const scene = new Scene(); scene.background = new Color(0x1a1a80);
   const { add, box, plane, cyl, ball, cone } = kit(scene);
-  const sky = new Mesh(keep(new SphereGeometry(200, 16, 12)), skyMat()); sky.renderOrder = -1; scene.add(sky);
+  const sky = new Mesh(keep(new SphereGeometry(200, 16, 12)), skyMat()); sky.renderOrder = -3; scene.add(sky);
   const hills = new Mesh(keep(new CylinderGeometry(120, 120, 30, 24, 1, true)), psx(T.hills, { unlit: 0.6, side: 1, rx: 6 }));
   hills.position.y = 8; scene.add(hills);
   plane(12, 12, psx(T.sun, { unlit: 1 }), [-60, 55, 110], [0, Math.atan2(-60, 110) + Math.PI, 0], 1);
   for (const [x, y, z, s] of [[-40, 38, 100, 1.4], [30, 44, 110, 1.8], [70, 30, 80, 1.2], [-90, 26, 60, 1.5]])
     plane(14 * s, 5 * s, psx(T.cloud, { unlit: 0.9 }), [x, y, z], [0, Math.atan2(x, z) + Math.PI, 0], 1);
-  plane(260, 260, psx(T.grass, { rx: 130, ry: 130 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 24);
-  plane(3, 30, psx(T.path, { rx: 2, ry: 20, decal: true }), [0, 0.01, -15], [-Math.PI / 2, 0, 0], 12);
+  plane(260, 260, psx(T.grass, { rx: 130, ry: 130 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 24).renderOrder = -2;
+  plane(3, 30, psx(T.path, { rx: 2, ry: 20, onFloor: true }), [0, 0, -15], [-Math.PI / 2, 0, 0], 12).renderOrder = -1;
 
   const stucco = (w, h) => psx(T.stucco, { rx: w / 1.5, ry: h / 1.5 });
   const trim = psx(null, { tint: 0xe8b070 });
@@ -31,15 +31,15 @@ export function buildOutside(T) {
   box(18.6, 0.35, 10.6, psx(T.wood, { tint: 0xffe0c0, rx: 8 }), [0, 8, 5]);
   box(18.2, 0.25, 0.3, trim, [0, 4.1, -0.05]);
   const win = psx(T.window, { unlit: 0.4, decal: true });
-  for (const y of [2.1, 5.9]) for (const x of [-6.8, -3.9, 3.9, 6.8]) plane(1.3, 1.95, win, [x, y, -0.02], [0, Math.PI, 0], 1);
-  plane(1.3, 1.95, win, [0, 5.9, -0.02], [0, Math.PI, 0], 1);
+  for (const y of [2.1, 5.9]) for (const x of [-6.8, -3.9, 3.9, 6.8]) plane(1.3, 1.95, win, [x, y, -0.05], [0, Math.PI, 0], 1);
+  plane(1.3, 1.95, win, [0, 5.9, -0.05], [0, Math.PI, 0], 1);
 
   // the trunk: an octagonal tower out of the middle of the house, still being built on top
   const TR = 3.4, TOP = 19;
   cyl(TR, TR, TOP, 8, stucco(24, TOP), [0, TOP / 2, 5], [0, Math.PI / 8, 0]);
   const ap = TR * Math.cos(Math.PI / 8);
-  for (const y of [10.5, 14.5]) plane(1.1, 1.65, win, [0, y, 5 - ap - 0.02], [0, Math.PI, 0], 1);
-  plane(1.4, 1.4, psx(T.round, { unlit: 0.4, decal: true }), [0, 17.4, 5 - ap - 0.02], [0, Math.PI, 0], 1);
+  for (const y of [10.5, 14.5]) plane(1.1, 1.65, win, [0, y, 5 - ap - 0.05], [0, Math.PI, 0], 1);
+  plane(1.4, 1.4, psx(T.round, { unlit: 0.4, decal: true }), [0, 17.4, 5 - ap - 0.05], [0, Math.PI, 0], 1);
   for (const y of [8.9, 13, TOP]) cyl(TR + 0.15, TR + 0.15, 0.3, 8, trim, [0, y, 5], [0, Math.PI / 8, 0]);
   const scaf = psx(T.scaffold);
   const half = new Mesh(keep(new CylinderGeometry(TR, TR, 1.6, 8, 1, true, Math.PI / 8 + Math.PI / 4 * 3, Math.PI)), psx(T.brick, { rx: 8, ry: 1, side: DoubleSide }));
@@ -68,8 +68,8 @@ export function buildOutside(T) {
   box(5.2, 0.4, 3.2, psx(null, { tint: 0xfff4e4 }), [0, 4.25, -1.5]);
   const gable = new Shape(); gable.moveTo(-2.9, 0); gable.lineTo(2.9, 0); gable.lineTo(0, 1.8); gable.lineTo(-2.9, 0);
   add(new Mesh(keep(new ShapeGeometry(gable)), psx(T.roof, { rx: 0.4, ry: 0.4, side: DoubleSide })), [0, 4.45, -3.1]);
-  plane(0.9, 0.9, psx(T.round, { unlit: 0.4, decal: true }), [0, 5.05, -3.12], [0, Math.PI, 0], 1);
-  plane(2.0, 0.45, psx(T.fanlight, { decal: true, unlit: 0.3 }), [0, 3.72, -0.03], [0, Math.PI, 0], 1);
+  plane(0.9, 0.9, psx(T.round, { unlit: 0.4, decal: true }), [0, 5.05, -3.16], [0, Math.PI, 0], 1);
+  plane(2.0, 0.45, psx(T.fanlight, { decal: true, unlit: 0.3 }), [0, 3.72, -0.06], [0, Math.PI, 0], 1);
   const STEPS = [0, 1, 2].map(i => ({ w: 5.4 - i * 0.4, d: 3.4 - i * 0.5, z: -1.6 + i * 0.25, top: 0.15 * (i + 1) }));
   for (const s of STEPS) box(s.w, 0.15, s.d, psx(T.stone, { rx: 3, ry: 2 }), [0, s.top - 0.075, s.z]);
   plane(1.5, 0.75, psx(T.mat, { decal: true }), [0, 0.46, -0.9], [-Math.PI / 2, 0, 0], 1);
@@ -82,7 +82,7 @@ export function buildOutside(T) {
   box(4.2, 2.4, 2.6, stucco(4, 2.4), [11, 6.4, 4.5]);
   const br = cone(1, 1, 4, psx(T.roof, { rx: 3, ry: 1 }), [11, 8.3, 4.5], [0, Math.PI / 4, 0]); br.scale.set(2.8 / 0.7071, 1.4, 1.7 / 0.7071);
   for (const x of [10, 12]) plane(0.8, 1.2, win, [x, 6.4, 3.18], [0, Math.PI, 0], 1);
-  box(6, 0.2, 2.6, psx(T.wood, { rx: 4 }), [-12, 5.1, 7]);
+  box(6, 0.2, 2.6, psx(T.wood, { rx: 4 }), [-11.9, 5.1, 7]);
   for (const x of [-11, -14.8]) for (const z of [5.8, 8.2]) cyl(0.06, 0.06, 5.1, 4, scaf, [x, 2.55, z]);
   box(0.1, 0.35, 2.6, psx(T.hazard, { rx: 1, ry: 1, unlit: 0.3 }), [-15, 5.6, 7]);
   plane(2.4, 1.05, psx(T.wingSign, { unlit: 0.4, side: DoubleSide }), [-14, 6.4, 5.6], [0, Math.PI, 0], 1);

@@ -60,8 +60,9 @@ activity is checked again, so something moves into it only once a second activit
     back puts you at that computer), Sadie's letter (`mansion.invited`: the first time only), the
     pause menu (Esc or the pause button; in the test version, found by its label, it also starts
     over everything, the invitation, or an activity's saves), and `window.__mansion` for the checks.
-  - `look.js`: the PS1 material (corners snapping to the pixel grid, swimming textures, light per
-    corner, few colours with dithering), the doorway and sky materials, and every texture, drawn
+  - `look.js`: the PS1 material (corners snapping to the pixel grid, light per corner, few colours
+    with dithering; no swimming textures, which the owner found far too distracting), the doorway
+    and sky materials, and every texture, drawn
     on little canvases when it opens. `pictures.js` (Sadie's sprite; drawn by
     `art/play-place/pictures.py`, never edited by hand) is still where her picture comes from.
   - The hall: sixteen flat walls, three storeys. The first landing has a door per activity, in
@@ -71,6 +72,10 @@ activity is checked again, so something moves into it only once a second activit
     y)`: the ground, each tread, the bridge, the landing); a step is at most half a metre, so the
     railings and the landing's edge hold you in by themselves.
   - It only resizes the drawing when the screen's size really changes, and draws again at once.
+  - No flicker: things painted on a floor (the path, rugs, the sunbeam) skip the depth test and
+    are drawn straight after their floor (`onFloor`, floor `renderOrder` -2, them -1); things on
+    walls stand at least 4 cm off them. The camera's near plane is 0.1 m (phones' depth is coarse).
+    Door leaves open to 80 degrees, not flat, so they stay in sight as you go through.
 - **Saves** belong to each activity: its keys start with its own name (Dropper World's is
   `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
   uses `sadies-play-place.<id>.` for its keys, and lists what its keys start with in its card's

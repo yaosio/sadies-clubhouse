@@ -1,9 +1,9 @@
 // The mansion's look: the PS1 material everything is drawn with, the see-through doorway material,
 // and every texture, drawn right here on little canvases when the mansion opens.
 //
-// The PS1 look is all in psx(): corners snap to the pixel grid (the jitter), textures are mapped
-// without perspective correction (they swim), light is worked out per corner, and colours are cut
-// down to a few levels with an ordered dither between them. Each place (outside, the hall, a room)
+// The PS1 look is all in psx(): corners snap to the pixel grid (the jitter), light is worked out
+// per corner, and colours are cut down to a few levels with an ordered dither between them.
+// (Textures used to swim too, like a real PS1's; the owner found it far too distracting.) Each place (outside, the hall, a room)
 // has its own light: set it with light() before drawing that place.
 import {
   Color, Vector2, Vector3, ShaderMaterial, CanvasTexture, NearestFilter, RepeatWrapping, FrontSide, BackSide,
@@ -16,7 +16,7 @@ export function light({ sun, bulb, lamp }) { env.sun.value = sun; env.bulb.value
 
 const VS = `
 uniform vec2 uRes; uniform vec2 uRep; uniform vec3 uLamp; uniform float uUnlit; uniform float uBulb; uniform float uSun;
-varying vec2 vUvW; varying float vW; varying float vLight;
+varying vec2 vUv; varying float vLight;
 void main(){
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vec4 p = projectionMatrix * viewMatrix * wp;
@@ -28,17 +28,17 @@ void main(){
   vec3 toL = uLamp - wp.xyz; float d = length(toL);
   float bulb = max(dot(n, toL / d), 0.0) * clamp(1.5 - d * 0.09, 0.0, 1.0);
   vLight = mix(0.45 + uSun * sun + uBulb * bulb, 1.0, uUnlit);  // lit per corner
-  vUvW = uv * uRep * p.w; vW = p.w;                        // with the divide below: affine, so textures swim
+  vUv = uv * uRep;
 }`;
 const DITHER = `
 float b2(vec2 a){ a = floor(a); return fract(a.x * 0.5 + a.y * a.y * 0.75); }
 float bayer(vec2 a){ return b2(0.5 * a) * 0.25 + b2(a); }`;
 const FS = `
 uniform sampler2D map; uniform vec3 tint; uniform float uLevels; uniform float uFade;
-varying vec2 vUvW; varying float vW; varying float vLight;
+varying vec2 vUv; varying float vLight;
 ${DITHER}
 void main(){
-  vec4 c = texture2D(map, vUvW / vW);
+  vec4 c = texture2D(map, vUv);
   if (c.a < 0.5) discard;
   float d = bayer(gl_FragCoord.xy);
   if (d < uFade) discard;                                  // see-through the 90s way: skip some dots
@@ -53,7 +53,9 @@ export const keep = x => (made.push(x), x);
 export function disposeLook() { for (const x of made.splice(0)) x.dispose(); WHITE = null; }
 
 // o: rx, ry (texture repeats), tint, unlit (0-1), fade (0-1, see-through dots), side, decal (flat on
-// something else: wins the depth test outright, so it never flickers)
+// a wall: pulled towards you in the depth test, so it doesn't flicker), onFloor (painted straight onto
+// the floor under it: no depth test at all, drawn just after the floor, so it can never flicker even
+// far away on a phone; give the floor renderOrder -2 and this -1)
 export function psx(map, o = {}) {
   return keep(new ShaderMaterial({
     uniforms: {
@@ -62,7 +64,8 @@ export function psx(map, o = {}) {
       uBulb: env.bulb, uSun: env.sun, uLevels: { value: 14 }, uFade: { value: o.fade || 0 },
     },
     vertexShader: VS, fragmentShader: FS, side: o.side ?? FrontSide,
-    polygonOffset: !!o.decal, polygonOffsetFactor: -2, polygonOffsetUnits: -8,
+    polygonOffset: !!o.decal, polygonOffsetFactor: -4, polygonOffsetUnits: -16,
+    depthTest: !o.onFloor, depthWrite: !o.onFloor,
   }));
 }
 
