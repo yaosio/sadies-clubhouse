@@ -53,11 +53,12 @@ activity is checked again, so something moves into it only once a second activit
   other side, turned round. So there are no loading screens, a place can be any size (bigger inside
   than out), and changing one place never touches another. Only the place you're in, and through
   one doorway, get drawn. A door opens only when you walk up to it facing it (one at a time), and
-  closes behind you. Both sides of a doorway show the same real door: it swings into the place
+  closes behind you (the one you just came through waits till you're out of its swing). Both sides of a doorway show the same real door: it swings into the place
   further in (`swing`), so it's hinged on opposite sides as seen from each side.
   - `mansion.js`: you (walking, the eye following steps smoothly), the controls (WASD/arrows; the
     mouse, locked to the view after a click, or dragging if the browser won't lock it; on a phone a
-    thumb stick on the left, dragging on the right; E, or the button on a phone, to use), the
+    thumb stick that comes to wherever your thumb lands on the left, dragging on the right; the camera
+    turns round the upright first, then looks up or down, so the view never tips over; E, or the button on a phone, to use), the
     doorways, using the computer (you lean in until the screen fills the view, then the mansion
     leaves the page and the activity comes in; it notes which one in `sessionStorage`, so coming
     back puts you at that computer), Sadie's letter (`mansion.invited`: the first time only), the

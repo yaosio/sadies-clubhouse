@@ -59,9 +59,15 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(500);
     await shot('3-front-door');
     check(`${device}: the front door opens as you come up, showing the hall through it`, await M('looking') === 'hall');
-    await walk(1200);
+    await walk(700);   // through, and about a metre on: still inside the door's swing
     await shot('4-hall');
     check(`${device}: ...and walking through it takes you into the hall (no loading)`, (await M('where')).place === 'hall');
+    check(`${device}: ...and the door stays open while you're still in its swing`, await M('lastDoorOpen') > 0.9, `open ${(await M('lastDoorOpen'))?.toFixed(2)}`);
+
+    // looking up and down while turning never tips the view over
+    let tipped = 0;
+    for (const [yaw, pitch] of [[0.7, 0.6], [2.4, -0.7], [-1.9, 0.5]]) { await M('turnTo', yaw, pitch); await p.waitForTimeout(80); tipped = Math.max(tipped, await M('tilt')); }
+    check(`${device}: looking up or down while turning keeps the view upright`, tipped < 1e-3, `leans ${tipped.toFixed(3)}`);
 
     // up the spiral stairs to the landing, keeping to the middle of the steps
     await M('put', 'hall', 'stairs');

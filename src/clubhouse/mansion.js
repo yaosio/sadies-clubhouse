@@ -26,7 +26,7 @@ import P from './pictures.js';
 import page from './mansion.html';
 import styles from './mansion.css';
 
-const EYE = 1.6, SPEED = 3.2, TURN = 2.2;
+const EYE = 1.6, SPEED = 3.2, TURN = 2.2, STICK = 40;   // STICK: how far the thumb stick's knob goes, in screen pixels
 // things that happen once, remembered in the browser (the test version can undo each)
 const INVITED = 'mansion.invited';
 const BACK = 'mansion.back';          // which activity you left for (kept only until the page comes back)
@@ -63,7 +63,8 @@ export async function open(cards, enter) {
   renderer.outputColorSpace = LinearSRGBColorSpace;
   const through = new WebGLRenderTarget(320, 240, { minFilter: NearestFilter, magFilter: NearestFilter });
   for (const s of sides) s.d.see.material.uniforms.pic.value = through.texture;
-  const cam = new PerspectiveCamera(70, 1, 0.1, 300);   // not too near: phones' depth is coarse cam.rotation.order = 'YXZ';
+  const cam = new PerspectiveCamera(70, 1, 0.1, 300);   // not too near: phones' depth is coarse
+  cam.rotation.order = 'YXZ';   // turn round the upright first, then look up or down: the view never tips over
   const vcam = new PerspectiveCamera(); vcam.matrixAutoUpdate = false; vcam.matrixWorldAutoUpdate = false;
 
   let drawnAt = '';
@@ -116,7 +117,9 @@ export async function open(cards, enter) {
     }
     return false;
   }
+  let lastThrough = null;   // the doorway you walked through last
   function cross(s, lx, lz) {
+    lastThrough = s.p;
     const t = s.to, c = Math.cos(t.yaw), sn = Math.sin(t.yaw), bx = -lx, bz = -lz;
     me.x = t.pos.x + bx * c + bz * sn; me.z = t.pos.z - bx * sn + bz * c;
     const rise = t.pos.y - s.d.pos.y;
@@ -153,7 +156,8 @@ export async function open(cards, enter) {
     for (const s of sides) if (s.w === me.world && Math.abs(me.y - s.d.pos.y) < 1.5) {
       const [lx, lz] = s.d.local(me.x, me.z);
       if (lz < -0.6 || lz > 3.4 || Math.abs(lx) > 2.4) continue;
-      if (lz > 0.8 && -(fx * s.d.normal.x + fz * s.d.normal.z) < 0.25) continue;   // not facing it (and not in it)
+      // not facing it (and not in it, and not just through it: then it waits till you're out of its swing)
+      if (lz > (s.p === lastThrough ? 2.4 : 0.8) && -(fx * s.d.normal.x + fz * s.d.normal.z) < 0.25) continue;
       const d = Math.hypot(lx, lz); if (d < near) { near = d; best = s; }
     }
     return best;
@@ -214,21 +218,25 @@ export async function open(cards, enter) {
     if (mode !== 'play') return;
     if (e.pointerType === 'touch' && e.clientX < canvas.clientWidth * 0.45 && stick.id === null) {
       Object.assign(stick, { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: 0, y: 0 });
+      // the stick comes to your thumb
+      const st = $('#stick'), r = root.getBoundingClientRect();
+      Object.assign(st.style, { left: e.clientX - r.left - 52 + 'px', top: e.clientY - r.top - 52 + 'px', bottom: 'auto' });
     } else if (drag.id === null && !locked) Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY });
     try { canvas.setPointerCapture(e.pointerId); } catch {}
   });
   on(canvas, 'pointermove', e => {
     if (e.pointerId === stick.id) {
-      const dx = e.clientX - stick.x0, dy = e.clientY - stick.y0, m = Math.hypot(dx, dy), k = m > 50 ? 50 / m : 1;
-      stick.x = dx * k / 50; stick.y = dy * k / 50;
-      $('#stick i').style.transform = `translate(${dx * k * 0.6}px,${dy * k * 0.6}px)`;
+      // the knob follows your thumb to the stick's edge (and no further); full speed at the edge
+      const dx = e.clientX - stick.x0, dy = e.clientY - stick.y0, m = Math.hypot(dx, dy), k = m > STICK ? STICK / m : 1;
+      stick.x = dx * k / STICK; stick.y = dy * k / STICK;
+      $('#stick i').style.transform = `translate(${dx * k}px,${dy * k}px)`;
     } else if (e.pointerId === drag.id && mode === 'play') {
       const k = (e.pointerType === 'touch' ? 4.2 : 3.2) / Math.max(canvas.clientWidth, 400);
       turn((e.clientX - drag.x) * k, (e.clientY - drag.y) * k * (e.pointerType === 'touch' ? 0.6 : 1)); drag.x = e.clientX; drag.y = e.clientY;
     }
   });
   const letGo = e => {
-    if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; $('#stick i').style.transform = ''; }
+    if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; $('#stick i').style.transform = ''; $('#stick').removeAttribute('style'); }
     if (e.pointerId === drag.id) drag.id = null;
   };
   on(canvas, 'pointerup', letGo); on(canvas, 'pointercancel', letGo);
@@ -372,6 +380,9 @@ export async function open(cards, enter) {
       place(w, typeof spot === 'string' ? w.spots[spot] : spot); return true;
     },
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
+    // how far the view leans over sideways (0: not at all), and how open the last doorway walked through is
+    tilt: () => Math.abs(new Vector3(1, 0, 0).applyQuaternion(cam.quaternion).y),
+    lastDoorOpen: () => lastThrough ? lastThrough.open : null,
     // stand in front of a doorway in this place, facing it (d metres out)
     faceDoor(name, door, d = 2) {
       const w = places.find(p => p.name === name), dd = w?.doors[door]; if (!dd) return false;
