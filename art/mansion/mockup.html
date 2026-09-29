@@ -1,0 +1,92 @@
+<title>Sadie's Mansion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+/* One look on purpose: the game's own night-purple world. Layout: a strip of view buttons, the
+   screen (a computer or a phone), and what to look for under it. */
+:root {
+  color-scheme: dark;
+  --ground: #120a24; --panel: #2a1850; --edge: #5a3a9a; --hi: #c9b6f2;
+  --text: #f2eaff; --dim: #b8a8dc; --gold: #ffd23a; --pink: #ff8ec8; --ink: #1c1238;
+  --blocky: Silkscreen, "Courier New", monospace; --dos: VT323, "Courier New", monospace;
+}
+html, body { height: 100%; }
+body { background: var(--ground); color: var(--text); font-family: var(--dos); font-size: 20px; line-height: 1.25; }
+.wrap { max-width: 1100px; margin: 0 auto; padding-inline: 16px; padding-block: 14px 28px; display: grid; gap: 12px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+h1 { font-family: var(--blocky); font-weight: 700; font-size: 26px; margin: 0; color: var(--gold); text-shadow: 2px 2px 0 var(--pink3, #a02a70); text-wrap: balance; }
+.tag { font-family: var(--blocky); font-size: 11px; letter-spacing: .06em; color: var(--ink); background: var(--pink); padding: 2px 8px; }
+.bar { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; }
+button.pick { font-family: var(--blocky); font-size: 12px; letter-spacing: .04em; color: var(--text); background: var(--panel);
+  border: 2px solid var(--edge); border-top-color: var(--hi); border-left-color: var(--hi); padding: 6px 10px; cursor: pointer; }
+button.pick[aria-pressed="true"] { background: var(--gold); color: var(--ink); border-color: #8a5a10; border-top-color: #fff08a; border-left-color: #fff08a; }
+button:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+
+/* the screen: a computer's wide one or a phone's tall one */
+.shell { display: grid; justify-items: center; }
+#stage { position: relative; width: 100%; aspect-ratio: 16 / 10; max-height: 78vh; background: #000; border: 3px solid var(--edge); overflow: hidden; touch-action: none; }
+#stage[data-device="phone"] { width: auto; height: min(78vh, 720px); aspect-ratio: 9 / 19; max-width: 100%; border: 10px solid #231a3a; border-radius: 30px; }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; cursor: grab; }
+
+/* what the game shows on screen: only these */
+.hud { position: absolute; pointer-events: none; font-family: var(--blocky); font-size: 11px; letter-spacing: .05em; color: #fff; }
+.pause { top: 10px; right: 10px; width: 30px; height: 30px; display: grid; place-items: center; background: #1c1238b0; border: 2px solid #ffffff60; }
+.pause::before { content: ""; width: 10px; height: 12px; border-left: 3px solid #fff; border-right: 3px solid #fff; }
+.keys { bottom: 12px; left: 50%; transform: translateX(-50%); background: #1c1238a0; padding: 4px 10px; white-space: nowrap; }
+.key { display: inline-block; background: #f2eaff; color: var(--ink); padding: 0 4px; margin-right: 3px; box-shadow: 0 2px 0 #8a7ab8; }
+.go { bottom: 16px; left: 50%; transform: translateX(-50%); background: #1c1238d0; border: 2px solid var(--gold); padding: 5px 10px; white-space: nowrap; }
+.stick { left: 22px; bottom: 28px; width: 92px; height: 92px; border-radius: 50%; border: 2px solid #ffffff70; background: #ffffff18; display: grid; place-items: center; }
+.stick::before { content: ""; width: 38px; height: 38px; border-radius: 50%; background: #ffffff80; }
+.tap { right: 22px; bottom: 34px; width: 70px; height: 70px; border-radius: 50%; background: var(--gold); color: var(--ink); display: grid; place-items: center; font-size: 12px; box-shadow: 0 3px 0 #8a5a10; }
+.hud[hidden] { display: none; }
+#stage:not([data-device="computer"]) .onComputer, #stage:not([data-device="phone"]) .onPhone { display: none; }
+#stage:not([data-view="outside"]) .onOutside, #stage:not([data-view="landing"]) .onLanding { display: none; }
+#stage[data-view="invite"] .hud { display: none; }
+
+/* Sadie's letter */
+.letter { position: absolute; inset: 0; display: none; place-items: center; background: #0a062880; }
+#stage[data-view="invite"] .letter { display: grid; }
+.letter .card { display: grid; gap: 12px; justify-items: center; width: min(560px, 90%); }
+#letterArt { width: 100%; height: auto; image-rendering: pixelated; aspect-ratio: 240 / 152; }
+#ok { font-family: var(--blocky); font-size: 13px; color: var(--ink); background: var(--gold); border: 0; padding: 6px 22px; box-shadow: 0 3px 0 #8a5a10; cursor: pointer; }
+
+#says { margin: 0; max-width: 68ch; color: var(--text); }
+.note { margin: 0; max-width: 68ch; color: var(--dim); font-size: 18px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Sadie's Mansion</h1>
+    <span class="tag">MOCK-UP · NOT THE GAME YET</span>
+  </header>
+  <div class="bar">
+    <div class="group" role="group" aria-label="Which view">
+      <button class="pick" id="v1" data-view="outside">OUTSIDE</button>
+      <button class="pick" id="v2" data-view="invite">THE INVITATION</button>
+      <button class="pick" id="v3" data-view="hall">ENTRANCE HALL</button>
+      <button class="pick" id="v4" data-view="landing">FIRST LANDING</button>
+    </div>
+    <div class="group" role="group" aria-label="Which screen">
+      <button class="pick" id="d1" data-device="computer">COMPUTER</button>
+      <button class="pick" id="d2" data-device="phone">PHONE</button>
+    </div>
+  </div>
+  <div class="shell">
+    <div id="stage" data-device="computer" data-view="outside">
+      <canvas id="view"></canvas>
+      <div class="hud pause"></div>
+      <div class="hud keys onComputer onOutside"><span class="key">W A S D</span> WALK &nbsp; <span class="key">MOUSE</span> LOOK</div>
+      <div class="hud go onComputer onLanding"><span class="key">E</span> GO IN: SADIE'S DROPPER WORLD</div>
+      <div class="hud stick onPhone"></div>
+      <div class="hud tap onPhone onLanding">GO IN</div>
+      <div class="letter"><div class="card"><canvas id="letterArt" width="240" height="152"></canvas><button id="ok">OK</button></div></div>
+    </div>
+  </div>
+  <p id="says"></p>
+  <p class="note">Drag the picture to look around a little. It's a still scene: no walking in the mock-up.</p>
+</div>
+<script type="module">
+/*@script*/
+</script>

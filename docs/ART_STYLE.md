@@ -122,3 +122,29 @@ tried way too hard:
 - **Its box on the shelf**: a white page, a red dashed box, big letters spilling out of it, a gold
   band saying TYPEFITTER (drawn by `art/play-place/pictures.py`).
 
+
+## Sadie's mansion (mock-up, waiting for the owner's okay)
+The owner's next big idea: the clubhouse becomes Sadie's mansion, and each activity gets its own room.
+Mock-up: `art/mansion/` (`mockup.js` is the 3D scene, `page.js` the page around it; `node
+art/mansion/build.mjs && node art/mansion/shots.mjs` builds it and takes the pictures), published at
+https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so far:
+- **A cat tree.** A tall round hall with a giant scratching post up the middle and a spiral
+  staircase round it (a staircase, no elevator); each floor is a ring of doors. It grows up (the top
+  is always being built) and out (branches: wings and side towers, for grouping rooms). Adding
+  rooms never changes what's already built.
+- **Rooms can be any size**, and bigger inside than the house could hold. Some games will live in
+  the world rather than on their own screen, like a Breakout whose ball escapes into the mansion
+  and breaks the game (then Sadie puts up a sign saying you broke it).
+- **No loading screens or obvious transitions** unless they fit: a door just opens onto its room.
+  It has to stay smooth.
+- **You start outside**, at the gate. The first time only, Sadie's letter invites you: she's
+  decided to share her clubhouse with all her friends. There'll be a way to reset the whole game,
+  and single events (the invitation, the broken Breakout, and so on).
+- **Normal game controls** (WASD and mouse, a thumb stick on phones) and no big chunky frame: just
+  a pause button and a small hint at a door. The shelf room goes. Dropper World and TypeFitter keep
+  their own 90s frames: they're programs on a computer.
+- **The look:** a real, recognizable mansion a cat has clearly taken over. The cat is in the details:
+  turrets that lean out like ears, a cat weathervane, fish-scale slates, porch pillars wrapped in
+  scratching rope, a cat flap in the front door, a FRIENDS ONLY mat, fish-bone and paw-print damask,
+  portraits of Sadie, the shredded armchair, Sadie asleep in a box in a sunbeam, a cat door by every
+  door. Sadie's own colours (white going lavender, grey, tan, pink), turned up loud.
