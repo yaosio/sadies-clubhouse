@@ -229,11 +229,11 @@ export async function open(cards, enter) {
   on(window, 'mousemove', e => { if (locked && mode === 'play') turn(e.movementX * 0.0024, e.movementY * 0.0024); });
   on(canvas, 'pointerdown', e => {
     if (mode !== 'play') return;
-    if (e.pointerType === 'touch' && e.clientX < canvas.clientWidth * 0.45 && stick.id === null) {
-      Object.assign(stick, { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: 0, y: 0 });
-      // the stick comes to your thumb
-      const st = $('#stick'), r = root.getBoundingClientRect();
-      Object.assign(st.style, { left: e.clientX - r.left - 52 + 'px', top: e.clientY - r.top - 52 + 'px', bottom: 'auto' });
+    // the thumb stick stays in its corner, and only a touch that starts on it (or just round it) walks;
+    // anywhere else, dragging looks around
+    const sr = $('#stick').getBoundingClientRect(), cx = sr.left + sr.width / 2, cy = sr.top + sr.height / 2;
+    if (e.pointerType === 'touch' && touchy && stick.id === null && Math.hypot(e.clientX - cx, e.clientY - cy) < sr.width * 0.75) {
+      Object.assign(stick, { id: e.pointerId, x0: cx, y0: cy, x: 0, y: 0 });
     } else if (drag.id === null && !locked) Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY });
     try { canvas.setPointerCapture(e.pointerId); } catch {}
   });
@@ -249,7 +249,7 @@ export async function open(cards, enter) {
     }
   });
   const letGo = e => {
-    if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; $('#stick i').style.transform = ''; $('#stick').removeAttribute('style'); }
+    if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; $('#stick i').style.transform = ''; }
     if (e.pointerId === drag.id) drag.id = null;
   };
   on(canvas, 'pointerup', letGo); on(canvas, 'pointercancel', letGo);

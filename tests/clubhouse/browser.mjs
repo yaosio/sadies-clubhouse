@@ -43,7 +43,7 @@ export default async function ({ browser, page, check, outDir }) {
     const before = await M('where');
     if (opts.hasTouch) {
       await p.evaluate(async () => {
-        const c = document.querySelector('#mansion #view'), r = c.getBoundingClientRect(), x = r.left + 80, y = r.bottom - 120;
+        const c = document.querySelector('#mansion #view'), r = document.querySelector('#mansion #stick').getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
         const ev = (type, dy) => c.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'touch', clientX: x, clientY: y + dy, bubbles: true }));
         ev('pointerdown', 0); ev('pointermove', -45);
         await new Promise(ok => setTimeout(ok, 700));
@@ -52,6 +52,19 @@ export default async function ({ browser, page, check, outDir }) {
     } else await walk(700);
     const after = await M('where');
     check(`${device}: ${opts.hasTouch ? 'the thumb stick' : 'W'} walks you up the path`, after.z - before.z > 0.8, `moved ${(after.z - before.z).toFixed(2)} m`);
+    if (opts.hasTouch) {
+      // dragging anywhere else, even on the left side, only looks around: the stick stays put
+      const r0 = await p.evaluate(() => JSON.stringify(document.querySelector('#mansion #stick').getBoundingClientRect()));
+      const w0 = await M('where');
+      await p.evaluate(async () => {
+        const c = document.querySelector('#mansion #view'), x = 90, y = 300;
+        const ev = (type, dx) => c.dispatchEvent(new PointerEvent(type, { pointerId: 8, pointerType: 'touch', clientX: x + dx, clientY: y, bubbles: true }));
+        ev('pointerdown', 0); ev('pointermove', 60); await new Promise(ok => setTimeout(ok, 300)); ev('pointerup', 60);
+      });
+      const w1 = await M('where'), r1 = await p.evaluate(() => JSON.stringify(document.querySelector('#mansion #stick').getBoundingClientRect()));
+      check(`${device}: dragging away from the stick turns the view, and the stick stays in its corner`,
+        Math.abs(w1.yaw - w0.yaw) > 0.1 && Math.hypot(w1.x - w0.x, w1.z - w0.z) < 0.01 && r0 === r1);
+    }
 
     // in through the front door: it opens as you come up, and the hall shows through it
     await M('faceDoor', 'outside', 'front', 2.4);
