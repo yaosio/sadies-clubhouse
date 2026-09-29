@@ -1,4 +1,4 @@
-// Chooter: Sadie's first friend, a black lab/pitbull mix (see docs/CHARACTERS.md). Manic,
+// Chooter: Sadie's first friend, a black lab/pitbull mix (see docs/dropper-world/CHARACTERS.md). Manic,
 // energetic, and he loves absolutely everybody. Everything he does is play to him, even when
 // it's annoying. Before they meet he's just next door, listening: every thud, squish and topple,
 // and Sadie dragging her barn about, winds him up (it sounds like SO much fun), and once he can't

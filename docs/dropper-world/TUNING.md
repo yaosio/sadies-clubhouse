@@ -1,7 +1,7 @@
-# Tuning and behavior reference
+# Dropper World's tuning and behavior reference
 
 These numbers are what make the game feel the way it does. Change them on purpose, one at a time,
-and re-run `npm test`. Units: 1 block = 30 world px, y points up in the simulation.
+and re-run `npm test`. Paths are inside `src/activities/dropper-world/`. Units: 1 block = 30 world px, y points up in the simulation.
 
 ## World
 Board 48 blocks wide, walls at both edges, ground at y = 0 (until the bedrock rises over it). The camera's default zoom fits about
@@ -142,7 +142,7 @@ Nothing above it becomes a fossil, so it can always be dragged out.
 Trips home: after a trip she feels settled (`settled`, 1 falling to 0 over 60 s). Once that's gone
 she goes when she's 6 blocks or more above the barn's floor, or when the pile covers its whole roof
 by 1 block or more (then fetching the barn wants 3, more than hay's 1–2). Why she does it and how
-the wants work: `docs/CHARACTERS.md`. She runs to its side, grabs the rope and
+the wants work: `docs/dropper-world/CHARACTERS.md`. She runs to its side, grabs the rope and
 drags it toward the tallest point of the pile (not counting what's heaped on the barn itself), at
 least 4 blocks. The barn follows 2.9 blocks behind her at up to 2.5 blocks/s, shoving pieces out
 of its way; it rides over whatever is under its floor rather than being pulled down into the pile.
@@ -168,7 +168,7 @@ browser), even after clearing the tower; Start over sends him back next door, fr
   barks. Walks off drops and falls (gravity 1400). If a piece lands on him he wriggles out on top.
 - Playing: picks a spot 1.4–3.6 blocks to one side of Sadie every 2–4.5 s and goes there; hops for
   joy or sends her a heart now and then.
-- Feelings (see `docs/CHARACTERS.md`): `energy` winds up while he's out, `tired` builds while he's
+- Feelings (see `docs/dropper-world/CHARACTERS.md`): `energy` winds up while he's out, `tired` builds while he's
   out, `missing` makes him greet a new friend.
 - Zoomies: when his energy is full. It starts 20 s from full on a fresh board (30 s after meeting
   him), then takes 40–75 s to wind up again (chosen after each bout). His energy lasts 7–10 s. He dashes 7–14 blocks one way, then the other, hopping every 0.6–1.8 s. Any piece that
@@ -344,24 +344,3 @@ order. Nothing about how things behave changed apart from the hay.)
   it. A box sliding fast into the side of a 5-block step in the bedrock stops against it (it
   tumbles up to about 3.7 blocks high, never on top). It comes back exactly from a save (about
   208 KB), and a save from before bedrock loads with flat ground.
-
-# TypeFitter (`src/activities/typefitter/`)
-
-- **TEXT LOVE meter** (`love.js`): 10 hearts. Each round secretly picks how many changes it takes,
-  4 to 10 (`FEWEST`, `MOST`: the owner asked for at most ten). Each change moves it to about where
-  it should be by then, give or take 2 hearts, and 22% of the time it drops 2 or 3 below where it was instead (she
-  changed her mind), never full before its change; about a fifth of changes go down. Once full it
-  stays full until FIT IT!.
-- **The box** (`boxFor`): 74% of the text's width and 80% of its height with no hearts, up to 96%
-  and 96% when full, but always at least 5 px too wide and 3 px too tall. It never fits.
-- **Fit score**: one of 104, 107, 112, 118, 121, 133, 150%: always over 100, always a win.
-- **Pacing**: the fitting show takes about 5 s (6 steps of 0.65 s, then 1.3 s of "does not fit"),
-  the certificate prints a line every 0.38 s. That, and the meter needing 4+ changes, is what stops
-  button-mashing wins; there's no score to farm.
-- **Text sizes**: 22, 30, 40, 52 (start), 66, 84, 104 px. The page zooms out (never in) so the
-  whole text shows.
-- **What the tests expect** (`tests/typefitter/run.mjs`): over 3000 seeded rounds, full on the 4th
-  change at the soonest and the 10th at the latest, every count from 4 to 10 turning up, 10 to 40%
-  of changes going down; the box too small by at least 5 px at every size and never shrinking as
-  the meter fills.
-

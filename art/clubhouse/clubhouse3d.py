@@ -2,7 +2,7 @@
 # checkered floor running off into the distance, a cubby shelf with depth), worked out per pixel
 # like a 90s raycaster, then shaded with the same dithered tones as everything else. Sadie and the
 # cursor are flat sprites on top, the way 90s games mixed 3D rooms with 2D characters.
-# Run: pip install pillow, then python3 art/play-place/clubhouse3d.py
+# Run: pip install pillow, then python3 art/clubhouse/clubhouse3d.py
 import math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import kit

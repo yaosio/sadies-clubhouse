@@ -1,6 +1,6 @@
-/* TypeFitter's look: the Play Place's candy-purple frame, with TypeFitter's own parts straight in it
+/* TypeFitter's look: the clubhouse's candy-purple frame, with TypeFitter's own parts straight in it
    (no windows): chunky tool buttons that show their key and glow gold when on, a sunken page, Sadie's
-   corner, a green LED sign. Its own copy of the frame's look (see docs/ART_STYLE.md).
+   corner, a green LED sign. Its own copy of the frame's look (see docs/typefitter/README.md).
    Phone (and any tall screen): everything stacked, Sadie's corner under the page.
    Wide screen, sideways: Sadie's corner is a column down the right. */
 :root{

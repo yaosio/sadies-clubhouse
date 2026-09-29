@@ -4,7 +4,7 @@
 #   src/activities/dropper-world/box.js       the front of Dropper World's box (on its computer's screen and poster)
 #   src/activities/typefitter/box.js          the front of TypeFitter's box (the same)
 #   src/activities/<name>/door.js             each activity's door on the mansion's landing
-# Run after changing a drawing (pip install pillow): python3 art/play-place/pictures.py
+# Run after changing a drawing (pip install pillow): python3 art/clubhouse/pictures.py
 import base64, io, json, math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -90,7 +90,7 @@ TF_DOOR = png(typefitter_door, 40, 64)
 
 def write(path, what, body):
     with open(os.path.join(ROOT, path), 'w') as f:
-        f.write(f'// {what}\n// Drawn by art/play-place/pictures.py: change the drawing there and run it, never edit this file.\n{body}\n')
+        f.write(f'// {what}\n// Drawn by art/clubhouse/pictures.py: change the drawing there and run it, never edit this file.\n{body}\n')
     print(path, os.path.getsize(os.path.join(ROOT, path)) // 1024, 'KB')
 
 write('src/clubhouse/pictures.js', "The clubhouse's pictures: Sadie's sprite, awake and blinking, as PNGs.",
