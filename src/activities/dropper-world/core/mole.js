@@ -1,5 +1,5 @@
 // The mole: it drops the pieces. It lives up in the sky (nobody knows why, and it's funnier that
-// way), and like any mole it's sure everything belongs underground. See docs/CHARACTERS.md.
+// way), and like any mole it's sure everything belongs underground. See docs/dropper-world/CHARACTERS.md.
 //
 // What it does comes from how it feels and what it sees, through the shared thinking in
 // mind/think.js:

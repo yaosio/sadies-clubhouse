@@ -1,4 +1,4 @@
-// Sadie: a cat who thinks she's a cow (see docs/CHARACTERS.md). What she does comes from how she
+// Sadie: a cat who thinks she's a cow (see docs/dropper-world/CHARACTERS.md). What she does comes from how she
 // feels, through the shared thinking in mind/think.js:
 //   hunger   - her strongest feeling. She's extremely food motivated: going after hay always
 //              matters to her, and she never walks past a bundle she can reach.

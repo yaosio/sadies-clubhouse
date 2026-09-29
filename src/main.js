@@ -32,7 +32,7 @@ async function enter(card) {
   document.body.insertAdjacentHTML('afterbegin', card.page +
     `<link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">` +
     `<button id="clubBack" aria-label="Back to the clubhouse"><kbd>ESC</kbd>BACK</button>`);
-  document.title = document.title.replace("Sadie's Play Place", card.name);
+  document.title = document.title.replace("Sadie's Clubhouse", card.name);
   document.getElementById('clubBack').addEventListener('click', leave);
   await card.start();
   // listening after the activity has, so its own Escape (closing a panel) comes first

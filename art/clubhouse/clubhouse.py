@@ -1,6 +1,6 @@
 # Mock-ups of Sadie's Play Place: the clubhouse menu (landscape and phone) and what an activity
 # looks like inside the frame (phone). Same 90s look as art/90s-style/mockup-2.png.
-# Run: pip install pillow, then python3 art/play-place/clubhouse.py
+# Run: pip install pillow, then python3 art/clubhouse/clubhouse.py
 import math, os, random, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import kit

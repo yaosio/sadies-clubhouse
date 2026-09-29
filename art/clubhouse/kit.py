@@ -1,4 +1,4 @@
-# Shared drawing kit for the Play Place mock-ups: the approved 90s look from
+# Shared drawing kit for the clubhouse's mock-ups and pictures: the approved 90s look from
 # art/90s-style/mockup-2.py (palette, dithering, 3x5 font, candy-purple panels, raster-bar logo,
 # stamp buttons, Sadie), made to draw on any canvas size. Needs pillow (pip install pillow).
 import math

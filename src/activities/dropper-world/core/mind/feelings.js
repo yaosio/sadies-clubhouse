@@ -2,7 +2,7 @@
 // else). They drift on their own (Sadie's hunger creeps up, Chooter winds up with energy) and get
 // nudged by what happens (eating, zoomies, a rest in the barn). What a character does comes from
 // its feelings: see think.js. Who each character is, and why they feel what they feel, is in
-// docs/CHARACTERS.md.
+// docs/dropper-world/CHARACTERS.md.
 
 const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
 
