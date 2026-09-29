@@ -14,9 +14,11 @@ toy, not a game to win.
 
 It's the first activity of **Sadie's Play Place**, a lost 90s shareware activity center: a
 clubhouse with activities in it, Sadie in every one. More activities will come; each lives in its
-own folder, so changing one never means retesting the others (`docs/ARCHITECTURE.md`). The page
-opens in the clubhouse: a room in crappy late-90s 3D with a shelf of software boxes, one per
-activity (the rest are locked, "under construction"). Tap a box, then PLAY!.
+own folder, so changing one never means retesting the others (`docs/ARCHITECTURE.md`). The
+clubhouse is Sadie's mansion, in crappy late-90s 3D: you start at the front gate (the first time,
+Sadie's letter invites you in), walk in through the front door, up the spiral staircase round a
+giant scratching post, and through an activity's door into its room, where you play it at the
+computer. Normal game controls: WASD and the mouse, or a thumb stick on a phone.
 
 The second activity is **TypeFitter Deluxe 3.1**: a 1993 program by someone who loved what their
 text engine could do and spent ten minutes on the box. Fonts, bold, outline, shadow, WarpArt,
