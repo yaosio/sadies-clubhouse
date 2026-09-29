@@ -80,11 +80,13 @@ activity is checked again, so something moves into it only once a second activit
     are drawn straight after their floor (`onFloor`, floor `renderOrder` -2, them -1); things on
     walls stand at least 4 cm off them. The camera's near plane is 0.1 m (phones' depth is coarse).
     Door leaves open to 80 degrees, not flat, so they stay in sight as you go through.
-  - Nothing flickers as you go through a doorway: you never stand within 6 cm of a doorway's line
-    (`GAP`: reaching it, you step straight through), because right on it every corner of the walls
-    along it sits level with your eye and those walls draw wrong for a frame. For the same reason
-    corners that close to your eye aren't snapped to the pixel grid, and within 40 cm of a doorway
-    the far side is drawn without the tilted near plane (its own door bits are always hidden).
+  - Nothing flickers as you go through a doorway, and nothing jumps (the owner saw even a few
+    centimetres as a stutter). Standing on a doorway's line, corners of the walls and floor along it
+    sit almost exactly level with your eye, and the maths loses so much precision that whole walls
+    drew wrong for a frame. So in `look.js`, a corner that close to level with your eye counts as
+    just behind you, and isn't snapped to the pixel grid; exactly on the line (to 0.1 mm) the view
+    is drawn from 0.1 mm off it; and within 40 cm of a doorway the far side is drawn without the
+    tilted near plane (its own door bits are always hidden).
   - The view on a phone: at most 68 degrees tall, looking at most 43 degrees up or down (more made
     the walls lean like the view had tipped over), dragging up and down slower than sideways, and
     your gaze drifting back to level while you walk with the thumb stick.

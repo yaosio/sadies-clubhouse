@@ -20,6 +20,10 @@ varying vec2 vUv; varying float vLight;
 void main(){
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vec4 p = projectionMatrix * viewMatrix * wp;
+  // A corner almost exactly level with your eye (right beside you, like the ends of the walls along
+  // a doorway you're standing in) loses so much precision that its whole wall or floor can draw
+  // wrong for a frame. Counting it as just behind you instead changes nothing you can see.
+  if (abs(p.w) < 0.002) p.w = -0.002;
   vec2 g = uRes * 0.5;
   // corners snap to the pixel grid: the jitter. Not corners level with your eye or behind it: there
   // the sum divides by almost nothing, and a whole wall or floor would vanish for a frame
