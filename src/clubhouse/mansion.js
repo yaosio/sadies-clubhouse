@@ -44,13 +44,16 @@ export async function open(cards, enter) {
 
   // ---------- the places, and the doorways between them ----------
   try { await Promise.race([document.fonts.load('8px Silkscreen'), new Promise(ok => setTimeout(ok, 1500))]); } catch {}
-  const [awake, asleep, ...boxes] = await Promise.all([loadImage(P.sadie), loadImage(P.sadieBlink), ...cards.map(c => c.box?.front ? loadImage(c.box.front) : null)]);
+  const load = src => src ? loadImage(src) : null;
+  const [awake, asleep, boxes, doorPics] = await Promise.all([load(P.sadie), load(P.sadieBlink),
+    Promise.all(cards.map(c => load(c.box?.front))), Promise.all(cards.map(c => load(c.door)))]);
   const T = drawTextures(awake, asleep);
-  const outside = buildOutside(T), hall = buildHall(T, cards);
-  const rooms = cards.map((c, i) => buildRoom(T, c, boxes[i]));
+  const outside = buildOutside(T), hall = buildHall(T, cards, doorPics);
+  const rooms = cards.map((c, i) => buildRoom(T, c, boxes[i], doorPics[i]));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
   // each doorway seen from its own side: where it is, and where it leads
+  for (const p of portals) p.b.swing = -1;   // every door swings into the place further in
   const sides = portals.flatMap(p => [{ d: p.a, w: p.wa, to: p.b, tw: p.wb, p }, { d: p.b, w: p.wb, to: p.a, tw: p.wa, p }]);
   const places = [outside, hall, ...rooms];
 
@@ -73,7 +76,8 @@ export async function open(cards, enter) {
     drawnAt = iw + 'x' + ih;
     renderer.setSize(iw, ih, false); through.setSize(iw, ih); res.set(iw, ih);
     cam.aspect = iw / ih;
-    cam.fov = Math.min(85, Math.max(55, 2 * Math.atan(Math.tan(80 * Math.PI / 360) / cam.aspect) * 180 / Math.PI));
+    // a wide view on a wide screen; on a tall phone, not so tall that the walls lean when you look up or down
+    cam.fov = Math.min(68, Math.max(55, 2 * Math.atan(Math.tan(80 * Math.PI / 360) / cam.aspect) * 180 / Math.PI));
     cam.updateProjectionMatrix();
     draw();
   }
@@ -183,7 +187,7 @@ export async function open(cards, enter) {
   const held = new Set();
   const stick = { id: null, x0: 0, y0: 0, x: 0, y: 0 }, drag = { id: null, x: 0, y: 0 };
   let locked = false, moved = false;
-  function turn(dx, dy) { me.yaw -= dx; me.pitch = Math.max(-1.2, Math.min(1.2, me.pitch - dy)); }
+  function turn(dx, dy) { me.yaw -= dx; me.pitch = Math.max(-0.75, Math.min(0.75, me.pitch - dy)); }
   const KEYS = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', KeyD: 'r', ArrowLeft: 'tl', ArrowRight: 'tr' };
   on(window, 'keydown', e => {
     if (e.code === 'Escape' || e.key === 'Escape') { e.preventDefault(); if (mode === 'menu') resume(); else if (mode === 'play') pause(); return; }
@@ -220,7 +224,7 @@ export async function open(cards, enter) {
       $('#stick i').style.transform = `translate(${dx * k * 0.6}px,${dy * k * 0.6}px)`;
     } else if (e.pointerId === drag.id && mode === 'play') {
       const k = (e.pointerType === 'touch' ? 4.2 : 3.2) / Math.max(canvas.clientWidth, 400);
-      turn((e.clientX - drag.x) * k, (e.clientY - drag.y) * k); drag.x = e.clientX; drag.y = e.clientY;
+      turn((e.clientX - drag.x) * k, (e.clientY - drag.y) * k * (e.pointerType === 'touch' ? 0.6 : 1)); drag.x = e.clientX; drag.y = e.clientY;
     }
   });
   const letGo = e => {
@@ -324,6 +328,8 @@ export async function open(cards, enter) {
         if (walked) moved = true;
       }
       me.bob = walked ? me.bob + dt * 10 : me.bob * 0.85;
+      // walking with the thumb stick, your gaze drifts back to level (like any phone game)
+      if (walked && stick.id !== null && drag.id === null) me.pitch *= Math.max(0, 1 - dt * 1.5);
     } else if (mode === 'going') lean(dt);
     if (mode !== 'going') me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps
     if (!hintGone && ((moved && now - born > 4000) || now - born > 15000)) { hintGone = true; $('#keysHint').style.opacity = 0; }

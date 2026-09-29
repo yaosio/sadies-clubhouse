@@ -3,7 +3,7 @@
 // hole where the place on the other side shows).
 import {
   Mesh, Group, Shape, Path, ShapeGeometry, PlaneGeometry, BoxGeometry, CylinderGeometry, SphereGeometry, ConeGeometry,
-  Vector3, DoubleSide,
+  Vector3,
 } from 'three';
 import { psx, keep, doorwayMat } from './look.js';
 
@@ -36,10 +36,13 @@ export function wallGeometry(w, h, hw = 0, hh = 0) {
 
 // One side of a doorway, put into a place's scene: at `pos` (the middle of its threshold), facing
 // `yaw` (the way you face walking out of it into this place is yaw + PI), w x h.
-// leaves: [left texture, right texture]. Returns what the mansion needs to draw it and walk through it.
-export function doorway(scene, { pos, yaw, w, h, leaves, trim = 0xffd23a }) {
+// leaves: [left, right] for double doors, or [one] for one door hinged on the `hinge` side (-1 left,
+// 1 right, as you face it); each a texture, or { front, back } when its two faces differ. Returns what the mansion needs to draw it and walk
+// through it. Both sides of a doorway show the same real door: it swings into one of the two places,
+// so on one side it swings away from you (`swing` 1, the default) and on the other towards you (-1).
+export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xffd23a }) {
   const group = new Group(); group.position.set(...pos); group.rotation.y = yaw; scene.add(group);
-  const D = Math.max(1.3, w * 0.75);   // deep enough that the leaves stay inside it when they swing open
+  const D = Math.max(1.3, leaves.length === 1 ? w : w / 2) + 0.1;   // deep enough to hold the leaves when they swing open
   const see = new Mesh(keep(new BoxGeometry(w, h, D)), doorwayMat(null));
   see.position.set(0, h / 2, -D / 2); group.add(see);
   const trimMat = psx(null, { tint: trim });
@@ -47,17 +50,20 @@ export function doorway(scene, { pos, yaw, w, h, leaves, trim = 0xffd23a }) {
     const b = new Mesh(keep(new BoxGeometry(bw, bh, 0.1)), trimMat); b.position.set(x, y, 0.02); group.add(b);
   }
   const hinges = [];
-  for (const [side, t] of [[-1, leaves[0]], [1, leaves[1]]]) {
-    const hinge = new Group(); hinge.position.set(side * w / 2, 0, 0); group.add(hinge);
-    const leaf = new Mesh(keep(new PlaneGeometry(w / 2, h, 2, 4)), psx(t, { side: DoubleSide }));
-    leaf.position.set(-side * w / 4, h / 2, 0); hinge.add(leaf);
-    hinges.push([hinge, -side]);
+  const lw = leaves.length === 1 ? w : w / 2;
+  for (const [side, t] of leaves.length === 1 ? [[hinge, leaves[0]]] : [[-1, leaves[0]], [1, leaves[1]]]) {
+    const pivot = new Group(); pivot.position.set(side * w / 2, 0, 0); group.add(pivot);
+    const geo = keep(new PlaneGeometry(lw, h, 2, 4));
+    const face = new Mesh(geo, psx(t.front || t)), back = new Mesh(geo, psx(t.back || t));
+    face.position.set(-side * lw / 2, h / 2, 0); back.position.copy(face.position); back.rotation.y = Math.PI;
+    pivot.add(face, back);
+    hinges.push([pivot, -side]);
   }
   const normal = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
   return {
-    group, see, w, h, yaw, pos: new Vector3(...pos), normal,
-    setOpen(k) {           // 0 shut, 1 wide open (the leaves swing away from you, into the doorway)
-      for (const [hinge, s] of hinges) hinge.rotation.y = s * k * 1.4;   // not quite flat, so they stay in sight
+    group, see, w, h, yaw, pos: new Vector3(...pos), normal, swing: 1,
+    setOpen(k) {           // 0 shut, 1 open (not quite flat, so the door stays in sight as you go through)
+      for (const [pivot, s] of hinges) pivot.rotation.y = s * this.swing * k * 1.4;
       see.material.uniforms.uOn.value = 0;
     },
     // a point in this doorway's own terms: x across, z out into the place (negative: through the door)

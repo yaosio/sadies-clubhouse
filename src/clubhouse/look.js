@@ -126,20 +126,46 @@ function speckle(g, c, x, y, w, h, n, seed = 1) {
   const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < n; i++) rect(g, c, x + Math.floor(r() * w), y + Math.floor(r() * h), 1, 1);
 }
-// words in hard pixels: drawn with the font, then every well-covered pixel made solid
-export function words(g, text, x, y, px, color, o = {}) {
-  const c = document.createElement('canvas'); c.width = g.canvas.width; c.height = g.canvas.height;
-  const t = c.getContext('2d');
-  t.font = `${px}px ${o.font || 'Silkscreen, "Courier New", monospace'}`;
-  t.textAlign = o.align || 'left'; t.textBaseline = 'top'; t.fillStyle = '#000';
-  t.fillText(text, x, y);
-  const d = t.getImageData(0, 0, c.width, c.height), a = d.data;
-  const [r, gg, b] = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16));
-  for (let i = 0; i < a.length; i += 4) { const on = a[i + 3] > (o.cut ?? 110); a[i] = r; a[i + 1] = gg; a[i + 2] = b; a[i + 3] = on ? 255 : 0; }
-  t.putImageData(d, 0, 0);
+// words in the kit's tiny 3x5 pixel font (the same one as the mock-ups), s pixels per dot: drawn
+// straight into the picture, so they never wait for a web font to load
+const FONT = {
+ "A": "010101111101101", "B": "110101110101110", "C": "011100100100011", "D": "110101101101110",
+ "E": "111100110100111", "F": "111100110100100", "G": "011100101101011", "H": "101101111101101",
+ "I": "111010010010111", "J": "001001001101010", "K": "101101110101101", "L": "100100100100111",
+ "M": "101111111101101", "N": "110101101101101", "O": "010101101101010", "P": "110101110100100",
+ "Q": "010101101110011", "R": "110101110101101", "S": "011100010001110", "T": "111010010010010",
+ "U": "101101101101111", "V": "101101101101010", "W": "101101111111101", "X": "101101010101101",
+ "Y": "101101010010010", "Z": "111001010100111", "0": "111101101101111", "1": "010110010010111",
+ "2": "110001010100111", "3": "110001010001110", "4": "101101111001001", "5": "111100110001110",
+ "6": "011100111101111", "7": "111001010010010", "8": "111101111101111", "9": "111101111001110",
+ ".": "000000000000010", "!": "010010010000010", "'": "010010000000000", "(": "001010010010001",
+ ")": "100010010010100", "-": "000000111000000", "$": "011110010011110", ":": "000010000010000",
+ "?": "110001010000010", "/": "001001010100100", " ": "000000000000000", "&": "010101010101011", "*": "000101010101000",
+};
+export const wordsWidth = (text, s = 1) => text.length * 4 * s - s;
+export function words(g, text, x, y, s, color, o = {}) {
+  if (o.align === 'center') x = Math.round(x - wordsWidth(text, s) / 2);
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
-  if (o.shadow) { const k = document.createElement('canvas'); k.width = c.width; k.height = c.height; const q = k.getContext('2d'); q.drawImage(c, 0, 0); q.globalCompositeOperation = 'source-in'; q.fillStyle = o.shadow; q.fillRect(0, 0, k.width, k.height); g.drawImage(k, 1, 1); }
-  g.drawImage(c, 0, 0); g.restore();
+  for (const pass of o.shadow ? [o.shadow, color] : [color]) {
+    const d = pass === color ? 0 : s;
+    g.fillStyle = pass;
+    let cx = x;
+    for (const ch of text.toUpperCase()) {
+      const bits = FONT[ch] || FONT['?'];
+      for (let j = 0; j < 5; j++) for (let i = 0; i < 3; i++) if (bits[j * 3 + i] === '1') g.fillRect(cx + i * s + d, y + j * s + d, s, s);
+      cx += 4 * s;
+    }
+  }
+  g.restore();
+}
+export const picture = im => tex(im.width, im.height, g => g.drawImage(im, 0, 0));   // a loaded picture, as a texture
+// the back of an activity's door: its picture with the sign painted over in the door's own colour
+export function doorBack(im) {
+  return tex(im.width, im.height, g => {
+    g.drawImage(im, 0, 0);
+    const [r, gg, b] = g.getImageData(Math.round(im.width / 2), Math.round(im.height * 0.44), 1, 1).data;
+    g.fillStyle = `rgb(${r},${gg},${b})`; g.fillRect(4, 4, im.width - 8, Math.round(im.height * 0.4));
+  });
 }
 export const loadImage = src => new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
 
@@ -220,7 +246,7 @@ export function drawTextures(sadie, sadieNap) {
   T.leafL = leaf(false); T.leafR = leaf(true);
   T.mat = tex(32, 16, g => {
     rect(g, C.tan2, 0, 0, 32, 16); rect(g, C.tan, 1, 1, 30, 14); dith(g, C.tan, C.tan2, 2, 2, 28, 12, 0.25);
-    words(g, 'FRIENDS', 16, 2, 8, C.tan3, { align: 'center' }); words(g, 'ONLY', 16, 8, 8, C.tan3, { align: 'center' });
+    words(g, 'FRIENDS', 16, 2, 1, C.tan3, { align: 'center' }); words(g, 'ONLY', 16, 9, 1, C.tan3, { align: 'center' });
   });
   T.leaf = tex(16, 16, g => { rect(g, C.green2, 0, 0, 16, 16); speckle(g, C.green, 0, 0, 16, 16, 60, 7); speckle(g, C.green3, 0, 0, 16, 16, 40, 11); });
   T.bark = tex(8, 16, g => { rect(g, C.tan3, 0, 0, 8, 16); for (let x = 1; x < 8; x += 3) rect(g, '#5a3018', x, 0, 1, 16); });
@@ -242,11 +268,11 @@ export function drawTextures(sadie, sadieNap) {
   const sign = (w, h, a, b) => tex(w, h, g => {
     rect(g, C.black, 0, 0, w, h); rect(g, C.gold, 1, 1, w - 2, h - 2);
     for (let x = 0; x < w - 2; x++) for (const y of [1, 2, 3, h - 4, h - 3, h - 2]) rect(g, ((x + y) >> 2) % 2 ? C.black : C.gold, x + 1, y, 1, 1);
-    words(g, a, w / 2, h / 2 - 10, 8, C.black, { align: 'center' });
-    words(g, b, w / 2, h / 2, 8, C.red, { align: 'center' });
+    words(g, a, w / 2, h / 2 - 11, 2, C.black, { align: 'center' });
+    words(g, b, w / 2, h / 2 + 1, 2, C.red, { align: 'center' });
   });
   T.soonSign = sign(96, 32, 'MORE ROOMS', 'COMING SOON!!');
-  T.wingSign = sign(64, 28, 'NEW WING', 'SOON!!');
+  T.wingSign = sign(72, 32, 'NEW WING', 'SOON!!');
   T.cat = tex(16, 16, g => {   // the weathervane: a sitting cat in black iron
     const k = C.ink;
     rect(g, k, 5, 7, 7, 8); rect(g, k, 6, 3, 5, 5); rect(g, k, 6, 1, 1, 2); rect(g, k, 10, 1, 1, 2); rect(g, k, 4, 12, 9, 3);
@@ -278,7 +304,7 @@ export function drawTextures(sadie, sadieNap) {
     rect(g, '#8a2ab0', 0, 0, 16, 16); dith(g, '#8a2ab0', '#6a1a90', 0, 0, 16, 16, 0.35);
     for (const x of [2, 4, 6, 10, 12]) for (let y = 3; y < 16; y++) if ((x * 3 + y) % 4) rect(g, y % 3 ? '#fff4e4' : '#e8c8ff', x, y, 1, 1);
   });
-  T.cardboard = tex(16, 16, g => { rect(g, '#d8a060', 0, 0, 16, 16); for (let x = 0; x < 16; x += 2) rect(g, '#c89050', x, 0, 1, 16); rect(g, '#b87838', 0, 0, 16, 1); words(g, 'FRAGILE', 8, 6, 6, C.red, { align: 'center', cut: 60 }); });
+  T.cardboard = tex(16, 16, g => { rect(g, '#d8a060', 0, 0, 16, 16); for (let x = 0; x < 16; x += 2) rect(g, '#c89050', x, 0, 1, 16); rect(g, '#b87838', 0, 0, 16, 1); rect(g, C.red, 3, 6, 10, 1); rect(g, C.red, 3, 9, 10, 1); });
   T.sun = tex(16, 16, g => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (Math.hypot(x - 7.5, y - 7.5) < 7.5) rect(g, C.yellow, x, y, 1, 1); });
   T.feather = tex(8, 24, g => { for (let y = 0; y < 22; y++) { const w = Math.round(3.5 * Math.sin(y / 22 * Math.PI)); rect(g, y % 3 ? C.pink : '#ffd0ea', 4 - w, y, w * 2, 1); } rect(g, C.white, 4, 0, 1, 24); });
   T.cloud = tex(32, 12, g => {
@@ -291,7 +317,7 @@ export function drawTextures(sadie, sadieNap) {
     g.scale(2, 2);
     rect(g, C.gold2, 0, 0, 32, 52); rect(g, C.ink, 2, 2, 28, 50);
     for (const [y, a] of [[10, 1], [24, -1], [38, 1]]) for (let x = 0; x < 30; x++) rect(g, x % 9 ? C.tan : C.tan3, x + 1, y + Math.round(x * 0.25 * a) - (a > 0 ? 0 : -7), 1, 5);
-    rect(g, C.black, 5, 26, 22, 11); rect(g, C.gold, 6, 27, 20, 9); words(g, 'SOON!', 32, 56, 8, C.red, { align: 'center' });
+    rect(g, C.black, 5, 26, 22, 11); rect(g, C.gold, 6, 27, 20, 9); words(g, 'SOON!', 32, 58, 2, C.red, { align: 'center' });
   });
   // Sadie's portraits: her sprite, in oils, in a gold frame
   function portrait(bg, bg2, label, ruff) {
@@ -300,8 +326,8 @@ export function drawTextures(sadie, sadieNap) {
       bands(g, [bg, bg2], 5, 5, 38, 38);
       if (ruff) for (let x = 0; x < 20; x++) rect(g, x % 2 ? C.white : C.lav, 14 + x, 37, 1, 3);
       if (sadie) g.drawImage(sadie, 5, 8, 38, 31);
-      rect(g, C.gold3, 12, 45, 24, 6); rect(g, C.gold, 13, 46, 22, 4);
-      words(g, label, 24, 45, 5, C.ink, { align: 'center', cut: 60 });
+      rect(g, C.gold3, 8, 44, 32, 8); rect(g, C.gold, 9, 45, 30, 6);
+      words(g, label, 24, 45, 1, C.ink, { align: 'center' });
     });
   }
   T.duchess = portrait('#1a4a3a', '#0a2a20', 'DUCHESS', true);
@@ -327,7 +353,7 @@ export function doorTexture(card) {
     // the sign: a brass plate; long names spill off it (it's that kind of house)
     rect(g, C.ink, 8, 20, 48, 26); rect(g, C.gold, 10, 22, 44, 22);
     const parts = name.split(' '), half = Math.ceil(parts.length / 2);
-    words(g, parts.slice(0, half).join(' '), 32, 24, 8, C.ink, { align: 'center' });
-    words(g, parts.slice(half).join(' '), 32, 34, 8, C.red, { align: 'center' });
+    words(g, parts.slice(0, half).join(' '), 32, 25, 1, C.ink, { align: 'center' });
+    words(g, parts.slice(half).join(' '), 32, 34, 1, C.red, { align: 'center' });
   });
 }

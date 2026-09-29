@@ -3,12 +3,12 @@
 // programs, so you play one at its computer. (Each room is its own place: it can be any size, and
 // one day any shape.)
 import { Mesh, Scene, Color, Vector3, PlaneGeometry, DoubleSide } from 'three';
-import { psx, keep, tex } from './look.js';
+import { psx, keep, picture, doorBack } from './look.js';
 import { kit, wallGeometry, doorway } from './build.js';
 
 const W = 3.5, D = 4, H = 3.2;   // half its width and depth, and its height
 
-export function buildRoom(T, card, boxImage) {
+export function buildRoom(T, card, boxImage, doorImage) {
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { add, box, plane, cyl } = kit(scene);
   const col = card.box?.side ?? 0x8a78ff;
@@ -21,8 +21,9 @@ export function buildRoom(T, card, boxImage) {
   plane(2 * W, 2 * D, psx(T.wood, { rx: 2 * W / 1.2, ry: 2 * D / 1.2 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 8).renderOrder = -2;
   plane(2 * W, 2 * D, psx(null, { tint: 0xfff3ea }), [0, H, 0], [Math.PI / 2, 0, 0], 6);
   plane(3.2, 2.4, psx(T.carpet, { rx: 4, ry: 3, onFloor: true }), [0, 0, 0.4], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
-  const door = doorway(scene, { pos: [0, 0, -D], yaw: 0, w: 1.5, h: 2.45, leaves: [T.leafL, T.leafR], trim: col });
-  const art = boxImage ? tex(boxImage.width, boxImage.height, g => g.drawImage(boxImage, 0, 0)) : T.dark;
+  // the same door as on the landing, seen from this side (so it's hinged on the other side)
+  const door = doorway(scene, { pos: [0, 0, -D], yaw: 0, w: 1.5, h: 2.45, leaves: [doorImage ? { front: doorBack(doorImage), back: picture(doorImage) } : T.leafL], hinge: 1 });
+  const art = boxImage ? picture(boxImage) : T.dark;
   // the poster on the side wall, and a lamp
   plane(1.3, 1.43, psx(art, { decal: true, unlit: 0.2 }), [-W + 0.05, 1.7, 0.6], [0, Math.PI / 2, 0], 2);
   cyl(0.25, 0.35, 0.3, 8, psx(null, { tint: 0xfff08a, unlit: 0.8 }), [0, H - 0.15, 0.5]);

@@ -28,7 +28,9 @@ const SPOTS = [
   ['5-hall-back-door', m => m.faceDoor('hall', 'front', 2.2)],
   ['6-stairs', m => m.put('hall', 'stairs')],
   ['7-landing', m => m.put('hall', 'landing')],
+  ['8-activity-doors-shut', m => { m.faceDoor('hall', 'dropper-world', 4.2); m.turnTo(m.where().yaw - 0.35); }],
   ['8-activity-door', m => m.faceDoor('hall', 'dropper-world', 2.0)],
+  ['8-activity-door-inside', m => m.faceDoor('hall', 'dropper-world', 0.3)],
   ['9-room', m => m.put('room:dropper-world', 'computer')],
   ['10-room-door', m => m.faceDoor('room:dropper-world', 'door', 2.0)],
 ];

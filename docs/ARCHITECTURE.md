@@ -24,7 +24,9 @@ activity is checked again, so something moves into it only once a second activit
 - **An activity** is a folder in `src/activities/` with a `card.js`: its `id` (the folder name),
   `name`, `page` (its HTML, from `page.html`), `styles` (its CSS, from `styles.css`), `start()`,
   which loads the rest of it, and for the mansion `box` (`front`, a picture: on its computer's
-  screen and its poster; `side`, a colour: its door's frame and its room's walls), and `keeps` if it
+  screen and its poster; `side`, a colour: its room's walls), `door` (a picture: its door on the
+  landing, from `door.js`, drawn by `art/play-place/pictures.py`; the back of the door is the same
+  with the sign painted over; without one it gets a plain door with its name), and `keeps` if it
   saves anything (the start of its storage keys, for the test version's start-over buttons). `top`
   and `blurb` were for the old shelf menu and aren't used now. None of an activity's code runs until `start()` is called (the build
   keeps it waiting), so its modules can look up its page's elements as they load.
@@ -51,7 +53,8 @@ activity is checked again, so something moves into it only once a second activit
   other side, turned round. So there are no loading screens, a place can be any size (bigger inside
   than out), and changing one place never touches another. Only the place you're in, and through
   one doorway, get drawn. A door opens only when you walk up to it facing it (one at a time), and
-  closes behind you.
+  closes behind you. Both sides of a doorway show the same real door: it swings into the place
+  further in (`swing`), so it's hinged on opposite sides as seen from each side.
   - `mansion.js`: you (walking, the eye following steps smoothly), the controls (WASD/arrows; the
     mouse, locked to the view after a click, or dragging if the browser won't lock it; on a phone a
     thumb stick on the left, dragging on the right; E, or the button on a phone, to use), the
@@ -76,6 +79,11 @@ activity is checked again, so something moves into it only once a second activit
     are drawn straight after their floor (`onFloor`, floor `renderOrder` -2, them -1); things on
     walls stand at least 4 cm off them. The camera's near plane is 0.1 m (phones' depth is coarse).
     Door leaves open to 80 degrees, not flat, so they stay in sight as you go through.
+  - The view on a phone: at most 68 degrees tall, looking at most 43 degrees up or down (more made
+    the walls lean like the view had tipped over), dragging up and down slower than sideways, and
+    your gaze drifting back to level while you walk with the thumb stick.
+  - Every word painted in the mansion (signs, labels) uses the kit's 3x5 pixel font, drawn
+    straight in (`words`), so none of them waits for a web font.
 - **Saves** belong to each activity: its keys start with its own name (Dropper World's is
   `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
   uses `sadies-play-place.<id>.` for its keys, and lists what its keys start with in its card's

@@ -6,7 +6,7 @@
 // It doesn't match the outside's size, on purpose: the front door just leads here.
 import { Mesh, Group, Scene, Color, Vector3, BoxGeometry, PlaneGeometry, CylinderGeometry, SphereGeometry, TorusGeometry,
   CircleGeometry, RingGeometry, TubeGeometry, CatmullRomCurve3, DoubleSide } from 'three';
-import { psx, keep, doorTexture } from './look.js';
+import { psx, keep, doorTexture, picture, doorBack } from './look.js';
 import { kit, wallGeometry, doorway } from './build.js';
 
 export const R = 8, N = 16, L1 = 4.6, L2 = 9.2, TOP = 13.6;
@@ -18,7 +18,7 @@ const IN = R - 2.3;                                                          // 
 // which walls on the first landing get doors, in order: starting where the stairs come out
 const SLOTS = [10, 11, 9, 12, 13, 7];
 
-export function buildHall(T, cards) {
+export function buildHall(T, cards, doorPictures = []) {
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { add, box, plane, cyl, ball, cone } = kit(scene);
   const at = (r, th) => [Math.sin(th) * r, Math.cos(th) * r];
@@ -46,8 +46,8 @@ export function buildHall(T, cards) {
     for (const [c, w] of pieces) { onWall(k, w, 1.1, psx(T.wainscot, { rx: w / 0.9, ry: 1, decal: true }), 0.55, c, 0.04); onWall(k, w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), 1.12, c, 0.08); }
     if (card) {
       const th = faceAngle(k), [x, z] = at(A, th);
-      const tex = doorTexture(card);
-      const d = doorway(scene, { pos: [x, L1, z], yaw: th + Math.PI, w: 1.5, h: 2.45, leaves: [tex, tex], trim: card.box?.side ?? 0xffd23a });
+      const pic = doorPictures[slot], tex = pic ? picture(pic) : doorTexture(card);
+      const d = doorway(scene, { pos: [x, L1, z], yaw: th + Math.PI, w: 1.5, h: 2.45, leaves: [{ front: tex, back: pic ? doorBack(pic) : tex }], hinge: -1 });
       doors[card.id] = d; activityDoors.push(d);
       onWall(k, 0.36, 0.36, psx(T.catdoor, { decal: true }), L1 + 0.18, 1.05);   // a cat door by every door
     } else if (slot >= 0) {
@@ -55,7 +55,7 @@ export function buildHall(T, cards) {
     }
   }
   const [fx, fz] = at(A, faceAngle(FRONT));
-  doors.front = doorway(scene, { pos: [fx, 0, fz], yaw: faceAngle(FRONT) + Math.PI, w: 2.0, h: 3.0, leaves: [T.leafL, T.leafR] });
+  doors.front = doorway(scene, { pos: [fx, 0, fz], yaw: faceAngle(FRONT) + Math.PI, w: 2.0, h: 3.0, leaves: [T.leafR, T.leafL] });   // the same two leaves as outside, seen from the back
   onWall(FRONT, 2.0, 0.45, psx(T.fanlight, { decal: true, unlit: 0.3 }), 3.25);
   onWall(FRONT, 0.36, 0.36, psx(T.catdoor, { decal: true }), 0.18, 1.35);
 
