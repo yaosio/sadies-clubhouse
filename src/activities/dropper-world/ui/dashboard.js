@@ -34,7 +34,6 @@ const SEGS = 10, SEG_COLORS = ['#39e85a', '#39e85a', '#39e85a', '#8fe83a', '#c9e
 const SKY = '#57c8ff';
 
 // ---------- who's who ----------
-const STAMP_OF = new Map([[sadie, 'sadie'], [chooter, 'chooter'], [mole, 'mole']]);
 const WHO_OF = { sadie, chooter, mole };
 const NAME = { Mole: 'THE MOLE' };
 const SADIE_MOODS = { scared: 'SPOOKED', excited: 'THRILLED', haul: 'DETERMINED', mad: 'GRUMPY', happy: 'HAPPY', lookup: 'HOPEFUL', run: 'IN A HURRY' };

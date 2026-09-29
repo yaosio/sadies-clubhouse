@@ -19,8 +19,9 @@ const wanted = n => only && +only.slice(10) === n;
 if (!only) {
   const me = new URL(import.meta.url).pathname;
   const sections = [...readFileSync(me, 'utf8').matchAll(/^\/\/ (\d+)\. (.*)$/gm)].map(m => ({ n: +m[1], title: m[2] }));
-  // the long ones first, so they don't end up last and alone
-  const LONG = [14, 13, 4, 6, 7, 10, 9];
+  // the long ones first, longest first, so none of them ends up last and alone (about how many
+  // seconds each takes on Claude's cloud machine: 14 50, 7 45, 10 18, 1 13, 13 12, 8 12, 12 9, 5 7)
+  const LONG = [14, 7, 10, 1, 13, 8, 12, 5];
   const queue = [...sections].sort((a, b) => (LONG.includes(b.n) ? LONG.length - LONG.indexOf(b.n) : 0) - (LONG.includes(a.n) ? LONG.length - LONG.indexOf(a.n) : 0));
   const results = new Map(), t0 = Date.now();
   const runOne = s => new Promise(done => {
@@ -210,7 +211,7 @@ if (wanted(6)) {
   let trips = 0, home = 0, buriedMax = 0, maxRise = 0, prevY = sadie.y, outside = 0, coverAfter = null, tripSecs = 0, floor0 = 0, roofGap = 0;
   on('homeRush', () => { trips++; floor0 = barn.piece.minY; });
   on('barnHome', () => { home++; });
-  const dt = 1 / 60, bx0 = barnX();
+  const dt = 1 / 60;
   // the mole buries the barn by itself
   for (let f = 0; f < 150 * 60 && !home; f++) {
     update(dt);
@@ -239,7 +240,7 @@ if (wanted(6)) {
 
 // 7. Chooter: hears the noise and bursts in, meets Sadie, gets the zoomies, fetches a ball, goes home and comes back out
 if (wanted(7)) {
-  const { chooter, meetChooter, PEEK_AT, HEAR_FASTEST } = await import('../../src/activities/dropper-world/core/friends/chooter.js');
+  const { chooter, meetChooter, HEAR_FASTEST } = await import('../../src/activities/dropper-world/core/friends/chooter.js');
   const { toy, throwToy } = await import('../../src/activities/dropper-world/core/toys.js');
   const { drp } = await import('../../src/activities/dropper-world/core/dropper.js');
   const { snapshot, restore } = await import('../../src/activities/dropper-world/core/save.js');

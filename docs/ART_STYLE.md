@@ -1,7 +1,6 @@
 # Art style: the misremembered 90s
 
-**Status: approved, going in step by step.** Step 1 (on the working branch, not in the real game
-yet): chunky pixels over everything, the new sky, sun, clouds, hills and ground, and the
+**Status: approved, going in step by step.** Step 1 (in the game): chunky pixels over everything, the new sky, sun, clouds, hills and ground, and the
 gummy jelly pieces. Next: Sadie, then the mole, Chooter, hay and barn. The interface is done (see the end). The picture to match is
 `art/90s-style/mockup-2.png` (drawn by `art/90s-style/mockup-2.py`). `mockup-1` is the first try,
 kept for reference only.
@@ -17,7 +16,7 @@ with flat sprites for Sadie and the cursor), and `activity-phone.png` (inside an
 activity, the frame shrinks to a strip with ESC BACK, F1 HELP and the activity's own buttons).
 **The clubhouse menu was real** (it's now Sadie's mansion, below), grown from the real-3D test room the owner
 approved: crappy late-90s 3D, low resolution, corners that snap to the pixel
-grid, textures that swim, few colors with dithering, lit per corner; characters stay flat pixel
+grid (textures swam too at first; the owner found it far too distracting, so they don't), few colors with dithering, lit per corner; characters stay flat pixel
 sprites that turn to face you. Its textures and sprites are drawn with the same kit by
 `art/play-place/pictures.py` (run it after changing a drawing). The old test room's page
 (https://claude.ai/artifact/Bh3FjRZvgZxr5padPtgK3J) is left as it was.
@@ -119,7 +118,7 @@ tried way too hard:
   lines on her eyes, nose patch, nose, mouth, whiskers, cap and inside her ears, a little off,
   some gone over twice; no outline round her, the owner took it off), then JPEG-crushed twice.
   It never moves; only her speech bubble changes. Shown at 2x on a wide screen, 1x on a phone.
-- **Its box on the shelf**: a white page, a red dashed box, big letters spilling out of it, a gold
+- **Its box** (on its computer's screen and poster in its room): a white page, a red dashed box, big letters spilling out of it, a gold
   band saying TYPEFITTER (drawn by `art/play-place/pictures.py`).
 
 

@@ -1,5 +1,5 @@
 // The clubhouse: the shell every activity runs in. It knows each activity only by its card
-// (src/activities/<name>/card.js: id, name, page, styles, start, and for the menu its box and blurb),
+// (src/activities/<name>/card.js: id, name, page, styles, start, and for the mansion its box and door),
 // and runs one at a time.
 //
 // The build finds the activities by their folders, so adding one never changes this file. The page

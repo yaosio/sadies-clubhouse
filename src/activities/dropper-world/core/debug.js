@@ -13,7 +13,7 @@ import { tireMole } from './mole.js';
 export const SPEEDS = [1, 2, 4, 8];
 const RAIN_EVERY = 0.08;     // seconds between raining pieces (about 12 a second)
 const PILE_EVERY = 0.6;      // a tall pile needs each piece to mostly settle before the next
-const FAST_PILE = 8;         // speed while building a tall pile
+export const FAST_PILE = 8;  // speed while building a tall pile
 const PILE_PIECES = 110;     // enough for a mound about 16 blocks tall
 // rain: x spots still to drop on; speed: chosen game speed; boost: building a pile at FAST_PILE
 export const debug = { rain: [], rainT: 0, rainEvery: RAIN_EVERY, speed: 1, boost: false, boostT: 0 };

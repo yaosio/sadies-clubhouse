@@ -20,7 +20,7 @@ const SLOTS = [10, 11, 9, 12, 13, 7];
 
 export function buildHall(T, cards, doorPictures = []) {
   const scene = new Scene(); scene.background = new Color(0x0a0628);
-  const { add, box, plane, cyl, ball, cone } = kit(scene);
+  const { add, box, plane, cyl, cone } = kit(scene);
   const at = (r, th) => [Math.sin(th) * r, Math.cos(th) * r];
 
   // ---------- the walls: three storeys of sixteen, some with a hole for a door ----------

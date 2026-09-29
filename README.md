@@ -56,11 +56,12 @@ The owner doesn't code and installs nothing. Claude does all the building.
    (the game plus a fresh copy of the source; `--preview` marks it as the test version), and plays
    it in a headless browser as a phone and a desktop. Everything must pass; look at the
    screenshots in `dist/check/`. An activity whose files didn't change since its checks last
-   passed is skipped. If a change is meant to move a test's expected numbers, explain
+   passed is skipped (and so are the mansion's checks if nothing in the page changed). If a change is meant to move a test's expected numbers, explain
    why in plain words and update `docs/TUNING.md` to match.
 4. Commit with a plain-English message saying what changed and what to look for in-game, and push
    to a working branch. `dist/`, `node_modules/` and `package-lock.json` stay out of git.
-5. Publish that build to the test version's URL above, so the owner can try it.
+5. Build it again (`npm run build -- --preview`, so its label names the new commit) and publish it to
+   the test version's URL above, so the owner can try it.
 6. When the owner says so, open a pull request and merge it into `main`.
 7. Publish: check out `main`, `npm run check` (no `--preview`), then publish `dist/index.html` to
    the game's artifact URL above (Artifact tool, same URL, so the link never changes). Read the live page
@@ -71,7 +72,8 @@ The owner doesn't code and installs nothing. Claude does all the building.
    ever publish from `main`, never a branch, and only from here, so the page always matches GitHub.
 
 If the repo is ever lost, `node tools/unpack.mjs <page.html> <folder>` rebuilds the project from
-the backup inside the published page.
+the backup inside the published page (everything but `art/`: the mock-ups and the scripts that
+draw the pictures, which only live here).
 
 ## Design pillars
 

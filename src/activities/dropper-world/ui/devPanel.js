@@ -11,7 +11,7 @@ import { drp } from '../core/dropper.js';
 import { chooter, PEEK_AT } from '../core/friends/chooter.js';
 import { sadie } from '../core/sadie/brain.js';
 import { mole } from '../core/mole.js';
-import { debug, SPEEDS, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, peekChooterNow, zoomiesNow, goHomeNow, comeOutNow, teaseNow, tireMoleNow } from '../core/debug.js';
+import { debug, SPEEDS, FAST_PILE, gameSpeed, rainPieces, buildPile, stopRain, sadieToTop, fetchBarnNow, meetChooterNow, peekChooterNow, zoomiesNow, goHomeNow, comeOutNow, teaseNow, tireMoleNow } from '../core/debug.js';
 import { camState } from '../render/view.js';
 import { clearTower, startOver } from '../core/save.js';
 
@@ -110,11 +110,11 @@ confirmTap('startOver', 'Start over', startOver);
 // Keep the buttons' on/off states current while the sheet is open.
 function refresh() {
   if (!isSheetOpen()) return;
-  const sp = debug.boost ? Math.max(debug.speed, 8) : debug.speed;
+  const sp = gameSpeed();
   for (const b of speedSeg.children) b.setAttribute('aria-pressed', String(+b.dataset.speed === sp));
   $('stopRain').disabled = !debug.rain.length && !debug.boost;
-  $('rainNote').textContent = debug.rain.length ? `${debug.rain.length} pieces still to come${debug.boost ? ', running at 8×' : ''}.`
-    : debug.boost ? 'Letting the pile settle at 8×…' : '"Here" means around the mole. A tall pile runs at 8× until it settles.';
+  $('rainNote').textContent = debug.rain.length ? `${debug.rain.length} pieces still to come${debug.boost ? `, running at ${FAST_PILE}×` : ''}.`
+    : debug.boost ? `Letting the pile settle at ${FAST_PILE}×…` : `"Here" means around the mole. A tall pile runs at ${FAST_PILE}× until it settles.`;
   $('fetchBarn').disabled = !!sadie.trip;
   $('peekChooter').disabled = chooter.met || chooter.heard >= PEEK_AT;
   $('meetChooter').disabled = chooter.met;

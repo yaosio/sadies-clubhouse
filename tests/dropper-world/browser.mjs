@@ -1,6 +1,7 @@
 // Dropper World in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page, whenever this activity's code, the clubhouse, the
-// toolbox or the build changed since these last passed.
+// (never on its own) with the built page, whenever this activity's code, its tools, the clubhouse's
+// shell, the toolbox or the build changed since these last passed. The phone and the desktop run
+// side by side; the slow-phone measurement runs after, on its own, so nothing else skews it.
 //
 // It opens a new game, checks the 90s frame gives the board most of the screen, taps Sadie and the
 // mole to watch them in the dashboard (their faces drawn), opens the dev sheet, loads
@@ -9,18 +10,29 @@
 // machine. Screenshots of each go in dist/check/dropper-world/ to look at. Any error on the page,
 // or anything that doesn't work, is a failure; the smoothness numbers are only reported.
 import { readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 
 const SAVE_KEY = 'sadies-dropper-world.save';
 
-export default async function ({ browser, page, check, run, hashOf, root, outDir }) {
-  // ---------- a full board to load (remade only when the game's code changes) ----------
+// ---------- a full board to load (remade only when the game's code changes) ----------
+// tools/check.mjs starts this before the headless tests, so the board (about a minute and a half of
+// work) is made alongside them rather than after. Resolves to the save's text, or an Error.
+export function prepare({ root, hashOf }) {
   const boardFile = join(root, 'dist/fullboard-' + hashOf(['src/activities/dropper-world/core', 'src/activities/dropper-world/config.js', 'tools/dropper-world/fullboard.mjs']) + '.json');
-  if (!existsSync(boardFile)) {
-    for (const f of readdirSync(join(root, 'dist'))) if (/^fullboard-.*\.json$/.test(f)) rmSync(join(root, 'dist', f));
-    if (!run('making a full board (about two minutes, only when the game changed)', 'node', ['tools/dropper-world/fullboard.mjs', boardFile])) { check('make a full board', false); return; }
-  }
-  const board = readFileSync(boardFile, 'utf8');
+  if (existsSync(boardFile)) return Promise.resolve(readFileSync(boardFile, 'utf8'));
+  for (const f of readdirSync(join(root, 'dist'))) if (/^fullboard-.*\.json$/.test(f)) rmSync(join(root, 'dist', f));
+  console.log('(making a full board in the background: the game changed since the last one)');
+  return new Promise(done => {
+    const c = spawn(process.execPath, ['tools/dropper-world/fullboard.mjs', boardFile], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    let text = ''; c.stdout.on('data', d => text += d); c.stderr.on('data', d => text += d);
+    c.on('close', code => done(code === 0 ? readFileSync(boardFile, 'utf8') : new Error(text.trim() || 'fullboard.mjs failed')));
+  });
+}
+
+export default async function ({ browser, page, check, root, hashOf, outDir, prepared }) {
+  const board = await (prepared ?? prepare({ root, hashOf }));
+  if (board instanceof Error) { check('make a full board', false, board.message); return; }
   const boardPieces = JSON.parse(board).pieces?.length;
 
   const shot = (p, name) => p.screenshot({ path: join(outDir, name + '.png') });
@@ -50,7 +62,8 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
     return p;
   }
 
-  for (const [device, opts] of DEVICES) {
+  // the phone and the desktop at the same time (each in its own browser window)
+  await Promise.all(DEVICES.map(async ([device, opts]) => {
     const tap = (p, x, y) => opts.hasTouch ? p.touchscreen.tap(x, y) : p.mouse.click(x, y);
 
     // a new game: the mole digs up the first hay and flings it, then drops pieces
@@ -152,7 +165,7 @@ export default async function ({ browser, page, check, run, hashOf, root, outDir
       `${after.pieces} pieces (was ${before.pieces}), Sadie ${moved.toFixed(1)} blocks from where she was`);
     check(`${device}: no errors on the page (full board)`, !p.errors.length, p.errors.slice(0, 3).join(' | '));
     await p.context().close();
-  }
+  }));
 
   // how smooth a full board is on a slow phone (reported, not a pass/fail)
   {

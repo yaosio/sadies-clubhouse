@@ -1,7 +1,6 @@
 // The canvas, the camera, and converting between world and screen positions.
 import { U, W } from '../config.js';
 import { world } from '../core/world.js';
-import { emit } from '../core/events.js';
 import { sadie } from '../core/sadie/brain.js';
 import { drp, heldOffsets, NO_PIECE } from '../core/dropper.js';
 import { rockInfo } from '../core/surface.js';
@@ -57,7 +56,7 @@ export function clampCam() {
 }
 // Looking around (drag, pinch, scroll) stops the camera following Sadie for good: from then on it
 // only moves when the player moves it. (A new game starts following her again.)
-export function setFollow(v) { if (camState.follow !== v) { camState.follow = v; emit('followChanged', v); } }
+export function setFollow(v) { camState.follow = v; }
 
 // Camera follows Sadie (leaning toward her hay) unless the player has taken over. If the mole is
 // nearby but up near the top edge, it looks up a little, as long as Sadie stays well in view.

@@ -7,7 +7,7 @@
 //   node tools/dropper-world/fullboard.mjs <out.json>
 //
 // The file holds exactly what the game keeps in the browser under its save key. Random numbers are
-// seeded, so the same code always makes the same board. Takes about two minutes.
+// seeded, so the same code always makes the same board. Takes about a minute.
 import { writeFileSync } from 'node:fs';
 
 let seed = 7;

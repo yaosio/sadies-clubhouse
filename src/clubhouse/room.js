@@ -2,8 +2,8 @@
 // computer, its box's picture on the screen and a poster of it on the wall. The activities are
 // programs, so you play one at its computer. (Each room is its own place: it can be any size, and
 // one day any shape.)
-import { Mesh, Scene, Color, Vector3, PlaneGeometry, DoubleSide } from 'three';
-import { psx, keep, picture, doorBack } from './look.js';
+import { Mesh, Scene, Color, Vector3 } from 'three';
+import { psx, picture, doorBack } from './look.js';
 import { kit, wallGeometry, doorway } from './build.js';
 
 const W = 3.5, D = 4, H = 3.2;   // half its width and depth, and its height

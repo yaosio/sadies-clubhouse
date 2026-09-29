@@ -13,7 +13,8 @@ export default async function ({ browser, page, check, outDir }) {
     ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
     ['desktop', { viewport: { width: 1280, height: 800 } }],
   ];
-  for (const [device, opts] of DEVICES) {
+  // the phone and the desktop at the same time (each in its own browser window)
+  await Promise.all(DEVICES.map(async ([device, opts]) => {
     const ctx = await browser.newContext(opts);
     // the web fonts can't be fetched from here; answer with nothing rather than log a network error
     await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
@@ -89,5 +90,5 @@ export default async function ({ browser, page, check, outDir }) {
     }
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
-  }
+  }));
 }

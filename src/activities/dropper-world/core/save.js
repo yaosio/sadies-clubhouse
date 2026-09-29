@@ -11,7 +11,6 @@
 import { U, W } from '../config.js';
 import { store } from '../../../shared/storage.js';
 import { world } from './world.js';
-import { emit } from './events.js';
 import { SHAPES } from './physics/pieceTypes.js';
 import { makePiece, aabb } from './physics/body.js';
 import { getTemplate } from './physics/templates.js';
@@ -112,7 +111,6 @@ export function restore(s) {
   }
   if (!chooter.met) { const l = s.listening || {}; Object.assign(chooter, { heard: l.heard || 0, ringing: l.ringing || 0, peekSide: l.side === -1 ? -1 : 1, peek: 0 }); } // saves from before he listened: he starts from quiet
   toy.state = 'none';
-  emit('nextChanged', world.nextType);
 }
 
 // ---------- the browser ----------

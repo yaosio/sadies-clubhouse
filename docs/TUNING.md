@@ -16,7 +16,9 @@ only on the last iteration. Speed cap 0.4 blocks per substep.
 Finding pairs: sleeping pieces go into a grid of 2×2-block cells once per frame, awake pieces into
 a second grid each iteration, and each awake piece only checks the pieces in the cells around it.
 Pairs are handled in the same order as checking everything against everything, so results are
-identical; it only skips pairs that are far apart. (`node tools/dropper-world/physics-load.mjs` prints a
+identical; it only skips pairs that are far apart. (Emptying the grids only touches the cells
+filled since last time: emptying every cell the tower had ever reached, eight times a step, made
+each step about a sixth slower on a full board, and slower still as the tower grew.) (`node tools/dropper-world/physics-load.mjs` prints a
 fingerprint of the board after two minutes: a speed-up like this must leave it unchanged.)
 
 Dev panel defaults (stiffness 0.6, bendiness 0.6, jiggle 0.6, grip 0.6, gravity 1):
@@ -273,7 +275,7 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
 (keeps the dev sheet's physics settings). Both need a second tap within 3 s.
 
 ## What the tests expect (`tests/dropper-world/run.mjs`)
-Each numbered section runs in its own process (several at once, about 3.5 minutes in all), starting
+Each numbered section runs in its own process (several at once, about 50 s in all on Claude's cloud machine), starting
 from a fresh game with its own seeded random numbers, so results repeat exactly and no section can
 change another's numbers. When a change moves a number, update it here and say why in the commit.
 - 150-piece mixed pile: no broken numbers, deepest overlap about 0.6 px, about 140 asleep.
@@ -333,7 +335,7 @@ order. Nothing about how things behave changed apart from the hay.)
   gaps between pieces (or the quiet stretch before its nap) stretch to about 3.8 s, it's napping
   after 8 s and drops nothing while it naps, and 12 s after the game calms down it's back to work.
 - Bedrock: a fresh board has none. Raining 700 pieces over the whole board (the slowest section,
-  about 3.5 minutes: a messy heap makes every step work hard): nothing melts until there are more
+  about 50 s: a messy heap makes every step work hard): nothing melts until there are more
   than 400 (the first melt comes at 403), then about 367 melt into bedrock (2–39 blocks up),
   leaving about 396 pieces (from about 469 at the most, since pieces rain in faster than deep ones
   become fossils). Where the bedrock rises it's always at least 12 blocks under the pile, every
@@ -347,7 +349,7 @@ order. Nothing about how things behave changed apart from the hay.)
 
 - **TEXT LOVE meter** (`love.js`): 10 hearts. Each round secretly picks how many changes it takes,
   4 to 10 (`FEWEST`, `MOST`: the owner asked for at most ten). Each change moves it to about where
-  it should be by then, give or take 2 hearts, and 22% of the time it drops 1 to 3 instead (she
+  it should be by then, give or take 2 hearts, and 22% of the time it drops 2 or 3 below where it was instead (she
   changed her mind), never full before its change; about a fifth of changes go down. Once full it
   stays full until FIT IT!.
 - **The box** (`boxFor`): 74% of the text's width and 80% of its height with no hearts, up to 96%

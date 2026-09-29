@@ -14,7 +14,8 @@ export default async function ({ browser, page, check, outDir }) {
     ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
     ['desktop', { viewport: { width: 1280, height: 800 } }],
   ];
-  for (const [device, opts] of DEVICES) {
+  // the phone and the desktop at the same time (each in its own browser window)
+  await Promise.all(DEVICES.map(async ([device, opts]) => {
     const ctx = await browser.newContext(opts);
     // the web fonts can't be fetched from here; answer with nothing rather than log a network error
     await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
@@ -31,7 +32,7 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(500);
     await shot('1-letter');
     check(`${device}: the mansion opens and draws`, opened, errors[0]);
-    if (!opened) { await ctx.close(); continue; }
+    if (!opened) { await ctx.close(); return; }
     check(`${device}: ...at the gate, with Sadie's letter`, (await M('where')).place === 'outside' && await M('mode') === 'letter' && await p.isVisible('#letter'));
     await p.click('#ok');
     check(`${device}: OK puts the letter away`, await M('mode') === 'play' && !(await p.isVisible('#letter')));
@@ -160,5 +161,5 @@ export default async function ({ browser, page, check, outDir }) {
     }
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
-  }
+  }));
 }
