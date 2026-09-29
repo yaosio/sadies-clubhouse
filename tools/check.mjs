@@ -13,7 +13,8 @@
 //     (src/activities/<activity>/), its tests, the shared toolbox (src/shared/) and package.json;
 //   - its browser checks (tests/<activity>/browser.mjs) depend on those plus its own tools
 //     (tools/<activity>/), the clubhouse's shell (the files directly in src/; not the mansion in
-//     src/clubhouse/, which an activity never needs) and the build and check tools.
+//     src/clubhouse/, which an activity on a computer never needs, unlike a game that lives in its
+//     room, like Brickbuster) and the build and check tools.
 // Once either has passed on exactly those files it isn't run again until one of them changes. This
 // session remembers it in dist/, which makes the check at merge time quick when the branch was
 // checked here. A fresh session has no memory of it, but the live game page does: it's only ever
@@ -70,7 +71,9 @@ function hashOf(paths) {
 const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
 // what an activity's tests depend on, and what its browser checks depend on besides
 const testPaths = a => ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
-const pagePaths = a => [`tools/${a}`, 'tools/build.mjs', 'tools/check.mjs',
+// (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
+const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
+const pagePaths = a => [`tools/${a}`, 'tools/build.mjs', 'tools/check.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);

@@ -4,7 +4,7 @@ A lost 90s shareware activity center. Sadie is the owner's late cat, and this is
 she's decided to share it with all her friends. It's her mansion, in crappy late-90s 3D. You start
 at the front gate (the first time, Sadie's letter invites you in), walk in through the front door,
 up the spiral staircase round a giant scratching post, and through an activity's door into its
-room, where you play it at the computer. Normal game controls: WASD and the mouse, or a thumb stick
+room, where you play it at the computer (or, for a game that lives in its room, right there in it). Normal game controls: WASD and the mouse, or a thumb stick
 on a phone. It's a real, recognizable mansion a cat has clearly taken over.
 
 Sadie is in every activity, but not always in the same way: in one she's a living character with
@@ -18,6 +18,7 @@ The owner doesn't code and installs nothing. Claude does all the building (how: 
 |---|---|---|
 | **Sadie's Dropper World** | A cozy physics toy: a mole in a propeller beanie drops squishy jelly pieces, Sadie climbs the pile for her hay, and friends turn up. | `docs/dropper-world/` |
 | **TypeFitter Deluxe 3.1** | A 1993 text-fitting program where the text can never fit its box, on purpose, and you win anyway. | `docs/typefitter/` |
+| **Brickbuster '96** | Breakout built into the wall of a tall room (no computer): every miss, and every hit on the top, cracks the glass, until it breaks and Sadie's ball of yarn escapes into the house. Being built in steps. | `docs/brickbuster/` |
 
 Each activity's docs start with its `README.md`: what it is, its own design rules (they win over
 any feature idea for it), and its parked ideas. You only need to read the one you're working on.

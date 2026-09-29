@@ -4,6 +4,7 @@
 #   src/activities/dropper-world/box.js       the front of Dropper World's box (on its computer's screen and poster)
 #   src/activities/typefitter/box.js          the front of TypeFitter's box (the same)
 #   src/activities/<name>/door.js             each activity's door on the mansion's landing
+#   src/activities/brickbuster/poster.js      Sadie's angry NO NOISE poster in Brickbuster's room
 # Run after changing a drawing (pip install pillow): python3 art/clubhouse/pictures.py
 import base64, io, json, math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -85,7 +86,51 @@ def typefitter_door():
     box_(9, 9, 22, 15, '#8a5a10'); box_(10, 10, 20, 13, '#ffd23a'); box_(10, 10, 20, 1, '#fff6b0')
     text(1, 11, 'TYPEFITTER', '#1c1238')
     text(1, 17, 'DELUXE 3.1', '#e83a3a')
+def brickbuster_door():
+    door_base('#3a2a8e', '#1a0f40', '#6a58d8')
+    # an arcade marquee for a sign, a wall of bricks, and a ball of yarn that got loose
+    box_(4, 5, 32, 17, INK); box_(5, 6, 30, 15, '#12082e')
+    text(20 - text_w('BRICK') // 2, 7, 'BRICK', '#ffe23a', '#ff3a78')
+    text(20 - text_w('BUSTER') // 2, 14, 'BUSTER', '#ff8ec8', '#7a52f4')
+    for row, c in enumerate(('#ff3a3a', '#ffa41e', '#58d04a')):
+        for col in range(4):
+            x0 = 7 + col * 7
+            box_(x0, 24 + row * 2, 6, 1, c)
+    for y in range(-3, 4):
+        for x in range(-3, 4):
+            if x * x + y * y <= 10: put(29 + x, 56 + y, '#ff5ab4' if (x + y) % 3 else '#a02a70')
+    for x in range(12, 27): put(x, 59 + (x % 3 == 0), '#ff5ab4')   # its loose end
+    text(4, 57, "'96", '#ffe23a', INK)
+def poster():
+    # QUIET!! : a speaker, crossed out in red, and Sadie underneath, cross about it
+    for y in range(84):
+        for x in range(64): put(x, y, ramp(x, y, [(0, '#fff08a'), (0.55, '#ffc81e'), (1, '#ff7a2a')], y / 84))
+    for x in range(64): put(x, 0, INK); put(x, 83, INK)
+    for y in range(84): put(0, y, INK); put(63, y, INK)
+    text(32 - text_w('QUIET!!', 2) // 2, 4, 'QUIET!!', '#e83a3a', INK, 2)
+    cx, cy = 32, 30
+    box_(cx - 9, cy - 4, 5, 9, '#4a4462'); box_(cx - 8, cy - 3, 3, 7, '#8f8a9b')        # the speaker
+    for i in range(6):
+        for y in range(cy - 4 - i, cy + 5 + i): put(cx - 4 + i, y, '#4a4462' if i == 5 or y in (cy - 4 - i, cy + 4 + i) else '#b4aec4')
+    for r in (4, 7):                                                                  # its noise
+        for a in range(-5, 6):
+            t = a / 12
+            put(cx + 3 + round(r * math.cos(t * 2)), cy + round(r * math.sin(t * 2)), '#1c1238')
+    for y in range(-13, 14):                                                          # crossed out
+        for x in range(-13, 14):
+            d = math.hypot(x, y)
+            if 10.5 < d < 13.5 or (abs(x - y) < 2.2 and d < 11): put(cx + x, cy + y, '#e83a3a')
+    sad = build_sadie(30, 81)
+    for (bx, dx) in ((37, 1), (48, -1)):                                              # cross eyebrows
+        for i in range(6):
+            for j in (0, 1): sad[(bx + dx * i, 53 + i // 2 + j)] = (4, INK)
+    outline(sad, INK, lambda x, y: 0 < x < 63 and 0 < y < 83)
+    whiskers(30, 81, 1, lambda x, y: 0 < x < 63 and 0 < y < 83)
+    for (x, y) in ((50, 44), (52, 42), (54, 44)):                                     # fuming
+        put(x, y, INK); put(x + 1, y - 1, INK)
 DW_DOOR = png(dropper_door, 40, 64)
+BB_DOOR = png(brickbuster_door, 40, 64)
+POSTER = png(poster, 64, 84)
 TF_DOOR = png(typefitter_door, 40, 64)
 
 def write(path, what, body):
@@ -101,5 +146,9 @@ write('src/activities/dropper-world/door.js', "Dropper World's door on the mansi
       f'export default {json.dumps(DW_DOOR)};')
 write('src/activities/typefitter/door.js', "TypeFitter's door on the mansion's landing, as a PNG.",
       f'export default {json.dumps(TF_DOOR)};')
+write('src/activities/brickbuster/door.js', "Brickbuster '96's door on the mansion's landing, as a PNG.",
+      f'export default {json.dumps(BB_DOOR)};')
+write('src/activities/brickbuster/poster.js', "Sadie's QUIET!! poster in Brickbuster's room: a speaker crossed out, and her, cross about it. A PNG.",
+      f'export default {json.dumps(POSTER)};')
 write('src/activities/typefitter/box.js', "The front of TypeFitter's box (on its computer's screen and poster in the mansion), as a PNG.",
       f'export default {json.dumps(TF_BOX)};')

@@ -16,6 +16,8 @@
   white-space:nowrap;pointer-events:none;transition:opacity .8s}
 #mansion #useHint{left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1c1238d8;border:2px solid var(--gold);
   padding:6px 12px;white-space:nowrap;pointer-events:none}
+#mansion #arcadeHint{left:50%;top:calc(12px + env(safe-area-inset-top));transform:translateX(-50%);background:#1c1238c0;padding:5px 10px;
+  white-space:nowrap;pointer-events:none}
 #mansion #stick{left:calc(26px + env(safe-area-inset-left));bottom:calc(34px + env(safe-area-inset-bottom));width:104px;height:104px;border-radius:50%;
   border:2px solid #ffffff70;background:#ffffff14;pointer-events:none}
 #mansion #stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#ffffff80}

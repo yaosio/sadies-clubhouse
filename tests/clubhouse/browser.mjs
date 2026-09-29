@@ -107,8 +107,9 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the stairs go up to the first landing`, top.y > 4.5, `at ${top.y.toFixed(2)} m`);
 
     // through Dropper World's door into its room
-    await M('faceDoor', 'hall', 'dropper-world', 2.2);
-    await walk(1500);
+    // (from 1.3 m out: further than that is off the landing, except in front of the first door)
+    await M('faceDoor', 'hall', 'dropper-world', 1.3);
+    await walk(1200);
     await shot('5-room');
     check(`${device}: Dropper World's door on the landing leads to its room`, (await M('where')).place === 'room:dropper-world');
 

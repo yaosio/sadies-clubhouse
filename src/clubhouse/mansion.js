@@ -14,13 +14,20 @@
 //
 // Starting an activity takes the whole mansion out of the page before the activity goes in. When
 // you come back (the page reloads), you're standing at that activity's computer.
+//
+// Some games live in their room instead of on a computer (Brickbuster '96): their card has a `room`
+// that builds the whole room from the kit handed to it here, and something in it you can play (a
+// use with `play`). Using it eases your view back until the whole game fits the screen, then the
+// controls go to the game (steering with the keys, nudging with the mouse or a finger) until you
+// step back.
 import {
   WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace,
 } from 'three';
-import { res, light, drawTextures, disposeLook, loadImage } from './look.js';
+import { res, light, drawTextures, disposeLook, loadImage, psx, keep, tex, words, C, picture, doorBack } from './look.js';
 import { buildOutside } from './outside.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
+import { kit, wallGeometry, doorway } from './build.js';
 import { store } from '../shared/storage.js';
 import P from './pictures.js';
 import page from './mansion.html';
@@ -49,7 +56,12 @@ export async function open(cards, enter) {
     Promise.all(cards.map(c => load(c.box?.front))), Promise.all(cards.map(c => load(c.door)))]);
   const T = drawTextures(awake, asleep);
   const outside = buildOutside(T), hall = buildHall(T, cards, doorPics);
-  const rooms = cards.map((c, i) => buildRoom(T, c, boxes[i], doorPics[i]));
+  // a game that lives in its room builds the room itself, from the mansion's building kit
+  const rooms = await Promise.all(cards.map(async (c, i) => {
+    if (!c.room) return buildRoom(T, c, boxes[i], doorPics[i]);
+    const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
+    return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf });
+  }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
   // each doorway seen from its own side: where it is, and where it leads
@@ -200,14 +212,21 @@ export async function open(cards, enter) {
   }
 
   // ---------- controls ----------
-  let mode = 'play';           // 'letter', 'play', 'menu' or 'going' (into an activity)
+  let mode = 'play';           // 'letter', 'play', 'menu', 'going' (into an activity), 'arcade' (playing a game in its room) or 'gliding' (stepping up to one or back)
   const held = new Set();
   const stick = { id: null, x0: 0, y0: 0, x: 0, y: 0 }, drag = { id: null, x: 0, y: 0 };
   let locked = false, moved = false;
   function turn(dx, dy) { me.yaw -= dx; me.pitch = Math.max(-0.75, Math.min(0.75, me.pitch - dy)); }
+  // held keys that steer a game you're playing in its room: -1 left, 1 right
+  const steering = () => (held.has('r') || held.has('tr') ? 1 : 0) - (held.has('l') || held.has('tl') ? 1 : 0);
   const KEYS = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', KeyD: 'r', ArrowLeft: 'tl', ArrowRight: 'tr' };
   on(window, 'keydown', e => {
-    if (e.code === 'Escape' || e.key === 'Escape') { e.preventDefault(); if (mode === 'menu') resume(); else if (mode === 'play') pause(); return; }
+    if (e.code === 'Escape' || e.key === 'Escape') { e.preventDefault(); if (mode === 'menu') resume(); else if (mode === 'play') pause(); else if (mode === 'arcade') stepBack(); return; }
+    if (mode === 'arcade') {
+      const k = KEYS[e.code];
+      if (k === 'f' || k === 'b') { e.preventDefault(); stepBack(); } else if (k) { e.preventDefault(); held.add(k); }
+      return;
+    }
     if (mode === 'letter' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); closeLetter(); return; }
     if (mode !== 'play') return;
     const k = KEYS[e.code];
@@ -225,9 +244,14 @@ export async function open(cards, enter) {
   on(document, 'pointerlockchange', () => {
     const was = locked; locked = document.pointerLockElement === canvas;
     if (was && !locked && mode === 'play') pause();
+    if (was && !locked && mode === 'arcade') stepBack();   // Esc, while the mouse was locked
   });
-  on(window, 'mousemove', e => { if (locked && mode === 'play') turn(e.movementX * 0.0024, e.movementY * 0.0024); });
+  on(window, 'mousemove', e => {
+    if (locked && mode === 'play') turn(e.movementX * 0.0024, e.movementY * 0.0024);
+    if (locked && mode === 'arcade') arcade.u.play.nudge(e.movementX * arcade.mpp);
+  });
   on(canvas, 'pointerdown', e => {
+    if (mode === 'arcade' && drag.id === null) { Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY }); try { canvas.setPointerCapture(e.pointerId); } catch {} return; }
     if (mode !== 'play') return;
     // the thumb stick stays in its corner, and only a touch that starts on it (or just round it) walks;
     // anywhere else, dragging looks around
@@ -243,6 +267,11 @@ export async function open(cards, enter) {
       const dx = e.clientX - stick.x0, dy = e.clientY - stick.y0, m = Math.hypot(dx, dy), k = m > STICK ? STICK / m : 1;
       stick.x = dx * k / STICK; stick.y = dy * k / STICK;
       $('#stick i').style.transform = `translate(${dx * k}px,${dy * k}px)`;
+    } else if (mode === 'arcade') {
+      // playing a game in its room: the mouse (just moving it) or a finger (sliding it) moves along
+      // with the game, as far on the screen as you moved
+      if (e.pointerType === 'mouse' && !locked) arcade.u.play.nudge(e.movementX * arcade.mpp);
+      else if (e.pointerId === drag.id) { arcade.u.play.nudge((e.clientX - drag.x) * arcade.mpp); drag.x = e.clientX; drag.y = e.clientY; }
     } else if (e.pointerId === drag.id && mode === 'play') {
       const k = (e.pointerType === 'touch' ? 4.2 : 3.2) / Math.max(canvas.clientWidth, 400);
       turn((e.clientX - drag.x) * k, (e.clientY - drag.y) * k * (e.pointerType === 'touch' ? 0.6 : 1)); drag.x = e.clientX; drag.y = e.clientY;
@@ -267,15 +296,20 @@ export async function open(cards, enter) {
     return null;
   }
   function showTarget() {
-    const hint = $('#useHint'), btn = $('#use');
+    const hint = $('#useHint'), btn = $('#use'), inGame = mode === 'arcade';
     hint.hidden = !target || touchy || mode !== 'play';
-    btn.hidden = !target || !touchy || mode !== 'play';
-    if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = 'PLAY'; }
+    btn.hidden = !((target && mode === 'play') || inGame) || !touchy;
+    $('#arcadeHint').hidden = !inGame;
+    $('#stick').hidden = !touchy || inGame;
+    if (inGame) $('#keysHint').hidden = true;
+    if (inGame) btn.textContent = 'STEP BACK';
+    else if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = 'PLAY'; }
   }
-  on($('#use'), 'click', () => { if (target && mode === 'play') use(target); });
+  on($('#use'), 'click', () => { if (mode === 'arcade') stepBack(); else if (target && mode === 'play') use(target); });
   // Sit down at the computer: you lean in until the screen fills the view, then the program starts.
   let going = null;
   function use(u) {
+    if (u.play) { stepUp(u); return; }
     mode = 'going'; held.clear(); showTarget();
     if (document.pointerLockElement) document.exitPointerLock();
     const d = tmp.copy(u.pos).sub(cam.position);
@@ -296,6 +330,44 @@ export async function open(cards, enter) {
     }
   }
 
+  // ---------- playing a game that lives in its room ----------
+  // Stepping up: your view eases back (and up) until the whole game fits the screen, looking at it
+  // square on. Stepping back: back to where you stood. The game is told when to start and stop.
+  let arcade = null, glide = null;
+  const TILT = 0.12;   // the view looks up at it a little, from a bit below its middle
+  function arcadeView(u) {
+    const v = u.play.view, tv = Math.tan(cam.fov * Math.PI / 360), th = tv * cam.aspect;
+    const dist = Math.max(v.h / 2 / tv, v.w / 2 / th) * 1.04;
+    const x = v.center.x + v.normal.x * dist * Math.cos(TILT), z = v.center.z + v.normal.z * dist * Math.cos(TILT);
+    // metres along the game per pixel on the screen, so things move exactly as far as your finger
+    if (arcade) arcade.mpp = 2 * dist * th / Math.max(1, canvas.clientWidth);
+    return { x, z, eye: v.center.y - dist * Math.sin(TILT) - EYE, yaw: Math.atan2(v.normal.x, v.normal.z), pitch: TILT };
+  }
+  function stepUp(u) {
+    held.clear();
+    arcade = { u, from: { x: me.x, z: me.z, eye: me.eye, yaw: me.yaw, pitch: me.pitch }, mpp: 0.01 };
+    u.play.start();   // now, while the key or the tap is still going on: browsers allow sound only then
+    glideTo(arcadeView(u), 0.8, () => { mode = 'arcade'; showTarget(); });
+  }
+  function stepBack() {
+    if (!arcade) return;
+    arcade.u.play.stop(); held.clear(); drag.id = null;
+    if (document.pointerLockElement) document.exitPointerLock();
+    const back = arcade.from;
+    glideTo(back, 0.6, () => { arcade = null; mode = 'play'; showTarget(); });
+  }
+  function glideTo(to, secs, then) {
+    mode = 'gliding'; showTarget();
+    glide = { from: { x: me.x, z: me.z, eye: me.eye, yaw: me.yaw, pitch: me.pitch }, to, t: 0, secs, then };
+  }
+  function glideOn(dt) {
+    glide.t += dt / glide.secs;
+    const k = Math.min(1, glide.t), e = k * k * (3 - 2 * k), f = glide.from, to = glide.to;
+    me.x = f.x + (to.x - f.x) * e; me.z = f.z + (to.z - f.z) * e; me.eye = f.eye + (to.eye - f.eye) * e;
+    const dy = to.yaw - f.yaw; me.yaw = f.yaw + Math.atan2(Math.sin(dy), Math.cos(dy)) * e; me.pitch = f.pitch + (to.pitch - f.pitch) * e;
+    if (k >= 1) { const then = glide.then; glide = null; then(); }
+  }
+
   // ---------- Sadie's letter (the first time only), and the pause menu ----------
   function closeLetter() { store.set(INVITED, true); $('#letter').hidden = true; mode = 'play'; }
   on($('#ok'), 'click', closeLetter);
@@ -305,14 +377,20 @@ export async function open(cards, enter) {
     drawLetter($('#letterArt'));
   }
   function pause() {
+    if (mode === 'arcade') arcade.u.play.stop();
     mode = 'menu'; held.clear(); $('#menu').hidden = false; showTarget();
     if (document.pointerLockElement) document.exitPointerLock();
   }
-  function resume() { mode = 'play'; $('#menu').hidden = true; }
-  on($('#pause'), 'click', e => { e.stopPropagation(); if (mode === 'play') pause(); });
+  function resume() {
+    $('#menu').hidden = true;
+    if (arcade) { mode = 'arcade'; arcade.u.play.start(); } else mode = 'play';
+    showTarget();
+  }
+  on($('#pause'), 'click', e => { e.stopPropagation(); if (mode === 'play' || mode === 'arcade') pause(); });
   on($('#resume'), 'click', resume);
   $('#how').innerHTML = touchy ? 'LEFT THUMB: WALK<br>RIGHT THUMB: LOOK AROUND<br>WALK INTO A DOOR TO GO IN'
     : 'W A S D: WALK &middot; ARROWS: WALK AND TURN<br>CLICK, THEN MOUSE: LOOK AROUND<br>E: USE &middot; ESC: PAUSE';
+  $('#arcadeHint').innerHTML = touchy ? 'SLIDE A FINGER TO MOVE' : '<kbd>A D</kbd> OR <kbd>MOUSE</kbd> MOVE &nbsp; <kbd>ESC</kbd> STEP BACK';
   // The test version can start things over: everything at once, or one thing at a time.
   if (testVersion) {
     $('#dev').hidden = false;
@@ -352,7 +430,12 @@ export async function open(cards, enter) {
       // walking with the thumb stick, your gaze drifts back to level (like any phone game)
       if (walked && stick.id !== null && drag.id === null) me.pitch *= Math.max(0, 1 - dt * 1.5);
     } else if (mode === 'going') lean(dt);
-    if (mode !== 'going') me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps
+    else if (mode === 'gliding') glideOn(dt);
+    else if (mode === 'arcade') {
+      Object.assign(me, arcadeView(arcade.u));   // (again every frame: the screen might have turned)
+      arcade.u.play.steer(steering(), dt);
+    }
+    if (mode !== 'going' && !arcade) me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps
     if (!hintGone && ((moved && now - born > 4000) || now - born > 15000)) { hintGone = true; $('#keysHint').style.opacity = 0; }
     // a door opens as you come up to it facing it (only one at a time), and closes behind you
     const opening = doorAhead();
@@ -360,12 +443,12 @@ export async function open(cards, enter) {
       p.open += ((opening?.p === p ? 1 : 0) - p.open) * Math.min(1, dt * 5);
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }
-    for (const w of places) w.update(t);
+    for (const w of places) w.update(t, dt);
     // Sadie on the gatepost blinks now and then
     if (t > blinkAt) { outside.sadie.material.uniforms.map.value = T.nap; blinkOff = t + 0.15; blinkAt = t + 2.5 + Math.random() * 3; }
     if (blinkOff && t > blinkOff) { outside.sadie.material.uniforms.map.value = T.sadie; blinkOff = 0; }
     draw();
-    const was = target; target = mode === 'play' ? findTarget() : null;
+    const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target) showTarget();
     frames++;
     raf = requestAnimationFrame(frame);

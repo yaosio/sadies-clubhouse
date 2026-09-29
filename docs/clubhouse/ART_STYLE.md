@@ -38,9 +38,10 @@ https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so
   staircase round it (a staircase, no elevator); each floor is a ring of doors. It grows up (the top
   is always being built) and out (branches: wings and side towers, for grouping rooms). Adding
   rooms never changes what's already built.
-- **Rooms can be any size**, and bigger inside than the house could hold. Some games will live in
-  the world rather than on their own screen, like a Breakout whose ball escapes into the mansion
-  and breaks the game (then Sadie puts up a sign saying you broke it).
+- **Rooms can be any size**, and bigger inside than the house could hold. Some games live in the
+  world rather than on their own screen, like Brickbuster '96 (being built: `docs/brickbuster/`), a
+  Breakout whose ball of yarn escapes into the mansion and breaks the game (then Sadie puts up an
+  OUT OF ORDER sign).
 - **No loading screens or obvious transitions** unless they fit: a door just opens onto its room.
   It has to stay smooth. The inside doesn't have to match the outside (the owner's call): the front
   door leads to a separate place, so either can change without the other.

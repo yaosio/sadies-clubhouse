@@ -1,0 +1,114 @@
+// Brickbuster '96 in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
+// (never on its own) with the built page. It lives in the mansion, so these run whenever the mansion
+// changes too.
+//
+// It walks through Brickbuster's door on the landing into its room, steps up to the case (the view
+// eases back to fit it), moves the paddle with the keys and the mouse (a finger on the phone), sends
+// the ball into the bottom of the glass to crack it (the crack sound, the paddle wincing), steps
+// back (the game stops where it was), comes back after a reload to find the crack still there, and
+// in the test version starts it over from the pause menu. Screenshots in dist/check/brickbuster/.
+// Any error on the page is a failure.
+import { join } from 'node:path';
+
+export default async function ({ browser, page, check, outDir }) {
+  const DEVICES = [
+    ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
+    ['desktop', { viewport: { width: 1280, height: 800 } }],
+  ];
+  await Promise.all(DEVICES.map(async ([device, opts]) => {
+    const ctx = await browser.newContext(opts);
+    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    const p = await ctx.newPage(), errors = [];
+    p.on('pageerror', e => errors.push(e.message));
+    p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+    const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
+    const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+    const B = () => p.evaluate(() => window.__brickbuster.state());
+    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
+    const walk = async ms => { await p.keyboard.down('KeyW'); await p.waitForTimeout(ms); await p.keyboard.up('KeyW'); await p.waitForTimeout(100); };
+    const use = () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE');
+    const modeIs = m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false);
+    // a finger sliding across the screen (dx pixels), or the mouse moving
+    const slide = dx => p.evaluate(async dx => {
+      const c = document.querySelector('#mansion #view'), y = innerHeight * 0.6, x0 = innerWidth / 2 - dx / 2;
+      const ev = (type, x) => c.dispatchEvent(new PointerEvent(type, { pointerId: 9, pointerType: 'touch', clientX: x, clientY: y, bubbles: true }));
+      ev('pointerdown', x0);
+      for (let i = 1; i <= 10; i++) { ev('pointermove', x0 + dx * i / 10); await new Promise(ok => setTimeout(ok, 20)); }
+      ev('pointerup', x0 + dx);
+    }, dx);
+
+    await p.goto(page);
+    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); await ctx.close(); return; }
+    await p.click('#ok');
+
+    // through its door on the landing, into the room
+    await M('faceDoor', 'hall', 'brickbuster', 1.3);
+    await walk(1200);
+    await shot('1-room');
+    check(`${device}: Brickbuster's door on the landing leads to its room`, (await M('where')).place === 'room:brickbuster');
+
+    // step up to the case
+    await M('put', 'room:brickbuster', 'case');
+    await p.waitForTimeout(300);
+    check(`${device}: looking at the case, it offers to play`, /BRICKBUSTER/.test(await M('target') || ''), await M('target'));
+    const stood = await M('where');
+    await use();
+    const playing = await modeIs('arcade');
+    await p.waitForTimeout(1600);
+    await shot('2-playing');
+    let s = await B();
+    check(`${device}: stepping up starts the game, the view eased back to fit the case`, playing && s.active && (await M('where')).z < stood.z - 0.3);
+    check(`${device}: ...and the yarn ball is sent off by itself`, !s.serving);
+
+    // the paddle: keys and the mouse on a desktop, a finger on a phone
+    if (opts.hasTouch) {
+      const a = (await B()).paddle; await slide(-120); const b = (await B()).paddle; await slide(160); const c = (await B()).paddle;
+      check(`${device}: sliding a finger moves the paddle along with it`, b < a - 0.3 && c > b + 0.4, `${a.toFixed(2)} → ${b.toFixed(2)} → ${c.toFixed(2)}`);
+    } else {
+      const a = (await B()).paddle;
+      await p.keyboard.down('KeyA'); await p.waitForTimeout(250); await p.keyboard.up('KeyA');
+      const b = (await B()).paddle;
+      await p.keyboard.down('KeyD'); await p.waitForTimeout(400); await p.keyboard.up('KeyD');
+      const c = (await B()).paddle;
+      check(`${device}: A and D move the paddle`, b < a - 0.3 && c > b + 0.5, `${a.toFixed(2)} → ${b.toFixed(2)} → ${c.toFixed(2)}`);
+      await p.mouse.move(640, 500); await p.mouse.move(400, 500, { steps: 8 });
+      const d = (await B()).paddle;
+      check(`${device}: ...and so does the mouse`, d < c - 0.3, `${c.toFixed(2)} → ${d.toFixed(2)}`);
+      check(`${device}: ...and walking doesn't (you're playing)`, Math.abs((await M('where')).x - stood.x) < 5);
+    }
+
+    // missing: the ball goes past the paddle and cracks the bottom of the glass
+    const before = (await B()).cracks.bottom;
+    await p.evaluate(() => { const b = window.__brickbuster, s = b.state(); b.throwBall(s.paddle < 2.1 ? 3.6 : 0.6, 1.4, 0, -5); });
+    await p.waitForTimeout(450);
+    s = await B();
+    await shot('3-cracked');
+    check(`${device}: missing cracks the bottom of the glass, with a crack sound`, s.cracks.bottom === before + 1 && /^crack/.test(s.lastSound || ''), `cracks ${s.cracks.bottom}, last sound ${s.lastSound}`);
+    check(`${device}: ...and the paddle winces`, s.face === 'wince', s.face);
+
+    // stepping back: the game stops where it was
+    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape');
+    const back = await modeIs('play');
+    const b1 = (await B()).ball; await p.waitForTimeout(400); const b2 = (await B()).ball;
+    await shot('4-stepped-back');
+    check(`${device}: ${opts.hasTouch ? 'STEP BACK' : 'Escape'} steps back to where you stood`, back && Math.hypot((await M('where')).x - stood.x, (await M('where')).z - stood.z) < 0.05);
+    check(`${device}: ...and the game waits, the ball where it was`, !(await B()).active && b1.x === b2.x && b1.y === b2.y);
+
+    // the cracks are still there after a reload
+    await p.reload(); await up();
+    s = await B();
+    check(`${device}: the cracks are still there next time`, s.cracks.bottom === before + 1, `${s.cracks.bottom} cracks`);
+
+    // the test version can start it over
+    if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
+    await p.waitForTimeout(200);
+    if (await p.evaluate(() => !!document.getElementById('testBadge'))) {
+      await p.click('#resets button:has-text("BRICKBUSTER")');
+      await up();
+      s = await B();
+      check(`${device}: the test version's pause menu can start Brickbuster over`, !s.cracks.bottom && !s.cracks.top);
+    }
+    check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
+    await ctx.close();
+  }));
+}

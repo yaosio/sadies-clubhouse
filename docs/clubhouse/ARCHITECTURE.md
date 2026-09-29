@@ -33,6 +33,16 @@ activity is checked again, so something moves into it only once a second activit
   with the sign painted over; without one it gets a plain door with its name), and `keeps` if it
   saves anything (the start of its storage keys, for the test version's start-over buttons).
   None of an activity's code runs until `start()` is called (the build keeps it waiting), so its modules can look up its page's elements as they load.
+- **A game that lives in its room** (Brickbuster '96) has no page, styles or `start()`: its card
+  has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
+  it opens, handing it the building kit (its textures `T`, the palette `C`, `psx`, `keep`, `tex`,
+  `words`, `picture`, `loadImage`, the shapes `kit`, `wallGeometry`, `doorway`, the card and its
+  door's leaf), so the game still never imports the clubhouse (it imports `three` itself). It hands
+  back a place like any room (`name`, `scene`, `floor`, `doors`, `faces`, `uses`, `light`, `spots`,
+  `update(t, dt)`), where a use with `play` is the game: `view` (the middle, facing way, width and
+  height the screen has to fit), `start()` (called during the press, so sound is allowed),
+  `stop()`, `steer(v, dt)` (held keys, -1 to 1) and `nudge(metres)` (the mouse or a finger, already
+  turned into metres across the game). An address naming it after the `#` just opens the mansion.
 - **The clubhouse** (`src/main.js`) gets every card from the build (`import cards from
   'activities'`: `tools/build.mjs` makes that list from the folders, in folder order, so adding an
   activity never touches the clubhouse). The page opens in the mansion; an address naming an activity
@@ -65,7 +75,10 @@ activity is checked again, so something moves into it only once a second activit
     turns round the upright first, then looks up or down, so the view never tips over; E, or the button on a phone, to use), the
     doorways, using the computer (you lean in until the screen fills the view, then the mansion
     leaves the page and the activity comes in; it notes which one in `sessionStorage`, so coming
-    back puts you at that computer), Sadie's letter (`mansion.invited`: the first time only), the
+    back puts you at that computer), playing a game that lives in its room (mode `arcade`: the view
+    glides back until the game's `view` fits the screen, looking at it square on from a little below;
+    A/D, the arrows, the mouse without clicking, or a finger sliding anywhere go to the game; Esc,
+    W, S or STEP BACK glide you back to where you stood; the pause menu stops the game too), Sadie's letter (`mansion.invited`: the first time only), the
     pause menu (Esc or the pause button; in the test version, found by its label, it also starts
     over everything, the invitation, or an activity's saves), and `window.__mansion` for the checks.
   - `look.js`: the PS1 material (corners snapping to the pixel grid, light per corner, few colours
@@ -123,5 +136,5 @@ any), and it gets a line in the list of activities in the main `README.md`. Noth
 | `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` whenever anything in the page changed: about half a minute, the phone and the desktop side by side): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, and the start-over buttons (only in the test version). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
 | `tools/clubhouse/shots.mjs` | Pictures of the mansion from its main spots (the gate, the front door from both sides, the hall, the stairs, the landing, an activity's door and room), as a desktop and a phone, from the built page: `dist/shots/clubhouse/`. |
 | `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html` (the clubhouse and every activity), with the source embedded (everything but `art/`). Squeezed small (three.js is big); the readable source is what's embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
-| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the mansion's checks (unless exactly this page already passed them), then each activity's browser checks, each playing the phone and the desktop side by side. It prints how long each stage took. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus its tools (`tools/<name>/`), the clubhouse's shell (files directly in `src/`, not the mansion), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. An activity's `browser.mjs` can export `prepare()` for anything its checks need made first (Dropper World's full board): it's started at the very beginning and runs alongside the headless tests. |
+| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the mansion's checks (unless exactly this page already passed them), then each activity's browser checks, each playing the phone and the desktop side by side. It prints how long each stage took. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus its tools (`tools/<name>/`), the clubhouse's shell (files directly in `src/`, not the mansion, unless its card has a `room`: then the mansion too), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. An activity's `browser.mjs` can export `prepare()` for anything its checks need made first (Dropper World's full board): it's started at the very beginning and runs alongside the headless tests. |
 | `tools/unpack.mjs` | Rebuilds the project folder from a built page's embedded source. |
