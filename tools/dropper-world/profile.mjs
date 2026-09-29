@@ -28,7 +28,7 @@ if (!args.includes('--no-build') && spawnSync('node', ['tools/build.mjs'], { cwd
 let boardFile = readdirSync(join(root, 'dist')).find(f => /^fullboard-.*\.json$/.test(f));
 if (!boardFile) {
   boardFile = 'fullboard-profile.json';
-  console.log('making a full board (about two minutes)');
+  console.log('making a full board (about a minute)');
   if (spawnSync('node', ['tools/dropper-world/fullboard.mjs', join(root, 'dist', boardFile)], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
 }
 const board = readFileSync(join(root, 'dist', boardFile), 'utf8');

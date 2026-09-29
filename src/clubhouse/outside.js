@@ -23,7 +23,7 @@ export function buildOutside(T) {
   const stucco = (w, h) => psx(T.stucco, { rx: w / 1.5, ry: h / 1.5 });
   const trim = psx(null, { tint: 0xe8b070 });
   // the main block: two floors, a fish-scale hip roof, and a front wall with a hole for the door
-  const front = add(new Mesh(wallGeometry(18, 8, 2.0, 3.45), psx(T.stucco, { rx: 1 / 1.5, ry: 1 / 1.5 })), [0, 0, 0], [0, Math.PI, 0]);
+  add(new Mesh(wallGeometry(18, 8, 2.0, 3.45), psx(T.stucco, { rx: 1 / 1.5, ry: 1 / 1.5 })), [0, 0, 0], [0, Math.PI, 0]);
   plane(18, 8, stucco(18, 8), [0, 4, 10], [0, 0, 0]);
   plane(10, 8, stucco(10, 8), [-9, 4, 5], [0, -Math.PI / 2, 0]);
   plane(10, 8, stucco(10, 8), [9, 4, 5], [0, Math.PI / 2, 0]);

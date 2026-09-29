@@ -344,7 +344,6 @@ export function drawTextures(sadie, sadieNap) {
   // an old beige computer, and a keyboard
   T.beige = tex(8, 8, g => { rect(g, '#e8dcc0', 0, 0, 8, 8); speckle(g, '#d0c4a8', 0, 0, 8, 8, 8, 3); });
   T.keys = tex(16, 8, g => { rect(g, '#d0c4a8', 0, 0, 16, 8); for (let y = 1; y < 7; y += 2) for (let x = 1; x < 15; x += 2) rect(g, '#f4ecd8', x, y, 1, 1); });
-  T.screen = tex(4, 4, g => rect(g, '#10183a', 0, 0, 4, 4));
   return T;
 }
 

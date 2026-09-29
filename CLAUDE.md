@@ -26,8 +26,8 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
    `render/`, `ui/` or `input/`.
 3. `npm run check -- --preview` must pass: it runs `npm test`, builds the test version, and plays
    it in headless Chromium as a phone and a desktop (any page error fails). Look at the screenshots
-   in `dist/check/`. While working, `--quick` skips the tests (Dropper World's take about 3.5
-   minutes). Each activity's checks are skipped anyway if they already passed on exactly its code. If a change is meant to move
+   in `dist/check/`. While working, `--quick` skips the tests (Dropper World's take about a
+   minute). Each activity's checks (and the mansion's) are skipped anyway if they already passed on exactly its code; the check prints how long each stage took. If a change is meant to move
    a test's numbers, explain why in plain words and update `docs/TUNING.md`.
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to
    the working branch. Never commit `dist/`, `node_modules/` or `package-lock.json`.

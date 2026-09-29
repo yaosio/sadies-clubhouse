@@ -146,39 +146,47 @@ function moveFixed(p, h) {
 // everything, just without the wasted work (in a pile-up, 50 awake pieces are about 1,200 pairs
 // to check but only a hundred or so are anywhere near each other).
 const CELL = U * 2;
-const grid = new Map(), awakeGrid = new Map();
-let stamp = new Int32Array(0), stampId = 0, pairBuf = new Float64Array(1024), awakeIdx = new Int32Array(0);
+const grid = new Map(), awakeGrid = new Map(), gridUsed = [], awakeUsed = [];
+// (pairs are whole numbers, a * N + b: sorting those is quicker than sorting decimals, and a board
+// would need over 46,000 pieces before they stopped fitting)
+let stamp = new Int32Array(0), stampId = 0, pairBuf = new Int32Array(1024), awakeIdx = new Int32Array(0);
 const cellKey = (cx, cy) => cy * 4096 + cx;
+// A cell's list of pieces, noting it in `used` the first time it's filled, so emptying the grid
+// only touches the cells filled since (a grid remembers every cell the tower has ever reached;
+// emptying all of them, eight times a step, got slower as the tower grew).
+function cellList(map, used, k) {
+  let list = map.get(k);
+  if (!list) { list = []; map.set(k, list); }
+  if (!list.length) used.push(list);
+  return list;
+}
+function emptyGrid(map, used) {
+  for (let i = 0; i < used.length; i++) used[i].length = 0;
+  used.length = 0;
+  if (map.size > 4096) map.clear(); // forget cells from long ago
+}
 function buildSleeperGrid(pieces) {
-  for (const list of grid.values()) list.length = 0;
+  emptyGrid(grid, gridUsed);
   for (let b = 0; b < pieces.length; b++) {
     const B = pieces[b]; if (!B.asleep) continue;
     const m = B.fixed ? 0.25 * U : 0; // a fixed piece can move a little during the step
     const x0 = Math.floor((B.minX - m) / CELL), x1 = Math.floor((B.maxX + m) / CELL), y0 = Math.floor((B.minY - m) / CELL), y1 = Math.floor((B.maxY + m) / CELL);
-    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
-      const k = cellKey(cx, cy); let list = grid.get(k);
-      if (!list) { list = []; grid.set(k, list); }
-      list.push(b);
-    }
+    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) cellList(grid, gridUsed, cellKey(cx, cy)).push(b);
   }
 }
 function addPair(n, key) {
-  if (n === pairBuf.length) { const nb = new Float64Array(n * 2); nb.set(pairBuf); pairBuf = nb; }
+  if (n === pairBuf.length) { const nb = new Int32Array(n * 2); nb.set(pairBuf); pairBuf = nb; }
   pairBuf[n] = key;
   return n + 1;
 }
 // Returns how many candidate pairs are in pairBuf (each stored as a * N + b with a < b, sorted).
 function findPairs(pieces, nAwake, ce) {
   const N = pieces.length; let n = 0;
-  for (const list of awakeGrid.values()) list.length = 0;
+  emptyGrid(awakeGrid, awakeUsed);
   for (let i = 0; i < nAwake; i++) {
     const a = awakeIdx[i], A = pieces[a];
     const x0 = Math.floor(A.minX / CELL), x1 = Math.floor(A.maxX / CELL), y0 = Math.floor(A.minY / CELL), y1 = Math.floor(A.maxY / CELL);
-    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) {
-      const k = cellKey(cx, cy); let list = awakeGrid.get(k);
-      if (!list) { list = []; awakeGrid.set(k, list); }
-      list.push(a);
-    }
+    for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++) cellList(awakeGrid, awakeUsed, cellKey(cx, cy)).push(a);
   }
   for (let i = 0; i < nAwake; i++) {
     const a = awakeIdx[i], A = pieces[a];

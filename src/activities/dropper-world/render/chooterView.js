@@ -4,7 +4,6 @@
 import { U, W } from '../config.js';
 import { chooter, peekSpot } from '../core/friends/chooter.js';
 import { toy, TOY_R } from '../core/toys.js';
-import { barnX, barnFloor } from '../core/barn.js';
 import { ctx, cam, vp, sxf, syf } from './view.js';
 import { drawBall } from './toyView.js';
 

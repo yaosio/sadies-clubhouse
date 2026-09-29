@@ -4,7 +4,7 @@ import { U } from './config.js';
 import { world } from './core/world.js';
 import { resetGame } from './core/game.js';
 import { loadGame, saveGame } from './core/save.js';
-import { surfAt, groundAt } from './core/surface.js';
+import { groundAt } from './core/surface.js';
 import { sadie } from './core/sadie/brain.js';
 import { chooter, peekSpot } from './core/friends/chooter.js';
 import { toy } from './core/toys.js';

@@ -1,7 +1,7 @@
 // Checks everything before a change goes anywhere: each activity's headless tests, a fresh build,
 // and the built page played in a real (hidden) browser, as a phone and as a desktop.
 //
-//   npm run check                  everything (Dropper World's tests take about 3.5 minutes)
+//   npm run check                  everything (about 2.5 minutes if nothing can be skipped)
 //   npm run check -- --quick       skip the headless tests (for a quick look while working)
 //   npm run check -- --preview     build and check the test version (the one for the test page)
 //   npm run check -- --retest      run everything even if it already passed on this exact code
@@ -11,18 +11,22 @@
 // Each activity is checked on its own, so a change to one never means retesting the others:
 //   - its headless tests (tests/<activity>/run.mjs) depend only on its own folder
 //     (src/activities/<activity>/), its tests, the shared toolbox (src/shared/) and package.json;
-//   - its browser checks (tests/<activity>/browser.mjs) depend on those plus the clubhouse's shell
-//     (the files directly in src/; not the menu in src/clubhouse/, which an activity never needs)
-//     and the build and check tools.
+//   - its browser checks (tests/<activity>/browser.mjs) depend on those plus its own tools
+//     (tools/<activity>/), the clubhouse's shell (the files directly in src/; not the mansion in
+//     src/clubhouse/, which an activity never needs) and the build and check tools.
 // Once either has passed on exactly those files it isn't run again until one of them changes. This
 // session remembers it in dist/, which makes the check at merge time quick when the branch was
 // checked here. A fresh session has no memory of it, but the live game page does: it's only ever
 // published after passing, and it carries its own source. So with --live (the page read before
 // publishing anyway), an activity whose code the change doesn't touch skips its tests.
 //
-// The browser checks always build the page and walk round Sadie's mansion, the clubhouse
-// (tests/clubhouse/browser.mjs: under a minute, and it has every activity's door, so it runs every time). Screenshots go in
-// dist/check/clubhouse/ and dist/check/<activity>/ to look at.
+// The browser checks always build the page, then walk round Sadie's mansion, the clubhouse
+// (tests/clubhouse/browser.mjs: about half a minute). It has every activity's door, so it runs again
+// after any change to anything in the page. Each check plays the phone and the desktop side by side.
+// Screenshots go in dist/check/clubhouse/ and dist/check/<activity>/ to look at.
+//
+// Where the time goes is printed after each stage. Anything an activity's browser checks need made
+// first (Dropper World's full board) is made in the background while the headless tests run.
 //
 // Needs Playwright with Chromium (already on Claude's cloud machines; not a project dependency).
 import { spawnSync } from 'node:child_process';
@@ -44,9 +48,13 @@ function check(name, ok, detail) {
 }
 function run(label, cmd, cmdArgs) {
   console.log(`\n== ${label}`);
-  const r = spawnSync(cmd, cmdArgs, { cwd: root, stdio: 'inherit' });
+  const t = Date.now(), r = spawnSync(cmd, cmdArgs, { cwd: root, stdio: 'inherit' });
+  took(t);
   return r.status === 0;
 }
+// how long a stage took, so it's plain where the time goes
+const started = Date.now();
+const took = t => console.log(`(${Math.round((Date.now() - t) / 1000)} s)`);
 
 function hashOf(paths) {
   const h = createHash('sha1');
@@ -62,7 +70,7 @@ function hashOf(paths) {
 const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
 // what an activity's tests depend on, and what its browser checks depend on besides
 const testPaths = a => ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
-const pagePaths = () => ['tools/build.mjs', 'tools/check.mjs',
+const pagePaths = a => [`tools/${a}`, 'tools/build.mjs', 'tools/check.mjs',
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
@@ -87,6 +95,18 @@ function sameAsLive(file, paths) {
   for (const p of theirs) if (!ours.has(p)) return p + ' is on the live page but not here';
   for (const p of ours) if (live[p] !== readFileSync(join(root, p), 'utf8')) return p + ' differs from the live page';
   return null;
+}
+
+// ---------- 0. anything an activity's browser checks need made first (Dropper World's full board) ----------
+// An activity's browser.mjs can export prepare(): it's started now, in the background, so it's made
+// while the headless tests run instead of after them. Its result is handed to the checks.
+const mode = preview ? 'preview' : 'real';
+const browserHash = a => hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode;
+const toCheck = ACTIVITIES.filter(a => existsSync(join(root, 'tests', a, 'browser.mjs')) && (retest || !existsSync(note('browser', a, browserHash(a)))));
+const suites = {}, prepared = {};
+for (const a of toCheck) {
+  suites[a] = await import(join(root, 'tests', a, 'browser.mjs'));
+  if (suites[a].prepare) prepared[a] = suites[a].prepare({ root, hashOf });
 }
 
 // ---------- 1. each activity's headless tests (unless they passed on this exact code already) ----------
@@ -135,34 +155,38 @@ await new Promise(ok => server.listen(0, '127.0.0.1', ok));
 const page = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch();
 
-// the mansion: every time, since it has every activity's door (under a minute)
+// the mansion: it has every activity's door, so any change to anything in the page runs it again
+// (only exactly the same page, already passed, skips it)
 console.log('\n== the clubhouse in a browser');
-{
-  const dir = join(outDir, 'clubhouse');
+const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tools/build.mjs', 'tools/check.mjs']) + '-' + mode;
+if (existsSync(note('browser', 'clubhouse', clubHash)) && !retest) console.log('already passed on exactly this page, not running it again');
+else {
+  const t = Date.now(), dir = join(outDir, 'clubhouse'), before = failed;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
   const { default: checks } = await import(join(root, 'tests/clubhouse/browser.mjs'));
   await checks({ browser, page, check: (name, ok, detail) => check(`clubhouse: ${name}`, ok, detail), run, hashOf, root, outDir: dir });
+  if (failed === before) passed('browser', 'clubhouse', clubHash);
+  took(t);
 }
 
-const mode = preview ? 'preview' : 'real';
 for (const a of ACTIVITIES) {
   if (!existsSync(join(root, 'tests', a, 'browser.mjs'))) continue;
-  const hash = hashOf([...testPaths(a), ...pagePaths()]) + '-' + mode;
-  if (existsSync(note('browser', a, hash)) && !retest) {
+  if (!toCheck.includes(a)) {
     console.log(`\n== ${a} in a browser\nalready passed on exactly this code, not running it again`);
     continue;
   }
   console.log(`\n== ${a} in a browser`);
-  const dir = join(outDir, a);
+  const t = Date.now(), dir = join(outDir, a);
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
   const before = failed;
-  const { default: checks } = await import(join(root, 'tests', a, 'browser.mjs'));
-  await checks({ browser, page, check: (name, ok, detail) => check(`${a}: ${name}`, ok, detail), run, hashOf, root, outDir: dir });
-  if (failed === before) passed('browser', a, hash);
+  await suites[a].default({ browser, page, check: (name, ok, detail) => check(`${a}: ${name}`, ok, detail), run, hashOf, root, outDir: dir,
+    prepared: await prepared[a] });
+  if (failed === before) passed('browser', a, browserHash(a));
+  took(t);
 }
 await browser.close();
 server.close();
 
-console.log(`\nscreenshots in dist/check/`);
+console.log(`\nscreenshots in dist/check/  (${Math.round((Date.now() - started) / 1000)} s in all)`);
 console.log(failed ? `${failed} check(s) failed` : 'all checks passed');
 process.exit(failed ? 1 : 0);

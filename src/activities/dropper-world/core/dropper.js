@@ -2,7 +2,6 @@
 // decides where to fly and when to let go. It hovers a fixed height above the pile under it.
 import { U, W, tuning } from '../config.js';
 import { world } from './world.js';
-import { emit } from './events.js';
 import { SHAPES } from './physics/pieceTypes.js';
 import { getTemplate } from './physics/templates.js';
 import { makePiece } from './physics/body.js';
@@ -36,7 +35,7 @@ export function clampHeld() {
   drp.tX = Math.min(W - o.x1, Math.max(-o.x0, drp.tX));
 }
 export function spawn() {
-  const type = world.nextType; world.nextType = drawFromBag(); emit('nextChanged', world.nextType);
+  const type = world.nextType; world.nextType = drawFromBag();
   const cs = U * tuning.set.size;
   const ang = Math.floor(Math.random() * 4) * Math.PI / 2;
   world.held = { type, cs, T: getTemplate(type, cs), ang, tAng: ang };

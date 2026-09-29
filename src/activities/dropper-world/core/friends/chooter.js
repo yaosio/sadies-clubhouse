@@ -159,7 +159,7 @@ function kickAhead() {
   if (hit) { for (let k = 0; k < 5; k++) spark(c.x + c.dir * 0.7 * U, c.y + 0.6 * U, c.dir * (40 + Math.random() * 80), (Math.random() - 0.3) * 90, 2 + Math.random() * 2, 0.6, '#fff4c2'); }
   return hit;
 }
-// ---------- the zoomies: knock pieces out of his way ----------
+// the zoomies: where to dash to next (7-14 blocks one way, or the other way if that's a wall)
 function pickZoomSpot(dir) {
   const c = chooter;
   let x = c.x + dir * (7 + Math.random() * 7) * U;
