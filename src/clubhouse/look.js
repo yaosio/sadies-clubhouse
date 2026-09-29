@@ -21,7 +21,9 @@ void main(){
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vec4 p = projectionMatrix * viewMatrix * wp;
   vec2 g = uRes * 0.5;
-  p.xy = floor(p.xy / p.w * g + 0.5) / g * p.w;           // corners snap to the pixel grid: the jitter
+  // corners snap to the pixel grid: the jitter. Not corners level with your eye or behind it: there
+  // the sum divides by almost nothing, and a whole wall or floor would vanish for a frame
+  if (p.w > 0.3) p.xy = floor(p.xy / p.w * g + 0.5) / g * p.w;
   gl_Position = p;
   vec3 n = normalize(mat3(modelMatrix) * normal);
   float sun = max(dot(n, normalize(vec3(-0.45, 0.8, -0.5))), 0.0);

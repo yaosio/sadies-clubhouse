@@ -64,6 +64,14 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and walking through it takes you into the hall (no loading)`, (await M('where')).place === 'hall');
     check(`${device}: ...and the door stays open while you're still in its swing`, await M('lastDoorOpen') > 0.9, `open ${(await M('lastDoorOpen'))?.toFixed(2)}`);
 
+    // stepping through a doorway a little at a time, you're never right on its line (there, the
+    // walls along it draw wrong for a frame: things vanish and come back)
+    await M('faceDoor', 'outside', 'front', 0.5);
+    let closest = 99, through = false;
+    for (let i = 0; i < 60 && !through; i++) { await M('step', 0.013); closest = Math.min(closest, await M('doorLine')); through = (await M('where')).place === 'hall'; }
+    for (let i = 0; i < 10; i++) { await M('step', 0.013); closest = Math.min(closest, await M('doorLine')); }
+    check(`${device}: stepping through a doorway, you never stand right on its line`, through && closest >= 0.059, `closest ${closest.toFixed(3)} m`);
+
     // looking up and down while turning never tips the view over
     let tipped = 0;
     for (const [yaw, pitch] of [[0.7, 0.6], [2.4, -0.7], [-1.9, 0.5]]) { await M('turnTo', yaw, pitch); await p.waitForTimeout(80); tipped = Math.max(tipped, await M('tilt')); }

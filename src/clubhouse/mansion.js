@@ -26,6 +26,7 @@ import P from './pictures.js';
 import page from './mansion.html';
 import styles from './mansion.css';
 
+const GAP = 0.06;   // the closest you ever stand to a doorway's line, in metres
 const EYE = 1.6, SPEED = 3.2, TURN = 2.2, STICK = 40;   // STICK: how far the thumb stick's knob goes, in screen pixels
 // things that happen once, remembered in the browser (the test version can undo each)
 const INVITED = 'mansion.invited';
@@ -110,7 +111,10 @@ export async function open(cards, enter) {
       const nx = me.x + mx, nz = me.z + mz;
       for (const s of sides) if (s.w === me.world && s.p.open > 0.6 && Math.abs(me.y - s.d.pos.y) < 0.6) {
         const [, z0] = s.d.local(me.x, me.z), [lx, lz] = s.d.local(nx, nz);
-        if (z0 >= 0 && lz < 0 && Math.abs(lx) < s.d.w / 2) { cross(s, lx, lz); return true; }
+        // You never stand right on a doorway's line: there, every corner of the walls along it sits level
+        // with your eye, and the drawing maths breaks for that frame (walls lose their pattern, things
+        // vanish). So reaching it, you step straight through to a little way past it.
+        if (z0 >= 0 && lz < GAP && lz < z0 && Math.abs(lx) < s.d.w / 2) { cross(s, lx, Math.min(lz, -GAP)); return true; }
       }
       const h = floorAt(me.world, nx, nz, me.y);
       if (h !== null) { me.x = nx; me.z = nz; me.y = h; return true; }
@@ -139,6 +143,11 @@ export async function open(cards, enter) {
     vcam.matrixWorld.multiplyMatrices(M, cam.matrixWorld);
     vcam.matrixWorldInverse.copy(vcam.matrixWorld).invert();
     vcam.projectionMatrix.copy(cam.projectionMatrix);
+    vcam.projectionMatrixInverse.copy(cam.projectionMatrixInverse);
+    // Right at the doorway the tilted near plane would pass through your eye, and the maths falls
+    // apart (a frame of black as you step through). So within 40 cm, don't tilt it: the far side's
+    // own door bits are hidden anyway, and nothing else of that place is that close behind its wall.
+    if (tmp.copy(cam.position).sub(s.d.pos).dot(s.d.normal) < 0.4) return;
     cut.setFromNormalAndCoplanarPoint(s.to.normal, tmp.copy(s.to.pos).addScaledVector(s.to.normal, -0.01));
     cut.applyMatrix4(vcam.matrixWorldInverse);
     clip.set(cut.normal.x, cut.normal.y, cut.normal.z, cut.constant);
@@ -179,7 +188,9 @@ export async function open(cards, enter) {
     if (viewing) {
       lookThrough(viewing);
       light(viewing.tw.light);
+      viewing.to.group.visible = false;   // the far side's frame, leaves and doorway box: never seen from behind
       renderer.setRenderTarget(through); renderer.render(viewing.tw.scene, vcam); renderer.setRenderTarget(null);
+      viewing.to.group.visible = true;
       viewing.d.see.material.uniforms.uOn.value = 1;
     }
     light(me.world.light);
@@ -380,9 +391,13 @@ export async function open(cards, enter) {
       place(w, typeof spot === 'string' ? w.spots[spot] : spot); return true;
     },
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
+    // take a step of d metres straight ahead (through a doorway, if there's one there), and draw
+    step(d) { const r = move(-Math.sin(me.yaw) * d, -Math.cos(me.yaw) * d); draw(); return r; },
     // how far the view leans over sideways (0: not at all), and how open the last doorway walked through is
     tilt: () => Math.abs(new Vector3(1, 0, 0).applyQuaternion(cam.quaternion).y),
     lastDoorOpen: () => lastThrough ? lastThrough.open : null,
+    // how close you are to the line of a doorway you're standing in (never under GAP)
+    doorLine: () => Math.min(99, ...sides.filter(s => s.w === me.world).map(s => { const [lx, lz] = s.d.local(me.x, me.z); return Math.abs(lx) < s.d.w / 2 && Math.abs(me.y - s.d.pos.y) < 0.6 ? Math.abs(lz) : 99; })),
     // stand in front of a doorway in this place, facing it (d metres out)
     faceDoor(name, door, d = 2) {
       const w = places.find(p => p.name === name), dd = w?.doors[door]; if (!dd) return false;
