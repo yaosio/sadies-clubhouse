@@ -150,3 +150,12 @@ joke). The player doesn't steer it: it decides where every piece goes, for its o
   underground than that.
 - The player's thing to do with the mole: tap it to see what it's thinking. (The owner is still
   thinking about something more.)
+
+## Sadie in TypeFitter (`src/activities/typefitter/`)
+Not the Dropper World Sadie: none of the feelings, offers or activities above. Here she's the
+program author's cat, a flat scanned picture who loves text and knows everything about fonts, all
+of it wrong ("Italics are typed on a keyboard tilted exactly 12 degrees"). She reacts only to the
+last change, with no memory: her TEXT LOVE meter looks like opinions but is a rigged dice roll. When
+it goes up she gushes, when it goes down she's unsure but still gives a fact, and when it fills she
+tells you to press the button. She's always sure the text fitted.
+

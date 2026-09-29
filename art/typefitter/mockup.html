@@ -1,0 +1,627 @@
+<title>TypeFitter Deluxe 3.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=VT323&family=Atkinson+Hyperlegible:wght@400;700&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Comic+Neue:ital,wght@0,400;0,700;1,400&family=UnifrakturMaguntia&family=Pacifico&family=Bungee&family=Courier+Prime&display=swap">
+<style>
+/* Layout: the playable mock-up on top, short notes for the owner below. No windows anywhere:
+   TypeFitter is a DOS program that invented its own look, so its toolbar, page, Sadie and
+   status sign sit straight in the Play Place's candy-purple frame. */
+:root{
+  color-scheme:dark;
+  --void:#150c33; --panel:#4a2a9c; --hi:#a99cff; --lo:#1a0f40; --deep:#2a1766;
+  --gold:#ffcf3a; --pink:#ff6fb4; --ink:#ffffff; --muted:#c9bdff;
+  --paper:#fffef8; --ants:#e0103a; --heart:#ff3d8b; --heart-off:#5a2448;
+  --led-bg:#07210f; --led:#6dff8a; --led-dim:#1f5a2e;
+  --pixel:'Silkscreen',ui-monospace,monospace;
+  --term:'VT323',ui-monospace,monospace;
+  --read:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+html{background:var(--void)}
+[hidden]{display:none!important}
+body{background:var(--void);color:var(--ink);font-family:var(--read);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:24px 48px}
+.page{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+
+.head{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-family:var(--pixel);font-size:12px;letter-spacing:.08em;color:var(--muted);margin:0}
+.logo,.mlogo,.dlg .title{font-family:var(--pixel);letter-spacing:.02em;
+  background:linear-gradient(#fff36b 0 25%,#ffae3a 25% 50%,#ff5fa8 50% 75%,#b060ff 75%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo{font-size:clamp(26px,5vw,44px);line-height:1.05;margin:0;text-wrap:balance;filter:drop-shadow(3px 3px 0 var(--lo))}
+.lede{max-width:65ch;margin:4px 0 0;color:#e9e3ff}
+
+/* ---------- the frame is the program ---------- */
+.frame{position:relative;background-color:var(--panel);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 2px,transparent 2px 4px);
+  border:4px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:6px 6px 0 rgba(0,0,0,.45);
+  display:flex;flex-direction:column;gap:8px;padding:8px;font-family:var(--pixel);user-select:none}
+.rivet{position:absolute;width:6px;height:6px;background:var(--gold);box-shadow:inset -2px -2px 0 #b8860b}
+.rivet.a{left:2px;top:2px}.rivet.b{right:2px;top:2px}.rivet.c{left:2px;bottom:2px}.rivet.d{right:2px;bottom:2px}
+.sunk{border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.raised{border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi)}
+.strip{display:flex;align-items:center;gap:14px;padding:2px 4px;flex-wrap:wrap}
+.strip .spacer{flex:1}
+.mlogo{font-size:24px;line-height:1;filter:drop-shadow(2px 2px 0 var(--lo))}
+.mlogo small{font-size:14px}
+.plaque{margin-left:auto;background:var(--lo);padding:5px 10px;font-size:11px;line-height:1.35}
+.plaque b{display:block;color:#6ff2ff;font-weight:400}.plaque span{color:var(--pink)}
+.key{display:inline-flex;align-items:center;gap:6px;font-family:var(--pixel);font-size:12px;letter-spacing:.04em;color:var(--ink);
+  background:none;border:0;padding:0;cursor:pointer;text-shadow:1px 1px 0 var(--lo);white-space:nowrap}
+kbd{font:11px/1 var(--pixel);color:var(--lo);text-shadow:none;background:linear-gradient(#ece6ff 45%,#cabfff 45%);
+  padding:4px 5px;border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff;min-width:24px;text-align:center;display:inline-block}
+.key:active kbd{border-color:#6a58d8 #fff #fff #6a58d8;background:var(--gold)}
+.key:focus-visible,.tool:focus-visible,.fit:focus-visible,.dlg button:focus-visible{outline:2px dashed var(--gold);outline-offset:3px}
+
+/* tool buttons: chunky stamps with the key that works them, selected ones glow gold */
+.tools{display:flex;flex-wrap:wrap;gap:6px;padding:6px;background:var(--deep)}
+.tool{display:flex;align-items:center;gap:6px;padding:5px 8px 5px 5px;cursor:pointer;color:var(--ink);font:11px/1 var(--pixel);letter-spacing:.04em;
+  background:linear-gradient(#6a44c8,#4a2a9c);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);text-shadow:1px 1px 0 var(--lo)}
+
+.tool .g{--gi:#fff;font:20px/22px 'Old Standard TT',Georgia,serif;min-width:22px;text-align:center;color:#fff;text-shadow:none}
+.tool.on{background:linear-gradient(#ffe27a,#ffb428);color:#3a1400;text-shadow:none;border-color:#fff3a0 #a06000 #a06000 #fff3a0}
+.tool.on .g{color:#3a1400;--gi:#3a1400}
+.tool:active{border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.tool:disabled{opacity:.5;cursor:default}
+.tool.font{min-width:190px}
+.tool.font b{font-weight:400;color:var(--gold);margin-left:auto}
+.tool.font.on b{color:#3a1400}
+
+.main{display:grid;grid-template-columns:minmax(0,1fr) 284px;gap:8px;min-height:0}
+.docwrap{display:flex;flex-direction:column;min-width:0;background:var(--paper)}
+.ruler{height:16px;background:#e9e4ff;border-bottom:2px solid var(--lo);
+  background-image:repeating-linear-gradient(90deg,var(--lo) 0 2px,transparent 2px 12px),repeating-linear-gradient(90deg,var(--lo) 0 2px,transparent 2px 96px);
+  background-size:auto 5px,auto 11px;background-repeat:repeat-x;background-position:0 100%,0 100%}
+.doc{position:relative;flex:1;min-height:320px;overflow:hidden;background:var(--paper);
+  background-image:linear-gradient(transparent 29px,#eaf0ff 29px);background-size:100% 30px}
+.zoomer{position:absolute;left:50%;top:50%;width:0;height:0}
+.box{position:absolute;outline:2px dashed var(--ants);background:rgba(224,16,58,.04);pointer-events:none}
+.box::before{content:'TEXT BOX 1';position:absolute;left:-2px;top:-17px;font:10px/1 var(--pixel);color:#fff;background:var(--ants);padding:3px 4px;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){
+  .box{outline:none;background-image:linear-gradient(90deg,var(--ants) 50%,transparent 0),linear-gradient(90deg,var(--ants) 50%,transparent 0),linear-gradient(0deg,var(--ants) 50%,transparent 0),linear-gradient(0deg,var(--ants) 50%,transparent 0);
+    background-repeat:repeat-x,repeat-x,repeat-y,repeat-y;background-size:10px 2px,10px 2px,2px 10px,2px 10px;background-position:0 0,0 100%,0 0,100% 0;animation:ants .6s linear infinite}
+  @keyframes ants{to{background-position:10px 0,-10px 100%,0 -10px,100% 10px}}
+}
+.txt{position:absolute;left:0;top:0;white-space:nowrap;line-height:1.15;color:#111}
+.txt span{display:inline-block;white-space:pre}
+.txt.push{animation:push .5s ease-in-out infinite alternate}
+@keyframes push{to{transform:scale(.965,.94)}}
+.over{position:absolute;font:10px/1 var(--pixel);color:var(--ants);white-space:nowrap}
+
+/* Sadie's corner */
+.sadie{display:flex;flex-direction:column;gap:8px;padding:8px;background:var(--deep);min-width:0}
+.scan{display:flex;flex-direction:column;align-items:center;gap:3px}
+.scan canvas{width:256px;height:218px;max-width:100%;image-rendering:pixelated;border:3px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);background:#000}
+.scan small{font:10px/1.2 var(--pixel);color:var(--muted);letter-spacing:.04em}
+.bubble{position:relative;background:#fff;color:#1a0f40;border:3px solid var(--lo);padding:8px 10px;font-family:'Comic Neue','Comic Sans MS',cursive;font-size:15px;line-height:1.3;min-height:92px;box-shadow:3px 3px 0 var(--lo)}
+.bubble::before{content:'';position:absolute;left:54px;top:-14px;border:11px solid transparent;border-bottom:13px solid var(--lo);border-top:0}
+.bubble::after{content:'';position:absolute;left:58px;top:-9px;border:7px solid transparent;border-bottom:9px solid #fff;border-top:0}
+.meter{display:flex;flex-direction:column;gap:3px}
+.meter .lab{display:flex;justify-content:space-between;font:10px/1 var(--pixel);letter-spacing:.06em;color:var(--muted)}
+.hearts{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:4px;background:#1a0620}
+.hearts i{aspect-ratio:1;background:var(--heart-off);clip-path:polygon(50% 100%,0 45%,0 18%,18% 0,40% 0,50% 14%,60% 0,82% 0,100% 18%,100% 45%);transition:background .15s}
+.hearts i.on{background:var(--heart)}
+.hearts.bump{animation:bump .25s}
+@keyframes bump{50%{transform:translateY(-2px)}}
+.fit{font:18px/1 var(--pixel);letter-spacing:.06em;padding:12px 6px;cursor:pointer;color:#9a8fd0;background:#3a2280;
+  border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);text-shadow:1px 1px 0 var(--lo)}
+.fit small{display:block;font-size:9px;margin-top:5px;letter-spacing:.02em}
+.fit.ready{color:#3a1400;background:linear-gradient(#ffe27a,#ffb428);text-shadow:1px 1px 0 #fff3a0;border-color:#fff3a0 #a06000 #a06000 #fff3a0;box-shadow:0 0 12px var(--gold)}
+@media (prefers-reduced-motion:no-preference){ .fit.ready{animation:flash .5s steps(2) infinite} @keyframes flash{50%{background:#ff9a3a}} }
+.fit:disabled{cursor:default}
+
+/* LED sign: the numbers and the program's bragging */
+.led{display:flex;gap:18px;align-items:center;background:var(--led-bg);color:var(--led);font:20px/1 var(--term);padding:6px 10px;overflow:hidden;
+  text-shadow:0 0 6px rgba(109,255,138,.6);background-image:radial-gradient(var(--led-dim) .8px,transparent 1.2px);background-size:3px 3px}
+.led span{white-space:nowrap;font-variant-numeric:tabular-nums}
+.led .brag{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--gold);text-shadow:0 0 6px rgba(255,207,58,.6)}
+
+/* pop-up panels: candy purple, no title bars */
+.veil{position:absolute;inset:0;background:rgba(21,12,51,.55);display:flex;align-items:center;justify-content:center;padding:12px;z-index:5}
+.dlg{position:relative;background-color:var(--panel);border:4px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);box-shadow:8px 8px 0 rgba(0,0,0,.55);
+  width:min(460px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:12px 14px}
+.dlg .title{font-size:16px;text-align:center;filter:drop-shadow(2px 2px 0 var(--lo))}
+.dlg .body{display:flex;flex-direction:column;gap:10px;font-family:var(--term);font-size:21px;line-height:1.15;color:#fff}
+.dlg .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.dlg button{display:inline-flex;align-items:center;gap:8px;font:12px/1 var(--pixel);padding:6px 10px 6px 6px;cursor:pointer;color:#fff;background:var(--deep);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi);text-shadow:1px 1px 0 var(--lo)}
+.dlg button:active{border-color:var(--lo) var(--hi) var(--hi) var(--lo)}
+.bar{height:22px;padding:3px;background:var(--led-bg)}
+.bar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--led) 0 12px,transparent 12px 15px);transition:width .35s steps(6)}
+#step{color:var(--led);font-family:var(--term)}
+.big{font-family:'Bungee',var(--pixel);font-size:30px;line-height:1.05;text-align:center;color:var(--pink);text-shadow:3px 3px 0 var(--lo)}
+.mid{text-align:center}
+.readme{font-family:var(--term);font-size:19px;line-height:1.15;white-space:pre-wrap;background:#0a0a2a;color:#c9c9ff;padding:10px;margin:0;overflow-x:auto}
+.paper{position:relative;background:#fbfbf2;padding:8px 26px;font-family:'Courier Prime','Courier New',monospace;font-size:14px;line-height:1.4;color:#222;min-height:40px;
+  background-image:radial-gradient(circle at 9px 12px,#8a86a8 3.5px,transparent 4px),radial-gradient(circle at calc(100% - 9px) 12px,#8a86a8 3.5px,transparent 4px),repeating-linear-gradient(transparent 0 23px,#dff0df 23px 24px);
+  background-size:100% 24px,100% 24px,100% 24px}
+.paper div{white-space:pre-wrap;text-align:center;opacity:.9}
+.paper .paw{font-size:22px}
+
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px 32px}
+.notes section{min-width:0}
+.notes h2{font-family:var(--pixel);font-size:15px;letter-spacing:.06em;color:var(--gold);margin:0 0 6px;font-weight:400}
+.notes li{color:#e9e3ff;max-width:65ch}
+.notes ul{padding-left:20px;margin:0}
+
+@media (max-width:760px){
+  .main{grid-template-columns:1fr}
+  .doc{min-height:220px}
+  .sadie{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"scan bubble" "meter meter" "fit fit";align-items:start}
+  .scan{grid-area:scan}.bubble{grid-area:bubble;margin-left:8px}.meter{grid-area:meter}.fit{grid-area:fit}
+  .scan canvas{width:128px;height:109px}
+  .bubble{font-size:14px}
+  .bubble::before{left:-14px;top:22px;border:11px solid transparent;border-right:13px solid var(--lo);border-left:0}
+  .bubble::after{left:-9px;top:26px;border:7px solid transparent;border-right:9px solid #fff;border-left:0}
+  .plaque{display:none}
+  .led .brag{display:none}
+  .tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+  .tool{padding:4px;gap:4px;font-size:9px;justify-content:center;flex-direction:column}
+  .tool kbd{display:none}
+  .tool .g{font-size:17px;line-height:18px}
+  .tool.font{min-width:0;grid-column:1/-1;flex-direction:row;padding:8px}
+}
+@media (max-width:420px){ .mlogo{font-size:18px} .mlogo small{font-size:11px} }
+</style>
+
+<div class="page">
+  <header class="head">
+    <p class="eyebrow">SADIE'S PLAY PLACE · ACTIVITY 2 · MOCK-UP</p>
+    <h1 class="logo">TypeFitter Deluxe 3.1</h1>
+    <p class="lede">A playable mock-up. Make the text fancy with the buttons, watch Sadie's TEXT LOVE meter, and press FIT IT! when it lights up. The text will never fit. You'll win anyway.</p>
+  </header>
+
+  <div class="frame" id="frame">
+    <i class="rivet a"></i><i class="rivet b"></i><i class="rivet c"></i><i class="rivet d"></i>
+    <div class="strip">
+      <button class="key" type="button" id="escKey"><kbd>ESC</kbd> BACK</button>
+      <span class="mlogo">TYPEFITTER <small>DELUXE 3.1</small></span>
+      <div class="plaque"><b>SHAREWARE V3.1</b><span>PLEASE COPY &amp; SHARE!</span></div>
+    </div>
+
+    <div class="tools sunk" id="tools">
+      <button class="tool font" type="button" data-fx="font" title="Change the font (F2)"><kbd>F2</kbd>FONT<b id="fontName">TIMELY ROMAN</b></button>
+      <button class="tool" type="button" data-fx="bold" title="Bold (B)"><kbd>B</kbd><span class="g"><b>B</b></span>BOLD</button>
+      <button class="tool" type="button" data-fx="italic" title="Italic (I)"><kbd>I</kbd><span class="g"><i>I</i></span>ITALIC</button>
+      <button class="tool" type="button" data-fx="underline" title="Underline (U)"><kbd>U</kbd><span class="g"><u>U</u></span>UNDER</button>
+      <button class="tool" type="button" data-fx="outline" title="Outline (O)"><kbd>O</kbd><span class="g" style="color:transparent;-webkit-text-stroke:1.2px var(--gi)">O</span>OUTLINE</button>
+      <button class="tool" type="button" data-fx="shadow" title="Shadow (S)"><kbd>S</kbd><span class="g" style="text-shadow:2px 2px 0 #1a0f40">S</span>SHADOW</button>
+      <button class="tool" type="button" data-fx="warp" title="WarpArt (W)"><kbd>W</kbd><span class="g" style="font-family:Bungee,sans-serif;font-size:13px;color:var(--pink)">⌒A</span>WARPART</button>
+      <button class="tool" type="button" data-fx="bigger" title="Bigger (+)"><kbd>+</kbd>BIGGER</button>
+      <button class="tool" type="button" data-fx="smaller" title="Smaller (-)"><kbd>−</kbd>SMALLER</button>
+      <button class="tool" type="button" data-fx="squeeze" title="Letter spacing (K)"><kbd>K</kbd><span class="g" style="font-size:14px">A↔A</span>SPACING</button>
+      <button class="tool" type="button" data-fx="color" title="Color (C)"><kbd>C</kbd><span class="g" style="background:linear-gradient(90deg,#ff3d67,#ffae3a,#6dff8a,#6fb4ff,#c98cff);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700">A</span>COLOR</button>
+      <button class="tool" type="button" data-fx="symbols" title="Secret symbols (Y)"><kbd>Y</kbd><span class="g">♣☺</span>SYMBOLS</button>
+    </div>
+
+    <div class="main">
+      <div class="docwrap sunk">
+        <div class="ruler" aria-hidden="true"></div>
+        <div class="doc" id="doc">
+          <div class="zoomer" id="zoomer">
+            <div class="box" id="box"></div>
+            <div class="txt" id="txt"></div>
+            <div class="over" id="over"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sadie sunk">
+        <div class="scan"><canvas id="scan" width="128" height="109" aria-label="Sadie, her photo traced over by hand, squashed to a few colors and badly compressed"></canvas><small>SADIE.JPG · 16 COLORS · 3 KB</small></div>
+        <div class="bubble" id="bubble" aria-live="polite"></div>
+        <div class="meter"><div class="lab"><span>TEXT LOVE</span><span id="loveNum">0/10</span></div><div class="hearts" id="hearts"></div></div>
+        <button class="fit" type="button" id="fit" disabled>FIT IT!<small id="fitSub">SADIE ISN'T READY</small></button>
+      </div>
+    </div>
+
+    <div class="led sunk" aria-live="off">
+      <span id="stSize">TEXT 0x0</span>
+      <span id="stBox">BOX 0x0</span>
+      <span class="brag" id="stBrag">READY.</span>
+      <span id="stZoom">ZOOM 100%</span>
+    </div>
+
+    <div class="strip">
+      <button class="key" type="button" id="helpKey"><kbd>F1</kbd> HELP</button>
+      <button class="key" type="button" id="readmeKey"><kbd>F5</kbd> README.TXT</button>
+    </div>
+    <div class="veil" id="veil" hidden></div>
+  </div>
+
+  <div class="notes">
+    <section>
+      <h2>HOW IT PLAYS</h2>
+      <ul>
+        <li>Every button changes the text. Sadie gushes about it, with a made-up fact about how the computer does it.</li>
+        <li>Her TEXT LOVE meter goes up or down after each change. It looks like she has opinions, but it's a dice roll, rigged to fill somewhere between the 4th and 10th change.</li>
+        <li>When it's full, FIT IT! lights up. The program makes a big show of fitting, fails, and says you win anyway. A certificate prints, then a new sentence arrives.</li>
+        <li>The box is always a little too small. The sign at the bottom tells you the sizes, and the box gets closer as Sadie's meter fills.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>STILL TO DECIDE</h2>
+      <ul>
+        <li>Sadie is traced from her real photo. Want her bigger, smaller, or somewhere else on the screen?</li>
+        <li>Sounds: grinding disk while fitting, a screechy dot-matrix printer for the certificate?</li>
+        <li>Keep old certificates somewhere to flip through, or let each one go?</li>
+        <li>More buttons, fewer, or different ones?</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+// Sadie's real photo, cropped and shrunk to 256x218
+const SADIE_PHOTO = 'data:image/jpeg;base64,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';
+/* ================= Sadie: her photo, traced over by hand, then saved way too small ================= */
+async function drawScan() {
+  const W = 128, H = 109;
+  const photo = new Image(); photo.src = SADIE_PHOTO;
+  try { await photo.decode(); } catch (e) { return; }
+  // 1. the photo, shrunk way down and brightened (it was taken at night)
+  const S = document.createElement('canvas'); S.width = W; S.height = H;
+  const s = S.getContext('2d');
+  s.drawImage(photo, 0, 0, W, H);
+  const im = s.getImageData(0, 0, W, H), d = im.data;
+  // 2. squashed to 16 colors with a dot pattern
+  const PAL = ['#1a1020', '#3a2418', '#5e3a22', '#8a5a34', '#b88050', '#e0b080', '#fff8ec', '#e2d8d0', '#b8aca4', '#857874', '#554a4c', '#f0a8a0', '#c87870', '#6f8290', '#c8b8d8', '#a02830']
+    .map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
+  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, t = ((BAYER[(y & 3) * 4 + (x & 3)] + .5) / 16 - .5) * 44;
+    const lift = v => (v - 14) * 1.42 + 6;
+    const r = lift(d[i]) + t, gg = lift(d[i + 1]) + 4 + t, b = lift(d[i + 2]) + 10 + t;
+    let best = PAL[0], bd = 1e9;
+    for (const c of PAL) { const dd = (r - c[0]) ** 2 * .3 + (gg - c[1]) ** 2 * .59 + (b - c[2]) ** 2 * .11; if (dd < bd) { bd = dd; best = c; } }
+    d[i] = best[0]; d[i + 1] = best[1]; d[i + 2] = best[2]; d[i + 3] = 255;
+  }
+
+  jpegCrush(d, W, H, 30); // the scan was saved as a JPEG once already...
+
+  // 3. traced over with a mouse: wobbly ink lines, a little off from the photo, some gone over twice
+  let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const dot = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return; const j = (y * W + x) * 4; d[j] = 30; d[j + 1] = 16; d[j + 2] = 40; };
+  const line = (x0, y0, x1, y1) => { const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) || 1; for (let k = 0; k <= n; k++) dot(x0 + (x1 - x0) * k / n, y0 + (y1 - y0) * k / n); };
+  // points are in the 256x218 photo; a smooth curve through them, wobbled, shifted a bit
+  const trace = (pts, wob = 1) => {
+    const curve = [];
+    for (let k = 0; k < pts.length - 1; k++) {
+      const p0 = pts[Math.max(0, k - 1)], p1 = pts[k], p2 = pts[k + 1], p3 = pts[Math.min(pts.length - 1, k + 2)];
+      for (let t = 0; t < 1; t += .125) { const t2 = t * t, t3 = t2 * t; curve.push([0, 1].map(a => .5 * (2 * p1[a] + (-p0[a] + p2[a]) * t + (2 * p0[a] - 5 * p1[a] + 4 * p2[a] - p3[a]) * t2 + (-p0[a] + 3 * p1[a] - 3 * p2[a] + p3[a]) * t3))); }
+    }
+    curve.push(pts[pts.length - 1]);
+    const passes = rand() < .35 ? 2 : 1;
+    for (let pass = 0; pass < passes; pass++) {
+      const f1 = 3 + rand() * 4, f2 = 9 + rand() * 6, ph1 = rand() * 6, ph2 = rand() * 6, ox = 1 + rand() * .8, oy = -.6 + rand() * .6;
+      let prev = null;
+      curve.forEach(([x, y], k) => {
+        const u = k / Math.max(1, curve.length - 1);
+        const q = [x / 2 + ox + (Math.sin(u * f1 + ph1) * .7 + Math.sin(u * f2 + ph2) * .3) * wob, y / 2 + oy + (Math.cos(u * f1 + ph2) * .7 + Math.sin(u * f2 + ph1) * .3) * wob];
+        if (prev) line(...prev, ...q);
+        prev = q;
+      });
+    }
+  };
+  trace([[40, 26], [45, 38], [50, 52]], .5);                                                     // inside the ears
+  trace([[168, 25], [163, 40], [157, 52]], .5);
+  trace([[55, 64], [66, 52], [80, 44], [92, 48], [104, 44], [118, 47], [134, 54], [150, 64]], .6);   // edge of her gray cap
+  trace([[60, 77], [68, 74], [78, 76], [88, 81]], .4); trace([[62, 78], [70, 86], [80, 88], [88, 83]], .4);       // heavy-lidded eyes
+  trace([[112, 81], [122, 77], [132, 76], [141, 78]], .4); trace([[113, 82], [120, 87], [132, 87], [140, 80]], .4);
+  trace([[84, 71], [91, 70], [96, 79], [95, 95], [92, 106], [86, 99], [82, 86], [84, 71]], .5);  // the gray patch by her nose
+  trace([[92, 106], [100, 104], [108, 106], [101, 117], [92, 106]], .3);                          // nose
+  trace([[101, 117], [100, 123], [95, 127]], .3); trace([[100, 123], [106, 127]], .3);            // mouth
+  for (const [a, b] of [[[86, 120], [38, 126]], [[86, 124], [42, 140]], [[118, 118], [172, 124]], [[118, 122], [166, 140]]]) trace([a, b], .6); // whiskers
+
+  // 4. ...and again after tracing, at low quality, to fit on a floppy
+  jpegCrush(d, W, H, 38);
+  s.putImageData(im, 0, 0);
+  $('scan').getContext('2d').drawImage(S, 0, 0);
+}
+
+// A real (tiny) JPEG round trip: colors shared per 2x2 pixels, 8x8 blocks, most detail thrown away.
+function jpegCrush(d, W, H, quality) {
+  const QY = [16,11,10,16,24,40,51,61,12,12,14,19,26,58,60,55,14,13,16,24,40,57,69,56,14,17,22,29,51,87,80,62,18,22,37,56,68,109,103,77,24,35,55,64,81,104,113,92,49,64,78,87,103,121,120,101,72,92,95,98,112,100,103,99];
+  const QC = [17,18,24,47,99,99,99,99,18,21,26,66,99,99,99,99,24,26,56,99,99,99,99,99,47,66,99,99,99,99,99,99].concat(Array(32).fill(99));
+  const sc = quality < 50 ? 5000 / quality : 200 - quality * 2;
+  const qt = t => t.map(v => Math.max(1, Math.min(255, Math.floor((v * sc + 50) / 100))));
+  const qy = qt(QY), qc = qt(QC);
+  const cos = [], al = u => u ? 1 : Math.SQRT1_2;
+  for (let x = 0; x < 8; x++) { cos[x] = []; for (let u = 0; u < 8; u++) cos[x][u] = Math.cos((2 * x + 1) * u * Math.PI / 16); }
+  const block = (plane, pw, ph, bx, by, q) => {
+    const f = new Float64Array(64), F = new Float64Array(64), t = new Float64Array(64);
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) f[y * 8 + x] = plane[Math.min(ph - 1, by + y) * pw + Math.min(pw - 1, bx + x)] - 128;
+    for (let y = 0; y < 8; y++) for (let u = 0; u < 8; u++) { let s = 0; for (let x = 0; x < 8; x++) s += f[y * 8 + x] * cos[x][u]; t[y * 8 + u] = s * al(u) / 2; }
+    for (let u = 0; u < 8; u++) for (let v = 0; v < 8; v++) { let s = 0; for (let y = 0; y < 8; y++) s += t[y * 8 + u] * cos[y][v]; F[v * 8 + u] = Math.round(s * al(v) / 2 / q[v * 8 + u]) * q[v * 8 + u]; }
+    for (let v = 0; v < 8; v++) for (let x = 0; x < 8; x++) { let s = 0; for (let u = 0; u < 8; u++) s += al(u) * F[v * 8 + u] * cos[x][u]; t[v * 8 + x] = s / 2; }
+    for (let x = 0; x < 8; x++) for (let y = 0; y < 8; y++) { let s = 0; for (let v = 0; v < 8; v++) s += al(v) * t[v * 8 + x] * cos[y][v]; const yy = by + y, xx = bx + x; if (yy < ph && xx < pw) plane[yy * pw + xx] = s / 2 + 128; }
+  };
+  const Y = new Float64Array(W * H), cw = Math.ceil(W / 2), ch = Math.ceil(H / 2), Cb = new Float64Array(cw * ch), Cr = new Float64Array(cw * ch), n = new Float64Array(cw * ch);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, r = d[i], g = d[i + 1], b = d[i + 2], j = (y >> 1) * cw + (x >> 1);
+    Y[y * W + x] = .299 * r + .587 * g + .114 * b;
+    Cb[j] += 128 - .168736 * r - .331264 * g + .5 * b; Cr[j] += 128 + .5 * r - .418688 * g - .081312 * b; n[j]++;
+  }
+  for (let j = 0; j < Cb.length; j++) { Cb[j] /= n[j]; Cr[j] /= n[j]; }
+  for (let by = 0; by < H; by += 8) for (let bx = 0; bx < W; bx += 8) block(Y, W, H, bx, by, qy);
+  for (let by = 0; by < ch; by += 8) for (let bx = 0; bx < cw; bx += 8) { block(Cb, cw, ch, bx, by, qc); block(Cr, cw, ch, bx, by, qc); }
+  const cl = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, j = (y >> 1) * cw + (x >> 1), yy = Y[y * W + x], cb = Cb[j] - 128, cr = Cr[j] - 128;
+    d[i] = cl(yy + 1.402 * cr); d[i + 1] = cl(yy - .344136 * cb - .714136 * cr); d[i + 2] = cl(yy + 1.772 * cb);
+  }
+}
+
+/* ================= the text ================= */
+const FONTS = [
+  { name: 'TIMELY ROMAN', css: "'Old Standard TT',Georgia,serif" },
+  { name: 'COMIC SANDS', css: "'Comic Neue','Comic Sans MS',cursive" },
+  { name: 'GOTHICK', css: "'UnifrakturMaguntia',serif" },
+  { name: 'FANCY SCRIPT', css: "'Pacifico',cursive" },
+  { name: 'DOS CLASSIC', css: "'VT323',monospace" },
+  { name: 'BILLBOARD', css: "'Bungee',Impact,sans-serif" },
+  { name: 'RANSOM NOTE', css: null },
+];
+const SIZES = [22, 30, 40, 52, 66, 84, 104];
+const WARPS = ['none', 'arch', 'wave', 'space', 'grow'];
+const WARP_NAMES = { none: 'NO WARP', arch: 'ARCH', wave: 'WAVE', space: 'OFF INTO SPACE', grow: 'GROWING' };
+const SPACINGS = [0, .18, .45, -.06];
+const COLORS = ['ink', 'red', 'rainbow', 'chrome'];
+const LOUD = ['#e0103a', '#ff8a00', '#e8c000', '#1aa84a', '#1a6aff', '#8a2be2', '#ff3d8b'];
+const SYMS = '☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼';
+const SENTENCES = ['Sadie thought she was a cow.', 'Please copy and share!', 'Hay is a vegetable.', 'Fonts! Fonts! Fonts!', 'Now with 256 colors.', 'This sentence fits.', 'The box is fine.', 'Coming soon: 1994!'];
+
+let st, round = 0, love = 0, goal = 0, changes = 0, busy = false;
+function freshStyle() { return { font: Math.floor(Math.random() * 3), bold: false, italic: false, underline: false, outline: false, shadow: false, warp: 0, size: 3, space: 0, color: 0, symbols: false }; }
+
+function render() {
+  const t = $('txt'), f = FONTS[st.font], text = SENTENCES[round % SENTENCES.length];
+  t.textContent = '';
+  t.style.fontFamily = f.css || FONTS[0].css;
+  t.style.fontSize = SIZES[st.size] + 'px';
+  t.style.fontWeight = st.bold ? 700 : 400;
+  t.style.fontStyle = st.italic ? 'italic' : 'normal';
+  t.style.letterSpacing = SPACINGS[st.space] + 'em';
+  t.style.transform = st.warp === 3 ? 'perspective(260px) rotateX(38deg)' : '';
+  t.style.transformOrigin = '50% 100%';
+  const chars = [...text], n = chars.length;
+  let si = 0;
+  chars.forEach((ch, i) => {
+    const s = document.createElement('span');
+    let shown = ch;
+    if (st.symbols && ch !== ' ') shown = SYMS[(ch.toLowerCase().charCodeAt(0) + si++) % SYMS.length];
+    s.textContent = ch === ' ' ? ' ' : shown;
+    if (st.underline) { s.style.textDecoration = 'underline'; s.style.textDecorationThickness = '.07em'; s.style.textUnderlineOffset = '.12em'; }
+    let fill = '#111';
+    if (COLORS[st.color] === 'red') fill = '#d0102a';
+    if (COLORS[st.color] === 'rainbow') fill = LOUD[i % LOUD.length];
+    if (COLORS[st.color] === 'chrome') { s.style.backgroundImage = 'linear-gradient(#ffffff 0%,#9aa0c8 45%,#2a2a5a 50%,#b8c0ff 80%,#ffffff)'; s.style.webkitBackgroundClip = 'text'; s.style.backgroundClip = 'text'; fill = 'transparent'; }
+    if (st.outline) { s.style.webkitTextStroke = Math.max(1, SIZES[st.size] / 40) + 'px ' + (fill === 'transparent' || fill === '#111' ? '#111' : fill); fill = 'transparent'; }
+    s.style.color = fill;
+    if (st.shadow) s.style.textShadow = `${Math.max(2, SIZES[st.size] / 16)}px ${Math.max(2, SIZES[st.size] / 16)}px 0 #9a96b8`;
+    if (!f.css) { // ransom note: every letter cut from a different magazine
+      const r = FONTS[(i * 5 + round) % 6]; s.style.fontFamily = r.css;
+      if (ch !== ' ') { s.style.background = ['#fff6a0', '#ffffff', '#d8f0ff', '#ffd8e8'][i % 4]; s.style.padding = '0 .05em'; s.style.margin = '0 .03em'; }
+      s.style.rotate = (((i * 37) % 13) - 6) + 'deg';
+    }
+    const u = n > 1 ? i / (n - 1) : 0, sz = SIZES[st.size];
+    if (WARPS[st.warp] === 'arch') { s.style.transform = `translateY(${-Math.sin(u * Math.PI) * sz * .9}px) rotate(${(u - .5) * -50}deg)`; }
+    if (WARPS[st.warp] === 'wave') { s.style.transform = `translateY(${Math.sin(i * .8) * sz * .3}px)`; }
+    if (WARPS[st.warp] === 'grow') { s.style.fontSize = (.45 + u * 1.1) + 'em'; }
+    t.appendChild(s);
+  });
+  requestAnimationFrame(fitView);
+}
+
+// place the box (always a bit too small), zoom the page so everything is visible
+let zoom = 1;
+function fitView() {
+  const t = $('txt'), z = $('zoomer'), doc = $('doc');
+  t.style.left = '0px'; t.style.top = '0px';
+  z.style.transform = `scale(${zoom})`;
+  const measure = () => {
+    const o = z.getBoundingClientRect(); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const s of t.children) { const r = s.getBoundingClientRect(); if (!r.width) continue; x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top); x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); }
+    return { x: (x0 - o.left) / zoom, y: (y0 - o.top) / zoom, w: (x1 - x0) / zoom, h: (y1 - y0) / zoom };
+  };
+  let m = measure();
+  // center the text on the zoomer's origin
+  t.style.left = (-m.x - m.w / 2) + 'px'; t.style.top = (-m.y - m.h / 2) + 'px';
+  m = measure();
+  const dw = doc.clientWidth, dh = doc.clientHeight;
+  zoom = Math.min(1, (dw - 36) / (m.w + 8), (dh - 50) / (m.h + 30));
+  z.style.transform = `scale(${zoom})`;
+  // the box: the fuller Sadie's meter, the closer it gets. Never close enough.
+  const v = love / 10;
+  const bw = Math.min(m.w * (0.74 + 0.22 * v), m.w - 5), bh = Math.min(m.h * (0.8 + 0.16 * v), m.h - 3);
+  const b = $('box');
+  b.style.width = bw + 'px'; b.style.height = bh + 'px';
+  b.style.left = (m.x + m.w / 2 - bw / 2) + 'px'; b.style.top = (m.y + m.h / 2 - bh / 2) + 'px';
+  const ov = $('over');
+  ov.textContent = `${Math.round(m.w - bw)} PX TOO WIDE ►`;
+  ov.style.left = (m.x + m.w / 2 + bw / 2) + 'px'; ov.style.transform = 'translateX(-100%)'; ov.style.top = (m.y + m.h / 2 + bh / 2 + 4) + 'px';
+  ov.style.fontSize = (10 / zoom) + 'px';
+  $('box').style.setProperty('--z', zoom);
+  $('stSize').textContent = `TEXT ${Math.round(m.w)}×${Math.round(m.h)}`;
+  $('stBox').textContent = `BOX ${Math.round(bw)}×${Math.round(bh)}`;
+  $('stZoom').textContent = `ZOOM ${Math.round(zoom * 100)}%`;
+}
+
+/* ================= Sadie's opinions ================= */
+const SAYS = {
+  font: { name: () => FONTS[st.font].name, facts: ['Every font lives in its own tiny folder. They fight if you put two together.', 'Fonts are made by pressing real letters into a warm floppy disk.', 'This font came on 11 floppy disks. The 11th one was just the letter Q.'] },
+  bold: { name: () => st.bold ? 'BOLD' : 'NOT BOLD', facts: ['Bold letters are regular letters that ate a big breakfast.', 'To make bold, the computer types every letter twice, really fast.'] },
+  italic: { name: () => st.italic ? 'ITALICS' : 'STRAIGHT LETTERS', facts: ['Italics are typed on a keyboard tilted exactly 12 degrees.', 'Italic letters lean because they are running late.'] },
+  underline: { name: () => st.underline ? 'UNDERLINE' : 'NO UNDERLINE', facts: ['The underline is its own letter. It is the widest letter there is.', 'Underlines hold the words up so they do not fall off the screen.'] },
+  outline: { name: () => st.outline ? 'OUTLINE' : 'FILLED IN', facts: ['Outline letters are hollowed out by hand with a tiny eraser.', 'The insides of outline letters get saved for later. Nothing is wasted.'] },
+  shadow: { name: () => st.shadow ? 'SHADOW' : 'NO SHADOW', facts: ['Shadows need a light bulb inside your monitor. Do not touch it, it is HOT.', 'Every shadow is really another letter wearing a gray coat.'] },
+  warp: { name: () => WARP_NAMES[WARPS[st.warp]], facts: ['Letters bend easier when the computer is warm. That is why it hums.', 'WarpArt was invented when somebody sat on a floppy disk. I was there.', 'The arch is load-bearing. Please do not remove it.'] },
+  bigger: { name: () => 'BIGGER', facts: ['Big letters use more electricity. You can hear it.', 'Every size of every letter is stored separately. There are 4,000 of them.'] },
+  smaller: { name: () => 'SMALLER', facts: ['Small letters are the same letters, just farther away.', 'Shrink a letter enough and it turns into a dot. Dots are letters too.'] },
+  squeeze: { name: () => 'SPACING', facts: ['Moving letters apart is called kerning. Kern is my cousin.', 'Letters do not mind being squeezed. They are used to living on disks.'] },
+  color: { name: () => ({ ink: 'BLACK', red: 'RED', rainbow: 'RAINBOW', chrome: 'CHROME' })[COLORS[st.color]], facts: ['Color text needs a color monitor AND a color keyboard.', 'Red letters are 3% heavier. It is science.', 'Chrome letters are polished once a week by the computer.'] },
+  symbols: { name: () => st.symbols ? 'SECRET SYMBOLS' : 'REGULAR LETTERS', facts: ['These are the secret letters. Only cats and printers can read them.', 'The computer hides these under the regular letters. Now you know.'] },
+};
+const UP = ['I LOVE this!', 'YES. More of that.', 'Ooh!', 'Beautiful!', 'THIS is what computers are for.', 'Gorgeous.'];
+const DOWN = ['Hmm.', 'Not sure about this.', 'Ehh...', 'I liked it before.', 'Interesting choice.', 'Oh. Okay.'];
+function say(html) { $('bubble').innerHTML = html; }
+
+/* ================= the meter: looks picky, it's a dice roll ================= */
+function drawMeter() {
+  const h = $('hearts');
+  if (!h.children.length) for (let i = 0; i < 10; i++) h.appendChild(document.createElement('i'));
+  [...h.children].forEach((e, i) => e.classList.toggle('on', i < love));
+  $('loveNum').textContent = `${love}/10`;
+  h.classList.remove('bump'); void h.offsetWidth; h.classList.add('bump');
+  const ready = love >= 10, fit = $('fit');
+  fit.disabled = !ready || busy; fit.classList.toggle('ready', ready && !busy);
+  $('fitSub').textContent = ready ? 'SHE LOVES IT!' : "SADIE ISN'T READY";
+}
+function roll() {
+  changes++;
+  const before = love;
+  if (changes >= goal) love = 10;
+  else {
+    let v = Math.round((changes / goal) * 10 + rnd(-2.5, 1.8));
+    if (Math.random() < .22) v = before - Math.ceil(rnd(1, 3)); // she changed her mind
+    love = Math.max(0, Math.min(9, v));
+  }
+  return love >= before;
+}
+
+const BRAGS = ['Did you SEE that anti-aliasing??', 'Rendered in only 0.4 seconds!', 'Letters: perfect. Box: probably fine.', 'No jaggies! (some jaggies)', 'Powered by the TurboType engine.', 'That kerning, though.', 'Smooth as a brand new mouse ball.'];
+
+function change(fx) {
+  if (busy || love >= 10 && fx === null) return;
+  switch (fx) {
+    case 'font': st.font = (st.font + 1) % FONTS.length; $('fontName').textContent = FONTS[st.font].name; break;
+    case 'bold': st.bold = !st.bold; break;
+    case 'italic': st.italic = !st.italic; break;
+    case 'underline': st.underline = !st.underline; break;
+    case 'outline': st.outline = !st.outline; break;
+    case 'shadow': st.shadow = !st.shadow; break;
+    case 'warp': st.warp = (st.warp + 1) % WARPS.length; break;
+    case 'bigger': st.size = Math.min(SIZES.length - 1, st.size + 1); break;
+    case 'smaller': st.size = Math.max(0, st.size - 1); break;
+    case 'squeeze': st.space = (st.space + 1) % SPACINGS.length; break;
+    case 'color': st.color = (st.color + 1) % COLORS.length; break;
+    case 'symbols': st.symbols = !st.symbols; break;
+  }
+  syncButtons();
+  render();
+  const wasFull = love >= 10;
+  const up = wasFull ? true : roll();
+  const S = SAYS[fx], name = S.name(), fact = pick(S.facts);
+  if (love >= 10 && !wasFull) say(`<b>${name}!!</b> PERFECT!! It's the most beautiful text I've ever seen. <b>PRESS THE BUTTON!!</b>`);
+  else if (wasFull) say(`<b>${name}!</b> Still perfect. ${fact} <b>Press FIT IT!</b>`);
+  else if (up) say(`<b>${name}!</b> ${pick(UP)} ${fact}`);
+  else say(`<b>${name}?</b> ${pick(DOWN)} ${fact}`);
+  $('stBrag').textContent = pick(BRAGS);
+  drawMeter();
+}
+function syncButtons() {
+  const on = { bold: st.bold, italic: st.italic, underline: st.underline, outline: st.outline, shadow: st.shadow, warp: st.warp > 0, squeeze: st.space > 0, color: st.color > 0, symbols: st.symbols };
+  document.querySelectorAll('#tools [data-fx]').forEach(b => { b.classList.toggle('on', !!on[b.dataset.fx]); b.disabled = busy; });
+  $('fontName').textContent = FONTS[st.font].name;
+}
+
+function newRound(first) {
+  if (!first) round++;
+  st = freshStyle(); love = 0; changes = 0; goal = 4 + Math.floor(Math.random() * 7); // 4 to 10 changes
+  syncButtons(); render(); drawMeter();
+  say(first ? "Hi! I'm Sadie. I <b>LOVE</b> text. Make this text fancy and I'll tell you how the computer does it."
+            : pick(["New sentence! It's so plain. Make it BEAUTIFUL.", 'Ooh, fresh words. Do something to them.', "This one looks like it's never been bolded. Poor thing."]));
+  $('stBrag').textContent = 'Ready.';
+}
+
+/* ================= FIT IT! ================= */
+const wait = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 250) : ms));
+function dialog(title, inner) {
+  const v = $('veil');
+  v.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-label="${title}"><i class="rivet a"></i><i class="rivet b"></i><i class="rivet c"></i><i class="rivet d"></i><div class="title"><span>${title}</span></div><div class="body">${inner}</div></div>`;
+  v.hidden = false;
+  v.querySelector('.dlg').scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  return v.querySelector('.body');
+}
+function closeDialog() { $('veil').hidden = true; $('veil').innerHTML = ''; }
+
+async function fitIt() {
+  if (busy || love < 10) return;
+  busy = true; syncButtons(); drawMeter();
+  say('Here we go! <b>Fingers crossed.</b> Paws crossed.');
+  const b = dialog('FITTING TEXT...', `<div id="step">Measuring letters...</div><div class="bar"><i id="barFill"></i></div>`);
+  $('txt').classList.add('push');
+  const steps = ['Measuring letters...', 'Calculating kerning...', 'Asking the box nicely...', 'Pushing...', 'Pushing HARDER...', 'Almost...'];
+  for (let i = 0; i < steps.length; i++) { $('step').textContent = steps[i]; $('barFill').style.width = ((i + 1) / steps.length * 100) + '%'; await wait(650); }
+  $('txt').classList.remove('push');
+  $('step').textContent = 'RESULT: The text does not fit.';
+  await wait(1300);
+  const pct = pick([104, 107, 112, 118, 121, 133, 150]);
+  b.innerHTML = `<div class="big">TEXT FIT: ${pct}%!</div><div class="mid">That's ${pct - 100}% MORE fit than fit!</div><div class="big" style="font-size:36px">YOU WIN!!</div><div class="paper" id="paper" aria-live="polite"></div><div class="row"><button type="button" id="nextBtn" hidden><kbd>ENTER</kbd>NEXT SENTENCE</button></div>`;
+  $('veil').querySelector('.title span').textContent = 'CONGRATULATIONS!';
+  say(pick(['<b>WE DID IT!!</b> Put it on the fridge.', "I knew it would fit. It didn't. <b>But I knew.</b>", '<b>A WINNER!</b> I will tell every cat I know.']));
+  const text = SENTENCES[round % SENTENCES.length];
+  const lines = ['* * * CERTIFICATE OF FITNESS * * *', '', 'This certifies that the text', `"${text}"`, `was fitted to ${pct}%.`, '', 'Signed,', 'SADIE', '🐾'];
+  const paper = $('paper');
+  for (const l of lines) { const dv = document.createElement('div'); dv.textContent = l || ' '; if (l === '🐾') dv.className = 'paw'; paper.appendChild(dv); await wait(380); }
+  const nb = $('nextBtn'); nb.hidden = false; nb.focus();
+  nb.onclick = () => { closeDialog(); busy = false; newRound(false); };
+}
+
+/* ================= help, readme ================= */
+function info(title, text, btn = 'OK') {
+  const b = dialog(title, `<pre class="readme">${text}</pre><div class="row"><button type="button" id="okBtn"><kbd>ENTER</kbd>${btn}</button></div>`);
+  $('okBtn').onclick = closeDialog; $('okBtn').focus();
+}
+const README = `TYPEFITTER DELUXE 3.1
+(c) 1993 Pixley Type Works. Please copy & share!
+
+Hi! Thank you for trying TypeFitter.
+
+I spent two years on the text engine and about
+ten minutes on the box. So: the text does not
+fit in the box. It will never fit in the box.
+I checked. Many times.
+
+But LOOK at that kerning.
+
+You win anyway. Every time. That's the deal.
+
+ - Dale Pixley, author
+
+P.S. Sadie is my cat. She knows everything
+about fonts. Most of it is wrong.`;
+const HELP = `HOW TO PLAY TYPEFITTER
+
+1. Make the text fancy with the buttons.
+2. Sadie tells you what she thinks.
+3. When her TEXT LOVE meter is full,
+   press FIT IT!
+4. It won't fit.
+5. You win.`;
+
+/* ================= wire up ================= */
+$('tools').addEventListener('click', e => { const b = e.target.closest('[data-fx]'); if (b) change(b.dataset.fx); });
+$('fit').addEventListener('click', fitIt);
+$('readmeKey').addEventListener('click', () => { if (!busy) info('README.TXT', README); });
+$('helpKey').addEventListener('click', () => { if (!busy) info('HELP', HELP); });
+$('escKey').addEventListener('click', () => { if (!busy) info('BACK TO THE CLUBHOUSE', 'In the real thing, this goes back to\nthe clubhouse shelf. This is a mock-up,\nso there is nowhere to go.'); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'F1') { e.preventDefault(); $('helpKey').click(); }
+  if (e.key === 'F5') { e.preventDefault(); $('readmeKey').click(); }
+  if ((e.key === 'Escape' || e.key === 'Enter') && !$('veil').hidden && $('okBtn')) { e.preventDefault(); closeDialog(); return; }
+  if (e.key === 'Enter' && $('nextBtn') && !$('nextBtn').hidden) { e.preventDefault(); $('nextBtn').click(); return; }
+  if (!$('veil').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  const fx = { F2: 'font', b: 'bold', i: 'italic', u: 'underline', o: 'outline', s: 'shadow', w: 'warp', '+': 'bigger', '=': 'bigger', '-': 'smaller', k: 'squeeze', c: 'color', y: 'symbols' }[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+  if (fx) { e.preventDefault(); change(fx); }
+  if (e.key === ' ' && love >= 10 && !busy && !e.target.closest('button')) { e.preventDefault(); fitIt(); }
+});
+addEventListener('resize', () => requestAnimationFrame(fitView));
+
+drawScan();
+newRound(true);
+// load every font up front, so switching fonts never shows a stand-in
+if (document.fonts) Promise.all(["Old Standard TT", "Comic Neue", "UnifrakturMaguntia", "Pacifico", "VT323", "Bungee", "Courier Prime"].flatMap(f => [`400 40px "${f}"`, `700 40px "${f}"`, `italic 400 40px "${f}"`].map(q => document.fonts.load(q).catch(() => {}))))
+  .then(() => { render(); });
+})();
+</script>

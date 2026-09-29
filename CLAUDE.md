@@ -69,12 +69,16 @@ how anything looks, also read `docs/ART_STYLE.md` (the approved 90s look, going 
   sometimes the hardware pushes back: slowing down is fine, stuttering isn't.
 - One feature at a time. Make sure it's fun before the next.
 
-## Next up (the owner's note, left 2026-09-28)
-The next activity is a **text-fitting activity**: a new activity of its own in the Play Place (its
-own folder in `src/activities/`, its own box on the clubhouse shelf). The catch: it's actually
-impossible for the player to fit the text into the box. (It's a joke on the long fight to make
-Dropper World's dashboard text fit its boxes.) Start the way Dropper World's 90s screen started:
-talk through how it would work, then a mock-up, before building.
+## The second activity: TypeFitter Deluxe 3.1 (built 2026-09-28)
+A text-fitting activity where the text can never fit its box, on purpose (a joke on the long fight
+to make Dropper World's dashboard text fit). The owner's rules for it: it's obviously broken on
+purpose, never by accident; the player always wins anyway; it shows off 90s text tricks (fresh
+after DOS); no puzzle, nothing for the game or the player to keep track of; nothing carried over
+from Dropper World's mechanics; Sadie is a flat, static picture traced from her real photo
+(dithered, few colors, badly compressed, no outline round her) with a speech bubble of made-up
+facts. The design pillars above are Dropper World's; TypeFitter's are these. Details in
+`docs/ARCHITECTURE.md`, `docs/TUNING.md` and `docs/ART_STYLE.md`; the approved mock-up is
+`art/typefitter/mockup.html`.
 
 ## Parked ideas (don't start unless asked)
 Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building

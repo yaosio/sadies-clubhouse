@@ -1,0 +1,60 @@
+<!-- TypeFitter's screen: the clubhouse puts this in the page when the activity starts.
+     A DOS program that invented its own look, straight in the Play Place's candy-purple frame (no
+     windows): the top strip (the clubhouse's ESC BACK key sits in its left end), the tool buttons,
+     the page with the text and its box, Sadie's corner (her picture, her speech bubble, the TEXT
+     LOVE meter, FIT IT!), the LED sign and the key bar. On a phone, Sadie's corner goes under the page. -->
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=VT323&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400;1,700&family=Comic+Neue:ital,wght@0,400;0,700;1,400;1,700&family=UnifrakturMaguntia&family=Pacifico&family=Bungee&family=Courier+Prime&display=swap" rel="stylesheet">
+<div id="tf">
+  <i class="rivet a"></i><i class="rivet b"></i><i class="rivet c"></i><i class="rivet d"></i>
+  <header class="top">
+    <span class="back-slot"></span>
+    <span class="mlogo">TYPEFITTER <small>DELUXE 3.1</small></span>
+    <div class="plaque"><b>SHAREWARE V3.1</b><span>PLEASE COPY &amp; SHARE!</span></div>
+  </header>
+
+  <div class="tools sunk" id="tools">
+    <button class="tool font" type="button" data-fx="font" title="Change the font (F2)"><kbd>F2</kbd>FONT<b id="fontName">TIMELY ROMAN</b></button>
+    <button class="tool" type="button" data-fx="bold" title="Bold (B)"><kbd>B</kbd><span class="g"><b>B</b></span>BOLD</button>
+    <button class="tool" type="button" data-fx="italic" title="Italic (I)"><kbd>I</kbd><span class="g"><i>I</i></span>ITALIC</button>
+    <button class="tool" type="button" data-fx="underline" title="Underline (U)"><kbd>U</kbd><span class="g"><u>U</u></span>UNDER</button>
+    <button class="tool" type="button" data-fx="outline" title="Outline (O)"><kbd>O</kbd><span class="g hollow">O</span>OUTLINE</button>
+    <button class="tool" type="button" data-fx="shadow" title="Shadow (S)"><kbd>S</kbd><span class="g shade">S</span>SHADOW</button>
+    <button class="tool" type="button" data-fx="warp" title="WarpArt (W)"><kbd>W</kbd><span class="g warp">⌒A</span>WARPART</button>
+    <button class="tool" type="button" data-fx="bigger" title="Bigger (+)"><kbd>+</kbd><span class="g">A<sup>+</sup></span>BIGGER</button>
+    <button class="tool" type="button" data-fx="smaller" title="Smaller (-)"><kbd>−</kbd><span class="g small">A<sup>−</sup></span>SMALLER</button>
+    <button class="tool" type="button" data-fx="squeeze" title="Letter spacing (K)"><kbd>K</kbd><span class="g small">A↔A</span>SPACING</button>
+    <button class="tool" type="button" data-fx="color" title="Color (C)"><kbd>C</kbd><span class="g rainbow">A</span>COLOR</button>
+    <button class="tool" type="button" data-fx="symbols" title="Secret symbols (Y)"><kbd>Y</kbd><span class="g">♣☺</span>SYMBOLS</button>
+  </div>
+
+  <div class="docwrap sunk">
+    <div class="ruler" aria-hidden="true"></div>
+    <div class="doc" id="doc"><!--@badge-->
+      <div class="zoomer" id="zoomer">
+        <div class="box" id="box"></div>
+        <div class="txt" id="txt" aria-live="polite"></div>
+        <div class="over" id="over"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sadie sunk">
+    <div class="scan"><canvas id="scan" width="128" height="109" aria-label="Sadie, her photo traced over by hand, squashed to a few colors and badly compressed"></canvas><small>SADIE.JPG · 16 COLORS · 3 KB</small></div>
+    <div class="bubble" id="bubble" aria-live="polite"></div>
+    <div class="meter"><div class="lab"><span>TEXT LOVE</span><span id="loveNum">0/10</span></div><div class="hearts" id="hearts"></div></div>
+    <button class="fit" type="button" id="fit" disabled>FIT IT!<small id="fitSub">SADIE ISN'T READY</small></button>
+  </div>
+
+  <div class="led sunk">
+    <span id="stSize">TEXT 0X0</span>
+    <span id="stBox">BOX 0X0</span>
+    <span class="brag" id="stBrag">READY.</span>
+    <span class="zoom" id="stZoom">ZOOM 100%</span>
+  </div>
+
+  <nav class="keys">
+    <button class="key" type="button" id="helpKey"><kbd>F1</kbd> HELP</button>
+    <button class="key" type="button" id="readmeKey"><kbd>F5</kbd> README.TXT</button>
+  </nav>
+  <div class="veil" id="veil" hidden></div>
+</div>

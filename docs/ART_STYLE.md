@@ -100,6 +100,25 @@ tried way too hard:
   strip for news; on a wide screen, sideways, it's a column down the right. Fonts: Silkscreen
   (blocky capitals, which the owner loves) for labels, VT323 (a DOS screen) for sentences. No
   next-piece display (the owner said no). Board pictures for mock-ups come from
-  `tools/dropper-world/board-shot.mjs`. The frame lives in Dropper World for now; it moves to
-  the Play Place's toolbox once a second activity needs it.
+  `tools/dropper-world/board-shot.mjs`. The frame lives in Dropper World; TypeFitter has
+  its own copy of its look (moving it into the toolbox would mean retesting every activity, so it
+  waits until the frame next changes in both).
+
+## TypeFitter Deluxe 3.1 (approved mock-up: `art/typefitter/mockup.html`)
+- **No windows.** It's a DOS program that invented its own look, like Dropper World: its parts sit
+  straight in the Play Place's candy-purple frame (no title bars, menu bars or close boxes; the
+  owner turned a Windows-style window down). Tool buttons are chunky candy stamps showing the key
+  that works them, gold when on; the page is sunk into the frame; a green LED sign for the numbers
+  and the bragging; pop-ups are candy panels with gold rivets.
+- **The text shows off**: real fonts (a Times-ish serif, a Comic-ish one, gothic, a script, the DOS
+  one, a loud billboard one, a ransom note of all of them), bold, italic, underline, outline,
+  shadow, WarpArt (arch, wave, off into space, growing), spacing, color (red, rainbow, chrome) and
+  secret symbols. Brand names are made up (TIMELY ROMAN, COMIC SANDS, WARPART).
+- **Sadie is a flat picture**, not drawn like in Dropper World: her real photo (the loaf on the
+  brown blanket), shrunk to 128x109, 16 colors with a dot pattern, traced over by mouse (wobbly
+  lines on her eyes, nose patch, nose, mouth, whiskers, cap and inside her ears, a little off,
+  some gone over twice; no outline round her, the owner took it off), then JPEG-crushed twice.
+  It never moves; only her speech bubble changes. Shown at 2x on a wide screen, 1x on a phone.
+- **Its box on the shelf**: a white page, a red dashed box, big letters spilling out of it, a gold
+  band saying TYPEFITTER (drawn by `art/play-place/pictures.py`).
 

@@ -2,6 +2,7 @@
 # mock-ups, and writes them where the game's build picks them up, as small PNGs inside JS files:
 #   src/clubhouse/pictures.js                 the room, Sadie, the locked boxes, the logo...
 #   src/activities/dropper-world/box.js       the front of Dropper World's box on the shelf
+#   src/activities/typefitter/box.js          the front of TypeFitter's box on the shelf
 # Run after changing a drawing (pip install pillow): python3 art/play-place/pictures.py
 import base64, io, json, math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -35,6 +36,26 @@ def wood():
             put(x, y, tone(x, y, cb.WOOD, 2.4 + 0.9 * g - (0.6 if (y % 11 == 0) else 0)))
 A['wood'] = png(wood, 32, 32)
 BOX = png(lambda: c3._dropper(40, 44), 40, 44)
+def typefitter_box(w=40, h=44):
+    # TypeFitter's box: a white page, a red dashed box, big letters spilling out of it, a gold band
+    band = 8
+    for y in range(h):
+        for x in range(w): put(x, y, ramp(x, y, [(0, '#6a44c8'), (1, '#2a1766')], y / h))
+    for y in range(3, h - band - 3):
+        for x in range(4, w - 4): put(x, y, '#dfe8ff' if (y - 3) % 5 == 4 else '#fffef8')
+    for x in range(4, w - 4): put(x, h - band - 3, '#1a0f40')
+    for y in range(3, h - band - 2): put(w - 4, y, '#1a0f40')
+    for x in range(8, 27):
+        if x % 3 != 2: put(x, 10, '#e0103a'); put(x, 23, '#e0103a')
+    for y in range(10, 24):
+        if y % 3 != 2: put(8, y, '#e0103a'); put(26, y, '#e0103a')
+    text(10, 12, 'ABC', '#111111', '#9a96b8', 2)
+    for y in range(h - band - 1, h):
+        for x in range(w): put(x, y, tone(x, y, ['#9a6a00', '#ffcf3a', '#fff3a8'], 1.4))
+    text(w // 2 - text_w('TYPEFITTER') // 2, h - band + 1, 'TYPEFITTER', '#1a0f40')
+    for x in range(w): put(x, 0, '#ffffff')
+    for y in range(h): put(0, y, '#ffffff')
+TF_BOX = png(typefitter_box, 40, 44)
 A['card'] = png(lambda: c3._card(34, 26), 34, 26)
 def locked():
     for y in range(44):
@@ -132,3 +153,5 @@ write('src/clubhouse/pictures.js', "The clubhouse's pictures: the 3D room's text
       'export default {\n' + ''.join(f'  {k}: {json.dumps(v)},\n' for k, v in A.items()) + '};')
 write('src/activities/dropper-world/box.js', "The front of Dropper World's box on the clubhouse shelf, as a PNG.",
       f'export default {json.dumps(BOX)};')
+write('src/activities/typefitter/box.js', "The front of TypeFitter's box on the clubhouse shelf, as a PNG.",
+      f'export default {json.dumps(TF_BOX)};')
