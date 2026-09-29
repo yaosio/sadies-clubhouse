@@ -3,8 +3,8 @@
 // and runs one at a time.
 //
 // The build finds the activities by their folders, so adding one never changes this file. The page
-// opens on the clubhouse menu (src/clubhouse/), a 3D room with a box per activity; PLAY! takes the
-// menu out and puts the activity in. An address naming an activity after the # (#dropper-world)
+// opens in Sadie's mansion (src/clubhouse/), with a room per activity; using an activity's computer
+// takes the mansion out and puts the activity in. An address naming an activity after the # (#dropper-world)
 // goes straight into it. Every activity gets an ESC BACK key in its top left corner (Escape does the
 // same, unless the activity used it for something, like closing a panel): it reloads the page into
 // the clubhouse, so an activity never has to tidy up after itself (it saves when the page goes away).
@@ -41,4 +41,4 @@ async function enter(card) {
 
 const wanted = cards.find(c => c.id === location.hash.slice(1));
 if (wanted) enter(wanted);
-else import('./clubhouse/menu.js').then(menu => menu.open(cards, enter));
+else import('./clubhouse/mansion.js').then(mansion => mansion.open(cards, enter));

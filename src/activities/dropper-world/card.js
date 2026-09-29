@@ -10,5 +10,6 @@ export default {
   page, styles,
   box: { front, side: 0xc8127a, top: 0xffffff },
   blurb: ['A MOLE DROPS JELLY ON EVERYTHING.', 'SADIE CLIMBS THE PILE FOR HAY.'],
+  keeps: ['sadies-dropper-world.', 'jellystack.', 'sadie.'],   // what it saves in the browser (the test version can clear it)
   start: () => import('./main.js'),
 };

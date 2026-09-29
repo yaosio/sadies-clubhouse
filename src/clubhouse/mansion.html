@@ -1,0 +1,28 @@
+<!-- The mansion's screen: src/clubhouse/mansion.js puts it in the page, and takes it out again when
+     an activity starts. On screen there's only the pause button, a hint at a door or a computer,
+     and on a phone the thumb stick: the mansion is the whole screen. -->
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<div id="mansion">
+  <canvas id="view" aria-label="Sadie's mansion, in 3D"></canvas>
+  <button id="pause" class="hud" aria-label="Pause"></button>
+  <div id="keysHint" class="hud"><kbd>W A S D</kbd> WALK &nbsp; <kbd>MOUSE</kbd> LOOK (CLICK FIRST)</div>
+  <div id="useHint" class="hud" hidden><kbd>E</kbd> <span></span></div>
+  <div id="stick" class="hud" hidden><i></i></div>
+  <button id="use" class="hud" hidden>GO</button>
+  <div id="flash" hidden></div>
+  <div id="letter" hidden>
+    <div class="card"><canvas id="letterArt" width="240" height="152"></canvas><button id="ok">OK</button></div>
+  </div>
+  <div id="menu" hidden>
+    <div class="panel">
+      <h2>PAUSED</h2>
+      <button id="resume">RESUME</button>
+      <p class="how" id="how"></p>
+      <div id="dev" hidden>
+        <h3>TEST VERSION: START OVER</h3>
+        <div id="resets"></div>
+      </div>
+    </div>
+  </div>
+  <!--@badge-->
+</div>

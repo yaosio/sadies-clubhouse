@@ -20,8 +20,8 @@
 // published after passing, and it carries its own source. So with --live (the page read before
 // publishing anyway), an activity whose code the change doesn't touch skips its tests.
 //
-// The browser checks always build the page and play the clubhouse menu (tests/clubhouse/browser.mjs:
-// quick, and it shows every activity's box, so it runs every time). Screenshots go in
+// The browser checks always build the page and walk round Sadie's mansion, the clubhouse
+// (tests/clubhouse/browser.mjs: under a minute, and it has every activity's door, so it runs every time). Screenshots go in
 // dist/check/clubhouse/ and dist/check/<activity>/ to look at.
 //
 // Needs Playwright with Chromium (already on Claude's cloud machines; not a project dependency).
@@ -135,7 +135,7 @@ await new Promise(ok => server.listen(0, '127.0.0.1', ok));
 const page = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch();
 
-// the clubhouse menu: every time, since it shows every activity's box (a few seconds)
+// the mansion: every time, since it has every activity's door (under a minute)
 console.log('\n== the clubhouse in a browser');
 {
   const dir = join(outDir, 'clubhouse');

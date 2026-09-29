@@ -8,10 +8,10 @@ World is the first activity. Plain ES modules in `src/`, bundled by esbuild into
 
 ```
 src/main.js, src/index.html     the clubhouse: the shell every activity runs in
-src/clubhouse/                  the clubhouse menu: a 3D room with a box per activity on its shelves
+src/clubhouse/                  Sadie's mansion: the 3D clubhouse you walk round, a room per activity
 src/activities/<name>/          one folder per activity: everything that's only its own
 src/shared/                     the toolbox: the few things more than one activity needs
-tests/<name>/                   each activity's own checks (tests/clubhouse/: the menu's)
+tests/<name>/                   each activity's own checks (tests/clubhouse/: the mansion's)
 tools/<name>/                   each activity's own tools
 ```
 
@@ -23,36 +23,61 @@ activity is checked again, so something moves into it only once a second activit
 
 - **An activity** is a folder in `src/activities/` with a `card.js`: its `id` (the folder name),
   `name`, `page` (its HTML, from `page.html`), `styles` (its CSS, from `styles.css`), `start()`,
-  which loads the rest of it, and for the menu `box` (its box on the shelf: `front`, a picture,
-  and `side` and `top` colours) and `blurb` (the lines the menu's LED board shows under its name,
-  in capitals, up to about 34 letters each). None of an activity's code runs until `start()` is called (the build
+  which loads the rest of it, and for the mansion `box` (`front`, a picture: on its computer's
+  screen and its poster; `side`, a colour: its door's frame and its room's walls), and `keeps` if it
+  saves anything (the start of its storage keys, for the test version's start-over buttons). `top`
+  and `blurb` were for the old shelf menu and aren't used now. None of an activity's code runs until `start()` is called (the build
   keeps it waiting), so its modules can look up its page's elements as they load.
 - **The clubhouse** (`src/main.js`) gets every card from the build (`import cards from
   'activities'`: `tools/build.mjs` makes that list from the folders, in folder order, so adding an
-  activity never touches the clubhouse). The page opens on the menu; an address naming an activity
+  activity never touches the clubhouse). The page opens in the mansion; an address naming an activity
   after the `#` (`#dropper-world`, used by its checks) goes straight into it. It runs one activity
   at a time: it puts that activity's styles and page in, then calls `start()`. It also puts
-  an ESC BACK key in the activity's top left corner (its own look, in the menu's keycap style; an
+  an ESC BACK key in the activity's top left corner (its own look, in a candy keycap style; an
   activity keeps that corner free). Pressing it, or Escape when the activity didn't use the key for
   something itself (`preventDefault()`, like Dropper World closing its dev sheet), reloads the page
   into the clubhouse, so an activity never has to tidy up after itself (its timers, listeners and
   loop just stop). It must save when the page goes away (`pagehide`), as Dropper World does.
-- **The menu** (`src/clubhouse/`, loaded only when the page opens on it) is the clubhouse room in
-  crappy late-90s 3D, made with three.js (the one library, bundled into the page): `room.js` builds
-  the room and the PS1 look (corners snapping to the pixel grid, swimming textures, few colours
-  with dithering, all in its one material), `menu.js` the rest (it only resizes the drawing when the room's size really changes, and draws it again at once, so it never flashes black; the LED board is one fixed size, a whole number of lines, so its typing never squeezes the room, and it steps its lines up when they don't all fit): walking and looking, tapping a box
-  to go and see it, the LED board, the F-keys and PLAY!. Every activity gets a box, in folder order,
-  on the back-wall shelf (6 cubbies), then on the side-wall shelf (MORE SHELVES); empty cubbies get
-  locked "under construction" boxes and a "coming soon" card. PLAY! shows a loading bar, then takes
-  the whole menu out of the page (its screen, look, listeners and 3D drawing) before the activity
-  comes in. Its pictures (`pictures.js`, and Dropper World's `box.js`) are drawn by
-  `art/play-place/pictures.py`; never edit them by hand.
+- **The mansion** (`src/clubhouse/`, loaded only when the page opens on it) is Sadie's clubhouse
+  in crappy late-90s 3D, made with three.js (the one library, bundled into the page). It's made of
+  separate **places**, each its own scene with its own floor and light: `outside.js` (the garden
+  and the house's shell), `hall.js` (the entrance hall: the bottom of the cat tree) and `room.js`
+  (an activity's room, one per card). Places are joined only by **doorways** (`build.js`): a hole
+  in a wall, two leaves that swing open, and a shallow box behind the hole whose inside shows the
+  other place. Each frame, the nearest open doorway in front of you has the other place drawn into
+  a picture the size of the screen, from where you'd be if you'd already walked through (its near
+  plane tilted to lie in the far doorway, so nothing on the near side of it shows); the box looks
+  that picture up by screen position. Walking across a doorway moves you to the same spot on the
+  other side, turned round. So there are no loading screens, a place can be any size (bigger inside
+  than out), and changing one place never touches another. Only the place you're in, and through
+  one doorway, get drawn. A door opens only when you walk up to it facing it (one at a time), and
+  closes behind you.
+  - `mansion.js`: you (walking, the eye following steps smoothly), the controls (WASD/arrows; the
+    mouse, locked to the view after a click, or dragging if the browser won't lock it; on a phone a
+    thumb stick on the left, dragging on the right; E, or the button on a phone, to use), the
+    doorways, using the computer (you lean in until the screen fills the view, then the mansion
+    leaves the page and the activity comes in; it notes which one in `sessionStorage`, so coming
+    back puts you at that computer), Sadie's letter (`mansion.invited`: the first time only), the
+    pause menu (Esc or the pause button; in the test version, found by its label, it also starts
+    over everything, the invitation, or an activity's saves), and `window.__mansion` for the checks.
+  - `look.js`: the PS1 material (corners snapping to the pixel grid, swimming textures, light per
+    corner, few colours with dithering), the doorway and sky materials, and every texture, drawn
+    on little canvases when it opens. `pictures.js` (Sadie's sprite; drawn by
+    `art/play-place/pictures.py`, never edited by hand) is still where her picture comes from.
+  - The hall: sixteen flat walls, three storeys. The first landing has a door per activity, in
+    folder order starting where the stairs come out (`SLOTS`: six so far), and boarded-up ones for
+    the next; the second landing is still being built. More activities than that will need the
+    second landing finished. Walking: the floor under you is worked out per place (`floor(x, z,
+    y)`: the ground, each tread, the bridge, the landing); a step is at most half a metre, so the
+    railings and the landing's edge hold you in by themselves.
+  - It only resizes the drawing when the screen's size really changes, and draws again at once.
 - **Saves** belong to each activity: its keys start with its own name (Dropper World's is
   `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
-  uses `sadies-play-place.<id>.` for its keys. Only an activity knows whether it saves anything,
-  and the clubhouse never shows it.
-- **The test version's label** goes where an activity's `page.html` says `<!--@badge-->` (at the
-  end of the page if none does).
+  uses `sadies-play-place.<id>.` for its keys, and lists what its keys start with in its card's
+  `keeps` (only the test version's start-over buttons use it; players never see it). The
+  mansion's own keys start with `mansion.`.
+- **The test version's label** goes where an activity's `page.html` (or the mansion's
+  `mansion.html`) says `<!--@badge-->` (at the end of the page if none does).
 - **The toolbox** (`src/shared/`) so far: `storage.js`, a safe localStorage wrapper (get, set,
   remove; never throws). The one place that touches browser storage, so a different home for saves
   (itch.io, a desktop app) only changes this file.
@@ -152,11 +177,12 @@ simulation needs to tell the screen something, it emits an event (below).
 | `input/controls.js` | Escape closes the dev sheet, help or the toy box (before the clubhouse gets it); F1 opens help. No game controls, and no way to move, spin or drop pieces: the mole decides all that. |
 | **tests/ and tools/** | |
 | `tests/run.mjs` | `npm test`: every activity's headless checks, one activity after another (`npm test -- dropper-world` for one). |
-| `tests/clubhouse/browser.mjs` | The menu in headless Chromium as a phone and a desktop (run by `tools/check.mjs` every time: a few seconds): the room draws, the first activity is chosen, tapping a locked box and Sadie, MORE SHELVES there and back, walking with the arrow pad, and PLAY! starting Dropper World with the menu gone from the page, ESC BACK returning to the menu with the tower saved, and Escape going back from a page opened at `#dropper-world`. Fails on any page error; screenshots in `dist/check/clubhouse/`. |
+| `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` every time: under a minute): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, and the start-over buttons (only in the test version). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
+| `tools/clubhouse/shots.mjs` | Pictures of the mansion from its main spots (the gate, the front door from both sides, the hall, the stairs, the landing, an activity's door and room), as a desktop and a phone, from the built page: `dist/shots/clubhouse/`. |
 | `tests/dropper-world/run.mjs` | Dropper World's headless checks: the real simulation in Node, seeded. Each numbered section runs in its own process, several at once, about 3.5 minutes in all (`--section=N` runs one). |
 | `tests/dropper-world/browser.mjs` | Dropper World in headless Chromium as a phone and a desktop (run by `tools/check.mjs`): new game (the mole digging up the first hay), the frame giving the board most of the screen with none of the old modern bits left, tapping Sadie and the mole (the dashboard shows them, faces drawn), Chooter peeking in, the dev sheet, a full board loaded from a save and reloaded, and how smooth that board is on a phone 4x slower. Fails on any page error; screenshots in `dist/check/dropper-world/`. |
 | `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html` (the clubhouse and every activity), with the source embedded. Squeezed small (three.js is big); the readable source is what's embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
-| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the menu's checks (every time), then each activity's browser checks. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus the clubhouse's shell (files directly in `src/`, not the menu), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. |
+| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the mansion's checks (every time), then each activity's browser checks. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus the clubhouse's shell (files directly in `src/`, not the mansion), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. |
 | `tools/dropper-world/fullboard.mjs` | A save of a full board (14 minutes of real play, about 400 pieces, bedrock melting). Its browser checks make one when `core/` changes and keeps it in `dist/`. Handy for any experiment that needs a big tower. |
 | `tools/dropper-world/profile.mjs` | Where the time goes: plays the full board in headless Chromium as a phone slowed down 4x (`--slow N`, `--desktop`, `--seconds N`, `--zoom` to keep zooming in and out, `--zoomed-out` to look at the whole tower), and prints how even the frames are, the game speed (under 100% when it slows down to keep up), which functions take the most time overall and in the slowest frames, and what the browser does besides (garbage collection, putting the picture on screen). A hidden browser has no graphics card, so it blows the pixels up to screen size on the processor ("Commit" in its main-thread events), which a real phone's graphics chip does for free; the game's own code is measured fairly. (Its `--use-angle=swiftshader` pretend graphics chip was tried: far too slow to tell anything.) `--slow 2` is the better guide to a real phone. |
 | `tools/dropper-world/physics-load.mjs` | How hard the physics works on the full board, in Node: one step's cost with few, some and many pieces awake, and how many pieces each drop wakes and for how long. For judging physics speed-ups. |
