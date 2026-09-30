@@ -53,12 +53,12 @@ export function buildOcean(m, copyOf) {
     for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) px(g, dot(x, y) < 0.3 ? '#1a3a90' : '#123080', x, y);
     for (const [x, y] of [[4, 6], [20, 3], [12, 22], [27, 17]]) px(g, '#2a5ab0', x, y, 2, 1);
   });
-  plane(2400, 2400, psx(bed, { rx: 300, ry: 300 }), [0, SEABED, 0], [-Math.PI / 2, 0, 0], 24);
+  plane(2400, 2400, psx(bed, { rx: 300, ry: 300 }), [0, SEABED - 0.5, 0], [-Math.PI / 2, 0, 0], 24);   // (well under the sand, so they never flicker)
   // sand under the shallows: round each spot, and round where the boat comes up
   const sand = tex(16, 16, g => { px(g, '#f0d890', 0, 0, 16, 16); for (let i = 0; i < 40; i++) px(g, i % 3 ? '#d8b868' : '#fff0c0', (i * 7) % 16, (i * 11) % 16); });
   for (const s of SPOTS) {
     const r = s.id === 'mountain' ? 9 : s.r + 18;
-    cyl(r, r, 0.04, 16, psx(sand, { rx: r / 2, ry: r / 2 }), [s.x, SEABED + 0.01, s.z]);   // (just under the copy's sand)
+    cyl(r, r, 0.6, 16, psx(sand, { rx: r / 2, ry: r / 2 }), [s.x, SEABED - 0.29, s.z]);   // (its top just under the copy's sand)
   }
 
   // ---------- the copy of the tank's floor (the room hands over what to copy), and its swaying weed ----------
@@ -140,16 +140,30 @@ export function buildOcean(m, copyOf) {
   // the mountain: really about as big as a sandcastle, on its own sandbar, with Sadie sitting on top
   const mountain = new Group(); sea.add(mountain);
   cyl(2.3, 2.6, 0.3, 12, psx(sand, { rx: 2 }), [0, 0.05, 0]);   // the sandbar (not looming: it stays when the mountain's taken)
+  // (its foot is a little under the water, so however big it's drawn it stands in the sea; each snowy
+  // top is the same cone as its peak, a size bigger, so the two never flicker through each other)
   { const k = kit(mountain), stone = psx(T.stone, { rx: 1, ry: 1, tint: 0xb8a8e8 }), snow = solid(0xffffff, { unlit: 0.2 });
-    k.cone(1.15, MT, 7, stone, [0, MT / 2 + 0.1, 0]);
-    k.cone(0.6, MT * 0.62, 6, stone, [0.75, MT * 0.31 + 0.1, 0.3]);
-    k.cone(0.55, MT * 0.55, 6, stone, [-0.7, MT * 0.27 + 0.1, -0.25]);
-    k.cone(0.34, MT * 0.3, 7, snow, [0, MT * 0.85 + 0.1, 0]);
-    k.cone(0.2, MT * 0.17, 6, snow, [0.75, MT * 0.54 + 0.1, 0.3]);
+    const FOOT = -0.05;
+    const peak = (r, h, n, x, z, cap) => {
+      k.cone(r, h, n, stone, [x, FOOT + h / 2, z]);
+      if (cap) { const hc = h * cap * 1.12; k.cone(r * cap * 1.12, hc, n, snow, [x, FOOT + h + h * cap * 0.05 - hc / 2, z]); }
+    };
+    peak(1.15, MT, 7, 0, 0, 0.3);
+    peak(0.6, MT * 0.62, 6, 0.75, 0.3, 0.28);
+    peak(0.55, MT * 0.55, 6, -0.7, -0.25, 0);
   }
   findMesh.mountain = mountain;
   const sadie = new Mesh(keep(new PlaneGeometry(0.62, 0.56)), psx(T.sadie, { unlit: 0.25 }));
   sadie.geometry.translate(0, 0.28, 0); sea.add(sadie); faces.push(sadie);
+  // once all six are found, she holds up a sign over her head about the full game (it's lost
+  // shareware: there is no full game)
+  const placard = new Group(); placard.visible = false; placard.position.set(0, 0.2, 0); sea.add(placard); faces.push(placard);
+  { const k = kit(placard), lines = ['ALL 6 FOUND!', 'MORE IN THE', 'FULL GAME', 'RELEASING', '1996!'];
+    const pic = tex(52, 34, g => { px(g, C.cream, 0, 0, 52, 34); px(g, C.tan3, 0, 0, 52, 1); px(g, C.tan3, 0, 33, 52, 1); px(g, C.tan3, 0, 0, 1, 34); px(g, C.tan3, 51, 0, 1, 34);
+      lines.forEach((l, i) => words(g, l, 26, 3 + i * 6, 1, i === 0 ? C.red : C.ink, { align: 'center' })); });
+    k.cyl(0.03, 0.03, 0.6, 4, psx(T.wood, { tint: 0xc89868 }), [0.12, 0.72, -0.02]);
+    k.plane(1.3, 0.85, psx(pic, { unlit: 0.5, side: DoubleSide }), [0.12, 1.4, 0], [0, 0, 0], 1);
+  }
 
   // ---------- the reef round the mountain: rocks and foam, and a buoy for each of the five finds ----------
   const reef = new Group(); sea.add(reef);
@@ -281,14 +295,14 @@ export function buildOcean(m, copyOf) {
     if (!wasOpen && reefOpen([...found, id])) openedAt = t;   // (the fifth: the reef sinks, over a few seconds)
     show([...found, id], t);
     const s = SPOTS.find(q => q.id === id);
-    say(id === 'mountain' ? 'ALL 6 FOUND! MORE IN THE FULL GAME, RELEASING 1996!' : `GOT ${s.name}!`, t, id === 'mountain' ? 1e9 : 3.5);
+    say(`GOT ${s.name}!`, t, 3.5);
   }
   function say(text, t, secs) { note = text; noteUntil = t + secs; }
 
   function sign(t) {
     const left = 5 - found.filter(id => id !== 'mountain').length;
     if (note && t < noteUntil) return [note, false];
-    if (found.includes('mountain')) return ['ALL 6 FOUND! MORE IN THE FULL GAME, RELEASING 1996!', false];
+    if (found.includes('mountain')) return ['ALL 6 FOUND!', false];
     if (reefOpen(found)) return ['GO TO THE MOUNTAIN!', true];
     return [`FINDS ${found.length} OF 6`, false];
   }
@@ -311,7 +325,7 @@ export function buildOcean(m, copyOf) {
     const dm = Math.hypot(lx, lz), sc = loom(dm);
     mountain.scale.setScalar(sc);
     sadie.position.set(0, found.includes('mountain') ? 0.2 : MT * sc + 0.08, 0);
-    sadie.visible = dm < 60;
+    sadie.visible = dm < 60; placard.visible = sadie.visible && found.includes('mountain');
     sadie.rotation.z = dm < 14 ? Math.sin(t * 5) * 0.18 : 0;   // (she waves when you're close)
     for (const s of SPOTS) if (twinkles[s.id]) {
       const tw = twinkles[s.id], d = Math.hypot(s.x - lx, s.z - lz);

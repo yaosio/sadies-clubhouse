@@ -36,9 +36,9 @@ It's being built in steps (the owner's plan, 2026-09-30):
    - **Breadcrumbs:** each spot drifts a trail of its own little things out across the sea towards
      where you start (baby ducks, planks, coconuts, corks, glowing floats), a twinkle hangs over each
      spot you haven't found yet (seen from anywhere), and the dashboard's radar has a blip for each.
-   - **The end:** with all six, Sadie waves from her sandbar and the sign scrolls ALL 6 FOUND! MORE
-     IN THE FULL GAME, RELEASING 1996! (it's lost shareware: there is no full game). The sea stays
-     open to sail round.
+   - **The end:** with all six, Sadie waves from her sandbar holding up a cardboard sign over her
+     head: ALL 6 FOUND! MORE IN THE FULL GAME, RELEASING 1996! (it's lost shareware: there is no full
+     game). The dashboard just says ALL 6 FOUND! The sea stays open to sail round.
 
 ## Design pillars (the owner's rules; these win over any feature idea)
 
