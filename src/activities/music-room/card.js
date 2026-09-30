@@ -9,6 +9,6 @@ export default {
   door,
   slot: 3,   // which door on the landing is its (the fourth; they never move)
   box: { side: 0x38b0c8 },   // its colour
-  keeps: ['sadies-clubhouse.music-room.'],   // what it saves in the browser (the test version can clear it)
+  keeps: ['sadies-clubhouse.music-room.'],   // what it saves in the browser (the pause menu can start it over)
   room: () => import('./room.js'),
 };

@@ -41,4 +41,10 @@
 #mansion #dev{display:grid;gap:8px;justify-items:center;width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
 #mansion #resets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 #mansion #menu #resets button{font-size:10px;padding:6px 10px;background:#ff8ec8}
+/* "are you sure?" before anything is erased */
+#mansion #sure{display:grid;gap:8px;justify-items:center}
+#mansion #sure p{margin:0;font-size:11px;line-height:1.6;color:#fff}
+#mansion #sure .row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+#mansion #menu #sure button{font-size:10px;padding:6px 10px}
+#mansion #menu #sure #sureYes{background:#ff5a5a;box-shadow:0 3px 0 #8a1a2a}
 #mansion [hidden]{display:none!important}

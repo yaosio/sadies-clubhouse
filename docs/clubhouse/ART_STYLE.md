@@ -45,11 +45,11 @@ https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so
 - **No loading screens or obvious transitions** unless they fit: a door just opens onto its room.
   It has to stay smooth. The inside doesn't have to match the outside (the owner's call): the front
   door leads to a separate place, so either can change without the other.
-- **Resetting:** the test version's pause menu can start over everything or one thing at a time
-  (the invitation, an activity's saves); players get no reset for now.
+- **Resetting:** the pause menu (in the real game too) can start over everything or one thing at
+  a time (the invitation, an activity's saves), always asking "are you sure?" first.
 - **You start outside**, at the gate. The first time only, Sadie's letter invites you: she's
-  decided to share her clubhouse with all her friends. There'll be a way to reset the whole game,
-  and single events (the invitation, the broken Breakout, and so on).
+  decided to share her clubhouse with all her friends. The pause menu can start the whole game
+  over, or single things (the invitation, the broken Breakout, and so on).
 - **Normal game controls** (WASD and mouse, a thumb stick on phones) and no big chunky frame: just
   a pause button and a small hint at a computer. Each activity keeps its own 90s frame: they're
   programs on a computer, in their rooms.

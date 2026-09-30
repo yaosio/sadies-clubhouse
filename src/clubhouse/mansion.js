@@ -36,7 +36,7 @@ import page from './mansion.html';
 import styles from './mansion.css';
 
 const EYE = 1.6, SPEED = 3.2, TURN = 2.2, STICK = 40;   // STICK: how far the thumb stick's knob goes, in screen pixels
-// things that happen once, remembered in the browser (the test version can undo each)
+// things that happen once, remembered in the browser (the pause menu can undo each)
 const INVITED = 'mansion.invited';
 const BACK = 'mansion.back';          // which activity you left for (kept only until the page comes back)
 
@@ -48,7 +48,6 @@ export async function open(cards, enter) {
   const root = document.getElementById('mansion');
   const $ = s => root.querySelector(s);
   const off = new AbortController(), on = (el, ev, fn, o) => el.addEventListener(ev, fn, { signal: off.signal, ...o });
-  const testVersion = !!root.querySelector('#testBadge');
   const touchy = matchMedia('(pointer: coarse)').matches;
 
   // ---------- the places, and the doorways between them ----------
@@ -428,7 +427,7 @@ export async function open(cards, enter) {
     if (document.pointerLockElement) document.exitPointerLock();
   }
   function resume() {
-    $('#menu').hidden = true;
+    $('#menu').hidden = true; ask(false);
     if (arcade) { mode = 'arcade'; arcade.u.play.start(); } else mode = 'play';
     showTarget();
   }
@@ -438,20 +437,29 @@ export async function open(cards, enter) {
     : 'W A S D: WALK &middot; ARROWS: WALK AND TURN<br>CLICK, THEN MOUSE: LOOK AROUND<br>E: USE &middot; ESC: PAUSE';
   const arcadeHint = touchy ? 'SLIDE A FINGER TO MOVE' : '<kbd>A D</kbd> OR <kbd>MOUSE</kbd> MOVE &nbsp; <kbd>ESC</kbd> STEP BACK';
   $('#arcadeHint').innerHTML = arcadeHint;
-  // The test version can start things over: everything at once, or one thing at a time.
-  if (testVersion) {
-    $('#dev').hidden = false;
-    const resets = [
-      ['EVERYTHING', () => { try { localStorage.clear(); sessionStorage.clear(); } catch {} }],
-      ["SADIE'S INVITATION", () => store.remove(INVITED)],
-      ...cards.filter(c => c.keeps).map(c => [c.name.toUpperCase(), () => forget(c.keeps)]),
-    ];
-    for (const [name, undo] of resets) {
-      const b = document.createElement('button'); b.textContent = name;
-      on(b, 'click', () => { undo(); location.reload(); });
-      $('#resets').appendChild(b);
-    }
+  // Starting over, from the pause menu: everything at once, or one thing at a time. Nothing is
+  // erased until you say yes.
+  const resets = [
+    ['EVERYTHING', 'EVERYTHING IN THE CLUBHOUSE', () => { try { localStorage.clear(); sessionStorage.clear(); } catch {} }],
+    ["SADIE'S INVITATION", "SADIE'S INVITATION", () => store.remove(INVITED)],
+    ...cards.filter(c => c.keeps).map(c => [c.name.toUpperCase(), c.name.toUpperCase(), () => forget(c.keeps)]),
+  ];
+  let undoing = null;
+  function ask(show) {
+    $('#resets').hidden = !!show; $('#sure').hidden = !show;
+    if (!show) undoing = null;
   }
+  for (const [name, what, undo] of resets) {
+    const b = document.createElement('button'); b.textContent = name;
+    on(b, 'click', () => {
+      undoing = undo;
+      $('#sureAsk').innerHTML = `START ${what.replace(/&/g, '&amp;').replace(/</g, '&lt;')} OVER?<br>IT'S ERASED FOR GOOD.`;
+      ask(true); $('#sureNo').focus();
+    });
+    $('#resets').appendChild(b);
+  }
+  on($('#sureYes'), 'click', () => { if (undoing) { undoing(); location.reload(); } });
+  on($('#sureNo'), 'click', () => ask(false));
   function forget(prefixes) {
     try { for (const k of Object.keys(localStorage)) if (prefixes.some(p => k.startsWith(p))) localStorage.removeItem(k); } catch {}
   }

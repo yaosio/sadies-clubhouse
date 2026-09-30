@@ -157,21 +157,25 @@ export default async function ({ browser, page, check, outDir }) {
     const home2 = await up();
     check(`${device}: the Escape key comes back too (even when it came in by address)`, home2 && !(await p.evaluate(() => location.hash)));
 
-    // pausing, and in the test version, starting the letter over
+    // pausing, and starting the letter over (only once you say you're sure)
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
     await p.waitForTimeout(200);
     await shot('8-paused');
-    const test = await p.evaluate(() => !!document.getElementById('testBadge'));
     check(`${device}: ${opts.hasTouch ? 'the pause button' : 'Escape'} pauses`, await M('mode') === 'menu' && await p.isVisible('#menu'));
-    check(`${device}: ...with the start-over buttons only in the test version`, (await p.isVisible('#dev')) === test);
-    if (test) {
-      await p.click('#resets button:has-text("INVITATION")');
-      await up();
-      check(`${device}: starting the invitation over brings Sadie's letter back`, await M('mode') === 'letter');
-    } else {
-      await p.click('#resume');
-      check(`${device}: RESUME carries on`, await M('mode') === 'play');
-    }
+    check(`${device}: ...with the start-over buttons`, await p.isVisible('#resets button:has-text("INVITATION")'));
+    await p.click('#resets button:has-text("INVITATION")');
+    await shot('9-sure');
+    check(`${device}: a start-over button asks first`, await p.isVisible('#sureYes') && !(await p.isVisible('#resets')));
+    await p.click('#sureNo');
+    check(`${device}: ...and NO keeps it`, await p.isVisible('#resets') && !(await p.isVisible('#sure')) && await p.evaluate(() => localStorage.getItem('mansion.invited') !== null));
+    await p.click('#resume');
+    check(`${device}: RESUME carries on`, await M('mode') === 'play');
+    if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
+    await p.waitForTimeout(200);
+    await p.click('#resets button:has-text("INVITATION")');
+    await p.click('#sureYes');
+    await up();
+    check(`${device}: YES starts the invitation over: Sadie's letter is back`, await M('mode') === 'letter');
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }));
