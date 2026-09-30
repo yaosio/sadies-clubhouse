@@ -123,9 +123,12 @@ body{margin:0;height:100%;overflow:hidden;background:var(--void);overscroll-beha
 .fit:disabled{cursor:default}
 @media (min-width:700px) and (orientation:landscape){
   .sadie{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:8px;min-height:0;overflow:hidden}
-  .scan canvas{width:256px;height:218px}
+  /* (on a short window Sadie's picture shrinks, so the love meter and FIT IT! always fit under it) */
+  .scan{flex:0 1 auto;min-height:0}
+  .scan canvas{flex:0 1 auto;min-height:40px;height:218px;width:auto;max-width:100%;aspect-ratio:128/109}
+  .meter,.fit{flex:none}
   .scan small{font-size:10px}
-  .bubble{margin:6px 0 0;font-size:15px;height:auto;min-height:96px;flex:1 1 auto;max-height:150px}
+  .bubble{margin:6px 0 0;font-size:15px;height:auto;min-height:96px;flex:1 100 auto;max-height:150px}   /* (gives way before the picture does) */
   .bubble::before{left:54px;top:-14px;border:11px solid transparent;border-bottom:13px solid var(--lo);border-top:0}
   .bubble::after{left:58px;top:-9px;border:7px solid transparent;border-bottom:9px solid #fff;border-top:0}
   .fit{font-size:18px!important;padding:12px 6px}

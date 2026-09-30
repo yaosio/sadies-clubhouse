@@ -43,6 +43,18 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the page with the text gets a good share of the screen`, layout.docShare > 0.18, `${(layout.docShare * 100).toFixed(0)}%`);
     check(`${device}: FIT IT! is on screen, and the ESC BACK key doesn't cover the name`, layout.fitVisible && layout.logoClear);
     check(`${device}: no windows in the frame, and nothing wider than the screen`, !layout.windows && layout.wide);
+    // a short desktop window (a laptop with its toolbars, or the game page's own frame): Sadie's
+    // picture shrinks so the meter and FIT IT! still fit under it
+    if (!opts.hasTouch) {
+      const short = [];
+      for (const [w, h] of [[1280, 600], [1024, 560], [1440, 640]]) {
+        await p.setViewportSize({ width: w, height: h }); await p.waitForTimeout(150);
+        if (!(await p.evaluate(() => { const f = document.getElementById('fit').getBoundingClientRect(), m = document.getElementById('hearts').getBoundingClientRect(); return f.bottom <= innerHeight && m.bottom <= f.top; }))) short.push(`${w}x${h}`);
+      }
+      await shot('0b-short-window');
+      await p.setViewportSize(opts.viewport); await p.waitForTimeout(150);
+      check(`${device}: ...and in a short window too, with the love meter`, !short.length, short.length ? `cut off at ${short.join(', ')}` : '');
+    }
 
     // press buttons until Sadie loves it; the box never fits along the way
     const buttons = ['bold', 'warp', 'outline', 'font', 'color', 'shadow', 'bigger', 'italic', 'symbols', 'squeeze', 'underline', 'smaller'];
