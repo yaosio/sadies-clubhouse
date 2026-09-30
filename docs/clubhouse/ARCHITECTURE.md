@@ -52,15 +52,18 @@ activity is checked again, so something moves into it only once a second activit
   E (turning a dial or a sign): its `label` can change, and `button` names it on a phone. `act` is
   handed `{ from, EYE, glide }`: where you stand, and `glide(to, secs, then)`, which eases your view
   to `to` (`x`, `z`, `eye`, `yaw`, `pitch`) and then calls `then`; once a `then` doesn't glide on,
-  you have the controls back (the aquarium's tap on the glass, rising over the rim and dipping into
-  the water). Its place can hold its door open (`holding`: the doorway, while something goes out through
+  you have the controls back (the aquarium's tap on the glass, rising over the rim and sinking into
+  the water; a `to` with `y` also sets where you stand once there). A place can also say `speed` (how
+  fast you get about in it, metres a second) and `far` (how far you can see), and change its own
+  `scene`, `floor`, `faces`, `uses` and `light` whenever it likes: the mansion reads them every frame
+  (the aquarium's room becomes the ocean that way, and is quicker to get about and see further in). Its place can hold its door open (`holding`: the doorway, while something goes out through
   it), and make everyone in it watch something (`watch`: a point; your view follows it and you
   can't walk or look away until it's null again: Brickbuster's escaping yarn ball). The kit also has its door's picture (`doorImage`) and its door on the landing
   (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
   ORDER sign) and the hall itself (`hall`: its scene and `faces`, `napping`, Sadie asleep in her
   box, and `shape`, its solid shape for things bouncing round it), so a game can let something
   loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update` moves them,
-  since every place updates every frame), and `ears()`, where you are right now (`place`, and `x`, `y`, `z`: your eye), so a
+  since every place updates every frame), and `ears()`, where you are right now (`place`, `x`, `y`, `z`: your eye, and `yaw`, `pitch`: where you're looking), so a
   game can play a sound only where you'd hear it (Sadie out in the hall). An address naming it after the `#` just opens the mansion.
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
   one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3), so a new activity never
