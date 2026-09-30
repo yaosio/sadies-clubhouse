@@ -4,8 +4,8 @@
 //   node tools/clubhouse/shots.mjs hall door  only the spots whose names have these in them
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
-import { createServer } from 'node:http';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { serve } from '../serve.mjs';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clubhouse');
@@ -15,8 +15,7 @@ let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
-const server = createServer((q, s) => { s.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); s.end(readFileSync(join(root, 'dist/index.html'))); });
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+const server = await serve();
 const url = `http://127.0.0.1:${server.address().port}/`;
 
 // each spot: how to get there (run in the page), then how long to let it settle

@@ -3,8 +3,8 @@
 //   npm run build -- --preview && node tools/aquarium/shots.mjs
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
-import { createServer } from 'node:http';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { serve } from '../serve.mjs';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(root, 'dist/shots/aquarium');
@@ -13,9 +13,7 @@ let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 mkdirSync(out, { recursive: true });
-const html = readFileSync(join(root, 'dist/index.html'));
-const server = createServer((q, s) => { s.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); s.end(html); });
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+const server = await serve();
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const SHOTS = [
   ['doors', async M => { await M('faceDoor', 'hall', 'aquarium', 4.5); const w = await M('where'); await M('turnTo', w.yaw - 0.4, 0); }],

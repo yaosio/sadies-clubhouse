@@ -61,6 +61,9 @@ next free plot along the lane instead (its card's `lot`); plots never move eithe
   version's label; the bare word also appears in the embedded source of the build tool).
   If main's code is exactly what already passed on the branch, the check skips those tests by
   itself, so this is quick.
+- The page comes with its game files (`dist/game/`): publish `dist/index.html` with every file in
+  `dist/game/` passed in `files` as `game/<name>`, and `null` for the page's older `game/` files
+  that this build doesn't have (list them first), so they don't pile up.
 - Read the live page first. If its embedded source differs from `main` (unpack it with
   `tools/unpack.mjs` and compare), stop and ask. Then pass
   the saved copy of it to the check (`npm run check -- --live <file>`): an activity whose code is
@@ -68,6 +71,6 @@ next free plot along the lane instead (its card's `lot`); plots never move eithe
   session.
 - The test page is https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the working branch, built
   with `--preview`, published after every pushed change without asking. It's never the source of
-  truth and can be overwritten any time. Publish it from a copy outside `dist/` (the scratchpad),
-  always passing its URL, so it can never land on the real game page. It keeps its own save, so
+  truth and can be overwritten any time. Publish it from a copy outside `dist/` (the scratchpad: the page
+  and its `game/` folder, with its files as above), always passing its URL, so it can never land on the real game page. It keeps its own save, so
   the owner's real tower is never touched by a test build.

@@ -16,7 +16,7 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { createServer } from 'node:http';
+import { serve } from '../serve.mjs';
 
 const root = new URL('../..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -32,18 +32,19 @@ if (!boardFile) {
   if (spawnSync('node', ['tools/dropper-world/fullboard.mjs', join(root, 'dist', boardFile)], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
 }
 const board = readFileSync(join(root, 'dist', boardFile), 'utf8');
-const html = readFileSync(join(root, 'dist/index.html'), 'utf8');
 
-// which source file each line of the built page came from (the bundler marks each file's start)
-const htmlLines = html.split('\n'), fileOfLine = [];
-{ let cur = '?'; for (let i = 0; i < htmlLines.length; i++) { const m = htmlLines[i].match(/^\s*\/\/ (src\/\S+\.js)$/); if (m) cur = m[1].replace(/^src\/(activities\/dropper-world\/)?/, ''); fileOfLine[i] = cur; } }
+// which source file each line of each game file came from (the bundler marks each file's start)
+const fileOfLine = {};
+for (const f of readdirSync(join(root, 'dist/game'))) {
+  const lines = readFileSync(join(root, 'dist/game', f), 'utf8').split('\n'), of = fileOfLine[f] = [];
+  let cur = '?'; for (let i = 0; i < lines.length; i++) { const m = lines[i].match(/^\s*\/\/ (src\/\S+\.js)$/); if (m) cur = m[1].replace(/^src\/(activities\/dropper-world\/)?/, ''); of[i] = cur; }
+}
 
 const require = createRequire(import.meta.url);
 let chromium;
 try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
 
-const server = createServer((q, r) => { r.writeHead(200, { 'content-type': 'text/html' }); r.end(html); });
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+const server = await serve();
 const browser = await chromium.launch();
 const ctx = await browser.newContext(desktop ? { viewport: { width: 1280, height: 800 } }
   : { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
@@ -100,7 +101,7 @@ for (const n of profile.nodes) for (const c of n.children || []) nodes.get(c).pa
 const label = n => {
   const cf = n.callFrame, name = cf.functionName || '(anonymous)';
   if (!cf.url) return name; // (garbage collector), (program), (idle), native canvas calls
-  return `${name}  [${fileOfLine[cf.lineNumber] || cf.url.split('/').pop()}:${cf.lineNumber + 1}]`;
+  return `${name}  [${fileOfLine[cf.url.split('/').pop()]?.[cf.lineNumber] || cf.url.split('/').pop()}:${cf.lineNumber + 1}]`;
 };
 const stackOf = id => { const s = []; for (let n = nodes.get(id); n; n = nodes.get(n.parent)) s.push(n); return s; }; // leaf first
 const inFrame = st => st.findIndex(n => n.callFrame.functionName === 'frame' && n.callFrame.url);

@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { serve } from '../serve.mjs';
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -16,6 +17,7 @@ catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toS
 const root = resolve(new URL('../..', import.meta.url).pathname);
 const out = resolve(process.argv[2] || join(root, 'dist/board-shots'));
 mkdirSync(out, { recursive: true });
+const server = await serve();
 const browser = await chromium.launch();
 for (const [name, opts] of [
   ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }],
@@ -24,7 +26,7 @@ for (const [name, opts] of [
   const ctx = await browser.newContext(opts);
   await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const p = await ctx.newPage();
-  await p.goto('file://' + join(root, 'dist/index.html') + '#dropper-world');
+  await p.goto(`http://127.0.0.1:${server.address().port}/#dropper-world`);
   await p.waitForTimeout(1500);
   await p.evaluate(() => { document.getElementById('buildPile').click(); document.getElementById('meetChooter').click(); });
   await p.waitForTimeout(12000);
@@ -35,5 +37,5 @@ for (const [name, opts] of [
   await p.screenshot({ path: join(out, name + '.png') });
   await ctx.close();
 }
-await browser.close();
+await browser.close(); server.close();
 console.log('saved in ' + out);

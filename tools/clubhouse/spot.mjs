@@ -4,8 +4,8 @@
 // Saves dist/shots/clubhouse/spot-<name>.png (desktop size). Places: outside, hall, room:<id>.
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
-import { createServer } from 'node:http';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { serve } from '../serve.mjs';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clubhouse');
@@ -17,8 +17,7 @@ catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toS
 
 const [name, placeName, ...n] = process.argv.slice(2);
 const [x, z, y, lx, ly, lz] = n.map(Number);
-const server = createServer((q, s) => { s.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); s.end(readFileSync(join(root, 'dist/index.html'))); });
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+const server = await serve();
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 p.on('pageerror', e => console.log('page error:', e.message));

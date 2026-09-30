@@ -4,8 +4,8 @@
 //   node tools/clydes-house/shots.mjs [desktop|phone]
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
-import { createServer } from 'node:http';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { serve } from '../serve.mjs';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clydes-house');
@@ -16,8 +16,7 @@ try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const only = process.argv[2];
-const server = createServer((q, s) => { s.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); s.end(readFileSync(join(root, 'dist/index.html'))); });
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+const server = await serve();
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const DEVICES = { desktop: { viewport: { width: 1280, height: 800 } }, phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } };
 for (const [device, opts] of Object.entries(DEVICES)) {

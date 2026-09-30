@@ -7,9 +7,11 @@
 // completely), comes back with ESC BACK to that computer with the tower saved, and comes back from an
 // address that went straight in. It checks the rooms are built after the mansion opens (and how quick
 // each is), and that a room put away is built again as you walk up to its door, with nothing piling
-// up. It pauses, and in the test version starts the letter over. Any error
+// up. It pauses, and in the test version starts the letter over. A room's code is a file of its own:
+// when that file won't come, the room's door stays shut and it's fetched again later. Any error
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 
@@ -236,4 +238,26 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }));
+
+  // a room whose file won't come (the network hiccuped): its door stays shut, the rest carry on, and
+  // it's fetched again once the network's back
+  const files = JSON.parse(readFileSync(join(new URL('../..', import.meta.url).pathname, 'dist/game-files.json'), 'utf8'));
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  let cut = true, asked = 0;
+  await ctx.route(url => url.pathname.endsWith('/game/' + files['src/activities/aquarium/room.js']), r => { asked++; return cut ? r.abort() : r.continue(); });
+  const p = await ctx.newPage(), errors = [];
+  p.on('pageerror', e => errors.push(e.message));
+  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  await p.goto(page);
+  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 });
+  const failed = await M('build', 'room:aquarium');
+  await p.waitForFunction(() => window.__mansion.built().length >= 5, null, { timeout: 20000 }).catch(() => {});
+  const others = (await M('built')).filter(n => n !== 'room:aquarium').length;
+  check('a room whose file won\'t load keeps its door shut, and the other rooms still build', !failed && !(await M('built')).includes('room:aquarium') && others >= 5 && asked > 0,
+    `aquarium built: ${failed}, ${others} other rooms built`);
+  cut = false;
+  check('...and it\'s built once its file comes', await M('build', 'room:aquarium') && (await M('built')).includes('room:aquarium'));
+  check('...with no errors on the page', !errors.length, errors.slice(0, 3).join(' | '));
+  await ctx.close();
 }

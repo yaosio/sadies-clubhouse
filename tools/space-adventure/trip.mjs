@@ -4,8 +4,8 @@
 //   npm run build -- --preview && node tools/space-adventure/trip.mjs [phone|desktop] [times...]
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
-import { createServer } from 'node:http';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { serve } from '../serve.mjs';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(root, 'dist/shots/space-adventure');
@@ -17,9 +17,7 @@ mkdirSync(out, { recursive: true });
 const args = process.argv.slice(2), only = args.find(a => /^[a-z]+$/.test(a));
 const TIMES = args.filter(a => /^[\d.]+$/.test(a)).map(Number);
 const times = TIMES.length ? TIMES : [3, 20, 45, 60, 65, 70, 73, 76, 80, 85, 91, 98, 103, 107.2];
-const html = readFileSync(join(root, 'dist/index.html'));
-const server = createServer((q, s) => { s.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); s.end(html); });
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+const server = await serve();
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
 for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }]]) {
   if (only && only !== device) continue;

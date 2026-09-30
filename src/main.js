@@ -9,6 +9,10 @@
 // goes straight into it. Every activity gets an ESC BACK key in its top left corner (Escape does the
 // same, unless the activity used it for something, like closing a panel): it reloads the page into
 // the clubhouse, so an activity never has to tidy up after itself (it saves when the page goes away).
+//
+// The mansion and every activity's code are files of their own, fetched when they're needed (the
+// build splits them). If one won't come (the network hiccuped), it's tried again a few times, and if
+// it still won't, the page says so instead of staying blank.
 import cards from 'activities';
 
 const BACK_STYLE = `
@@ -19,6 +23,19 @@ const BACK_STYLE = `
 #clubBack kbd{font:11px/1 'Silkscreen',ui-monospace,monospace;color:#1a0f40;text-shadow:none;
   background:linear-gradient(#e8e0ff 40%,#c8bcff 40%);padding:3px 5px;border:2px solid;border-color:#fff #6a58d8 #6a58d8 #fff}
 #clubBack:active kbd{border-color:#6a58d8 #fff #fff #6a58d8}`;
+
+async function fetchPiece(get) {
+  for (let i = 0; ; i++) {
+    try { return await get(); } catch (e) {
+      if (i >= 3) {
+        document.body.insertAdjacentHTML('afterbegin', `<p id="clubOops" style="position:fixed;inset:40% 16px auto;margin:0;text-align:center;` +
+          `font:16px/1.4 system-ui,sans-serif;color:#3a2a8e">Part of the clubhouse didn't load. Check the internet connection and reload the page.</p>`);
+        throw e;
+      }
+      await new Promise(ok => setTimeout(ok, 1000 * (i + 1)));
+    }
+  }
+}
 
 function leave() {
   try { history.replaceState(null, '', location.pathname + location.search); } catch {}
@@ -35,11 +52,11 @@ async function enter(card) {
     `<button id="clubBack" aria-label="Back to the clubhouse"><kbd>ESC</kbd>BACK</button>`);
   document.title = document.title.replace("Sadie's Clubhouse", card.name);
   document.getElementById('clubBack').addEventListener('click', leave);
-  await card.start();
+  await fetchPiece(card.start);
   // listening after the activity has, so its own Escape (closing a panel) comes first
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) leave(); });
 }
 
 const wanted = cards.find(c => c.id === location.hash.slice(1) && c.start);   // (a game that lives in its room has no page of its own)
 if (wanted) enter(wanted);
-else import('./clubhouse/mansion.js').then(mansion => mansion.open(cards, enter));
+else fetchPiece(() => import('./clubhouse/mansion.js')).then(mansion => mansion.open(cards, enter));

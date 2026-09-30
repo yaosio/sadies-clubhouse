@@ -1,4 +1,4 @@
-// Builds the game into one self-contained page: dist/index.html
+// Builds the game: the page, dist/index.html, and its game files beside it in dist/game/
 //
 // The page is the clubhouse (src/main.js, and its menu in src/clubhouse/) plus every activity in src/activities/: each folder with
 // a card.js is one, found here so adding an activity never changes the clubhouse's code. An
@@ -8,12 +8,18 @@
 //   node tools/build.mjs --preview    the test version (for the test page): same game, but it says
 //                                     "test version" in the corner and in the tab title
 //
-// The page contains the bundled game plus a copy of every project file (as JSON in a
+// The game is split into files, fetched as they're needed: the clubhouse (main-*.js, with the mansion
+// and every activity's card), each room or activity's own code (room-*.js, main-*.js), and the bits
+// several of them share (chunk-*.js). Walking up to a door fetches that room's file, so the page
+// never grows with the number of rooms. Every file's name carries a fingerprint of what's in it, so
+// a browser never mixes an old file with a new page.
+//
+// The page contains a loader for the game plus a copy of every project file (as JSON in a
 // <script type="application/json" id="jelly-source"> tag). That embedded copy is how the
 // source travels with the published artifact: tools/unpack.mjs turns a built page back into
 // the project folder.
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync, rmSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { execSync } from 'node:child_process';
 
@@ -63,18 +69,41 @@ const clubhouse = {
   },
 };
 
+rmSync(join(root, 'dist/game'), { recursive: true, force: true });
 const result = await build({
   entryPoints: [join(root, 'src/main.js')],
   plugins: [clubhouse],
   loader: { '.css': 'text' },
   bundle: true,
-  format: 'iife',
+  splitting: true,   // each room's `import()` becomes a file of its own, fetched when it's needed
+  format: 'esm',
+  outdir: join(root, 'dist/game'),
+  entryNames: '[name]-[hash]',
+  chunkNames: 'chunk-[hash]',
+  metafile: true,
   target: 'es2020',
-  write: false,
   legalComments: 'none',
   minify: true,   // three.js (the clubhouse's 3D) is big; readable source travels in the page anyway
+  write: false,
+  // A browser remembers a file that failed to come and won't fetch it again, so every file's
+  // `import()` goes through fetchAgain: after a failure, the next try asks for it under a new name
+  // (file.js?again=1), which the browser does fetch.
+  banner: { js: 'var fetchAgain=u=>{const m=globalThis.gameMisses||={},n=m[u]|0;return import(u+(n?"?again="+n:"")).catch(e=>{m[u]=n+1;throw e})};' },
 });
-const js = result.outputFiles[0].text;
+mkdirSync(join(root, 'dist/game'), { recursive: true });
+for (const f of result.outputFiles) {
+  const text = f.text.replace(/\bimport\((".\/[\w-]+\.js")\)/g, 'fetchAgain($1)');
+  writeFileSync(f.path, text);
+}
+const game = readdirSync(join(root, 'dist/game')).sort();
+const main = Object.entries(result.metafile.outputs).find(([, o]) => o.entryPoint?.endsWith('src/main.js'))[0].split('/').pop();
+const js = `import './game/${main}';`;
+// which file each room's (and activity's) own code went into, for the checks: dist/game-files.json
+const outputs = Object.fromEntries(Object.entries(result.metafile.outputs).filter(([, o]) => o.entryPoint)
+  .map(([f, o]) => [o.entryPoint.replace(/^.*?src\//, 'src/'), f.split('/').pop()]));
+writeFileSync(join(root, 'dist/game-files.json'), JSON.stringify(outputs, null, 1));
+const gameKB = game.reduce((n, f) => n + statSync(join(root, 'dist/game', f)).size, 0) / 1024;
+const biggest = Math.max(...game.map(f => statSync(join(root, 'dist/game', f)).size)) / 1024;
 let html = readFileSync(join(root, 'src/index.html'), 'utf8');
 
 const files = {};
@@ -89,7 +118,7 @@ const put = (marker, text) => {
   if (i < 0) throw new Error('missing marker ' + marker);
   html = html.slice(0, i) + text + html.slice(i + marker.length);
 };
-put('/*@script*/', js.replace(/<\/script/gi, '<\\/script'));
+put('/*@script*/', js);
 put('<!--@source-->', `<script type="application/json" id="jelly-source">${json}</script>`);
 
 if (preview) {
@@ -99,4 +128,4 @@ if (preview) {
 
 mkdirSync(join(root, 'dist'), { recursive: true });
 writeFileSync(join(root, 'dist/index.html'), html);
-console.log(`built dist/index.html${preview ? ' (test version)' : ''}  ${(html.length / 1024).toFixed(1)} kB  (game ${(js.length / 1024).toFixed(1)} kB, ${activities.length} ${activities.length === 1 ? 'activity' : 'activities'}, ${Object.keys(files).length} source files embedded)`);
+console.log(`built dist/index.html${preview ? ' (test version)' : ''}  ${(html.length / 1024).toFixed(1)} kB  (game ${gameKB.toFixed(1)} kB in ${game.length} files in dist/game, the biggest ${biggest.toFixed(1)} kB; ${activities.length} ${activities.length === 1 ? 'activity' : 'activities'}, ${Object.keys(files).length} source files embedded)`);
