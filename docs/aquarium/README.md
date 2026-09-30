@@ -83,6 +83,8 @@ where you stood; the duck in the cabinet; the next trip coming up where the boat
 `tools/aquarium/sail.mjs` takes pictures of a whole trip (every spot, the mountain from further and
 further off, the cabinet) for looking at it by eye.
 
+**Put away when you're far off.** The mansion puts the aquarium away when you've been three doors or more from it for a while (see the clubhouse's `ARCHITECTURE.md`): `putAway()` closes its sounds for good, and both its scenes (`scenes`: the room and the ocean) go back to the graphics card. It's built again from its save (the finds and where the boat was left) as you come back, so it looks the same.
+
 ## Parked ideas
 
 - Soft, rare bubble sounds in the room (only if the owner wants them).

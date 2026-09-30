@@ -50,12 +50,14 @@ const SPOT = {
 export async function buildRoom(m) {
   const { T, psx, keep, kit, wallGeometry, doorway, card } = m;
   const A = drawArt(m);
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { add, box, plane, cyl } = kit(scene);
   const mesh = (geo, mat, pos, rot, parent = scene) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
   const sprite = (t, w, h, pos, o = {}) => mesh(new PlaneGeometry(w, h).translate(0, o.bottom ? h / 2 : 0, 0), psx(t, { unlit: o.unlit ?? 0.25, side: o.side }), pos, null, o.parent);
   const tint = (c, o = {}) => psx(null, { tint: c, ...o });
-  const house = m.outside && m.lot ? buildHouse(m, A) : null;
+  // (built again after being put away, the house outside is still there: the mansion hands it back)
+  const house = m.house || (m.outside && m.lot ? buildHouse(m, A) : null);
 
   // ---------- the room ----------
   const paper = psx(A.paper, { rx: 1 / 0.9, ry: 1 / 0.9 });
@@ -84,6 +86,8 @@ export async function buildRoom(m) {
   sprite(T.sadie, 0.62, 0.5, [RW - 0.12, 3.0, 0.9], { unlit: 0.2 }).rotation.y = -Math.PI / 2;
   // by the door, more notes
   plane(0.6, 0.6, psx(A.notes, { decal: true }), [1.9, 1.8, RD - 0.05], [0, Math.PI, 0], 2);
+
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
 
   // ---------- the machine ----------
   plane(6.0, 3.7, psx(A.pegboard, { rx: 6.0 / 0.25, ry: 3.7 / 0.25 }), [0, 2.28, -RD + 0.05], null, 2);
@@ -182,7 +186,8 @@ export async function buildRoom(m) {
   // ---------- the machine's state, kept in the browser ----------
   const M = makeMachine(store.get(KEY, {}) || {});
   A.count(M.treats);
-  const sounds = (() => { let s = null; return () => (s ||= makeSounds()); })();
+  let madeSounds = null;
+  const sounds = () => (madeSounds ||= makeSounds());
   const sfx = k => sounds()[k]();
 
   // ---------- putting everything back where it starts ----------
@@ -478,6 +483,10 @@ export async function buildRoom(m) {
   let blinkAt = 3, runT = 0;
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie], house,
+    // (the mansion puts the room away when you're far off, never while the machine's going or Clyde's
+    // talking; the house outside stays, and the room's built again from its save as you come back)
+    busy: () => tl.length > 0,
+    putAway() { madeSounds?.close(); },
     uses: [{ pos: new Vector3(0, 2.2, MZ), reach: 7.5, label: machine.label, play: machine }],
     light: { sun: 0.25, bulb: 0.8, lamp: [0, H - 1.4, 1.5] },
     spots: {

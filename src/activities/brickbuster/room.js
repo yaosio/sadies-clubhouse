@@ -110,6 +110,8 @@ export async function buildRoom(m) {
   const cracksTex = tex(CW, CH, () => {}), cg = cracksTex.image.getContext('2d');
   glass.push(cplane(W, H, psx(cracksTex, { unlit: 0.95, decal: true }), [0, H / 2, Z.glass + 0.01]));
 
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+
   // ---------- inside: the bricks, the yarn ball and the paddle ----------
   const bevelTex = tex(8, 6, g => {
     g.fillStyle = '#c8c8c8'; g.fillRect(0, 0, 8, 6); g.fillStyle = '#ffffff'; g.fillRect(0, 0, 8, 1); g.fillRect(0, 0, 1, 6);
@@ -173,6 +175,8 @@ export async function buildRoom(m) {
   const sadie = new Mesh(keep(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.31, 0)), psx(T.sadie, { unlit: 0.4 }));
   sadie.position.copy(SADIE); scene.add(sadie);
 
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+
   // ---------- broken: the glass gone but for a jagged edge, and glitter all over the floor ----------
   const edgeTex = tex(CW, CH, g => {
     let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
@@ -224,7 +228,8 @@ export async function buildRoom(m) {
   let active = false, wait = 0, dirty = false, savedAt = 0, mood = { name: 'calm', until: 0 }, pop = 0, now = 0;
   let sound = null, showing = 'calm', lastTock = 0;
   const keep_ = () => { store.set(KEY, save(game)); dirty = false; };
-  addEventListener('pagehide', () => { if (dirty) keep_(); });
+  const leaving = new AbortController();
+  addEventListener('pagehide', () => { if (dirty) keep_(); }, { signal: leaving.signal });
   function feel(name, secs) { mood = { name, until: now + secs }; }
   const clunk = () => { if (sound && now - lastTock > 0.07) { lastTock = now; sound.tock(); } };
   const play = {
@@ -375,6 +380,15 @@ export async function buildRoom(m) {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie],
     uses: game.broken ? [] : [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 8.5, label: play.label, play }],
     holding: null,   // a door being held open (the yarn ball and Sadie on their way out)
+    // (the mansion puts the room away when you're far off, never mid-game or while the ball's getting
+    // out; the yarn ball and Sadie leave the hall with it, and come back when it's built again)
+    busy: () => active || (escape && escape !== 'gone') || (run && run !== 'gone') || !!doneAt || flights.length > 0 || falling.length > 0,
+    putAway() {
+      if (dirty) keep_();
+      leaving.abort(); sound?.close();
+      if (hallBall) { hall.scene.remove(hallBall, hallCat); hall.faces.splice(hall.faces.indexOf(hallCat), 1); }
+      if (signUp) m.landingDoor.paint(null);
+    },
     watch: null,     // what your view follows (the yarn ball, while it's getting out)
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },
     spots: { case: { x: 0, z: CZ - 7.5, yaw: Math.PI, pitch: 0.25, y: 0 } },

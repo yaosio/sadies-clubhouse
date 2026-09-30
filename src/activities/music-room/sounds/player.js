@@ -71,7 +71,10 @@ export function makePlayer(volume = 0.5) {
       } catch { return { set() {}, stop() {} }; }
     },
   };
+  const off = new AbortController();
   if (ctx && globalThis.addEventListener) for (const e of ['pointerdown', 'keydown', 'touchend'])
-    globalThis.addEventListener(e, () => player.wake(), { capture: true, passive: true });
+    globalThis.addEventListener(e, () => player.wake(), { capture: true, passive: true, signal: off.signal });
+  // done with it for good (its room put away): the browser's sound goes, and it stops listening
+  player.close = () => { off.abort(); try { ctx?.close().catch(() => {}); } catch {} ctx = null; };
   return player;
 }

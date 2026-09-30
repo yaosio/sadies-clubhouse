@@ -54,9 +54,12 @@ void main(){
 }`;
 
 let WHITE = null;
-const made = [];     // everything to hand back to the graphics card when the mansion closes
-export const keep = x => (made.push(x), x);
-export function disposeLook() { for (const x of made.splice(0)) x.dispose(); WHITE = null; }
+const kept = new Set();   // everything to hand back to the graphics card when the mansion closes
+export const keep = x => (kept.add(x), x);
+export const made = () => [...kept];
+// (a room put away has handed its things back already: they're off the list)
+export function handedBack(xs) { for (const x of xs) kept.delete(x); }
+export function disposeLook() { for (const x of kept) x.dispose(); kept.clear(); WHITE = null; }
 
 // o: rx, ry (texture repeats), tint, unlit (0-1), fade (0-1, see-through dots), side, decal (flat on
 // a wall: pulled towards you in the depth test, so it doesn't flicker), onFloor (painted straight onto

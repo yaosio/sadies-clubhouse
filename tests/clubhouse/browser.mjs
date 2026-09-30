@@ -5,9 +5,13 @@
 // front door (seeing the hall through it first), climbs the spiral stairs to the landing, walks through
 // Dropper World's door into its room, plays it at the computer (the mansion must leave the page
 // completely), comes back with ESC BACK to that computer with the tower saved, and comes back from an
-// address that went straight in. It pauses, and in the test version starts the letter over. Any error
+// address that went straight in. It checks the rooms are built after the mansion opens (and how quick
+// each is), and that a room put away is built again as you walk up to its door, with nothing piling
+// up. It pauses, and in the test version starts the letter over. Any error
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
+
+const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 
 export default async function ({ browser, page, check, outDir }) {
   const DEVICES = [
@@ -94,6 +98,32 @@ export default async function ({ browser, page, check, outDir }) {
     for (const [yaw, pitch] of [[0.7, 0.6], [2.4, -0.7], [-1.9, 0.5]]) { await M('turnTo', yaw, pitch); await p.waitForTimeout(80); tipped = Math.max(tipped, await M('tilt')); }
     check(`${device}: looking up or down while turning keeps the view upright`, tipped < 1e-3, `leans ${tipped.toFixed(3)}`);
 
+    // the mansion opens before the rooms are built (all but a building outside the gate, which you can
+    // see from the lane); the rest are built one at a time while you stand about
+    const sp = await M('speed');
+    check(`${device}: the mansion opens without waiting for the rooms`, sp.atFirst.every(n => n === 'room:clydes-house'), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
+    const settled = await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 20000 }).then(() => true, () => false);
+    const sp2 = await M('speed'), slow = Object.entries(sp2.places).filter(([, ms]) => ms > SLOW);
+    check(`${device}: ...and the rooms are built while you stand about`, settled, (await M('built')).join(', '));
+    // how quick each place is to build (a slow one makes a hiccup as you walk up to its door), and
+    // how many kinds of drawing the graphics card has had to learn (each new kind: a hiccup the first
+    // time it's seen). Headless drawing is slow, so these are generous.
+    check(`${device}: every place builds in under ${SLOW} ms`, !slow.length, Object.entries(sp2.places).map(([k, ms]) => `${k.replace('room:', '')} ${ms}`).join(', '));
+    // (a room builds a bit at a time, so the game's never held up for long: the longest bit)
+    const bits = Object.entries(sp2.bits).filter(([k]) => k.startsWith('room:')), long = bits.filter(([, ms]) => ms > BIT);
+    check(`${device}: ...a bit at a time, never holding the game up more than ${BIT} ms`, !long.length, bits.map(([k, ms]) => `${k.replace('room:', '')} ${ms}`).join(', '));
+    check(`${device}: ...and every place draws with the same few materials`, sp2.programs <= PROGRAMS, `${sp2.programs} kinds so far`);
+
+    // a building outside the gate far off is drawn as a plain block (none is that far yet: here the
+    // distance is made short, standing at the gate)
+    await M('put', 'outside', 'start');
+    await M('farHouse', 5); await p.waitForTimeout(300);
+    await shot('4a-far-house');
+    const far = await M('houses');
+    await M('farHouse', 90); await p.waitForTimeout(300);
+    const near = await M('houses');
+    check(`${device}: a building outside the gate is a plain block when far off, and itself close up`, far.length && far.every(h => h.far) && near.every(h => !h.far), JSON.stringify(far));
+
     // up the spiral stairs to the landing, keeping to the middle of the steps
     await M('put', 'hall', 'stairs');
     for (let i = 0; i < 40; i++) {
@@ -117,6 +147,33 @@ export default async function ({ browser, page, check, outDir }) {
     const both = await M('showing');
     await M('holdOpen', 'hall', null); await M('holdOpen', 'room:brickbuster', null);
     check(`${device}: two open doors side by side both show their rooms`, both >= 2, `${both} showing`);
+
+    // a room far off can be put away (its things handed back), and walking up to its door builds it
+    // again: the door opens once it's ready, and nothing piles up
+    await M('onlyDoors', true);   // (or it's built again straight away, as you're standing still)
+    const k0 = (await M('speed')).kept;
+    const away = await M('putAway', 'room:aquarium');
+    const k1 = (await M('speed')).kept;
+    check(`${device}: a room can be put away, handing its things back`, away && !(await M('built')).includes('room:aquarium') && k1 < k0, `${k0} things kept, then ${k1}`);
+    await M('faceDoor', 'hall', 'aquarium', 1.3);
+    await walk(350);
+    await p.waitForTimeout(800);
+    await shot('4c-built-again');
+    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, await M('looking') === 'room:aquarium' && (await M('built')).includes('room:aquarium'));
+    const k2 = (await M('speed')).kept;
+    await M('onlyDoors', false);
+    check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
+    // every room can be put away and built again, twice over, with nothing piling up (and no copies
+    // of anything it puts on the screen)
+    const all = (await M('places')).filter(n => n.startsWith('room:'));
+    const refused = [], kept = [];
+    for (let round = 0; round < 3; round++) {
+      for (const n of all) { if (!(await M('putAway', n))) refused.push(n); await M('build', n); }
+      kept.push((await M('speed')).kept);
+    }
+    // (the first time round, a room outside the gate keeps its house's pictures from its first build)
+    check(`${device}: ...every room can be put away and built again, over and over`, !refused.length && kept[1] === kept[0] && kept[2] === kept[0], `${[...new Set(refused)].join(', ') || 'all of them'}; things kept each time round: ${kept.join(', ')}`);
+    check(`${device}: ...and leaves no copies behind on the screen`, await p.evaluate(() => document.querySelectorAll('#saTalk').length) === 1);
 
     // through Dropper World's door into its room
     // (from 1.3 m out: further than that is off the landing, except in front of the first door)

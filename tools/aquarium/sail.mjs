@@ -25,7 +25,7 @@ const p = await ctx.newPage();
 p.on('pageerror', e => console.log('page error:', e.message));
 p.on('console', m => { if (m.type() === 'error') console.log('console:', m.text()); });
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
-await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 30000 });
+await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 30000 });
 await p.click('#ok');
 const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
 const A = () => p.evaluate(() => window.__aquarium.state());

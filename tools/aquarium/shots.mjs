@@ -28,7 +28,7 @@ for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 20000 });
+  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 20000 });
   await p.click('#ok');
   const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
   for (const [name, go] of SHOTS) {

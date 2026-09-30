@@ -25,7 +25,7 @@ for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(url);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5, null, { timeout: 30000 });
+  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
   await p.click('#ok');
   const shot = async (name, wait = 1000) => { await p.waitForTimeout(wait); await p.screenshot({ path: join(out, `${device}-${name}.png`) }); console.log(`dist/shots/brickbuster/${device}-${name}.png`); };
   await p.evaluate(() => { const m = window.__mansion; m.faceDoor('hall', 'brickbuster', 2.4); });

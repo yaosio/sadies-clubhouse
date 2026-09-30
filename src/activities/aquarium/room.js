@@ -185,6 +185,7 @@ export async function buildRoom(m) {
   }
 
   // ---------- the swimmers ----------
+  await m.breathe?.();
   const F = fishPics(tex, C);
   const fish = FISH.map(([kind, size, y, z, speed], i) => {
     const pic = F[kind], w = size * pic.image.width / 16, h = size * pic.image.height / 16;
@@ -209,7 +210,10 @@ export async function buildRoom(m) {
   let knockT = 0;
 
   // ---------- the ocean, and what you've found in it ----------
+  // (a breath either side of the ocean, the biggest part: the mansion builds it a bit at a time)
+  await m.breathe?.();
   const ocean = buildOcean(m, floorBits);
+  await m.breathe?.();
   let saved = readSave(store.get(SAVE, null));
   const save = () => store.set(SAVE, saved);
   showFinds();
@@ -336,6 +340,10 @@ export async function buildRoom(m) {
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces, uses,
     light: roomLight,
+    // (the mansion puts the aquarium away when you're far off, and builds it again from its save as
+    // you come back: both its scenes go back to the graphics card, and its sounds stop for good)
+    scenes: [scene, ocean.scene],
+    putAway() { sounds.close(); },
     spots: {
       glass: { x: -0.9, z: GZ - 1.4, yaw: Math.PI + 0.1, pitch: 0.05, y: 0 },
       cabinet: { x: 2.2, z: 0.6, yaw: -Math.PI / 2, pitch: 0.05, y: 0 },

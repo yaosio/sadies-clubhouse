@@ -23,7 +23,7 @@ const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=sw
 const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 p.on('pageerror', e => console.log('page error:', e.message));
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
-await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5, null, { timeout: 30000 });
+await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
 const EYE = 1.6;   // roughly where your eye is above the floor
 const dx = lx - x, dz = lz - z, yaw = Math.atan2(-dx, -dz), pitch = Math.atan2(ly - (y + EYE), Math.hypot(dx, dz));
 await p.evaluate(([w, s]) => { window.__mansion.put(w, s); document.querySelector('#letter').hidden = true; }, [placeName, { x, z, y, yaw, pitch }]);

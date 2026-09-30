@@ -57,6 +57,7 @@ export function buildRoom(T, card, boxImage, doorImage) {
     light: { sun: 0.2, bulb: 0.75, lamp: [0, H - 0.4, 0.5] },
     spots: { computer: { x: 0, z: D - 2.6, yaw: Math.PI, pitch: -0.18, y: 0 } },
     update() {},
+    putAway() {},   // (nothing of its own to stop: the mansion hands its things back when you're far off)
   };
 }
 

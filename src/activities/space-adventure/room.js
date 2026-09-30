@@ -30,10 +30,12 @@ import { store } from '../../shared/storage.js';
 export async function buildRoom(m) {
   const { T: TX, C, psx, keep, tex, words, doorway, card, leaf } = m;
   const scene = new Scene();
-  const cockpit = buildCockpit(m, cockpitPics(tex, C, words));
-  const space = buildSpace(m, spacePics(tex, C));
-  const land = buildLand(m, landPics(tex, C));
-  const hangout = buildHangout(m, roomPics(tex, C, words, TX.sadie.image), TX);
+  // (a breath between the big parts: the mansion builds it a bit at a time, so nothing stutters)
+  const breathe = m.breathe || (async () => {});
+  const cockpit = buildCockpit(m, cockpitPics(tex, C, words)); await breathe();
+  const space = buildSpace(m, spacePics(tex, C)); await breathe();
+  const land = buildLand(m, landPics(tex, C)); await breathe();
+  const hangout = buildHangout(m, roomPics(tex, C, words, TX.sadie.image), TX); await breathe();
   scene.add(space.group, cockpit.group, land.group, land.clouds, hangout.group);
   const door = doorway(scene, { pos: [0, 0, -RD], yaw: 0, w: 1.5, h: 2.45, leaves: [leaf], hinge: 1 });
   // Sadie in the cockpit (out of sight behind the dashboard until she hops up)
@@ -151,6 +153,8 @@ export async function buildRoom(m) {
     },
     floor: cockpitFloor,
     watch: null,
+    // (the mansion puts it away when you're far off, and builds it again from its save as you come back)
+    putAway() { music.close(); talk.remove(); },
     update(t, dt = 0) {
       const paused = !!m.paused?.();
       if (paused !== wasPaused) { wasPaused = paused; music.hold(paused); }

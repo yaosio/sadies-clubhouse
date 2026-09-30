@@ -84,6 +84,8 @@ SHH, she goes and sits beside one instead, silently, offended, then goes back to
 
 Saves (`sadies-clubhouse.music-room.`): `tape` (both tapes, and which is in), `sign`, `volume`.
 
+**Put away when you're far off.** The mansion puts the room away when you've been three doors or more from it for a while, but never with a tune or anything else still to happen in it (`busy()`). `putAway()` closes its sounds; the tape and the settings are already saved, so it's the same when built again.
+
 ## Parked ideas
 
 - A tiny audience: Sadie's friends from the other rooms on a bench, reacting to a whole song.

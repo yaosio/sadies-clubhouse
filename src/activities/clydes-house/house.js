@@ -3,7 +3,7 @@
 // up), with terracotta tiles, a round window, a chimney that puffs out question marks, a mailbox,
 // a sign by the lane, and Clyde by the front door, who waves when you come up the path.
 //
-// Built into the outside's own scene (the mansion hands the room this place and the plot); the
+// Built into the outside's own scene, in a group of its own (the mansion hands the room this place and the plot); the
 // front door is a doorway into the room, like every door in the mansion.
 import { Group, Mesh, PlaneGeometry, BoxGeometry, ConeGeometry, DoubleSide } from 'three';
 
@@ -11,7 +11,9 @@ export const DW = 1.3, DH = 2.3;   // the front door
 
 export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
-  const scene = outside.scene, { add, box, plane, cyl, ball } = kit(scene);
+  // (all in one group, so the mansion can swap it for a plain stand-in when you're far off)
+  const scene = new Group(); outside.scene.add(scene);
+  const { add, box, plane, cyl, ball } = kit(scene);
   const hx = lot.x, hz = lot.z, W = 5.4, D = 5, H1 = 3.6;
   // (it faces the gate, away from the sun, so it's lit a little from within: never drab)
   const siding = (w, h) => psx(A.siding, { rx: w / 1.6, ry: h / 1.6, unlit: 0.35 });
@@ -19,7 +21,7 @@ export function buildHouse(m, A) {
   const mesh = (geo, mat, pos, rot, parent) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
 
   // ---------- the ground floor, with the front door ----------
-  add(new Mesh(wallGeometry(W, H1, DW, DH), psx(A.siding, { rx: 1 / 1.6, ry: 1 / 1.6, unlit: 0.35 })), [hx, 0, hz]);
+  const front = add(new Mesh(wallGeometry(W, H1, DW, DH), psx(A.siding, { rx: 1 / 1.6, ry: 1 / 1.6, unlit: 0.35 })), [hx, 0, hz]);
   plane(D, H1, siding(D, H1), [hx - W / 2, H1 / 2, hz - D / 2], [0, -Math.PI / 2, 0]);
   plane(D, H1, siding(D, H1), [hx + W / 2, H1 / 2, hz - D / 2], [0, Math.PI / 2, 0]);
   plane(W, H1, siding(W, H1), [hx, H1 / 2, hz - D], [0, Math.PI, 0]);
@@ -80,7 +82,10 @@ export function buildHouse(m, A) {
 
   let blinkAt = 2;
   return {
-    door, clyde: me,
+    door, clyde: me, group: scene,
+    // from far off it's drawn as a plain block: the size of the house itself (not the path, the sign
+    // or the mailbox), in the colour of its walls
+    body: [front, roof, up], farTint: 0xd9a55a,
     // every frame: the puffs rise and fade, the vane turns, and Clyde waves when you're close
     update(t, dt, ears) {
       vane.rotation.y = Math.sin(t * 0.4) * 1.2;

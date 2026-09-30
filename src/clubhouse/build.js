@@ -60,14 +60,15 @@ export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xff
     hinges.push([pivot, -side]);
   }
   const normal = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+  const own = fronts.map(f => f.material.uniforms.map.value);
   return {
     group, see, w, h, yaw, pos: new Vector3(...pos), normal, swing: 1,
     setOpen(k) {           // 0 shut, 1 open (not quite flat, so the door stays in sight as you go through)
       for (const [pivot, s] of hinges) pivot.rotation.y = s * this.swing * k * 1.4;
       see.material.uniforms.uOn.value = 0;
     },
-    // paint a new picture on the door's front (Brickbuster's OUT OF ORDER sign)
-    paint(t) { for (const f of fronts) f.material.uniforms.map.value = t; },
+    // paint a new picture on the door's front (Brickbuster's OUT OF ORDER sign), or (null) its own back
+    paint(t) { for (const [i, f] of fronts.entries()) f.material.uniforms.map.value = t || own[i]; },
     // a point in this doorway's own terms: x across, z out into the place (negative: through the door)
     local(x, z) { const dx = x - pos[0], dz = z - pos[2], c = Math.cos(yaw), s = Math.sin(yaw); return [dx * c - dz * s, dx * s + dz * c]; },
   };

@@ -25,7 +25,7 @@ export default async function ({ browser, page, check, outDir }) {
     const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
     const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
     const R = () => p.evaluate(() => window.__musicRoom.state());
-    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
+    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false);
     const walk = async ms => { await p.keyboard.down('KeyW'); await p.waitForTimeout(ms); await p.keyboard.up('KeyW'); await p.waitForTimeout(100); };
     const use = () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE');
     const modeIs = m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false);

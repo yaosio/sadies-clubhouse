@@ -25,7 +25,7 @@ export default async function ({ browser, page, check, outDir }) {
     const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
     const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
     const B = () => p.evaluate(() => window.__brickbuster.state());
-    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
+    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false);
     const walk = async ms => { await p.keyboard.down('KeyW'); await p.waitForTimeout(ms); await p.keyboard.up('KeyW'); await p.waitForTimeout(100); };
     const use = () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE');
     const modeIs = m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false);
@@ -167,6 +167,13 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(800);
     await shot('7-out-of-order');
     check(`${device}: it's still broken next time: bricks on the heap, sign on the door`, s.broken === 'bottom' && s.pile === 80 && s.sign && !s.sadie && s.escape === 'gone');
+    // put away when you're far off (the mansion does it after a while three doors away) and built
+    // again as you come back: the yarn ball and Sadie leave the hall with it, and come back with it
+    const gone = await p.evaluate(() => { const ok = window.__mansion.putAway('room:brickbuster'); return { ok, meshes: window.__mansion.built().includes('room:brickbuster') }; });
+    await M('build', 'room:brickbuster');
+    await p.waitForTimeout(300);
+    s = await B();
+    check(`${device}: put away and built again, it's still broken, with the ball and Sadie back in the hall`, gone.ok && !gone.meshes && s.broken === 'bottom' && s.pile === 80 && s.sign && s.hall?.shown && !s.hall.napping);
 
     // the pause menu can start it over (after asking)
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
