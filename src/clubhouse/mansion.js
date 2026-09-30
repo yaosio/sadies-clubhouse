@@ -62,7 +62,8 @@ export async function open(cards, enter) {
     if (!c.room) return buildRoom(T, c, boxes[i], doorPics[i]);
     const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
     return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
-      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }) });
+      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
+      paused: () => mode === 'menu' });
   }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
@@ -331,7 +332,7 @@ export async function open(cards, enter) {
     hint.hidden = !target || touchy || mode !== 'play';
     btn.hidden = !((target && mode === 'play') || inGame) || !touchy;
     $('#arcadeHint').hidden = !inGame;
-    $('#stick').hidden = !touchy || inGame;
+    $('#stick').hidden = !touchy || inGame || !!me.world.watch;   // (no walking while you're made to watch something)
     if (inGame) $('#keysHint').hidden = true;
     if (inGame) btn.textContent = 'STEP BACK';
     else if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = target.act ? target.button || 'USE' : 'PLAY'; }
@@ -467,7 +468,7 @@ export async function open(cards, enter) {
   }
 
   // ---------- the loop ----------
-  let raf = 0, last = performance.now(), frames = 0, blinkAt = 3, blinkOff = 0, hintGone = false;
+  let raf = 0, last = performance.now(), frames = 0, blinkAt = 3, blinkOff = 0, hintGone = false, watching = false;
   const born = performance.now();
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = now / 1000;
@@ -480,6 +481,14 @@ export async function open(cards, enter) {
       const k = Math.min(1, dt * 10), dyaw = yaw - me.yaw;
       me.yaw += Math.atan2(Math.sin(dyaw), Math.cos(dyaw)) * k; me.pitch += (pitch - me.pitch) * k;
       me.bob *= 0.85;
+      // (it can also say where you're to be while you watch: `at`, {x, z, y}, eased there, or
+      // straight there with `snap`: sat in Space Adventure's pilot seat)
+      if (w.at) {
+        const e = w.at.snap ? 1 : Math.min(1, dt * 3);
+        me.x += (w.at.x - me.x) * e; me.z += (w.at.z - me.z) * e;
+        if (w.at.y !== undefined) { me.y = w.at.y; if (w.at.snap) me.eye = me.y; }
+        if (w.at.snap) { me.yaw = yaw; me.pitch = pitch; }
+      }
     } else if (mode === 'play') {
       const tr = (held.has('tl') ? 1 : 0) - (held.has('tr') ? 1 : 0);
       me.yaw += tr * TURN * dt;
@@ -518,7 +527,7 @@ export async function open(cards, enter) {
     if (blinkOff && t > blinkOff) { outside.sadie.material.uniforms.map.value = T.sadie; blinkOff = 0; }
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
-    if (was !== target) showTarget();
+    if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
     frames++;
     raf = requestAnimationFrame(frame);
   }
