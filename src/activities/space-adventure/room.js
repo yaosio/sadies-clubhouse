@@ -26,6 +26,7 @@ import { makeTalk } from './talk.js';
 import { makeMusic, nearness } from './music/player.js';
 import { tripSong, radioSong } from './music/song.js';
 import { store } from '../../shared/storage.js';
+import { soundsFor } from '../../shared/sound.js';
 
 export async function buildRoom(m) {
   const { T: TX, C, psx, keep, tex, words, doorway, card, leaf } = m;
@@ -43,7 +44,7 @@ export async function buildRoom(m) {
   cockpit.group.add(sadie); sadie.visible = false;
 
   const talk = makeTalk(TX.sadie.image);
-  const music = makeMusic(), tripNotes = tripSong(T.land - T.go), radio = radioSong();
+  const music = makeMusic(soundsFor('room:' + card.id)), tripNotes = tripSong(T.land - T.go), radio = radioSong();
   const song = music.track(tripNotes), radioTrack = music.track(radio.notes, { loop: radio.length });
 
   const lights = {
@@ -122,7 +123,7 @@ export async function buildRoom(m) {
     if (trip.swapped && t < T.black) { const sh = shipAt(t); sh.pitch += jig(); land.place(sh); land.update(t); }
     // her words, and the music
     talk.say(lineAt(t));
-    if (t >= T.go && !trip.playing) { trip.playing = true; song.play(t - T.go); }
+    if (t >= T.go && !trip.playing && !wasPaused) { trip.playing = true; song.play(t - T.go); }
     blackOut(t);
   }
   // the black: she's flown at you; everything goes black, and it clears in her space room
@@ -157,7 +158,8 @@ export async function buildRoom(m) {
     putAway() { music.close(); talk.remove(); },
     update(t, dt = 0) {
       const paused = !!m.paused?.();
-      if (paused !== wasPaused) { wasPaused = paused; music.hold(paused); }
+      // paused: the song stops where it is (and starts again from there), the radio goes quiet
+      if (paused !== wasPaused) { wasPaused = paused; if (paused && trip?.playing) { song.stop(0.15); trip.playing = false; } }
       const me = m.ears(), here = me.place === place;
       cockpit.update(t);
       // walked into the cockpit: strapped in, and off we go
@@ -173,7 +175,7 @@ export async function buildRoom(m) {
           afterAt += dt;
           talk.say(afterAt < 3.5 ? { text: AFTER, since: afterAt } : null);
         }
-        const want = !trip && radioOn && here;
+        const want = !trip && radioOn && here && !paused;
         if (want && !radioTrack.playing) radioTrack.play(0);
         if (!want && radioTrack.playing) radioTrack.stop(0.5);
         if (radioTrack.playing) { radioTrack.setLevel(0.25 + 0.75 * nearness(Math.hypot(me.x - RADIO.x, me.z - RADIO.z), 1.5, 12)); radioTrack.tick(); }

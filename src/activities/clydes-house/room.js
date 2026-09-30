@@ -21,6 +21,7 @@ import { makeMachine, saveOf, missing, partIn, swap, run, won, GAPS } from './ma
 import * as L from './lines.js';
 import { REACT } from './reactions.js';
 import { makeSounds } from './sounds/index.js';
+import { soundsFor } from '../../shared/sound.js';
 import { store } from '../../shared/storage.js';
 
 const KEY = 'sadies-clubhouse.clydes-house.machine';
@@ -188,7 +189,7 @@ export async function buildRoom(m) {
   const M = makeMachine(store.get(KEY, {}) || {});
   A.count(M.treats);
   let madeSounds = null;
-  const sounds = () => (madeSounds ||= makeSounds());
+  const sounds = () => (madeSounds ||= makeSounds(soundsFor('room:' + card.id)));
   const sfx = k => sounds()[k]();
 
   // ---------- putting everything back where it starts ----------

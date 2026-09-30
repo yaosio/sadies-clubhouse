@@ -175,6 +175,18 @@ export default async function ({ browser, page, check, outDir }) {
     const k2 = (await M('speed')).kept;
     await M('onlyDoors', false);
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
+    // Every room keeps the sound rules (src/shared/sound.js): none of its music is heard once you've
+    // left it, and once it's put away nothing it started is left (no sounds, no lines).
+    const leftOver = [];
+    for (const n of (await M('places')).filter(n => n.startsWith('room:'))) {
+      await M('build', n); await M('faceDoor', n, 'door', 2); await p.waitForTimeout(1200);
+      await M('faceDoor', 'hall', 'dropper-world', 1.3); await p.waitForTimeout(600);
+      const o = (await M('sound')).owners[n];
+      if (o?.music) leftOver.push(`${n} music still heard`);
+      if (!(await M('putAway', n))) leftOver.push(`${n} wouldn't be put away`);
+      else if ((await M('sound')).owners[n]) leftOver.push(`${n} left sounds behind`);
+    }
+    check(`${device}: every room keeps the sound rules: its music isn't heard once you've left, and it leaves nothing playing when put away`, !leftOver.length, leftOver.join(', '));
     // every room can be put away and built again, twice over, with nothing piling up (and no copies
     // of anything it puts on the screen)
     const all = (await M('places')).filter(n => n.startsWith('room:'));
@@ -232,13 +244,16 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('8-paused');
     check(`${device}: ${opts.hasTouch ? 'the pause button' : 'Escape'} pauses`, await M('mode') === 'menu' && await p.isVisible('#menu'));
     check(`${device}: ...with the start-over buttons`, await p.isVisible('#resets button:has-text("INVITATION")'));
-    // the MUSIC button: ON, SOFT, OFF (remembered), and ON again
-    const tap = async () => { await p.click('#music'); return [await p.textContent('#music'), await p.evaluate(() => localStorage.getItem('mansion.music'))]; };
-    const soft = await tap(), offNow = await tap();
+    // the volume buttons: MUSIC, SOUNDS, VOICES, each ON, SOFT, OFF (remembered), and ON again
+    const tap = async b => { await p.click('#vol-' + b); return [await p.textContent('#vol-' + b), await p.evaluate(k => JSON.parse(localStorage.getItem(k)), 'mansion.' + b), (await M('sound')).levels[b]]; };
+    const soft = await tap('music'), offNow = await tap('music');
     const silent = await p.waitForFunction(() => window.__mansion.music().level < 0.01, null, { timeout: 6000 }).then(() => true, () => false);
-    const onAgain = await tap();
-    check(`${device}: the pause menu's MUSIC button goes SOFT, OFF (silent) and ON again, and remembers`, soft[0] === 'MUSIC: SOFT' && offNow[0] === 'MUSIC: OFF' && silent && onAgain[0] === 'MUSIC: ON'
-      && JSON.parse(offNow[1]) === 'off' && JSON.parse(onAgain[1]) === 'on', `${soft[0]}, ${offNow[0]}, ${onAgain[0]}`);
+    const onAgain = await tap('music');
+    check(`${device}: the pause menu's MUSIC button goes SOFT, OFF (the theme stops) and ON again, and remembers`, soft[0] === 'MUSIC: SOFT' && soft[2] === 0.45 && offNow[0] === 'MUSIC: OFF'
+      && offNow[2] === 0 && silent && onAgain[0] === 'MUSIC: ON' && offNow[1] === 'off' && onAgain[1] === 'on', `${soft[0]}, ${offNow[0]}, ${onAgain[0]}`);
+    const others = [];
+    for (const b of ['sounds', 'voices']) { const r = [await tap(b), await tap(b), await tap(b)]; others.push(r.map(x => x[0] + ' ' + x[2]).join(', '), r[1][2] === 0 && r[2][2] === 1 && r[2][1] === 'on'); }
+    check(`${device}: ...and so do SOUNDS and VOICES`, others[1] && others[3], others.filter(x => typeof x === 'string').join('; '));
     await p.click('#resets button:has-text("INVITATION")');
     await shot('9-sure');
     check(`${device}: a start-over button asks first`, await p.isVisible('#sureYes') && !(await p.isVisible('#resets')));

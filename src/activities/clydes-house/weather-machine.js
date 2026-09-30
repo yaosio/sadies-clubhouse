@@ -17,6 +17,7 @@ import { Mesh, Group, Color, Vector3, BufferGeometry, BufferAttribute, PlaneGeom
 import { KEY, KINDS, NAMES, LOOK, SADIE, pull as next, loaded } from './weather.js';
 import { drawWeatherArt, KNOB } from './weather-art.js';
 import { makeSounds } from './sounds/index.js';
+import { soundsFor } from '../../shared/sound.js';
 import { store } from '../../shared/storage.js';
 
 const EASE = 1 / 3;          // the weather takes about three seconds to change
@@ -130,7 +131,8 @@ export function buildWeather(m, group) {
     store.set(KEY, now);
     labels(); A.forecast(now);
     puffT = 0;
-    try { sounds ||= makeSounds(0.4); sounds.wake(); } catch {}
+    // (its own handle: the machine stays outside when the room's put away)
+    try { sounds ||= makeSounds(soundsFor('house:weather-machine'), 0.4); sounds.wake(); } catch {}
     sounds?.clunk(); sounds?.[now + 'In']();
     saying = null; meowAt = clock + 1.2 / speed;
     return now;

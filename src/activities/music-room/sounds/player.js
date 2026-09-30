@@ -1,49 +1,29 @@
 // Plays the music room's sounds in the browser (the samples are made by the other files here, as
 // plain numbers), all through the room's volume dial. Also the theremin's voice, which can't be a
 // sample: it plays for as long as you hold it, sliding wherever your hand goes.
-//
-// Browsers only let a page make sound once the player has pressed something, so it wakes itself on
-// the next press or key (and whoever made it can wake() it during one). If the browser has no sound
-// at all, it quietly does nothing (but still counts, for the checks).
+// (If the browser has no sound at all, it quietly does nothing, but still counts, for the checks.)
 import { RATE } from './retro.js';
-import { openAudio } from '../../../shared/audio.js';
 
-export function makePlayer(volume = 0.5) {
-  let ctx = null, out = null, line = null;
-  try {
-    line = openAudio(); ctx = line.ctx; out = ctx.createGain(); out.gain.value = volume; out.connect(line.out);
-  } catch { ctx = null; }
-  const made = new Map();
-  // each sample held 4 times over at 44.1 kHz: no smoothing, so it keeps its 11 kHz crunch
-  function buffer(key, make) {
-    if (!ctx) return null;
-    if (!made.has(key)) {
-      const s = make(), b = ctx.createBuffer(1, s.length * 4, RATE * 4), d = b.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = s[i >> 2];
-      made.set(key, b);
-    }
-    return made.get(key);
-  }
-  const player = {
-    played: 0, last: null, log: [], volume,   // (how many, the last, and the last 40: for the checks)
-    wake() { try { if (ctx && ctx.state !== 'running') ctx.resume(); } catch {} },
+// `h`: the room's handle (src/shared/sound.js): the clubhouse's sound system plays everything, with
+// its rules (no buzzing, a cap on how many at once). The instruments are sounds, not music (the
+// main theme is kept out of this room by its `hush` instead), on the pause menu's SOUNDS volume.
+export function makePlayer(h, volume = 0.5) {
+  let line = null;   // (the theremin's: made the first time it's played)
+  const player = Object.assign(h, {
+    volume,
     // the volume dial: 0 (off) to 1
-    setVolume(v) { player.volume = v; if (out) out.gain.setTargetAtTime(v, ctx.currentTime, 0.05); },
+    setVolume(v) { player.volume = v; if (line) line.out.gain.setTargetAtTime(v, line.ctx.currentTime, 0.05); },
     // play a sound: its name (the same name, the same sound: it's only made once), how to make it,
-    // and how loud (0 to 1)
-    play(key, make, loud = 1) {
-      player.played++; player.last = key; player.log.push(key); if (player.log.length > 40) player.log.shift();
-      const b = buffer(key, make); if (!b || !player.volume) return;
-      try {
-        const src = ctx.createBufferSource(), g = ctx.createGain();
-        src.buffer = b; g.gain.value = loud; src.connect(g); g.connect(out); src.start();
-      } catch {}
-    },
+    // and how loud (0 to 1). 11 kHz samples, each held 4 times over (no smoothing: the crunch).
+    play0: h.play,
     // a voice that sounds while it's held: set(frequency, how loud) as often as you like (it glides),
     // stop() to let it fade away. Crunched to 8 bits like everything else.
     voice() {
-      player.played++; player.last = 'voice'; player.log.push('voice'); if (player.log.length > 40) player.log.shift();
-      if (!ctx) return { set() {}, stop() {} };
+      h.played++; h.last = 'voice'; h.log.push('voice'); if (h.log.length > 200) h.log.shift();
+      line ||= h.line('sounds');
+      if (!line) return { set() {}, stop() {} };
+      line.out.gain.value = player.volume;
+      const ctx = line.ctx, out = line.out;
       try {
         const osc = ctx.createOscillator(), wob = ctx.createOscillator(), wobAmt = ctx.createGain(), crunch = ctx.createWaveShaper(), g = ctx.createGain();
         osc.type = 'sine'; wob.frequency.value = 5.5; wobAmt.gain.value = 0;
@@ -70,11 +50,7 @@ export function makePlayer(volume = 0.5) {
         };
       } catch { return { set() {}, stop() {} }; }
     },
-  };
-  const off = new AbortController();
-  if (ctx && globalThis.addEventListener) for (const e of ['pointerdown', 'keydown', 'touchend'])
-    globalThis.addEventListener(e, () => player.wake(), { capture: true, passive: true, signal: off.signal });
-  // done with it for good (its room put away): the browser's sound goes, and it stops listening
-  player.close = () => { off.abort(); try { ctx?.close().catch(() => {}); } catch {} ctx = null; };
+  });
+  player.play = (key, make, loud = 1) => { if (player.volume) player.play0(key, make, { loud: loud * player.volume, rate: RATE, hold: 4, gap: 0.03 }); };
   return player;
 }

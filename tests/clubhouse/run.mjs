@@ -89,17 +89,17 @@ for (const r of runs) {
 }
 check('it never repeats: no eight bars come round the same again in an hour', !repeats, `${repeats} repeats`);
 
-// ---------- the sound director (src/shared/audio.js) ----------
-// Every sound goes out through it, so it can hear music and keep the theme out of the way: nothing
+// ---------- the sound system (src/shared/sound.js) ----------
+// Every sound goes out through it (its rules, its volumes, the theme making way for music): nothing
 // else in the game may make its own AudioContext or play straight to the speakers.
 {
   const src = new URL('../../src/', import.meta.url).pathname, bad = [];
   const walk = d => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.m?js$/.test(f)) {
     const text = readFileSync(p, 'utf8'), rel = p.slice(src.length);
-    if (rel !== 'shared/audio.js' && /AudioContext|\.destination\b/.test(text)) bad.push(rel);
+    if (rel !== 'shared/sound.js' && /AudioContext|\.destination\b/.test(text)) bad.push(rel);
   } } };
   walk(src);
-  check('every sound in the game goes through the sound director (no AudioContext of its own)', !bad.length, bad.join(', '));
+  check('every sound in the game goes through the sound system (nothing makes an AudioContext of its own)', !bad.length, bad.join(', '));
 }
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');

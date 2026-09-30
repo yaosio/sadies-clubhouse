@@ -28,10 +28,12 @@ they fit together). Then only the docs of what you're changing:
 - **How anything looks:** also `docs/clubhouse/ART_STYLE.md` (the approved misremembered-90s look).
 - **The mansion, the page shell, the toolbox, the build or the checks:** `docs/clubhouse/` is enough.
 
-**Sound:** everything that makes sound gets it from the sound director, `openAudio()` in
-`src/shared/audio.js` (never its own AudioContext; a check fails otherwise). Music (a tune, a song, a
-radio) asks for `openAudio({ music: true })`: then the main theme fades out for it and the MUSIC button
-works on it by itself. The owner has misophonia: nothing droning, constant or repetitive.
+**Sound:** everything that makes sound plays through the sound system, `src/shared/sound.js` (never
+its own AudioContext; a check fails otherwise). A room gets `soundsFor('room:<id>')` and plays sounds
+by name on a bus (`sounds`, `voices` for Sadie and Clyde); music it streams goes on `line('music')`.
+Then the main theme makes way for its music, the pause menu's volumes work on it, the kind-to-the-ears
+rules (no buzzing, no voice twice running, distance fade, a cap) apply, and it all stops when the room's
+put away, with nothing more to do. The owner has misophonia: nothing droning, constant or repetitive.
 
 Don't start a parked idea (each activity's README lists them) unless asked. Never move a room: a
 new activity's door takes the next free spot on the landing (its card's `slot`), and anything by a

@@ -11,6 +11,7 @@
 import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, CylinderGeometry, CircleGeometry, TorusGeometry, SphereGeometry, BoxGeometry, DoubleSide, Raycaster, Plane } from 'three';
 import { drawArt } from './art.js';
 import { makeSounds, LOUD } from './sounds/index.js';
+import { soundsFor } from '../../shared/sound.js';
 import { hz } from './sounds/retro.js';
 import { BARS } from './sounds/xylophone.js';
 import { WHITE } from './sounds/piano.js';
@@ -186,7 +187,7 @@ export async function buildRoom(m) {
   const tape = makeTape(store.get(KEY + 'tape', null));
   const keepTape = () => store.set(KEY + 'tape', saveTape(tape));
   let sound = null, now = 0, playing = null, voice = 'CAT', lcd = 'CAT', lcdUntil = 0;
-  const sounds = () => (sound ||= makeSounds(VOLUMES[volumeAt][1]));
+  const sounds = () => (sound ||= makeSounds(soundsFor('room:' + card.id), VOLUMES[volumeAt][1]));
   A.drawSign(welcome); A.drawDial(VOLUMES[volumeAt][1] / 0.8, VOLUMES[volumeAt][0]); A.drawDeck(tape.state, tape.which);
   const here = () => { const e = m.ears?.(); return !!e && e.place === place; };
   const later = [];   // things to do in a moment: [when, what]

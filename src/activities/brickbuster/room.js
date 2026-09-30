@@ -12,6 +12,7 @@ import { makeGame, step, launch, serve, movePaddle, pushPaddle, save, load, W, H
 import { makeSounds } from './sounds/index.js';
 import { makeChatter } from './sounds/sadie.js';
 import { makeArcade } from './music/player.js';
+import { soundsFor } from '../../shared/sound.js';
 import { makeLoose, release, stepLoose, R as LR } from './loose.js';
 import { store } from '../../shared/storage.js';
 import posterPic from './poster.js';
@@ -228,6 +229,8 @@ export async function buildRoom(m) {
 
   // ---------- playing ----------
   let active = false, wait = 0, dirty = false, savedAt = 0, mood = { name: 'calm', until: 0 }, pop = 0, now = 0;
+  // its sounds, through the clubhouse's sound system (stopped by the mansion when the room's put away)
+  const sfx = soundsFor('room:' + card.id);
   let sound = null, music = null, showing = 'calm', lastTock = 0;
   const keep_ = () => { store.set(KEY, save(game)); dirty = false; };
   const leaving = new AbortController();
@@ -245,12 +248,12 @@ export async function buildRoom(m) {
     after: { x: -3.4, z: 3.1, yaw: Math.PI + 0.5, pitch: 0.15 },
     over: false,   // broken: the mansion steps you back to watch
     start() {
-      if (!sound) sound = makeSounds();
+      if (!sound) sound = makeSounds(sfx);
       sound.wake();
       if (!game.broken) {
         active = true; wait = game.serving ? 0.9 : 0.6;
         // its arcade music (music/: the clubhouse's theme makes way for it by itself)
-        (music ||= makeArcade()).play();
+        (music ||= makeArcade(sfx)).play();
       }
     },
     stop() { active = false; music?.stop(); if (dirty) keep_(); },
@@ -359,7 +362,7 @@ export async function buildRoom(m) {
   function sadieHeard(said) {
     const e = m.ears?.();
     if (!said || !e || e.place !== hall) return;
-    if (!sound) sound = makeSounds();   // (it wakes on your next press or key, if the browser's still holding it back)
+    if (!sound) sound = makeSounds(sfx);   // (it wakes on your next press or key, if the browser's still holding it back)
     sound.sadie(said, Math.hypot(loose.cat.x - e.x, loose.cat.y + 0.3 - e.y, loose.cat.z - e.z));
   }
   if (loose) {
@@ -392,7 +395,7 @@ export async function buildRoom(m) {
     busy: () => active || (escape && escape !== 'gone') || (run && run !== 'gone') || !!doneAt || flights.length > 0 || falling.length > 0,
     putAway() {
       if (dirty) keep_();
-      leaving.abort(); sound?.close(); music?.close();
+      leaving.abort(); sfx.close();
       if (hallBall) { hall.scene.remove(hallBall, hallCat); hall.faces.splice(hall.faces.indexOf(hallCat), 1); }
     },
     watch: null,     // what your view follows (the yarn ball, while it's getting out)

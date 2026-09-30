@@ -32,6 +32,7 @@ import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
 import { store } from '../shared/storage.js';
 import { makeTheme } from './music/theme.js';
+import { setVolume, youAreIn, closeSounds, soundState, LEVELS, BUSES } from '../shared/sound.js';
 import P from './pictures.js';
 import page from './mansion.html';
 import styles from './mansion.css';
@@ -40,7 +41,7 @@ const EYE = 1.6, SPEED = 3.2, TURN = 2.2, STICK = 40;   // STICK: how far the th
 // things that happen once, remembered in the browser (the pause menu can undo each)
 const INVITED = 'mansion.invited';
 const BACK = 'mansion.back';          // which activity you left for (kept only until the page comes back)
-const MUSIC = 'mansion.music';        // the pause menu's MUSIC button: 'on', 'soft' or 'off'
+const VOLUME = b => 'mansion.' + b;   // the pause menu's MUSIC, SOUNDS and VOICES buttons: 'on', 'soft' or 'off'
 
 export async function open(cards, enter) {
   const style = document.createElement('style');
@@ -52,7 +53,9 @@ export async function open(cards, enter) {
   const off = new AbortController(), on = (el, ev, fn, o) => el.addEventListener(ev, fn, { signal: off.signal, ...o });
   const touchy = matchMedia('(pointer: coarse)').matches;
   // the main theme (music/): it fades out while any other music plays, and where a place asks (`hush`)
-  const theme = makeTheme(store.get(MUSIC, 'on'));
+  const loud = {};
+  for (const b of BUSES) { loud[b] = LEVELS[store.get(VOLUME(b), 'on')] !== undefined ? store.get(VOLUME(b), 'on') : 'on'; setVolume(b, LEVELS[loud[b]]); }
+  const theme = makeTheme();
 
   // ---------- the places, and the doorways between them ----------
   // Only the garden and the hall (and any building outside the gate, which you can see from the lane)
@@ -135,7 +138,7 @@ export async function open(cards, enter) {
   function putAway(r) {
     const w = r.place;
     if (!w || !w.putAway || w === me.world || r.building || w.holding || w.busy?.()) return false;
-    w.putAway();
+    w.putAway(); closeSounds(r.name);   // (everything it started stops, whatever it forgot)
     r.portal.b = r.portal.wb = null; r.portal.open = 0; r.portal.a.setOpen(0);
     const mine = new Set(r.mine);
     for (const sc of w.scenes || [w.scene]) things(sc, mine);
@@ -607,13 +610,11 @@ export async function open(cards, enter) {
   }
   on($('#pause'), 'click', e => { e.stopPropagation(); if (mode === 'play' || mode === 'arcade') pause(); });
   on($('#resume'), 'click', resume);
-  // the music: ON, SOFT, OFF (all music: the sound director, src/shared/audio.js, sets every music channel)
-  const showMusic = () => { $('#music').textContent = 'MUSIC: ' + theme.setting.toUpperCase(); };
-  on($('#music'), 'click', () => {
-    const next = { on: 'soft', soft: 'off', off: 'on' }[theme.setting];
-    theme.set(next); store.set(MUSIC, next); showMusic(); theme.wake();
-  });
-  showMusic();
+  // how loud: MUSIC, SOUNDS and VOICES (Sadie, Clyde), each ON, SOFT or OFF (src/shared/sound.js)
+  const showVolumes = () => { for (const b of BUSES) $('#vol-' + b).textContent = `${b.toUpperCase()}: ${loud[b].toUpperCase()}`; };
+  for (const b of BUSES) on($('#vol-' + b), 'click', () => setLoud(b, { on: 'soft', soft: 'off', off: 'on' }[loud[b]]));
+  function setLoud(b, v) { loud[b] = v; store.set(VOLUME(b), v); setVolume(b, LEVELS[v]); showVolumes(); }
+  showVolumes();
   $('#how').innerHTML = touchy ? 'LEFT THUMB: WALK<br>RIGHT THUMB: LOOK AROUND<br>WALK INTO A DOOR TO GO IN'
     : 'W A S D: WALK &middot; ARROWS: WALK AND TURN<br>CLICK, THEN MOUSE: LOOK AROUND<br>E: USE &middot; ESC: PAUSE';
   const arcadeHint = touchy ? 'SLIDE A FINGER TO MOVE' : '<kbd>A D</kbd> OR <kbd>MOUSE</kbd> MOVE &nbsp; <kbd>ESC</kbd> STEP BACK';
@@ -706,8 +707,9 @@ export async function open(cards, enter) {
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }
     for (const w of places) w.update(t, dt);
-    // the main theme: it makes way for any other music by itself (the sound director hears it), and
+    // the main theme: it makes way for any other music by itself (the sound system hears it), and
     // for a place that asks for quiet (its `hush`: the Music Room)
+    youAreIn(me.world.name);   // (a room's music is only heard in it)
     const hush = me.world.hush;
     theme.tick(typeof hush === 'function' ? !!hush() : !!hush);
     farHouses();
@@ -725,7 +727,7 @@ export async function open(cards, enter) {
   }
 
   function close() {
-    cancelAnimationFrame(raf); off.abort(); theme.close();
+    cancelAnimationFrame(raf); off.abort(); theme.close(); for (const r of slots) closeSounds(r.name);
     if (document.pointerLockElement) document.exitPointerLock();
     for (const t of throughs) t.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();
@@ -768,9 +770,9 @@ export async function open(cards, enter) {
     speed: () => ({ ...speed, places: { ...speed.places }, bits: { ...speed.bits }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
       textures: renderer.info.memory.textures, kept: made().length, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e5) / 10 : null }),
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
-    // the main theme: what it's doing (and ON, SOFT or OFF, as the pause menu's button)
+    // the main theme: what it's doing; the sound system: what's playing, whose, and how loud
     music: () => theme.state(),
-    setMusic(s) { theme.set(s); store.set(MUSIC, theme.setting); showMusic(); },
+    sound: () => soundState(),
     // take a step of d metres straight ahead (through a doorway, if there's one there), and draw
     step(d) { const r = move(-Math.sin(me.yaw) * d, -Math.cos(me.yaw) * d); draw(); return r; },
     // how far the view leans over sideways (0: not at all), and how open the last doorway walked through is
