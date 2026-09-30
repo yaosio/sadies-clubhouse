@@ -10,6 +10,7 @@ import { RATE } from '../../src/activities/clydes-house/sounds/synth.js';
 import { ALL } from '../../src/activities/clydes-house/sounds/index.js';
 import card from '../../src/activities/clydes-house/card.js';
 import { REACT } from '../../src/activities/clydes-house/reactions.js';
+import * as WX from '../../src/activities/clydes-house/weather.js';
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -93,12 +94,26 @@ check('...and says what it keeps in the browser', card.keeps.every(k => k.starts
   check('...and they all stay near their gap', !far.length, far.join());
 }
 
+// 5c. the weather machine: one weather at a time, a lever again clears it, and each has its look and words
+{
+  check('the weather machine has four levers: rain, snow, a second sun, cats', WX.KINDS.join() === 'rain,snow,sun,cats');
+  check('pulling a lever brings its weather; pulling it again clears the sky', WX.pull('clear', 'rain') === 'rain' && WX.pull('rain', 'snow') === 'snow' && WX.pull('snow', 'snow') === 'clear');
+  check('...and the weather comes back from a save (anything odd is clear)', WX.loaded('cats') === 'cats' && WX.loaded('hail') === 'clear' && WX.loaded(null) === 'clear');
+  const all = ['clear', ...WX.KINDS];
+  check('every weather has its look, a forecast and a word from Sadie', all.every(k => WX.LOOK[k] && WX.FORECAST[k]?.length === 2 && WX.SADIE[k]));
+  check('...rain is dimmer and the second sun brighter than a clear day', WX.LOOK.rain.sun < WX.LOOK.clear.sun && WX.LOOK.sun.sun > WX.LOOK.clear.sun);
+  const words = all.flatMap(k => [...WX.FORECAST[k], WX.SADIE[k]]).concat(Object.values(WX.NAMES));
+  check('the forecasts fit the screen (18 letters), in letters the mansion\'s font has', all.every(k => WX.FORECAST[k].every(l => l.length <= 18)) && words.every(l => !/[^A-Z0-9 .,!'()\-$:?/&*]/.test(l)), words.find(l => l.length > 18));
+  check('...and it keeps the weather where the pause menu can start it over', card.keeps.some(k => WX.KEY.startsWith(k)));
+  check('every weather has its own soft jingle', all.every(k => ALL[k + 'In']));
+}
+
 // 6. every sound: soft, short, 8-bit, fading right down to nothing, no click (the owner can't
 // stand harsh, droning or repetitive noise)
 for (const [name, make] of Object.entries(ALL)) {
   const a = make();
   let peak = 0; for (const v of a) peak = Math.max(peak, Math.abs(v));
-  const most = name === 'chime' ? 2 : 1;
+  const most = name === 'chime' || name.endsWith('In') ? 2 : 1;   // (the chime, and the weather's jingles)
   check(`the ${name}: 8-bit, soft (never over half volume, not silent), under ${most} s, fading to nothing, no click`,
     a.every(v => Math.abs(Math.round(v * 127) - v * 127) < 1e-3) && peak > 0.08 && peak <= 0.5 && a.length <= most * RATE &&
     a.slice(-5).every(v => Math.abs(v) < 0.02) && Math.abs(a[0]) < 0.05, `peak ${peak.toFixed(2)}, ${(a.length / RATE).toFixed(2)} s`);

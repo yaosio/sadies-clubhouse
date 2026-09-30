@@ -6,7 +6,7 @@ are Sadie's Dropper World (a cozy physics toy), TypeFitter Deluxe 3.1 (text that
 Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the house) and the Music
 Room (instruments to play where they stand, which Sadie walks across now and then), the aquarium and
 Space Adventure (a spaceship trip with Sadie, who talks the whole way); outside the
-front gate, along a lane with plots for more buildings, is Clyde's House (the Good Morning Machine).
+front gate, along a lane with plots for more buildings, is Clyde's House (the Good Morning Machine, and the Weather Machine beside it).
 
 ## The owner
 - Doesn't code, installs nothing, and doesn't know GitHub. Claude does all building, testing,

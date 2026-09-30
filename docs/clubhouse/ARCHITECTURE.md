@@ -78,7 +78,9 @@ activity is checked again, so something moves into it only once a second activit
   door's threshold; the house faces the gate). It builds the house into the outside's scene
   itself, and hands back, with its place, `house` (`door`: its front door, a `doorway` in the
   outside's scene, facing the gate), which the mansion joins to the room's own `doors.door`. Its
-  place's `update` runs every frame wherever you are, so it animates the outside too. Nothing on the
+  place's `update` runs every frame wherever you are, so it animates the outside too. It can also
+  put things to use in the outside's `uses` (Clyde's weather levers) and set the outside's
+  `light` (the weather: the mansion reads it every frame). Nothing on the
   landing changes (the hall skips cards with a `lot`).
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
   one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3, the aquarium 4, Space Adventure 5), so a new activity never

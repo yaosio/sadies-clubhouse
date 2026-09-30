@@ -51,7 +51,8 @@ https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so
   a time (the invitation, an activity's saves), always asking "are you sure?" first.
 - **Outside the gate, a lane** runs along the fence, with plots either side of the path for
   buildings of their own (the owner plans more). The first is Clyde's House, The Overthinkery: a
-  crooked butter-yellow cottage with terracotta tiles (`docs/clydes-house/`). The next free plot
+  crooked butter-yellow cottage with terracotta tiles (`docs/clydes-house/`), with Clyde's Weather
+  Machine beside it, which changes the weather outside (dithered cloud domes, pixel rain and snow). The next free plot
   has a NEW HOUSE COMING SOON!! stake.
 - **You start outside**, at the gate. The first time only, Sadie's letter invites you: she's
   decided to share her clubhouse with all her friends. The pause menu can start the whole game
