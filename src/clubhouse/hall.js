@@ -29,7 +29,8 @@ export function buildHall(T, cards, doorPictures = []) {
   // which card has which door: its own slot if it says, else the next free one
   const bySlot = [];
   cards.forEach((c, i) => { if (Number.isInteger(c.slot)) bySlot[c.slot] = i; });
-  cards.forEach((c, i) => { if (!Number.isInteger(c.slot)) { let s = 0; while (bySlot[s] !== undefined) s++; bySlot[s] = i; } });
+  // (a card with a `lot` has its own house outside the gate instead of a door here)
+  cards.forEach((c, i) => { if (!Number.isInteger(c.slot) && !Number.isInteger(c.lot)) { let s = 0; while (bySlot[s] !== undefined) s++; bySlot[s] = i; } });
   const wallpaper = psx(T.damask, { rx: 1 / 1.3, ry: 1 / 1.3 }), brick = psx(T.brick, { rx: 1 / 1.2, ry: 1 / 1.2 });
   function wall(k, y0, h, mat, hole) {
     const th = faceAngle(k), [x, z] = at(A, th);
