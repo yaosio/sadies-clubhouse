@@ -105,6 +105,10 @@ rounds and the finale, every sound played, the phone's taps and swipe, kept afte
 `node tools/clydes-house/shots.mjs [desktop|phone]` (after a build) saves the house from the gate,
 the lane and the door, the castle from the lane, the room, and a run of the machine, in `dist/shots/clydes-house/`;
 `node tools/clydes-house/junk.mjs [part]` takes two of each bit of junk reacting.
+`node tools/clydes-house/tags.mjs [part]` puts the same part (FLOPPY DISK, the longest name, unless you
+name one) in every gap at once and takes a picture on a big desktop, a laptop and a phone, to check
+the name tags are readable and don't run into each other or the machine. The tags are drawn big
+(1.6 m wide) so they read on a wide screen, where the view pulls back to fit the whole machine.
 
 **Far off,** the house is drawn as a plain block the colour of its walls (`house.js` hands the mansion its `group`, `body` and `farTint`); none of the lane is that far yet.
 

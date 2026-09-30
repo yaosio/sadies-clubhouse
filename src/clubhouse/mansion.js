@@ -233,7 +233,9 @@ export async function open(cards, enter) {
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
-    const k = Math.max(1, Math.floor(Math.min(w, h) / 220));   // big chunky pixels, never under 220 across
+    // big chunky pixels, but never more than 960 across the long side: a phone held upright and a wide
+    // desktop screen get about the same detail, so the little painted words stay readable on both
+    const k = Math.max(1, Math.ceil(Math.max(w, h) / 960));
     const iw = Math.ceil(w / k), ih = Math.ceil(h / k);
     if (drawnAt === iw + 'x' + ih) return;                      // resizing wipes the picture: only when it really changed
     drawnAt = iw + 'x' + ih;
