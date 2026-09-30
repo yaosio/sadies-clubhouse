@@ -1,0 +1,70 @@
+// Everything Claude says, in one place. Claude is eager, polite, and overthinks everything; the
+// machine is how a helper who can't do anything simply would give a cat a treat. Painted in the
+// mansion's little 3x5 letters, so: no double quotes, and about 150 letters a bubble at most.
+// A list is said one bubble after another.
+
+export const HELLO = [
+  "OH! A VISITOR! HELLO! I'M CLAUDE. WELCOME TO THE OVERTHINKERY.",
+  "THIS IS MY GOOD MORNING MACHINE. IT GIVES SADIE HER BREAKFAST TREAT IN ONLY TEN STEPS.",
+];
+export const HELLO_AGAIN = ["WELCOME BACK! THE MACHINE MISSED YOU. I ASSUME. IT DOESN'T SAY MUCH."];
+export const PEEK = "OH! A VISITOR! COME AND SEE MY MACHINE!";
+
+// what to do, by how many gaps are empty
+export const HOWTO = {
+  1: "ONE PIECE IS MISSING. PICK A PART FROM MY SPARE-PARTS BOX, THEN PULL THE LEVER!",
+  2: "TWO PIECES ARE MISSING NOW. PICK A PART FOR EACH GAP, THEN PULL THE LEVER.",
+  3: "ALL THREE PIECES ARE MISSING. FOR SCIENCE. PICK THE PARTS, THEN PULL THE LEVER.",
+};
+
+// the machine worked, and what Claude does about it
+export const NEXT = [
+  [
+    "IT WORKED! SHE ATE IT! A FLAWLESS MORNING.",
+    "...BUT I THINK IT COULD BE BETTER. I TOOK SOME PIECES OUT TO IMPROVE THEM.",
+  ],
+  [
+    "WONDERFUL! TWO FOR TWO.",
+    "I'VE BEEN THINKING. I'M ALWAYS THINKING. WHAT IF ALL THREE PIECES WERE MISSING?",
+  ],
+];
+// the finale: said in turn while Claude and Sadie do their bit (see room.js)
+export const FINALE = {
+  ate: "SHE ATE IT! THAT'S THREE TREATS AND THIRTY STEPS.",
+  wait: "...WAIT.",
+  idea: "WHAT IF I JUST... HANDED HER THE TREAT?",
+  offer: "HERE YOU GO, SADIE. ONE TREAT. ZERO STEPS.",
+  snub: "OH.",
+  wants: "SHE DOESN'T WANT IT HANDED TO HER. SHE WANTS THE MACHINE.",
+  fine: "I UNDERSTAND COMPLETELY. PULL THE LEVER WHENEVER YOU LIKE. I'LL KEEP LOSING PIECES.",
+};
+// after the finale, each time it works (one at random)
+export const AGAIN = [
+  "TREAT DELIVERED! ONLY TEN STEPS.",
+  "SHE SEEMS SATISFIED. OR ASLEEP. HARD TO TELL WITH CATS.",
+  "ANOTHER FLAWLESS MORNING. I'D LIKE TO THANK THE DOMINOES.",
+  "SHE ATE IT. I'M SO PROUD OF ALL OF US. MOSTLY THE FAN.",
+  "IT WORKED! I'M GOING TO THINK ABOUT WHY FOR THE REST OF THE DAY.",
+  "PERFECT. I'VE ALREADY THOUGHT OF SIX WAYS TO MAKE IT LONGER.",
+];
+
+// it stopped at a gap: what was in it
+export const FAIL = {
+  null: "NOTHING THERE. VERY BRAVE. VERY UNSUCCESSFUL.",
+  duck: "A RUBBER DUCK. IT'S VERY SUPPORTIVE, BUT IT DOESN'T DO MUCH.",
+  banana: "A BANANA. IN HINDSIGHT, BANANAS AREN'T KNOWN FOR THEIR ENGINEERING.",
+  sock: "ONE SOCK. I'VE BEEN LOOKING FOR THE OTHER ONE SINCE 1994.",
+  cactus: "THE CACTUS HAS POLITELY DECLINED TO TAKE PART.",
+  floppy: "A FLOPPY DISK. IT SAYS DISK 2 OF 9. WE DON'T HAVE THE OTHER EIGHT.",
+  toaster: "THE TOASTER. IT'S NOT PLUGGED IN. IT'S NEVER BEEN PLUGGED IN.",
+  trophy: "MY TROPHY FOR MOST STEPS. WINNING IT DIDN'T HELP THE MACHINE.",
+  bulb: "THAT'S AN IDEA. IT TURNS OUT JUST HAVING ONE ISN'T ENOUGH.",
+  sandwich: "A SANDWICH. SADIE WOULD LOVE THIS STEP. THE MACHINE WON'T.",
+  plant: "THE HOUSEPLANT. IT'S DOING ITS BEST. ITS BEST IS SITTING THERE.",
+};
+export const TRY_AGAIN = [
+  "HMM. LET'S TRY ANOTHER PART.",
+  "NO HARM DONE. SWAP A PART AND PULL THE LEVER AGAIN.",
+  "INTERESTING! WRONG, BUT INTERESTING. TRY ANOTHER?",
+];
+export const BUSY = "SHH! IT'S RUNNING!";

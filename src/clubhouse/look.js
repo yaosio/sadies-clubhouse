@@ -146,7 +146,7 @@ const FONT = {
  "6": "011100111101111", "7": "111001010010010", "8": "111101111101111", "9": "111101111001110",
  ".": "000000000000010", "!": "010010010000010", "'": "010010000000000", "(": "001010010010001",
  ")": "100010010010100", "-": "000000111000000", "$": "011110010011110", ":": "000010000010000",
- "?": "110001010000010", "/": "001001010100100", " ": "000000000000000", "&": "010101010101011", "*": "000101010101000",
+ "?": "110001010000010", ",": "000000000010100", "/": "001001010100100", " ": "000000000000000", "&": "010101010101011", "*": "000101010101000",
 };
 export const wordsWidth = (text, s = 1) => text.length * 4 * s - s;
 export function words(g, text, x, y, s, color, o = {}) {
@@ -279,6 +279,7 @@ export function drawTextures(sadie, sadieNap) {
   });
   T.soonSign = sign(96, 32, 'MORE ROOMS', 'COMING SOON!!');
   T.wingSign = sign(72, 32, 'NEW WING', 'SOON!!');
+  T.lotSign = sign(88, 32, 'NEW HOUSE', 'COMING SOON!!');   // on the next free plot along the lane outside the gate
   T.cat = tex(16, 16, g => {   // the weathervane: a sitting cat in black iron
     const k = C.ink;
     rect(g, k, 5, 7, 7, 8); rect(g, k, 6, 3, 5, 5); rect(g, k, 6, 1, 1, 2); rect(g, k, 10, 1, 1, 2); rect(g, k, 4, 12, 9, 3);

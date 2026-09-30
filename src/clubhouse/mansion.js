@@ -56,16 +56,18 @@ export async function open(cards, enter) {
   const [awake, asleep, boxes, doorPics] = await Promise.all([load(P.sadie), load(P.sadieBlink),
     Promise.all(cards.map(c => load(c.box?.front))), Promise.all(cards.map(c => load(c.door)))]);
   const T = drawTextures(awake, asleep);
-  const outside = buildOutside(T), hall = buildHall(T, cards, doorPics);
+  const outside = buildOutside(T, cards), hall = buildHall(T, cards, doorPics);
   // a game that lives in its room builds the room itself, from the mansion's building kit
   const rooms = await Promise.all(cards.map(async (c, i) => {
     if (!c.room) return buildRoom(T, c, boxes[i], doorPics[i]);
     const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
     return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
-      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }) });
+      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }) });
   }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
+  // a house of its own outside the gate (its card has a `lot`): its front door leads straight in
+  for (const r of rooms) if (r.house) { outside.doors[r.card.id] = r.house.door; portals.push({ a: r.house.door, wa: outside, b: r.doors.door, wb: r, open: 0 }); }
   // each doorway seen from its own side: where it is, and where it leads
   for (const p of portals) p.b.swing = -1;   // every door swings into the place further in
   const sides = portals.flatMap(p => [{ d: p.a, w: p.wa, to: p.b, tw: p.wb, p }, { d: p.b, w: p.wb, to: p.a, tw: p.wa, p }]);

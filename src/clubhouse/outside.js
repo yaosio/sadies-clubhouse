@@ -4,11 +4,18 @@
 //
 // The cat tree's trunk rises out of the middle, its top always being built; the wing on one side is
 // a branch, the bare platform on the other is where the next one goes.
+//
+// Outside the gate a lane runs along the fence, with plots (`LOTS`) either side of the path for
+// houses of their own: an activity whose card has a `lot` builds its house on that plot (the mansion
+// hands it this place), and the next free plot has a COMING SOON stake. Plots never move either.
 import { Mesh, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
 import { psx, keep, skyMat } from './look.js';
 import { kit, wallGeometry, doorway } from './build.js';
 
-export function buildOutside(T) {
+// the plots along the lane outside the gate: where each house's front door is (they face the gate)
+export const LOTS = [{ x: -10, z: -37 }, { x: 10, z: -37 }, { x: -24, z: -37 }, { x: 24, z: -37 }];
+
+export function buildOutside(T, cards = []) {
   const scene = new Scene(); scene.background = new Color(0x1a1a80);
   const { add, box, plane, cyl, ball, cone } = kit(scene);
   const sky = new Mesh(keep(new SphereGeometry(200, 16, 12)), skyMat()); sky.renderOrder = -3; scene.add(sky);
@@ -19,6 +26,10 @@ export function buildOutside(T) {
     plane(14 * s, 5 * s, psx(T.cloud, { unlit: 0.9 }), [x, y, z], [0, Math.atan2(x, z) + Math.PI, 0], 1);
   plane(260, 260, psx(T.grass, { rx: 130, ry: 130 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 24).renderOrder = -2;
   plane(3, 30, psx(T.path, { rx: 2, ry: 20, onFloor: true }), [0, 0, -15], [-Math.PI / 2, 0, 0], 12).renderOrder = -1;
+  // the lane outside the gate, and a stake on the next free plot
+  plane(64, 2.4, psx(T.path, { rx: 40, ry: 1.6, onFloor: true }), [0, 0, -31], [-Math.PI / 2, 0, 0], 16).renderOrder = -1;
+  const taken = new Set(cards.filter(c => Number.isInteger(c.lot)).map(c => c.lot));
+  const free = LOTS.find((_, i) => !taken.has(i));
 
   const stucco = (w, h) => psx(T.stucco, { rx: w / 1.5, ry: h / 1.5 });
   const trim = psx(null, { tint: 0xe8b070 });
@@ -112,15 +123,22 @@ export function buildOutside(T) {
   const sadie = new Mesh(keep(new PlaneGeometry(0.9, 0.73, 1, 1).translate(0, 0.365, 0)), psx(T.sadie, { unlit: 0.35 }));
   sadie.position.set(2.6, 2.4, -20.1); scene.add(sadie);
 
-  // where you can walk: the garden, round everything in it (you're 0.35 m round)
+  if (free) {
+    const post = psx(T.wood, { tint: 0xffe0c0 });
+    box(0.14, 1.6, 0.14, post, [free.x - 0.9, 0.8, free.z - 1]); box(0.14, 1.6, 0.14, post, [free.x + 0.9, 0.8, free.z - 1]);
+    plane(2.2, 0.8, psx(T.lotSign, { unlit: 0.3, side: DoubleSide }), [free.x, 1.3, free.z - 0.93], [0, 0, 0], 1);
+  }
+
+  // where you can walk: the garden, round everything in it (you're 0.35 m round), and out along the lane
   const P = 0.35;
   const RECTS = [[-9, 9, 0, 10], [13, 19, 3, 9], [-7.3, -5.7, -9.8, -8.2],
     ...HEDGES.map(([x, z]) => [x - 0.5, x + 0.5, z - 2, z + 2]),
     ...[-1, 1].map(s => [s * 2.6 - 0.45, s * 2.6 + 0.45, -20.45, -19.55]),
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
+  if (free) RECTS.push([free.x - 1, free.x + 1, free.z - 1.1, free.z - 0.9]);
   const CIRCLES = [[-9, 0.4, 1.6], [9, 0.4, 1.6], [-2, -2.6, 0.3], [2, -2.6, 0.3], ...TREES.map(([x, z, s]) => [x, z, 0.4 * s])];
   function floor(x, z) {
-    if (Math.abs(x) > 30 || z < -28 || z > 32) return null;
+    if (Math.abs(x) > 30 || z < -50 || z > 32) return null;
     for (const [x0, x1, z0, z1] of RECTS) if (x > x0 - P && x < x1 + P && z > z0 - P && z < z1 + P) return null;
     for (const [cx, cz, r] of CIRCLES) if (Math.hypot(x - cx, z - cz) < r + P) return null;
     let h = 0;
@@ -129,7 +147,10 @@ export function buildOutside(T) {
   }
 
   return {
-    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie], sadie, uses: [],
+    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie], sadie, uses: [], lots: LOTS,
+    // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r)
+    block(x0, x1, z0, z1) { RECTS.push([x0, x1, z0, z1]); },
+    blockRound(x, z, r) { CIRCLES.push([x, z, r]); },
     light: { sun: 0.5, bulb: 0, lamp: [0, 20, -40] },
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
     update(t) { tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04; },

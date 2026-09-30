@@ -65,6 +65,17 @@ activity is checked again, so something moves into it only once a second activit
   loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update` moves them,
   since every place updates every frame), and `ears()`, where you are right now (`place`, `x`, `y`, `z`: your eye, and `yaw`, `pitch`: where you're looking), so a
   game can play a sound only where you'd hear it (Sadie out in the hall). An address naming it after the `#` just opens the mansion.
+- **A building outside the gate** (Claude's House) is a game that lives in its room whose card has
+  `lot` instead of `slot`: which plot along the lane outside the front gate is its (`LOTS` in
+  `outside.js`: 0 is left of the path as you go out, 1 across from it, then further along each way;
+  the next free one has a COMING SOON stake). The kit handed to its `buildRoom` also has `outside`
+  (the outside place: its `scene` and `faces` to add to, and `block(x0, x1, z0, z1)` and
+  `blockRound(x, z, r)` for what's solid) and `lot` (its plot: `x`, `z`, the middle of the front
+  door's threshold; the house faces the gate). It builds the house into the outside's scene
+  itself, and hands back, with its place, `house` (`door`: its front door, a `doorway` in the
+  outside's scene, facing the gate), which the mansion joins to the room's own `doors.door`. Its
+  place's `update` runs every frame wherever you are, so it animates the outside too. Nothing on the
+  landing changes (the hall skips cards with a `lot`).
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
   one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3), so a new activity never
   shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
@@ -82,8 +93,8 @@ activity is checked again, so something moves into it only once a second activit
   loop just stop). It must save when the page goes away (`pagehide`), as Dropper World does.
 - **The mansion** (`src/clubhouse/`, loaded only when the page opens on it) is Sadie's clubhouse
   in crappy late-90s 3D, made with three.js (the one library, bundled into the page). It's made of
-  separate **places**, each its own scene with its own floor and light: `outside.js` (the garden
-  and the house's shell), `hall.js` (the entrance hall: the bottom of the cat tree) and `room.js`
+  separate **places**, each its own scene with its own floor and light: `outside.js` (the garden,
+  the house's shell, and the lane outside the gate with its plots), `hall.js` (the entrance hall: the bottom of the cat tree) and `room.js`
   (an activity's room, one per card). Places are joined only by **doorways** (`build.js`): a hole
   in a wall, two leaves that swing open, and a shallow box behind the hole whose inside shows the
   other place. Each frame, every open doorway in front of you (the nearest three: two doors on the landing can
