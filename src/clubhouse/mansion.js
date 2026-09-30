@@ -19,8 +19,9 @@
 // Some games live in their room instead of on a computer (Brickbuster '96): their card has a `room`
 // that builds the whole room from the kit handed to it here, and something in it you can play (a
 // use with `play`). Using it eases your view back until the whole game fits the screen, then the
-// controls go to the game (steering with the keys, nudging with the mouse or a finger) until you
-// step back.
+// controls go to the game (steering with the keys, nudging with the mouse or a finger; or, for a
+// game that wants them, every key and every press on the screen: the music room's instruments)
+// until you step back. A use with `act` instead just does something there and then (turning a sign).
 import {
   WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace,
 } from 'three';
@@ -228,6 +229,10 @@ export async function open(cards, enter) {
   on(window, 'keydown', e => {
     if (e.code === 'Escape' || e.key === 'Escape') { e.preventDefault(); if (mode === 'menu') resume(); else if (mode === 'play') pause(); else if (mode === 'arcade') stepBack(); return; }
     if (mode === 'arcade') {
+      // a game that takes the keys itself (an instrument: every key is a note) gets them all; only
+      // Esc steps back
+      const pl = arcade.u.play;
+      if (pl.key) { if (!e.ctrlKey && !e.metaKey && !e.altKey && pl.key(e.code, true, e.repeat)) e.preventDefault(); return; }
       const k = KEYS[e.code];
       if (k === 'f' || k === 'b') { e.preventDefault(); stepBack(); } else if (k) { e.preventDefault(); held.add(k); }
       return;
@@ -238,7 +243,7 @@ export async function open(cards, enter) {
     if (k) { e.preventDefault(); held.add(k); return; }
     if (e.code === 'KeyE' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (target) use(target); }
   });
-  on(window, 'keyup', e => { const k = KEYS[e.code]; if (k) held.delete(k); });
+  on(window, 'keyup', e => { const k = KEYS[e.code]; if (k) held.delete(k); if (mode === 'arcade') arcade.u.play.key?.(e.code, false); });
   on(window, 'blur', () => held.clear());
   // mouse: click to look around (the pointer locks to the view; Esc lets it go and pauses);
   // if the browser won't lock it, drag to look instead
@@ -253,9 +258,21 @@ export async function open(cards, enter) {
   });
   on(window, 'mousemove', e => {
     if (locked && mode === 'play') turn(e.movementX * 0.0024, e.movementY * 0.0024);
-    if (locked && mode === 'arcade') arcade.u.play.nudge(e.movementX * arcade.mpp);
+    if (locked && mode === 'arcade') arcade.u.play.nudge?.(e.movementX * arcade.mpp);
   });
+  // where on the screen a press is, as a line out into the place (for a game that takes presses)
+  const ndc = new Vector3();
+  function pointAt(e) {
+    const r = canvas.getBoundingClientRect();
+    ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1, 0.5).unproject(cam);
+    return { origin: cam.position.clone(), dir: ndc.clone().sub(cam.position).normalize() };
+  }
+  const pressing = new Set();
   on(canvas, 'pointerdown', e => {
+    if (mode === 'arcade' && arcade.u.play.touch) {
+      pressing.add(e.pointerId); arcade.u.play.touch(e.pointerId, pointAt(e), 'down');
+      try { canvas.setPointerCapture(e.pointerId); } catch {} return;
+    }
     if (mode === 'arcade' && drag.id === null) { Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY }); try { canvas.setPointerCapture(e.pointerId); } catch {} return; }
     if (mode !== 'play') return;
     // the thumb stick stays in its corner, and only a touch that starts on it (or just round it) walks;
@@ -272,11 +289,13 @@ export async function open(cards, enter) {
       const dx = e.clientX - stick.x0, dy = e.clientY - stick.y0, m = Math.hypot(dx, dy), k = m > STICK ? STICK / m : 1;
       stick.x = dx * k / STICK; stick.y = dy * k / STICK;
       $('#stick i').style.transform = `translate(${dx * k}px,${dy * k}px)`;
+    } else if (mode === 'arcade' && arcade.u.play.touch) {
+      if (pressing.has(e.pointerId)) arcade.u.play.touch(e.pointerId, pointAt(e), 'move');
     } else if (mode === 'arcade') {
       // playing a game in its room: the mouse (just moving it) or a finger (sliding it) moves along
       // with the game, as far on the screen as you moved
-      if (e.pointerType === 'mouse' && !locked) arcade.u.play.nudge(e.movementX * arcade.mpp);
-      else if (e.pointerId === drag.id) { arcade.u.play.nudge((e.clientX - drag.x) * arcade.mpp); drag.x = e.clientX; drag.y = e.clientY; }
+      if (e.pointerType === 'mouse' && !locked) arcade.u.play.nudge?.(e.movementX * arcade.mpp);
+      else if (e.pointerId === drag.id) { arcade.u.play.nudge?.((e.clientX - drag.x) * arcade.mpp); drag.x = e.clientX; drag.y = e.clientY; }
     } else if (e.pointerId === drag.id && mode === 'play') {
       const k = (e.pointerType === 'touch' ? 4.2 : 3.2) / Math.max(canvas.clientWidth, 400);
       turn((e.clientX - drag.x) * k, (e.clientY - drag.y) * k * (e.pointerType === 'touch' ? 0.6 : 1)); drag.x = e.clientX; drag.y = e.clientY;
@@ -285,6 +304,7 @@ export async function open(cards, enter) {
   const letGo = e => {
     if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; $('#stick i').style.transform = ''; }
     if (e.pointerId === drag.id) drag.id = null;
+    if (pressing.delete(e.pointerId) && arcade) arcade.u.play.touch?.(e.pointerId, null, 'up');
   };
   on(canvas, 'pointerup', letGo); on(canvas, 'pointercancel', letGo);
   if (touchy) { $('#keysHint').hidden = true; $('#stick').hidden = false; }
@@ -294,11 +314,13 @@ export async function open(cards, enter) {
   const fwd = new Vector3();
   function findTarget() {
     cam.getWorldDirection(fwd);
+    let best = null, most = 0.7;   // (the one most nearly straight ahead, when a few are in reach)
     for (const u of me.world.uses) {
       tmp.copy(u.pos).sub(cam.position); const d = tmp.length();
-      if (d < u.reach && tmp.normalize().dot(fwd) > 0.7) return u;
+      const dot = tmp.normalize().dot(fwd);
+      if (d < u.reach && dot > most) { best = u; most = dot; }
     }
-    return null;
+    return best;
   }
   function showTarget() {
     const hint = $('#useHint'), btn = $('#use'), inGame = mode === 'arcade';
@@ -308,13 +330,14 @@ export async function open(cards, enter) {
     $('#stick').hidden = !touchy || inGame;
     if (inGame) $('#keysHint').hidden = true;
     if (inGame) btn.textContent = 'STEP BACK';
-    else if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = 'PLAY'; }
+    else if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = target.act ? target.button || 'USE' : 'PLAY'; }
   }
   on($('#use'), 'click', () => { if (mode === 'arcade') stepBack(); else if (target && mode === 'play') use(target); });
   // Sit down at the computer: you lean in until the screen fills the view, then the program starts.
   let going = null;
   function use(u) {
     if (u.play) { stepUp(u); return; }
+    if (u.act) { u.act(); showTarget(); return; }
     mode = 'going'; held.clear(); showTarget();
     if (document.pointerLockElement) document.exitPointerLock();
     const d = tmp.copy(u.pos).sub(cam.position);
@@ -340,23 +363,27 @@ export async function open(cards, enter) {
   // square on. Stepping back: back to where you stood. The game is told when to start and stop.
   let arcade = null, glide = null;
   const TILT = 0.12;   // the view looks up at it a little, from a bit below its middle
+  // (or, if the game says `down`, looks down on it from that far above: a keyboard lying flat)
   function arcadeView(u) {
-    const v = u.play.view, tv = Math.tan(cam.fov * Math.PI / 360), th = tv * cam.aspect;
+    const v = u.play.view, tv = Math.tan(cam.fov * Math.PI / 360), th = tv * cam.aspect, a = v.down ?? -TILT;
     const dist = Math.max(v.h / 2 / tv, v.w / 2 / th) * 1.04;
-    const x = v.center.x + v.normal.x * dist * Math.cos(TILT), z = v.center.z + v.normal.z * dist * Math.cos(TILT);
+    const x = v.center.x + v.normal.x * dist * Math.cos(a), z = v.center.z + v.normal.z * dist * Math.cos(a);
     // metres along the game per pixel on the screen, so things move exactly as far as your finger
     if (arcade) arcade.mpp = 2 * dist * th / Math.max(1, canvas.clientWidth);
-    return { x, z, eye: v.center.y - dist * Math.sin(TILT) - EYE, yaw: Math.atan2(v.normal.x, v.normal.z), pitch: TILT };
+    return { x, z, eye: v.center.y + dist * Math.sin(a) - EYE, yaw: Math.atan2(v.normal.x, v.normal.z), pitch: -a };
   }
   function stepUp(u) {
     held.clear();
     arcade = { u, from: { x: me.x, z: me.z, eye: me.eye, yaw: me.yaw, pitch: me.pitch }, mpp: 0.01 };
     u.play.start();   // now, while the key or the tap is still going on: browsers allow sound only then
+    // (a game that takes presses needs the mouse free to point with)
+    if (u.play.touch && document.pointerLockElement) document.exitPointerLock();
+    $('#arcadeHint').innerHTML = (touchy ? u.play.hint?.touch : u.play.hint?.keys) || arcadeHint;
     glideTo(arcadeView(u), 0.8, () => { mode = 'arcade'; showTarget(); });
   }
   function stepBack() {
     if (!arcade) return;
-    arcade.u.play.stop(); held.clear(); drag.id = null;
+    arcade.u.play.stop(); held.clear(); drag.id = null; pressing.clear();
     if (document.pointerLockElement) document.exitPointerLock();
     // back where you stood, or (the game's over) where it says to watch from; on the floor either way
     const after = arcade.u.play.over && arcade.u.play.after;
@@ -397,7 +424,8 @@ export async function open(cards, enter) {
   on($('#resume'), 'click', resume);
   $('#how').innerHTML = touchy ? 'LEFT THUMB: WALK<br>RIGHT THUMB: LOOK AROUND<br>WALK INTO A DOOR TO GO IN'
     : 'W A S D: WALK &middot; ARROWS: WALK AND TURN<br>CLICK, THEN MOUSE: LOOK AROUND<br>E: USE &middot; ESC: PAUSE';
-  $('#arcadeHint').innerHTML = touchy ? 'SLIDE A FINGER TO MOVE' : '<kbd>A D</kbd> OR <kbd>MOUSE</kbd> MOVE &nbsp; <kbd>ESC</kbd> STEP BACK';
+  const arcadeHint = touchy ? 'SLIDE A FINGER TO MOVE' : '<kbd>A D</kbd> OR <kbd>MOUSE</kbd> MOVE &nbsp; <kbd>ESC</kbd> STEP BACK';
+  $('#arcadeHint').innerHTML = arcadeHint;
   // The test version can start things over: everything at once, or one thing at a time.
   if (testVersion) {
     $('#dev').hidden = false;
@@ -448,7 +476,7 @@ export async function open(cards, enter) {
     else if (mode === 'gliding') glideOn(dt);
     else if (mode === 'arcade') {
       Object.assign(me, arcadeView(arcade.u));   // (again every frame: the screen might have turned)
-      arcade.u.play.steer(steering(), dt);
+      arcade.u.play.steer?.(steering(), dt);
       if (arcade.u.play.over) stepBack();         // the game's over (Brickbuster broke): step back and watch
     }
     if (mode !== 'going' && !arcade) me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps

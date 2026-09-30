@@ -128,7 +128,20 @@ def poster():
     whiskers(30, 81, 1, lambda x, y: 0 < x < 63 and 0 < y < 83)
     for (x, y) in ((50, 44), (52, 42), (54, 44)):                                     # fuming
         put(x, y, INK); put(x + 1, y - 1, INK)
+def music_door():
+    door_base('#38b0c8', '#1a7890', '#70e0e8')
+    # a sign with piano keys along it, and music notes floating off the door
+    box_(5, 6, 30, 20, INK); box_(6, 7, 28, 18, '#fff4e4')
+    text(20 - text_w('MUSIC') // 2, 8, 'MUSIC', '#a02a70', '#ffd23a')
+    for i in range(7):   # the keys
+        box_(7 + i * 4, 15, 3, 9, '#ffffff'); put(7 + i * 4, 15, '#e8dcff')
+    for i in (0, 1, 3, 4, 5):
+        box_(9 + i * 4, 15, 2, 5, INK)
+    for (x, y, c) in ((12, 50, '#ffd23a'), (24, 46, '#ff8ec8'), (29, 55, '#ffd23a')):   # notes
+        for j in range(6): put(x + 2, y + j, c)
+        box_(x, y + 5, 3, 2, c); put(x + 3, y, c); put(x + 4, y + 1, c)
 DW_DOOR = png(dropper_door, 40, 64)
+MR_DOOR = png(music_door, 40, 64)
 BB_DOOR = png(brickbuster_door, 40, 64)
 POSTER = png(poster, 64, 84)
 TF_DOOR = png(typefitter_door, 40, 64)
@@ -148,6 +161,8 @@ write('src/activities/typefitter/door.js', "TypeFitter's door on the mansion's l
       f'export default {json.dumps(TF_DOOR)};')
 write('src/activities/brickbuster/door.js', "Brickbuster '96's door on the mansion's landing, as a PNG.",
       f'export default {json.dumps(BB_DOOR)};')
+write('src/activities/music-room/door.js', "The music room's door on the mansion's landing, as a PNG.",
+      f'export default {json.dumps(MR_DOOR)};')
 write('src/activities/brickbuster/poster.js', "Sadie's QUIET!! poster in Brickbuster's room: a speaker crossed out, and her, cross about it. A PNG.",
       f'export default {json.dumps(POSTER)};')
 write('src/activities/typefitter/box.js', "The front of TypeFitter's box (on its computer's screen and poster in the mansion), as a PNG.",
