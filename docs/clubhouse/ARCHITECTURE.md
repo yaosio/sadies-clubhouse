@@ -49,7 +49,11 @@ activity is checked again, so something moves into it only once a second activit
   (`origin`, `dir`) for it to find what's under it; its `view` can say `down` (how far, in radians,
   to look down on it: a keyboard lying flat), and `hint` (`keys`, `touch`) is what the hint at the
   top says while you play it. A use with `act` instead of `play` just does something when you press
-  E (turning a dial or a sign): its `label` can change, and `button` names it on a phone. Its place can hold its door open (`holding`: the doorway, while something goes out through
+  E (turning a dial or a sign): its `label` can change, and `button` names it on a phone. `act` is
+  handed `{ from, EYE, glide }`: where you stand, and `glide(to, secs, then)`, which eases your view
+  to `to` (`x`, `z`, `eye`, `yaw`, `pitch`) and then calls `then`; once a `then` doesn't glide on,
+  you have the controls back (the aquarium's tap on the glass, rising over the rim and dipping into
+  the water). Its place can hold its door open (`holding`: the doorway, while something goes out through
   it), and make everyone in it watch something (`watch`: a point; your view follows it and you
   can't walk or look away until it's null again: Brickbuster's escaping yarn ball). The kit also has its door's picture (`doorImage`) and its door on the landing
   (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
