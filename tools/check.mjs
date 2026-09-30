@@ -35,7 +35,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { createServer } from 'node:http';
+import { serve } from './serve.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -73,7 +73,7 @@ const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => 
 const testPaths = a => ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, 'tools/build.mjs', 'tools/check.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
+const pagePaths = a => [`tools/${a}`, 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
@@ -148,20 +148,16 @@ catch {
   catch { console.log('\nPlaywright is not installed, so the browser checks can\'t run'); process.exit(1); }
 }
 mkdirSync(outDir, { recursive: true });
-// served from a local web address, like the real page (opened as a file:// the browser now and
-// then forgets its saved storage on a reload, which real players never see)
-const server = createServer((req, res) => {
-  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-  res.end(readFileSync(join(root, 'dist/index.html')));
-});
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+// served from a local web address, like the real page (a page opened as a file:// can't fetch its
+// game files, and now and then forgets its saved storage on a reload, which real players never see)
+const server = await serve();
 const page = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch();
 
 // the mansion: it has every activity's door, so any change to anything in the page runs it again
 // (only exactly the same page, already passed, skips it)
 console.log('\n== the clubhouse in a browser');
-const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tools/build.mjs', 'tools/check.mjs']) + '-' + mode;
+const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs']) + '-' + mode;
 if (existsSync(note('browser', 'clubhouse', clubHash)) && !retest) console.log('already passed on exactly this page, not running it again');
 else {
   const t = Date.now(), dir = join(outDir, 'clubhouse'), before = failed;

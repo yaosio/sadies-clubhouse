@@ -80,12 +80,15 @@ export async function open(cards, enter) {
     places = [outside, hall, ...slots.filter(r => r.place).map(r => r.place)];
   }
   // Building a room: one at a time (so each one's things are known, to put away later), from the
-  // mansion's building kit if it's a game that lives in its room
+  // mansion's building kit if it's a game that lives in its room. A room's code is a file of its own,
+  // fetched the first time it's built: if that fails (the network hiccuped) or the room won't build,
+  // its door stays shut and it's tried again a little later, a few times (`again`), and nothing else waits on it.
   let queue = Promise.resolve();
+  const again = r => !r.tries || (r.tries < TRIES && performance.now() - r.failed > 3000 * r.tries);
   function build(r) {
     if (r.place) return Promise.resolve(r.place);
     return r.building ||= (queue = queue.then(async () => {
-      const c = r.card, i = r.i, before = new Set(made());
+      const c = r.card, i = r.i, code = c.room && await c.room(), before = new Set(made());   // (its file first: fetching isn't building)
       // A room can take a breath between its big parts (`await m.breathe()`): if it's been busy for
       // more than a few milliseconds, the next picture is drawn before it carries on, so building a
       // big room never holds the game up for long. (How long it was busy in all, and the longest bit.)
@@ -101,7 +104,7 @@ export async function open(cards, enter) {
       if (!c.room) w = buildRoom(T, c, boxes[i], doorPics[i]);
       else {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
-        w = await (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
+        w = await code.buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
           doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, house: r.house, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
           paused: () => mode === 'menu' });
       }
@@ -117,6 +120,10 @@ export async function open(cards, enter) {
       relink();
       warm(w);
       return w;
+    }).catch(e => {
+      console.warn(`couldn't build ${r.name}:`, e);
+      r.building = null; r.tries = (r.tries || 0) + 1; r.failed = performance.now();
+      return null;
     }));
   }
   // Putting a room away (only one that says it can: a room that reaches into other places, or keeps
@@ -161,17 +168,19 @@ export async function open(cards, enter) {
   // every frame: build the nearest room not built yet (while you're still, or as you come up to its
   // door), and put away rooms three doors off for a while (or the ones you were near longest ago,
   // once there are more than MAX)
-  const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7, BITE = 6;
+  const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7, BITE = 6, TRIES = 6;
   let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks, seeing a door wait for its room)
   function tend(dt, doorFor) {
     const away = doorsAway();
     let next = null, best = 1e9;
-    for (const r of slots) if (!r.place && !r.building && r.portal) {
+    for (const r of slots) if (!r.place && !r.building && r.portal && again(r)) {
       const n = away(r); if (n > 2) continue;
       const dd = r.portal.wa === me.world ? Math.hypot(me.x - r.portal.a.pos.x, me.z - r.portal.a.pos.z) : 99;
       const score = n * 100 + dd;
       if (doorFor === r || (!onlyDoors && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
     }
+    // (a building outside the gate that didn't build at the start has no door yet: tried again too)
+    next ||= slots.find(r => !r.place && !r.building && !r.portal && Number.isInteger(r.card.lot) && r.card.room && again(r));
     if (next && !slots.some(r => r.building)) build(next);
     const built = slots.filter(r => r.place);
     for (const r of built) r.far = away(r) >= FAR_DOORS ? r.far + dt : 0;
@@ -708,7 +717,7 @@ export async function open(cards, enter) {
 
   // for the checks (tests/clubhouse/browser.mjs): where you are, and a way to stand somewhere
   // (a check going to a room that isn't built yet: built first)
-  const later = (name, then) => { const r = slots.find(r => r.name === name); return r ? build(r).then(then) : false; };
+  const later = (name, then) => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => w ? then() : false) : false; };
   window.__mansion = {
     frames: () => frames,
     mode: () => mode,
@@ -731,7 +740,7 @@ export async function open(cards, enter) {
     // putting one away now (as if you'd been far from it long enough)
     built: () => slots.filter(r => r.place).map(r => r.name),
     settled: () => slots.every(r => r.place || !r.portal) && !slots.some(r => r.building),
-    build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(() => true) : false; },
+    build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
     // how far off a building outside the gate becomes a plain block (and which are, right now)
