@@ -205,8 +205,10 @@ activity is checked again, so something moves into it only once a second activit
     Adventure's song and radio, Brickbuster's arcade music, and whatever a new room plays), and the
     theme fades out (about two seconds), staying away until that music has been quiet for 6 seconds,
     then fades back in (about four), carrying on, or with a new piece after a long quiet. No room has
-    to do anything about it. A place can also ask for quiet with `hush` (`true`, or a function): only
-    the Music Room does, since its instruments are sounds, not music. It stops when an activity on a
+    to do anything about it. A place can also ask for quiet with `hush` (`true`, or a function), and
+    the theme then fades quicker (about one second): the Music Room does, since its instruments are
+    sounds, not music, and Space Adventure does from the moment you step into the cockpit (its song
+    starts a moment later, and has quiet stretches the theme mustn't slip into). It stops when an activity on a
     computer starts (the mansion leaves the page).
 - **Saves** belong to each activity: its keys start with its own name (Dropper World's is
   `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
