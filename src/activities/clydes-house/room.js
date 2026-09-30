@@ -50,6 +50,7 @@ const SPOT = {
 export async function buildRoom(m) {
   const { T, psx, keep, kit, wallGeometry, doorway, card } = m;
   const A = drawArt(m);
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { add, box, plane, cyl } = kit(scene);
   const mesh = (geo, mat, pos, rot, parent = scene) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
@@ -85,6 +86,8 @@ export async function buildRoom(m) {
   sprite(T.sadie, 0.62, 0.5, [RW - 0.12, 3.0, 0.9], { unlit: 0.2 }).rotation.y = -Math.PI / 2;
   // by the door, more notes
   plane(0.6, 0.6, psx(A.notes, { decal: true }), [1.9, 1.8, RD - 0.05], [0, Math.PI, 0], 2);
+
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
 
   // ---------- the machine ----------
   plane(6.0, 3.7, psx(A.pegboard, { rx: 6.0 / 0.25, ry: 3.7 / 0.25 }), [0, 2.28, -RD + 0.05], null, 2);

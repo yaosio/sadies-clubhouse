@@ -110,6 +110,8 @@ export async function buildRoom(m) {
   const cracksTex = tex(CW, CH, () => {}), cg = cracksTex.image.getContext('2d');
   glass.push(cplane(W, H, psx(cracksTex, { unlit: 0.95, decal: true }), [0, H / 2, Z.glass + 0.01]));
 
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+
   // ---------- inside: the bricks, the yarn ball and the paddle ----------
   const bevelTex = tex(8, 6, g => {
     g.fillStyle = '#c8c8c8'; g.fillRect(0, 0, 8, 6); g.fillStyle = '#ffffff'; g.fillRect(0, 0, 8, 1); g.fillRect(0, 0, 1, 6);
@@ -172,6 +174,8 @@ export async function buildRoom(m) {
   { const b = new Mesh(keep(new BoxGeometry(0.9, 0.85, 0.75, 2, 2, 2)), cardboard); b.position.y = 0.465; perch.add(b); }   // (4 cm off the floor, so the floor never shows through its bottom)
   const sadie = new Mesh(keep(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.31, 0)), psx(T.sadie, { unlit: 0.4 }));
   sadie.position.copy(SADIE); scene.add(sadie);
+
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
 
   // ---------- broken: the glass gone but for a jagged edge, and glitter all over the floor ----------
   const edgeTex = tex(CW, CH, g => {

@@ -36,6 +36,7 @@ const CUSHION = new Vector3(PX - 1.75, 0.12, PZ + 0.8);
 export async function buildRoom(m) {
   const { T, psx, keep, kit, wallGeometry, doorway, card, leaf } = m;
   const A = drawArt(m);
+  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { add, box, plane, cyl } = kit(scene);
   const mesh = (geo, mat, pos, rot, parent = scene) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
@@ -114,6 +115,8 @@ export async function buildRoom(m) {
   cymbal('hat', 0.24, DX - 1.25, 1.02, DZ + 0.2);
   cyl(0.24, 0.2, 0.5, 10, pink, [DX - 0.05, 0.25, DZ + 1.05]);   // (its stool)
   const DRUM_AT = { kick: [DX, 0.98, DZ], snare: [DX - 0.75, 0.8, DZ + 0.45], tom1: [DX - 0.25, 1.08, DZ - 0.05], tom2: [DX + 0.3, 1.08, DZ - 0.05], floor: [DX + 0.9, 0.62, DZ + 0.5], hat: [DX - 1.25, 1.05, DZ + 0.2], cymbal: [DX + 0.95, 1.5, DZ - 0.35] };
+
+  await m.breathe?.();
 
   // ---------- the xylophone: fish for bars, mallets with pom-poms (cat toys, obviously) ----------
   for (const dz of [-0.26, 0.18]) box(1.5, 0.06, 0.06, wood, [XX, XY - 0.04, XZ + dz]);

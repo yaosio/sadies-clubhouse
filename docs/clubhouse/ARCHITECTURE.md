@@ -36,7 +36,7 @@ activity is checked again, so something moves into it only once a second activit
 - **A game that lives in its room** (Brickbuster '96, the Music Room) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
   it opens, handing it the building kit (its textures `T`, the palette `C`, `psx`, `keep`, `tex`,
-  `words`, `picture`, `loadImage`, the shapes `kit`, `wallGeometry`, `doorway`, the card and its
+  `words`, `picture`, `loadImage`, `breathe` (a pause between big parts), the shapes `kit`, `wallGeometry`, `doorway`, the card and its
   door's leaf), so the game still never imports the clubhouse (it imports `three` itself). It hands
   back a place like any room (`name`, `scene`, `floor`, `doors`, `faces`, `uses`, `light`, `spots`,
   `update(t, dt)`, and if the mansion may put it away when you're far off, `putAway()`, which stops
@@ -113,7 +113,10 @@ activity is checked again, so something moves into it only once a second activit
     gate (seen from the lane) are built before the mansion opens (and the room you're coming back
     to). Each other room is built afterwards, one at a time, nearest door first: while you stand
     still (or read the letter, or pause), when you're within 7 m of its door, or when you walk up to
-    its door, which stays shut until the room's ready. What it made is noted, and warmed onto the
+    its door, which stays shut until the room's ready. A room takes a breath between its big parts
+    (`await m.breathe()`, in the kit): if it's been busy more than 6 ms, the game draws a picture
+    before it carries on, so building a room never holds the game up for long (the checks fail a
+    bit longer than 200 ms). What it made is noted, and warmed onto the
     graphics card straight away. A room with `putAway()` that's three doors or more from you for 20
     seconds (or the ones you were near longest ago, once more than 16 are built) is put away: it
     stops its own things, everything it made that no other place uses goes back to the graphics

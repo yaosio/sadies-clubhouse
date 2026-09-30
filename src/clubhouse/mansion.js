@@ -66,7 +66,8 @@ export async function open(cards, enter) {
   const shared = new Set(made());   // (the textures every place uses: never put away with a room)
   const t0 = performance.now();
   const outside = buildOutside(T, cards), hall = buildHall(T, cards, doorPics);
-  const speed = { places: { 'outside and hall': Math.round(performance.now() - t0) }, first: 0 };
+  const took = Math.round(performance.now() - t0);
+  const speed = { places: { 'outside and hall': took }, bits: { 'outside and hall': took }, first: 0 };
   // a room per card: `place` once it's built
   const slots = cards.map((c, i) => ({ card: c, i, name: 'room:' + c.id, place: null, building: null, far: 0 }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
@@ -84,16 +85,28 @@ export async function open(cards, enter) {
   function build(r) {
     if (r.place) return Promise.resolve(r.place);
     return r.building ||= (queue = queue.then(async () => {
-      const c = r.card, i = r.i, before = new Set(made()), t0 = performance.now();
+      const c = r.card, i = r.i, before = new Set(made());
+      // A room can take a breath between its big parts (`await m.breathe()`): if it's been busy for
+      // more than a few milliseconds, the next picture is drawn before it carries on, so building a
+      // big room never holds the game up for long. (How long it was busy in all, and the longest bit.)
+      let at = performance.now(), busy = 0, bit = 0;
+      const breathe = async () => {
+        const now = performance.now(), d = now - at;
+        if (d < BITE) return;
+        busy += d; bit = Math.max(bit, d);
+        await new Promise(ok => { requestAnimationFrame(() => ok()); setTimeout(ok, 50); });   // (a hidden page draws nothing)
+        at = performance.now();
+      };
       let w;
       if (!c.room) w = buildRoom(T, c, boxes[i], doorPics[i]);
       else {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
-        w = await (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
+        w = await (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
           doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, house: r.house, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
           paused: () => mode === 'menu' });
       }
-      speed.places[r.name] = Math.round(performance.now() - t0);
+      const last = performance.now() - at;
+      speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
       r.mine = made().filter(x => !before.has(x));   // everything it made (to hand back if it's put away)
       // a house of its own outside the gate (its card has a `lot`): its front door leads straight in
       if (w.house && !r.portal) { outside.doors[c.id] = w.house.door; portals.push(r.portal = { a: w.house.door, wa: outside, open: 0, slot: r }); }
@@ -148,7 +161,7 @@ export async function open(cards, enter) {
   // every frame: build the nearest room not built yet (while you're still, or as you come up to its
   // door), and put away rooms three doors off for a while (or the ones you were near longest ago,
   // once there are more than MAX)
-  const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7;
+  const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7, BITE = 6;
   let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks, seeing a door wait for its room)
   function tend(dt, doorFor) {
     const away = doorsAway();
@@ -701,7 +714,7 @@ export async function open(cards, enter) {
     onlyDoors: on => { onlyDoors = on; },
     // how quick the mansion is: ms to the first picture, ms to build each place, and what's held on
     // the graphics card (and in the kit's list of things to hand back)
-    speed: () => ({ ...speed, places: { ...speed.places }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
+    speed: () => ({ ...speed, places: { ...speed.places }, bits: { ...speed.bits }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
       textures: renderer.info.memory.textures, kept: made().length, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e5) / 10 : null }),
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
     // take a step of d metres straight ahead (through a doorway, if there's one there), and draw

@@ -11,7 +11,7 @@
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 
-const SLOW = 1500, PROGRAMS = 8;   // (ms to build a place, and kinds of drawing: see below)
+const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 
 export default async function ({ browser, page, check, outDir }) {
   const DEVICES = [
@@ -109,6 +109,9 @@ export default async function ({ browser, page, check, outDir }) {
     // how many kinds of drawing the graphics card has had to learn (each new kind: a hiccup the first
     // time it's seen). Headless drawing is slow, so these are generous.
     check(`${device}: every place builds in under ${SLOW} ms`, !slow.length, Object.entries(sp2.places).map(([k, ms]) => `${k.replace('room:', '')} ${ms}`).join(', '));
+    // (a room builds a bit at a time, so the game's never held up for long: the longest bit)
+    const bits = Object.entries(sp2.bits).filter(([k]) => k.startsWith('room:')), long = bits.filter(([, ms]) => ms > BIT);
+    check(`${device}: ...a bit at a time, never holding the game up more than ${BIT} ms`, !long.length, bits.map(([k, ms]) => `${k.replace('room:', '')} ${ms}`).join(', '));
     check(`${device}: ...and every place draws with the same few materials`, sp2.programs <= PROGRAMS, `${sp2.programs} kinds so far`);
 
     // up the spiral stairs to the landing, keeping to the middle of the steps

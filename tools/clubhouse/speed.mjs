@@ -1,6 +1,7 @@
 // How quick the mansion is (npm run build first): opens the built page as a desktop, stands still at
 // the gate while the rooms build, and prints how long the first picture took, how long each place
-// took to build, and what's held on the graphics card. Then puts every room that can be put away
+// took to build (and the longest bit of it, which is how long the game's held up), and what's held on
+// the graphics card. Then puts every room that can be put away
 // away and builds it again, a few times over, to show nothing piles up.
 //   node tools/clubhouse/speed.mjs
 import { createRequire } from 'node:module';
@@ -27,7 +28,7 @@ await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 30000
 const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
 const sp = await M('speed');
 console.log(`first picture: ${sp.first} ms, with ${sp.atFirst.length ? sp.atFirst.join(', ') : 'no rooms'} built`);
-for (const [k, v] of Object.entries(sp.places)) console.log(`  ${k.padEnd(26)} ${String(v).padStart(4)} ms`);
+for (const [k, v] of Object.entries(sp.places)) console.log(`  ${k.padEnd(26)} ${String(v).padStart(4)} ms  (longest bit ${sp.bits[k]} ms)`);
 console.log(`graphics card: ${sp.programs} drawing set-ups, ${sp.geometries} shapes, ${sp.textures} pictures; kit list ${sp.kept}; memory ${sp.heap} MB`);
 // visit every room once (so everything's been on the graphics card), then put away and rebuild
 await M('put', 'hall', 'stairs');

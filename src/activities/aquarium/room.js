@@ -185,6 +185,7 @@ export async function buildRoom(m) {
   }
 
   // ---------- the swimmers ----------
+  await m.breathe?.();
   const F = fishPics(tex, C);
   const fish = FISH.map(([kind, size, y, z, speed], i) => {
     const pic = F[kind], w = size * pic.image.width / 16, h = size * pic.image.height / 16;
@@ -209,7 +210,10 @@ export async function buildRoom(m) {
   let knockT = 0;
 
   // ---------- the ocean, and what you've found in it ----------
+  // (a breath either side of the ocean, the biggest part: the mansion builds it a bit at a time)
+  await m.breathe?.();
   const ocean = buildOcean(m, floorBits);
+  await m.breathe?.();
   let saved = readSave(store.get(SAVE, null));
   const save = () => store.set(SAVE, saved);
   showFinds();
