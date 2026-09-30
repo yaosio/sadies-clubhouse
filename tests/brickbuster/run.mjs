@@ -164,11 +164,11 @@ function play(seed, skill, secs, until) {
   const shape = { wall: A, post: 1.16, landing: { inner: 8 - 2.3, y: 4.6, thick: 0.18, rail: 1.0 }, top: 9.2,
     stairs: { r0: 1.45, r1: 3.05, th0: -2.1, turn: 0.29, rise: 4.6 / 22, treads: 26 },
     blocks: [{ x: -2.4, z: -6.9, r: 0.8 }, { x: -5.4, z: -4.5, r: 0.35 }, { x: 5.3, z: 2.0, r: 0.65 }].map(b => ({ ...b, h: 1.0 })) };
-  let outside = 0, inSlab = 0, catOff = 0, whacks = 0, pops = 0, longest = 0, ground = 0, landing = 0, frames = 0;
+  let catThrough = 0, lazy = 0, away = 0, outside = 0, inSlab = 0, catOff = 0, whacks = 0, pops = 0, longest = 0, ground = 0, landing = 0, frames = 0;
   for (const seed of [1, 7, 42]) {
     const L = makeLoose(shape, seed), th = 10 * Math.PI / 8, dx = Math.sin(th), dz = Math.cos(th);
     release(L, [dx * (A - 0.4), 4.6 + LR + 0.4, dz * (A - 0.4)], [-dx * 4.5, 2, -dz * 4.5], [dx * (A - 0.3), 4.6, dz * (A - 0.3)], 1.7);
-    let last = 0;
+    let last = 0, pc = null;
     for (let t = 0; t < 1800; t += 1 / 60) {
       for (const e of stepLoose(L, 1 / 60)) { if (e === 'whack') { whacks++; longest = Math.max(longest, t - last); last = t; } if (e === 'pop') pops++; }
       const b = L.ball, r = Math.hypot(b.x, b.z), c = L.cat;
@@ -176,12 +176,21 @@ function play(seed, skill, secs, until) {
       if (r > shape.landing.inner + 0.01 && b.y + LR > 4.6 - 0.18 + 0.01 && b.y - LR < 4.6 - 0.01) inSlab++;
       if (Math.hypot(c.x, c.z) > A || (!c.leap && c.mode !== 'coming' && Math.abs(c.y - floorBelow(shape, c.x, c.z, c.y + 0.05)) > 0.01)) catOff++;
       if (b.on) { frames++; if (b.y > 4) landing++; else ground++; }
+      // Sadie never goes through the landing, or through its railing below its top
+      const cr = Math.hypot(c.x, c.z);
+      if (cr > shape.landing.inner + 0.02 && c.y > 4.6 - 0.18 + 0.02 && c.y < 4.6 - 0.02) catThrough++;
+      if (pc && (pc.r - shape.landing.inner) * (cr - shape.landing.inner) < 0 && Math.max(pc.y, c.y) > 4.6 - 0.18 && Math.min(pc.y, c.y) < 4.6 + 1.0) catThrough++;
+      // and she's not lazy: while the ball's rolling away from her, she's after it
+      if (c.mode === 'watch' && Math.hypot(b.x - c.x, b.z - c.z) > 4) { away++; if (!c.leap && pc && pc.x === c.x && pc.z === c.z) lazy++; }
+      pc = { r: cr, y: c.y, x: c.x, z: c.z };
     }
   }
   check('loose in the hall, the yarn ball never gets out of it, or through the landing', !outside && !inSlab, `${outside} outside, ${inSlab} in the landing, over 90 minutes`);
   check('...Sadie keeps whacking it off again', whacks / 90 > 3 && longest < 60, `${(whacks / 90).toFixed(1)} a minute, longest wait ${longest.toFixed(0)} s`);
   check('...it spends time both up on the landing and down below', landing / frames > 0.1 && ground / frames > 0.1, `${(landing / frames * 100).toFixed(0)}% on the landing`);
   check('...Sadie always lands on something, inside the hall', !catOff);
+  check('...never going through the landing or its railing', !catThrough, `${catThrough} times`);
+  check('...and never just stands about while it rolls off', lazy / away < 0.25, `${(lazy / away * 100).toFixed(0)}% of the time it's more than 4 m off`);
   check('...and it hardly ever needs popping back', pops <= 3, `${pops} times`);
   const L = makeLoose(shape, 3);
   release(L, [NaN, 2, 0], [0, 0, 0], [0, 0, 3], 0);

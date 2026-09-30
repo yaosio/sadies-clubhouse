@@ -14,7 +14,10 @@
 export const R = 0.16, GRAVITY = 9.8;
 const BOUNCE = 0.72, WALL = 0.85, ROLL = 0.9;   // how much speed a bounce keeps, off a wall, and rolling friction (per second)
 const SETTLE = 0.35;                            // slower than this, sitting on something, and it's stopped
-const CAT = { leap: 2.2, speed: 6, whack: [5, 8], up: [2.5, 5], mighty: 0.3 };   // mighty: how often a whack from below is a big one
+// Sadie: her leaps (how far, how fast chasing and trotting), how far off she keeps while it's
+// going, her pause between trotting leaps, how slow it has to be for her to pounce, her whacks (how
+// hard, how far up), and how often a whack from below is a mighty one
+const CAT = { leap: 2.2, speed: 6.5, trot: 4, keep: 1.6, pause: 0.12, pounce: 1.2, whack: [5, 8], up: [2.5, 5], mighty: 0.3 };
 
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
@@ -115,37 +118,28 @@ function radialAt(b, to, inward) {
   if (inward ? v < 0 : v > 0) { b.vx -= (1 + WALL) * v * nx; b.vz -= (1 + WALL) * v * nz; }
 }
 
-// Sadie: comes out after the ball, watches it while it's going, and once it's stopped, pounces
-// over in leaps and whacks it off again, towards the middle of the hall.
+// Sadie: comes out after the ball and trots after it while it's going; the moment it's stopped (or
+// all but), she pounces over and whacks it off again, towards the middle of the hall. She gets
+// about in cat leaps, and never through a floor: down off the landing she hops over the railing and
+// drops; up onto it she jumps from just below its edge, up and over the railing.
 function cat(L, dt, out) {
   const c = L.cat, b = L.ball, s = L.shape;
   c.t += dt;
   if (c.mode === 'coming') { if (c.t >= 0) { c.mode = 'watch'; c.t = 0; } return; }
+  if (c.leap) { leapOn(c, dt); return; }
+  const speed = Math.hypot(b.vx, b.vy, b.vz), feet = floorBelow(s, b.x, b.z, b.y - R + 0.05);
+  const d = Math.hypot(b.x - c.x, b.z - c.z);
   if (c.mode === 'watch') {
-    if (L.stopped > 0.6) { c.mode = 'chase'; c.t = 0; c.leap = null; }
-    return;
+    if (L.stopped > 0.15 || (b.on && speed < CAT.pounce)) { c.mode = 'chase'; c.t = 0; }
+    else if (d > CAT.keep + 1 || Math.abs(feet - c.y) > 0.3) {   // trot after it, keeping a little way off
+      if (c.t > CAT.pause) { c.t = 0; plan(L, feet, CAT.keep, CAT.trot); }
+      return;
+    } else return;
   }
   if (c.mode === 'chase') {
-    if (!c.leap) {
-      const dx = b.x - c.x, dz = b.z - c.z, d = Math.hypot(dx, dz), feet = floorBelow(s, b.x, b.z, b.y - R + 0.05);
-      if (d < 0.6 && Math.abs(feet - c.y) < 1.2) { c.mode = 'whack'; c.t = 0; return; }   // (she can swat up at it, on a chair, say)
-      // a leap: the rest of the way if it's close (or on another floor: one big pounce), else a bound towards it
-      const go = Math.abs(feet - c.y) > 0.3 || d < CAT.leap + 0.45 ? Math.max(0, d - 0.45) : CAT.leap;
-      const tx = c.x + dx / (d || 1) * go, tz = c.z + dz / (d || 1) * go;
-      // along the landing, or onto it, she keeps to the landing (a straight line can cut across the
-      // gap in the middle), and wherever she lands, she lands on something
-      const Ld = s.landing, onto = go >= d - 0.46 ? feet : c.y, rt = Math.hypot(tx, tz) || 1;
-      let px = tx, pz = tz;
-      if (onto > Ld.y - 0.1 && rt < Ld.inner + 0.35) { px = tx / rt * (Ld.inner + 0.35); pz = tz / rt * (Ld.inner + 0.35); }
-      const ty = floorBelow(s, px, pz, onto + 0.3);
-      c.leap = { fx: c.x, fy: c.y, fz: c.z, tx: px, ty, tz: pz, t: 0, dur: 0.25 + Math.hypot(go, ty - c.y) / CAT.speed, h: 0.35 + Math.max(0, ty - c.y) * 0.4 };
-    }
-    const l = c.leap; l.t += dt;
-    const k = Math.min(1, l.t / l.dur);
-    c.x = l.fx + (l.tx - l.fx) * k; c.z = l.fz + (l.tz - l.fz) * k;
-    c.y = l.fy + (l.ty - l.fy) * k + 4 * l.h * k * (1 - k);
-    if (k >= 1) { c.y = l.ty; c.leap = null; }
-    if (c.t > 20) { c.mode = 'watch'; c.leap = null; }   // (never gets stuck chasing)
+    if (d < 0.6 && Math.abs(feet - c.y) < 1.2) { c.mode = 'whack'; c.t = 0; return; }   // (she can swat up at it, on a chair, say)
+    plan(L, feet, 0.45, CAT.speed);
+    if (c.t > 20) { c.mode = 'watch'; c.t = 0; c.leap = null; }   // (never gets stuck chasing)
     return;
   }
   if (c.mode === 'whack' && c.t > 0.25) {
@@ -162,4 +156,40 @@ function cat(L, dt, out) {
     L.stopped = 0; L.whacks++; c.mode = 'watch'; c.t = 0;
     out.push('whack');
   }
+}
+
+// Her next leap towards the ball (landing `short` of it), never through a floor.
+function plan(L, feet, short, speed) {
+  const c = L.cat, b = L.ball, s = L.shape, Ld = s.landing;
+  const up = c.y > Ld.y - 0.1, ballUp = feet > Ld.y - 0.1;
+  const r = Math.hypot(c.x, c.z) || 1, a = Math.atan2(c.x, c.z), ab = Math.atan2(b.x, b.z);
+  const at = (rr, aa) => [Math.sin(aa) * rr, Math.cos(aa) * rr];
+  let tx, tz, ty, h;
+  if (up && !ballUp) {
+    if (r > Ld.inner + 0.5) { [tx, tz] = at(Ld.inner + 0.35, a); ty = c.y; h = 0.3; }                     // to the landing's edge
+    else { [tx, tz] = at(Ld.inner - 0.8, a + wrap(ab - a) * 0.1); ty = floorBelow(s, tx, tz, c.y - 0.5); h = 3.2; }   // over the railing and down
+  } else if (!up && ballUp) {
+    const close = Math.abs(wrap(ab - a)) < 0.35 && r > Ld.inner - 1.3 && r < Ld.inner - 0.3;
+    if (close) { [tx, tz] = at(Ld.inner + 0.5, a); ty = Ld.y; h = 3.4; }                                    // up and over the railing
+    else {                                                                                               // to just below the edge, under the ball
+      const [gx, gz] = at(Ld.inner - 0.8, ab), dx = gx - c.x, dz = gz - c.z, dd = Math.hypot(dx, dz), go = Math.min(dd, CAT.leap);
+      tx = c.x + dx / (dd || 1) * go; tz = c.z + dz / (dd || 1) * go; ty = floorBelow(s, tx, tz, c.y + 0.3); h = 0.35;
+    }
+  } else {
+    const dx = b.x - c.x, dz = b.z - c.z, d = Math.hypot(dx, dz), go = Math.min(Math.max(0, d - short), CAT.leap);
+    if (go < 0.05) return;
+    tx = c.x + dx / (d || 1) * go; tz = c.z + dz / (d || 1) * go;
+    const rt = Math.hypot(tx, tz) || 1;
+    if (up && rt < Ld.inner + 0.35) { tx = tx / rt * (Ld.inner + 0.35); tz = tz / rt * (Ld.inner + 0.35); }   // (along the landing, not across the gap)
+    ty = floorBelow(s, tx, tz, (go >= d - short - 0.01 ? feet : c.y) + 0.3); h = 0.3 + Math.max(0, ty - c.y) * 0.5;
+  }
+  const len = Math.hypot(tx - c.x, tz - c.z, ty - c.y);
+  c.leap = { fx: c.x, fy: c.y, fz: c.z, tx, ty, tz, t: 0, dur: 0.2 + len / speed + (h > 2 ? 0.4 : 0), h };
+}
+function leapOn(c, dt) {
+  const l = c.leap; l.t += dt;
+  const k = Math.min(1, l.t / l.dur);
+  c.x = l.fx + (l.tx - l.fx) * k; c.z = l.fz + (l.tz - l.fz) * k;
+  c.y = l.fy + (l.ty - l.fy) * k + 4 * l.h * k * (1 - k);
+  if (k >= 1) { c.y = l.ty; c.leap = null; }
 }

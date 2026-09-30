@@ -60,6 +60,7 @@ export default async function ({ browser, page, check, outDir }) {
     let s = await B();
     check(`${device}: stepping up starts the game, the view eased back to fit the case`, playing && s.active && (await M('where')).z < stood.z - 0.3);
     check(`${device}: ...and the yarn ball is sent off by itself`, !s.serving);
+    await p.evaluate(() => window.__brickbuster.catchBall());   // (so it can't miss on its own while we check other things)
 
     // the paddle: keys and the mouse on a desktop, a finger on a phone
     if (opts.hasTouch) {

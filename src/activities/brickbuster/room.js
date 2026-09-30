@@ -8,7 +8,7 @@
 // then passes the controls on to it (steer, nudge) until you step back.
 import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ExtrudeGeometry, ShapeGeometry, BoxGeometry, PlaneGeometry, SphereGeometry,
   DoubleSide, CanvasTexture, NearestFilter } from 'three';
-import { makeGame, step, launch, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS } from './game.js';
+import { makeGame, step, launch, serve, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS } from './game.js';
 import { makePlayer } from './sound.js';
 import { makeLoose, release, stepLoose, R as LR } from './loose.js';
 import { store } from '../../shared/storage.js';
@@ -97,8 +97,8 @@ export async function buildRoom(m) {
   });
   cplane(2.9, 0.8, psx(coin, { decal: true, unlit: 0.2 }), [0, -0.65, 1.11]);
   cbox(W + 1.0, 1.6, 1.1, psx(null, { tint: 0x1c1238 }), [0, H + 0.8, 0.4]);
-  const marquee = tex(128, 40, () => {}), mg = marquee.image.getContext('2d');
-  cplane(W + 0.7, 1.4, psx(marquee, { unlit: 0.95 }), [0, H + 0.8, 0.96]);
+  const marquee = tex(192, 64, () => {}), mg = marquee.image.getContext('2d');
+  cplane(W + 0.7, 1.55, psx(marquee, { unlit: 0.95 }), [0, H + 0.8, 0.96]);
   // the glass: a glint, and the cracks drawn on a see-through picture over it
   const glint = tex(32, 48, g => {
     g.fillStyle = '#e8f8ff';
@@ -165,10 +165,10 @@ export async function buildRoom(m) {
   const falling = [];
 
   // ---------- Sadie, on a box beside the machine, watching the ball ----------
-  const SADIE = new Vector3(3.35, 0.86, CZ - 1.2);
+  const SADIE = new Vector3(3.35, 0.9, CZ - 1.2);
   const perch = new Group(); perch.position.set(SADIE.x, 0, SADIE.z); perch.rotation.y = -0.25; scene.add(perch);
   const cardboard = psx(T.cardboard, { rx: 1, ry: 1 });
-  { const b = new Mesh(keep(new BoxGeometry(0.9, 0.85, 0.75, 2, 2, 2)), cardboard); b.position.y = 0.425; perch.add(b); }
+  { const b = new Mesh(keep(new BoxGeometry(0.9, 0.85, 0.75, 2, 2, 2)), cardboard); b.position.y = 0.465; perch.add(b); }   // (4 cm off the floor, so the floor never shows through its bottom)
   const sadie = new Mesh(keep(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.31, 0)), psx(T.sadie, { unlit: 0.4 }));
   sadie.position.copy(SADIE); scene.add(sadie);
 
@@ -194,20 +194,22 @@ export async function buildRoom(m) {
 
   // ---------- drawing the marquee and the cracks ----------
   let shownScore = -1;
-  const logo = document.createElement('canvas'); logo.width = 128; logo.height = 16;
+  // (big letters: they have to read from where you play, across the room)
+  const logo = document.createElement('canvas'); logo.width = 192; logo.height = 20;
   { const g = logo.getContext('2d');
-    words(g, "BRICKBUSTER '96", 64, 4, 2, '#ffffff', { align: 'center' });
+    words(g, "BRICKBUSTER '96", 96, 3, 3, '#ffffff', { align: 'center' });
     g.globalCompositeOperation = 'source-atop';
-    ['#fffbd0', '#fff27a', '#ffe23a', '#ffc81e', '#ffa41e', '#ff7a2a', '#ff5446', '#ff3a78', '#f030a8', '#c830d0'].forEach((c, i) => { g.fillStyle = c; g.fillRect(0, 4 + i, 128, 1); }); }
+    ['#fffbd0', '#fff27a', '#ffe23a', '#ffc81e', '#ffc81e', '#ffa41e', '#ff7a2a', '#ff7a2a', '#ff5446', '#ff3a78', '#ff3a78', '#f030a8', '#c830d0', '#c830d0', '#9a3ce8']
+      .forEach((c, i) => { g.fillStyle = c; g.fillRect(0, 3 + i, 192, 1); }); }
   function drawMarquee() {
     shownScore = game.score;
-    mg.clearRect(0, 0, 128, 40); mg.fillStyle = '#12082e'; mg.fillRect(0, 0, 128, 40);
+    mg.clearRect(0, 0, 192, 64); mg.fillStyle = '#12082e'; mg.fillRect(0, 0, 192, 64);
     // the name in copper bars, a colour per scanline, with a hard shadow
-    words(mg, "BRICKBUSTER '96", 66, 6, 2, '#5a2a78', { align: 'center' });
+    words(mg, "BRICKBUSTER '96", 98, 5, 3, '#5a2a78', { align: 'center' });
     mg.drawImage(logo, 0, 0);
-    mg.fillStyle = '#ffffff'; mg.fillRect(0, 17, 128, 1);
-    words(mg, 'SCORE ' + String(game.score).padStart(6, '0'), 64, 22, 1, '#3ae8ff', { align: 'center' });
-    words(mg, game.broken ? 'OUT OF ORDER' : 'FULL VERSION: 99 LEVELS!', 64, 31, 1, game.broken ? '#e83a3a' : '#ff8ec8', { align: 'center' });
+    mg.fillStyle = '#ffffff'; mg.fillRect(0, 22, 192, 1);
+    words(mg, 'SCORE ' + String(game.score).padStart(6, '0'), 96, 28, 2, '#3ae8ff', { align: 'center' });
+    words(mg, game.broken ? 'OUT OF ORDER' : 'FULL VERSION 99 LEVELS', 96, 46, 2, game.broken ? '#e83a3a' : '#ff8ec8', { align: 'center' });
     marquee.needsUpdate = true;
   }
   function drawCracks() {
@@ -227,8 +229,12 @@ export async function buildRoom(m) {
   const play = {
     label: "PLAY BRICKBUSTER '96",
     // what the view has to fit: the glass, and a bit of the case round it
-    // (the glass, the marquee, and the floor in front with the heap of bricks on it)
-    view: { center: new Vector3(0, (FY + H + 1.5) / 2 - 0.35, CZ - Z.glass), normal: new Vector3(0, 0, -1), w: W + 1.2, h: FY + H + 2.3 },
+    // (the glass, the marquee, and the floor in front, where the bricks come out onto the heap; the
+    // marquee's letters are big enough to read from there)
+    view: { center: new Vector3(0, (-0.25 + FY + H + 1.75) / 2, CZ - Z.glass), normal: new Vector3(0, 0, -1), w: W + 0.9, h: FY + H + 1.75 + 0.25 },
+    // where you watch from once it's broken: the middle of the room, on the floor, looking at it
+    // (a corner well off the yarn ball's way out, and away from the door)
+    after: { x: -3.4, z: 3.1, yaw: Math.PI + 0.5, pitch: 0.15 },
     over: false,   // broken: the mansion steps you back to watch
     start() {
       if (!sound) sound = makePlayer();
@@ -295,7 +301,7 @@ export async function buildRoom(m) {
     scene.attach(ball);
     const hops = [
       [new Vector3(-1.8, R, 2.6), 0.9, 'boing'], [new Vector3(-RW + R, 3.2, 0.6), 1.0, 'boing'], [new Vector3(1.2, R, -0.4), 1.4, 'boing'],
-      [new Vector3(-1.0, RH - 0.3 - R, -1.2), 0, 'boing'], [new Vector3(-0.5, R, -2.4), 0, 'boing'],
+      [new Vector3(-RW + R, 6.4, -1.4), 0.8, 'boing'], [new Vector3(-0.5, R, -2.4), 0.3, 'boing'],
       [POSTER.clone().add(new Vector3(-R - 0.02, 0, 0)), 0.5, 'mute'],
       [new Vector3(1.6, R, -5.2), 0.6, null], [new Vector3(0.1, R, -6.2), 0.3, null], [new Vector3(0, R, -7.8), 0.2, null],
     ];
@@ -357,7 +363,7 @@ export async function buildRoom(m) {
 
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie],
-    uses: game.broken ? [] : [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 12, label: play.label, play }],
+    uses: game.broken ? [] : [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 8.5, label: play.label, play }],
     holding: null,   // a door being held open (the yarn ball and Sadie on their way out)
     watch: null,     // what your view follows (the yarn ball, while it's getting out)
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },
@@ -458,6 +464,8 @@ export async function buildRoom(m) {
       hall: loose?.ball ? { ball: [loose.ball.x, loose.ball.y, loose.ball.z], cat: [loose.cat.x, loose.cat.y, loose.cat.z], mode: loose.cat.mode,
         whacks: loose.whacks, pops: loose.pops, shown: hallBall.visible && hallCat.visible, napping: !!hall.napping?.visible } : null,
       sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, heard: sound ? sound.log.slice() : [], face: showing }),
+    // put the ball back on the paddle (it stays there till it's thrown)
+    catchBall() { serve(game); wait = 0; },
     // send the ball somewhere (x, y along the glass, and which way)
     throwBall(x, y, vx, vy) { Object.assign(game.ball, { x, y, vx, vy }); game.serving = false; wait = 0; },
     // knock out bricks (all but `leave` of them) without playing, for checking the heap

@@ -14,9 +14,10 @@ owner's plan, 2026-09-29):
 2. **The break (built).** The third crack at the top or the bottom, or knocking out the very last
    brick (so it always breaks in the end), shatters all the glass at once (a big cheesy shatter,
    glass flying): the bricks left tumble out onto the heap, the paddle drops out into the rubble,
-   and you're stepped back to watch: your view follows the yarn ball (no walking or looking away)
-   until it's out of the room. The yarn ball bounces round the room a few times, loudly
-   (floor, wall, floor, ceiling, floor), until it smacks into Sadie's QUIET!! poster (a squeak,
+   and you're stepped back to watch, to a corner well away from its way out and the door (wherever
+   you'd started playing from), on the floor: your view follows the yarn ball (no walking or looking away) until it's
+   out of the room. The yarn ball bounces round the room a few times, loudly
+   (floor, wall, floor, high on the wall, floor), until it smacks into Sadie's QUIET!! poster (a squeak,
    cut off like a speaker being switched off) and never makes a sound again. The door opens for it
    and it bounces out; Sadie jumps off her box and bolts after it. The door shuts and its landing
    side has Sadie's OUT OF ORDER sign (cardboard, crooked, taped on, wobbly marker, a paw print).
@@ -28,9 +29,10 @@ owner's plan, 2026-09-29):
 3. **Out in the hall (built).** The yarn ball bounces out of the door onto the landing and round
    the hall silently, forever: off the walls, the scratching post, the furniture, the stairs, the
    landing and its railing (whacked high enough, it goes over and drops to the ground floor), and
-   straight through you. It can't get into any room (the walls and doors bounce it back). Whenever
-   it stops, Sadie pounces over in cat leaps (up onto the landing or down off it in one go) and
-   whacks it off again, towards the middle of the hall; down below, now and then a mighty one that
+   straight through you. It can't get into any room (the walls and doors bounce it back). Sadie
+   trots after it while it's going, and the moment it's stopped (or all but) she pounces over in
+   cat leaps, never through a floor (down off the landing she hops over the railing and drops; up
+   onto it she jumps from just below its edge, up and over the railing), and whacks it off again, towards the middle of the hall; down below, now and then a mighty one that
    lands it back up on the landing. Her napping box in the sunbeam is empty now. If it ever wedged
    itself somewhere, it quietly pops back into the middle of the hall.
 
@@ -51,7 +53,9 @@ owner's plan, 2026-09-29):
 
 Look at the case and press E (PLAY on a phone): your view eases back (and a little below) until the
 whole glass, the marquee and the floor in front (where the knocked-out bricks land) fit the
-screen, square on. Then A/D or the arrows (or just moving the
+screen, square on, up in the air if need be (you're back on the floor when you step back). The
+marquee's letters are big (3 and 2 pixels a dot on a 192 x 64 picture) so they read from there.
+You have to be within 8.5 m of the machine to play it. Then A/D or the arrows (or just moving the
 mouse) move the paddle; on a phone, sliding a finger anywhere moves it exactly as far as the finger
 goes. Esc, W or S (STEP BACK on a phone) eases you back to where you stood, and the game waits, the
 ball hanging where it was. The ball starts on the paddle and is sent off by itself after a moment.
@@ -83,12 +87,14 @@ ball hanging where it was. The ball starts on the paddle and is sent off by itse
 - **The heap**: 61 bricks in three layers along the front of the machine, 19 down its right side;
   bricks are 0.21 m apart up a layer. A knocked-out brick takes a moment to fall inside the glass,
   then 0.55 s from the hatch to its spot.
-- **Loose in the hall**: bounces keep 72% of their speed (85% off walls), it rolls to a stop, and
-  0.6 s after it stops Sadie goes for it: leaps up to 2.2 m (6 m/s), a swat after a 0.25 s crouch,
+- **Loose in the hall**: bounces keep 72% of their speed (85% off walls), it rolls to a stop.
+  Sadie trots after it (leaps at 4 m/s) keeping 1.6 m off while it's going, and goes for it once
+  it's slower than 1.2 m/s on something: leaps up to 2.2 m (6.5 m/s), a swat after a 0.25 s crouch,
   sending it 5 to 8 m/s and 2.5 to 7.5 m/s up (on the landing 5 to 7.5); from below, 30% of the
-  time a mighty one (10.5 to 11.5 m/s up, out towards the landing). The tests expect about 6
-  whacks a minute, never more than a minute apart, a quarter or so of its time on the landing, and
-  it never outside the hall or through the landing.
+  time a mighty one (10.5 to 11.5 m/s up, out towards the landing). The tests expect about 9
+  whacks a minute, never more than a minute apart, a third or so of its time on the landing, it
+  never outside the hall or through the landing, and Sadie never through the landing or its
+  railing, nor standing about while the ball rolls off.
 - **The escape**: 9 hops, each 0.25 s plus its length at 8.5 m/s, about 6 seconds in all; Sadie
   runs at 5.5 m/s. The shatter lasts 3 seconds; shards lie on the floor 1.5 to 2.5 s.
 - **Points**: 80 for the top row down to 10 for the bottom one.

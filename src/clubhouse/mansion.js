@@ -358,7 +358,9 @@ export async function open(cards, enter) {
     if (!arcade) return;
     arcade.u.play.stop(); held.clear(); drag.id = null;
     if (document.pointerLockElement) document.exitPointerLock();
-    const back = arcade.from;
+    // back where you stood, or (the game's over) where it says to watch from; on the floor either way
+    const after = arcade.u.play.over && arcade.u.play.after;
+    const back = after ? { ...after, eye: me.y } : arcade.from;
     glideTo(back, 0.6, () => { arcade = null; mode = 'play'; showTarget(); });
   }
   function glideTo(to, secs, then) {
@@ -424,7 +426,7 @@ export async function open(cards, enter) {
       // something in this place everyone has to watch (Brickbuster's yarn ball getting out): your
       // view follows it, and you can't walk or look away until it's gone
       const w = me.world.watch, dx = w.x - me.x, dz = w.z - me.z, dy = w.y - (me.eye + EYE);
-      const yaw = Math.atan2(-dx, -dz), pitch = Math.max(-0.75, Math.min(0.75, Math.atan2(dy, Math.hypot(dx, dz))));
+      const yaw = Math.atan2(-dx, -dz), pitch = Math.max(-0.95, Math.min(0.95, Math.atan2(dy, Math.hypot(dx, dz))));   // (a bit further up or down than you can look yourself)
       const k = Math.min(1, dt * 10), dyaw = yaw - me.yaw;
       me.yaw += Math.atan2(Math.sin(dyaw), Math.cos(dyaw)) * k; me.pitch += (pitch - me.pitch) * k;
       me.bob *= 0.85;
