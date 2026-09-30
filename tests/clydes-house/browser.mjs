@@ -7,7 +7,8 @@
 // pulls the lever (it stops there, and the part stays for you to swap), puts the right parts in
 // four times over (one gap, then two, three, four), sees the finale through (Sadie snubs the treat
 // Clyde hands her), checks every sound played once along the way, and that the treats are kept
-// after a reload. On a phone the parts are swapped
+// after a reload; then pulls each of the weather machine's levers outside (the weather changes, Sadie
+// reacts, a jingle each time, kept after a reload). On a phone the parts are swapped
 // by tapping, and a swipe moves along the machine. Screenshots in dist/check/clydes-house/. Any
 // error on the page is a failure.
 import { join } from 'node:path';
@@ -128,6 +129,41 @@ export default async function ({ browser, page, check, outDir }) {
     await p.reload(); await up();
     s = await S();
     check(`${device}: the treats and the finale are kept after a reload`, s.treats === ROUNDS.length && s.finale);
+
+    // the weather machine, beside the house: each lever changes the weather outside, and Sadie reacts
+    const Wx = () => p.evaluate(() => window.__weather.state());
+    const { levers } = await p.evaluate(() => window.__weather.machine), front = (await p.evaluate(() => window.__weather.machine)).z;
+    await p.evaluate(() => window.__weather.speed(6));
+    const lever = async k => { await M('put', 'outside', { x: levers[k], z: front + 1.3, y: 0, yaw: 0, pitch: -0.25 }); await p.waitForTimeout(300); };
+    await lever('rain');
+    check(`${device}: facing the rain lever, it offers to pull it`, /PULL THE RAIN LEVER/.test(await M('target') || ''), await M('target'));
+    await use();
+    await until(() => { const w = window.__weather.state(); return w.rain > 100 && w.clouds > 0.9 && w.sun < 0.2 && w.wearing.length; }, null, 8000);
+    let w = await Wx();
+    check(`${device}: pulling it makes it rain: clouds over, dimmer, rain falling, the lever down`, w.now === 'rain' && w.clouds > 0.9 && w.sun < 0.2 && w.rain > 100 && w.levers.rain > 0.9, JSON.stringify(w));
+    check(`${device}: ...one clunk and one soft jingle, and Sadie on the gatepost gets her umbrella`, w.sounds.join().startsWith('clunk,rainIn') && w.wearing.join() === 'rain', JSON.stringify(w));
+    await M('put', 'outside', { x: 1.2, z: -23.5, y: 0, yaw: Math.PI - 0.3, pitch: 0.3 });
+    check(`${device}: ...and she has something to say about it`, await until(() => window.__weather.state().saying === 'rain', null, 3000));
+    await shot('7-rain');
+    await lever('rain');
+    check(`${device}: the lever says it'll put it back`, /PUT THE RAIN LEVER BACK/.test(await M('target') || ''), await M('target'));
+    await use();
+    check(`${device}: ...and pulling it again clears the sky`, await until(() => { const w = window.__weather.state(); return w.now === 'clear' && w.clouds === 0 && !w.rain && w.sun === 0.5; }, null, 5000), JSON.stringify(await Wx()));
+    await lever('snow'); await use();
+    await p.evaluate(() => window.__weather.speed(60));
+    check(`${device}: snow falls and settles on the ground, and there's snow on Sadie's head`, await until(() => { const w = window.__weather.state(); return w.snow > 100 && w.settled > 0.9 && w.wearing.join() === 'snow'; }, null, 8000), JSON.stringify(await Wx()));
+    await p.evaluate(() => window.__weather.speed(6));
+    await lever('sun'); await use();
+    check(`${device}: a second sun comes up, brighter, snow melting, Sadie in sunglasses`, await until(() => { const w = window.__weather.state(); return w.now === 'sun' && w.sun2 && w.sun > 0.9 && !w.snow && w.wearing.join() === 'sun'; }, null, 5000), JSON.stringify(await Wx()));
+    await lever('cats'); await use();
+    await M('put', 'outside', { x: 0, z: -27, y: 0, yaw: Math.PI, pitch: 0.2 });
+    check(`${device}: it rains cats, and they land on their feet`, await until(() => window.__weather.state().landed > 0, null, 15000), JSON.stringify(await Wx()));
+    await shot('8-cats');
+    w = await Wx();
+    check(`${device}: every change had its own jingle`, ['rainIn', 'clearIn', 'snowIn', 'sunIn', 'catsIn'].every(k => w.sounds.includes(k)), w.sounds.join());
+    await p.reload(); await up();
+    w = await Wx();
+    check(`${device}: the weather's kept after a reload`, w.now === 'cats' && w.levers.cats > 0.9 && w.clouds > 0.9, JSON.stringify(w));
     check(`${device}: no errors on the page`, !errors.length, errors[0]);
     await ctx.close();
   }));

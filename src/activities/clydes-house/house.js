@@ -1,11 +1,13 @@
 // Clyde's house from outside, on its plot along the lane outside the front gate: The Overthinkery,
 // a tall crooked cottage (each storey a little more off-true than the one below, since thinking goes
 // up), with terracotta tiles, a round window, a chimney that puffs out question marks, a mailbox,
-// a sign by the lane, and Clyde by the front door, who waves when you come up the path.
+// a sign by the lane, and Clyde by the front door, who waves when you come up the path. Beside it,
+// Clyde's Weather Machine (weather-machine.js).
 //
 // Built into the outside's own scene, in a group of its own (the mansion hands the room this place and the plot); the
 // front door is a doorway into the room, like every door in the mansion.
 import { Group, Mesh, PlaneGeometry, BoxGeometry, ConeGeometry, DoubleSide } from 'three';
+import { buildWeather } from './weather-machine.js';
 
 export const DW = 1.3, DH = 2.3;   // the front door
 
@@ -80,6 +82,9 @@ export function buildHouse(m, A) {
   outside.blockRound(hx + 1.05, hz + 0.9, 0.25);
   outside.block(hx - 2.5, hx - 0.7, hz + 4.25, hz + 4.35);
 
+  // ---------- beside the house: Clyde's Weather Machine (weather-machine.js) ----------
+  const weather = buildWeather(m, scene);
+
   let blinkAt = 2;
   return {
     door, clyde: me, group: scene,
@@ -88,6 +93,7 @@ export function buildHouse(m, A) {
     body: [front, roof, up], farTint: 0xd9a55a,
     // every frame: the puffs rise and fade, the vane turns, and Clyde waves when you're close
     update(t, dt, ears) {
+      weather.update(t, dt, ears);
       vane.rotation.y = Math.sin(t * 0.4) * 1.2;
       for (const p of puffs) {
         const k = (t / 7 + p.userData.phase) % 1;
