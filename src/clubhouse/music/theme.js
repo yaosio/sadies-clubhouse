@@ -27,9 +27,9 @@ export function makeTheme(seed = Date.now()) {
       want = !hush && !other && volume('music') > 0 && !hidden;
       const target = want ? LOUD : 0;
       if (target !== level) {
-        // fading out takes about two seconds, coming back about four
+        // fading out takes about two seconds (one where a place asks for quiet: you've walked in), coming back about four
         out.gain.cancelScheduledValues(now); out.gain.setValueAtTime(out.gain.value, now);
-        out.gain.setTargetAtTime(target, now, target > level ? 1.2 : 0.6);
+        out.gain.setTargetAtTime(target, now, target > level ? 1.2 : hush ? 0.3 : 0.6);
         level = target;
       }
       if (!want) { if (was) quietSince = performance.now(); return; }

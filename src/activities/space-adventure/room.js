@@ -154,6 +154,10 @@ export async function buildRoom(m) {
     },
     floor: cockpitFloor,
     watch: null,
+    // the main theme stays out from the moment you step in: the ship (its song starts as the engines
+    // do, and is meant to start in quiet), the whole trip, and the space room while its radio's on (it
+    // plays as you arrive). With the radio off, the theme comes back.
+    hush: () => stage === 'cockpit' || !!trip || radioOn,
     // (the mansion puts it away when you're far off, and builds it again from its save as you come back)
     putAway() { music.close(); talk.remove(); },
     update(t, dt = 0) {
