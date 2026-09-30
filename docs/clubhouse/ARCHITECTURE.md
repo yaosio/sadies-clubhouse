@@ -40,7 +40,8 @@ activity is checked again, so something moves into it only once a second activit
   door's leaf), so the game still never imports the clubhouse (it imports `three` itself). It hands
   back a place like any room (`name`, `scene`, `floor`, `doors`, `faces`, `uses`, `light`, `spots`,
   `update(t, dt)`, and if the mansion may put it away when you're far off, `putAway()`, which stops
-  anything of its own for good, like its sounds, and `scenes` if it has more than one), where a use with `play` is the game: `view` (the middle, facing way, width and
+  anything of its own for good, like its sounds, and takes back anything it put in other places;
+  `busy()` if it mustn't be put away just now, like mid-game; and `scenes` if it has more than one), where a use with `play` is the game: `view` (the middle, facing way, width and
   height the screen has to fit), `start()` (called during the press, so sound is allowed),
   `stop()`, `steer(v, dt)` (held keys, -1 to 1) and `nudge(metres)` (the mouse or a finger, already
   turned into metres across the game), and `over` (set when the game ends: the mansion steps you
@@ -116,10 +117,10 @@ activity is checked again, so something moves into it only once a second activit
     graphics card straight away. A room with `putAway()` that's three doors or more from you for 20
     seconds (or the ones you were near longest ago, once more than 16 are built) is put away: it
     stops its own things, everything it made that no other place uses goes back to the graphics
-    card, and it's built again from its save as you come back. So far the computer rooms, the
-    aquarium (and its ocean) and Space Adventure can be put away; Brickbuster (its yarn ball gets
-    out into the hall), the Music Room and Clyde's House stay built. A new room should be able to
-    be put away, and must look the same built again from its save. `tools/clubhouse/speed.mjs`
+    card, and it's built again from its save as you come back. Every room can be put away (not while
+    it says it's `busy()`). A building outside the gate keeps its house: the mansion hands it back
+    to the room as `house` when it's built again, and keeps its `update` going meanwhile. A new room
+    must be able to be put away, and must look the same built again from its save. `tools/clubhouse/speed.mjs`
     prints how quick it all is. A door opens only when you walk up to it facing it (one at a time), and
   closes behind you (the one you just came through waits till you're out of its swing). Both sides of a doorway show the same real door: it swings into the place
   further in (`swing`), so it's hinged on opposite sides as seen from each side.

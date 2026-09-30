@@ -167,6 +167,13 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(800);
     await shot('7-out-of-order');
     check(`${device}: it's still broken next time: bricks on the heap, sign on the door`, s.broken === 'bottom' && s.pile === 80 && s.sign && !s.sadie && s.escape === 'gone');
+    // put away when you're far off (the mansion does it after a while three doors away) and built
+    // again as you come back: the yarn ball and Sadie leave the hall with it, and come back with it
+    const gone = await p.evaluate(() => { const ok = window.__mansion.putAway('room:brickbuster'); return { ok, meshes: window.__mansion.built().includes('room:brickbuster') }; });
+    await M('build', 'room:brickbuster');
+    await p.waitForTimeout(300);
+    s = await B();
+    check(`${device}: put away and built again, it's still broken, with the ball and Sadie back in the hall`, gone.ok && !gone.meshes && s.broken === 'bottom' && s.pile === 80 && s.sign && s.hall?.shown && !s.hall.napping);
 
     // the pause menu can start it over (after asking)
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');

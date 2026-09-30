@@ -106,6 +106,8 @@ rounds and the finale, every sound played, the phone's taps and swipe, kept afte
 the lane and the door, the castle from the lane, the room, and a run of the machine, in `dist/shots/clydes-house/`;
 `node tools/clydes-house/junk.mjs [part]` takes two of each bit of junk reacting.
 
+**Put away when you're far off.** The mansion puts the room away when you've been three doors or more from it for a while, but never while the machine's going or Clyde's talking (`busy()`). `putAway()` closes its sounds. The house outside stays (the mansion hands it back as `m.house` when the room's built again, and keeps it moving meanwhile). Parts put in the machine but not yet run are forgotten, just like on a reload.
+
 ## Parked ideas
 
 None yet.

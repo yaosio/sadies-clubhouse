@@ -150,8 +150,17 @@ export default async function ({ browser, page, check, outDir }) {
     const k2 = (await M('speed')).kept;
     await M('onlyDoors', false);
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
-    await M('putAway', 'room:space-adventure'); await M('build', 'room:space-adventure');
-    check(`${device}: ...and a room with things on the screen leaves no copies behind`, await p.evaluate(() => document.querySelectorAll('#saTalk').length) === 1);
+    // every room can be put away and built again, twice over, with nothing piling up (and no copies
+    // of anything it puts on the screen)
+    const all = (await M('places')).filter(n => n.startsWith('room:'));
+    const refused = [], kept = [];
+    for (let round = 0; round < 3; round++) {
+      for (const n of all) { if (!(await M('putAway', n))) refused.push(n); await M('build', n); }
+      kept.push((await M('speed')).kept);
+    }
+    // (the first time round, a room outside the gate keeps its house's pictures from its first build)
+    check(`${device}: ...every room can be put away and built again, over and over`, !refused.length && kept[1] === kept[0] && kept[2] === kept[0], `${[...new Set(refused)].join(', ') || 'all of them'}; things kept each time round: ${kept.join(', ')}`);
+    check(`${device}: ...and leaves no copies behind on the screen`, await p.evaluate(() => document.querySelectorAll('#saTalk').length) === 1);
 
     // through Dropper World's door into its room
     // (from 1.3 m out: further than that is off the landing, except in front of the first door)

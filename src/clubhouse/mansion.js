@@ -90,13 +90,14 @@ export async function open(cards, enter) {
       else {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
         w = await (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
-          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
+          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, house: r.house, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
           paused: () => mode === 'menu' });
       }
       speed.places[r.name] = Math.round(performance.now() - t0);
       r.mine = made().filter(x => !before.has(x));   // everything it made (to hand back if it's put away)
       // a house of its own outside the gate (its card has a `lot`): its front door leads straight in
       if (w.house && !r.portal) { outside.doors[c.id] = w.house.door; portals.push(r.portal = { a: w.house.door, wa: outside, open: 0, slot: r }); }
+      r.house = w.house;   // (kept when the room's put away: it's part of the outside)
       r.portal.b = w.doors.door; r.portal.wb = w; r.portal.open = 0;
       w.doors.door.swing = -1;   // every door swings into the place further in
       r.place = w; r.building = null; r.far = 0;
@@ -109,7 +110,7 @@ export async function open(cards, enter) {
   // something going, stays). What it made goes back to the graphics card, unless another place uses it.
   function putAway(r) {
     const w = r.place;
-    if (!w || !w.putAway || w === me.world || r.building || w.holding) return false;
+    if (!w || !w.putAway || w === me.world || r.building || w.holding || w.busy?.()) return false;
     w.putAway();
     r.portal.b = r.portal.wb = null; r.portal.open = 0; r.portal.a.setOpen(0);
     const mine = new Set(r.mine);
@@ -649,6 +650,8 @@ export async function open(cards, enter) {
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }
     for (const w of places) w.update(t, dt);
+    // (a house outside the gate whose room is put away: the house still moves, like the rest of outside)
+    for (const r of slots) if (r.house && !r.place) r.house.update(t, dt, { place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch });
     // Sadie on the gatepost blinks now and then
     if (t > blinkAt) { outside.sadie.material.uniforms.map.value = T.nap; blinkOff = t + 0.15; blinkAt = t + 2.5 + Math.random() * 3; }
     if (blinkOff && t > blinkOff) { outside.sadie.material.uniforms.map.value = T.sadie; blinkOff = 0; }

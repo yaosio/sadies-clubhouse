@@ -42,6 +42,8 @@ export function makeSounds(volume = 0.45) {
   const S = {
     played: 0, log: [],
     wake() { try { if (ctx && ctx.state !== 'running') ctx.resume(); } catch {} },
+    // done with it for good (its room put away): the browser's sound goes
+    close() { try { ctx?.close().catch(() => {}); } catch {} ctx = null; },
   };
   for (const [k, make] of Object.entries(ALL)) S[k] = () => play(k, make);
   return S;

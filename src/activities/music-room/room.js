@@ -416,6 +416,10 @@ export async function buildRoom(m) {
     ],
     holding: null, watch: null,
     light: { sun: 0.2, bulb: 0.8, lamp: [0.5, 3.6, -1.5] },
+    // (the mansion puts the room away when you're far off, never with something still to happen in
+    // it; it's built again from its save as you come back)
+    busy: () => later.length > 0 || !!playing,
+    putAway() { sound?.close(); },
     spots: {
       door: { x: 0, z: RD - 1.2, yaw: 0, pitch: 0, y: 0 },
       piano: { x: PX, z: PZ + 2.3, yaw: 0, pitch: -0.35, y: 0 },
