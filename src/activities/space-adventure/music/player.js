@@ -95,8 +95,11 @@ export function makeMusic(volume = 0.4) {
     // make a song's notes ahead of time (a few at a time, so nothing stutters)
     warm(notes, n = 6) { if (!ctx) return true; let k = 0; for (const e of notes) { if (made.has(soundKey(e))) continue; buffer(e); if (++k >= n) return false; } return true; },
   };
+  const off = new AbortController();
   if (ctx && globalThis.addEventListener) for (const e of ['pointerdown', 'keydown', 'touchend'])
-    globalThis.addEventListener(e, () => music.wake(), { capture: true, passive: true });
+    globalThis.addEventListener(e, () => music.wake(), { capture: true, passive: true, signal: off.signal });
+  // done with it for good (its room put away): the browser's sound goes, and it stops listening
+  music.close = () => { off.abort(); try { ctx?.close().catch(() => {}); } catch {} ctx = null; };
   return music;
 }
 

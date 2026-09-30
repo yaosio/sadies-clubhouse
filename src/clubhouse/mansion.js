@@ -25,7 +25,7 @@
 import {
   WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace,
 } from 'three';
-import { res, light, drawTextures, disposeLook, loadImage, psx, keep, tex, words, C, picture, doorBack } from './look.js';
+import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack } from './look.js';
 import { buildOutside } from './outside.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
@@ -51,28 +51,128 @@ export async function open(cards, enter) {
   const touchy = matchMedia('(pointer: coarse)').matches;
 
   // ---------- the places, and the doorways between them ----------
+  // Only the garden and the hall (and any building outside the gate, which you can see from the lane)
+  // are built before the mansion opens. Each room is built later, one at a time: while you stand
+  // still, or as you walk up to its door (which stays shut until it's ready). A room that's far away
+  // (three doors or more, for a while) is put away again, if it can be: its things go back to the
+  // graphics card, and it's built again from its save as you come near. So the house can have any
+  // number of rooms without a longer wait to open, or more memory held for rooms you're nowhere near.
+  const opened = performance.now();
   try { await Promise.race([document.fonts.load('8px Silkscreen'), new Promise(ok => setTimeout(ok, 1500))]); } catch {}
   const load = src => src ? loadImage(src) : null;
   const [awake, asleep, boxes, doorPics] = await Promise.all([load(P.sadie), load(P.sadieBlink),
     Promise.all(cards.map(c => load(c.box?.front))), Promise.all(cards.map(c => load(c.door)))]);
   const T = drawTextures(awake, asleep);
+  const shared = new Set(made());   // (the textures every place uses: never put away with a room)
+  const t0 = performance.now();
   const outside = buildOutside(T, cards), hall = buildHall(T, cards, doorPics);
-  // a game that lives in its room builds the room itself, from the mansion's building kit
-  const rooms = await Promise.all(cards.map(async (c, i) => {
-    if (!c.room) return buildRoom(T, c, boxes[i], doorPics[i]);
-    const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
-    return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
-      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
-      paused: () => mode === 'menu' });
-  }));
+  const speed = { places: { 'outside and hall': Math.round(performance.now() - t0) }, first: 0 };
+  // a room per card: `place` once it's built
+  const slots = cards.map((c, i) => ({ card: c, i, name: 'room:' + c.id, place: null, building: null, far: 0 }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
-  for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
-  // a house of its own outside the gate (its card has a `lot`): its front door leads straight in
-  for (const r of rooms) if (r.house) { outside.doors[r.card.id] = r.house.door; portals.push({ a: r.house.door, wa: outside, b: r.doors.door, wb: r, open: 0 }); }
-  // each doorway seen from its own side: where it is, and where it leads
-  for (const p of portals) p.b.swing = -1;   // every door swings into the place further in
-  const sides = portals.flatMap(p => [{ d: p.a, w: p.wa, to: p.b, tw: p.wb, p }, { d: p.b, w: p.wb, to: p.a, tw: p.wa, p }]);
-  const places = [outside, hall, ...rooms];
+  for (const r of slots) if (hall.doors[r.card.id]) portals.push(r.portal = { a: hall.doors[r.card.id], wa: hall, b: null, wb: null, open: 0, slot: r });
+  // each doorway seen from its own side (only those whose rooms are built): where it is, and where it leads
+  let sides = [], places = [];
+  function relink() {
+    const up = portals.filter(p => p.b);
+    sides = up.flatMap(p => [{ d: p.a, w: p.wa, to: p.b, tw: p.wb, p }, { d: p.b, w: p.wb, to: p.a, tw: p.wa, p }]);
+    places = [outside, hall, ...slots.filter(r => r.place).map(r => r.place)];
+  }
+  // Building a room: one at a time (so each one's things are known, to put away later), from the
+  // mansion's building kit if it's a game that lives in its room
+  let queue = Promise.resolve();
+  function build(r) {
+    if (r.place) return Promise.resolve(r.place);
+    return r.building ||= (queue = queue.then(async () => {
+      const c = r.card, i = r.i, before = new Set(made()), t0 = performance.now();
+      let w;
+      if (!c.room) w = buildRoom(T, c, boxes[i], doorPics[i]);
+      else {
+        const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
+        w = await (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
+          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
+          paused: () => mode === 'menu' });
+      }
+      speed.places[r.name] = Math.round(performance.now() - t0);
+      r.mine = made().filter(x => !before.has(x));   // everything it made (to hand back if it's put away)
+      // a house of its own outside the gate (its card has a `lot`): its front door leads straight in
+      if (w.house && !r.portal) { outside.doors[c.id] = w.house.door; portals.push(r.portal = { a: w.house.door, wa: outside, open: 0, slot: r }); }
+      r.portal.b = w.doors.door; r.portal.wb = w; r.portal.open = 0;
+      w.doors.door.swing = -1;   // every door swings into the place further in
+      r.place = w; r.building = null; r.far = 0;
+      relink();
+      warm(w);
+      return w;
+    }));
+  }
+  // Putting a room away (only one that says it can: a room that reaches into other places, or keeps
+  // something going, stays). What it made goes back to the graphics card, unless another place uses it.
+  function putAway(r) {
+    const w = r.place;
+    if (!w || !w.putAway || w === me.world || r.building || w.holding) return false;
+    w.putAway();
+    r.portal.b = r.portal.wb = null; r.portal.open = 0; r.portal.a.setOpen(0);
+    const mine = new Set(r.mine);
+    for (const sc of w.scenes || [w.scene]) things(sc, mine);
+    r.place = null; relink();
+    const inUse = new Set(shared);
+    for (const p of places) for (const sc of p.scenes || [p.scene]) things(sc, inUse);
+    const gone = [...mine].filter(x => !inUse.has(x));
+    for (const x of gone) x.dispose();
+    handedBack(gone); r.mine = null;
+    if (lastThrough === r.portal) lastThrough = null;
+    return true;
+  }
+  // every shape, material and picture in a scene
+  function things(scene, into) {
+    scene.traverse(o => {
+      if (o.geometry) into.add(o.geometry);
+      for (const m of [].concat(o.material || [])) {
+        into.add(m);
+        for (const u of Object.values(m.uniforms || {})) if (u.value?.isTexture) into.add(u.value);
+        for (const k of ['map', 'alphaMap', 'emissiveMap']) if (m[k]?.isTexture) into.add(m[k]);
+      }
+    });
+    if (scene.background?.isTexture) into.add(scene.background);
+  }
+  // how many doors away each place is from where you are (a room not built yet: one past its door)
+  function doorsAway() {
+    const d = new Map([[me.world, 0]]), todo = [me.world];
+    while (todo.length) {
+      const w = todo.shift();
+      for (const p of portals) for (const [x, y] of [[p.wa, p.wb], [p.wb, p.wa]]) if (x === w && y && !d.has(y)) { d.set(y, d.get(w) + 1); todo.push(y); }
+    }
+    return r => (r.place ? d.get(r.place) : (d.get(r.portal?.wa) ?? 98) + 1) ?? 99;
+  }
+  // every frame: build the nearest room not built yet (while you're still, or as you come up to its
+  // door), and put away rooms three doors off for a while (or the ones you were near longest ago,
+  // once there are more than MAX)
+  const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7;
+  let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks, seeing a door wait for its room)
+  function tend(dt, doorFor) {
+    const away = doorsAway();
+    let next = null, best = 1e9;
+    for (const r of slots) if (!r.place && !r.building && r.portal) {
+      const n = away(r); if (n > 2) continue;
+      const dd = r.portal.wa === me.world ? Math.hypot(me.x - r.portal.a.pos.x, me.z - r.portal.a.pos.z) : 99;
+      const score = n * 100 + dd;
+      if (doorFor === r || (!onlyDoors && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
+    }
+    if (next && !slots.some(r => r.building)) build(next);
+    const built = slots.filter(r => r.place);
+    for (const r of built) r.far = away(r) >= FAR_DOORS ? r.far + dt : 0;
+    for (const r of built) if (r.far > FAR_SECS) putAway(r);
+    if (built.length > MAX) {
+      const spare = built.filter(r => r.place && away(r) >= 2).sort((a, b) => b.far - a.far);
+      for (const r of spare.slice(0, built.length - MAX)) putAway(r);
+    }
+  }
+  // (what a room just built needs on the graphics card goes there now, not the first time you see it)
+  function warm(w) {
+    try {
+      for (const sc of w.scenes || [w.scene]) sc.traverse(o => { for (const m of [].concat(o.material || [])) for (const u of Object.values(m.uniforms || {})) if (u.value?.isTexture && u.value.image) renderer.initTexture(u.value); });
+    } catch {}
+  }
 
   const canvas = $('#view');
   const renderer = new WebGLRenderer({ canvas, antialias: false });
@@ -80,6 +180,7 @@ export async function open(cards, enter) {
   renderer.outputColorSpace = LinearSRGBColorSpace;
   // a picture per open doorway in view (the nearest few): each doorway shows its own
   const throughs = [0, 1, 2].map(() => new WebGLRenderTarget(320, 240, { minFilter: NearestFilter, magFilter: NearestFilter }));
+  for (const t of throughs) shared.add(t.texture);   // (never handed back with a room)
   const cam = new PerspectiveCamera(70, 1, 0.1, 300);   // not too near: phones' depth is coarse
   cam.rotation.order = 'YXZ';   // turn round the upright first, then look up or down: the view never tips over
   const vcam = new PerspectiveCamera(); vcam.matrixAutoUpdate = false; vcam.matrixWorldAutoUpdate = false;
@@ -100,15 +201,21 @@ export async function open(cards, enter) {
     draw();
   }
 
+  // you start at the gate, or (coming back from an activity) at its computer: that room's built first
+  let back = null;
+  try { back = sessionStorage.getItem(BACK); sessionStorage.removeItem(BACK); } catch {}
+  const backSlot = slots.find(r => r.card.id === back);
+  for (const r of slots) if (Number.isInteger(r.card.lot) && r.card.room) await build(r);
+  if (backSlot) await build(backSlot);
+  const backRoom = backSlot?.place;
+  relink();
+
   // ---------- you ----------
   const me = { world: outside, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, eye: 0, bob: 0 };
   function place(world, spot) {
     me.world = world; me.x = spot.x; me.z = spot.z; me.yaw = spot.yaw; me.pitch = spot.pitch || 0;
     me.y = me.eye = spot.y ?? world.floor(spot.x, spot.z, 0) ?? 0;
   }
-  let back = null;
-  try { back = sessionStorage.getItem(BACK); sessionStorage.removeItem(BACK); } catch {}
-  const backRoom = rooms.find(r => r.card.id === back);
   if (backRoom) place(backRoom, backRoom.spots.computer); else place(outside, outside.spots.start);
 
   // where you can stand: the place's own floor, or the threshold of an open doorway in it
@@ -183,6 +290,20 @@ export async function open(cards, enter) {
       const d = Math.hypot(lx, lz); if (d < near) { near = d; best = s; }
     }
     return best;
+  }
+
+  // the room behind a door you're walking up to that isn't built yet (same test as doorAhead's)
+  function unbuiltAhead() {
+    const fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw);
+    for (const r of slots) if (!r.place && r.portal?.wa === me.world) {
+      const d = r.portal.a;
+      if (Math.abs(me.y - d.pos.y) > 1.5) continue;
+      const [lx, lz] = d.local(me.x, me.z);
+      if (lz < -0.6 || lz > 3.4 || Math.abs(lx) > 2.4) continue;
+      if (lz > 0.8 && -(fx * d.normal.x + fz * d.normal.z) < 0.25) continue;
+      return r;
+    }
+    return null;
   }
 
   let viewing = null;   // the nearest doorway being looked through this frame
@@ -515,7 +636,13 @@ export async function open(cards, enter) {
     if (!hintGone && ((moved && now - born > 4000) || now - born > 15000)) { hintGone = true; $('#keysHint').style.opacity = 0; }
     // a door opens as you come up to it facing it (only one at a time), and closes behind you
     const opening = doorAhead();
+    // (walking up to a door whose room isn't built yet: it's built now, and the door opens once it's ready)
+    const waiting = opening ? null : unbuiltAhead();
+    // (still: not walking, or reading Sadie's letter, or paused)
+    if ((mode === 'play' && !held.size && !stick.x && !stick.y) || mode === 'letter' || mode === 'menu') stillFor += dt; else stillFor = 0;
+    tend(dt, waiting);
     for (const p of portals) {
+      if (!p.b) continue;
       // (or while something in the place on either side holds it open: an escaping yarn ball)
       const want = opening?.p === p || p.wa.holding === p.a || p.wb.holding === p.b;
       p.open += ((want ? 1 : 0) - p.open) * Math.min(1, dt * 5);
@@ -528,6 +655,7 @@ export async function open(cards, enter) {
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
+    if (!frames) { speed.first = Math.round(performance.now() - opened); speed.atFirst = slots.filter(r => r.place).map(r => r.name); }
     frames++;
     raf = requestAnimationFrame(frame);
   }
@@ -541,6 +669,8 @@ export async function open(cards, enter) {
   }
 
   // for the checks (tests/clubhouse/browser.mjs): where you are, and a way to stand somewhere
+  // (a check going to a room that isn't built yet: built first)
+  const later = (name, then) => { const r = slots.find(r => r.name === name); return r ? build(r).then(then) : false; };
   window.__mansion = {
     frames: () => frames,
     mode: () => mode,
@@ -551,12 +681,25 @@ export async function open(cards, enter) {
     showing: () => sides.filter(s => s.w === me.world && s.d.see.material.uniforms.uOn.value > 0.5).length,
     // hold a doorway open, as if something were going through it (null to let it go)
     holdOpen(name, door) { const w = places.find(p => p.name === name); if (w) w.holding = door ? w.doors[door] : null; },
-    places: () => places.map(p => p.name),
+    // every place, built or not (a room not built yet is built when a check goes there)
+    places: () => ['outside', 'hall', ...slots.map(r => r.name)],
     // stand at one of a place's spots (or at {x, z, yaw, y}), and look straight ahead
     put(name, spot) {
-      const w = places.find(p => p.name === name); if (!w) return false;
+      const w = places.find(p => p.name === name);
+      if (!w) return later(name, () => window.__mansion.put(name, spot));
       place(w, typeof spot === 'string' ? w.spots[spot] : spot); return true;
     },
+    // the rooms built so far, whether they're all built, building one now (and waiting for that), and
+    // putting one away now (as if you'd been far from it long enough)
+    built: () => slots.filter(r => r.place).map(r => r.name),
+    settled: () => slots.every(r => r.place || !r.portal) && !slots.some(r => r.building),
+    build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(() => true) : false; },
+    putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
+    onlyDoors: on => { onlyDoors = on; },
+    // how quick the mansion is: ms to the first picture, ms to build each place, and what's held on
+    // the graphics card (and in the kit's list of things to hand back)
+    speed: () => ({ ...speed, places: { ...speed.places }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
+      textures: renderer.info.memory.textures, kept: made().length, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e5) / 10 : null }),
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
     // take a step of d metres straight ahead (through a doorway, if there's one there), and draw
     step(d) { const r = move(-Math.sin(me.yaw) * d, -Math.cos(me.yaw) * d); draw(); return r; },
@@ -566,7 +709,9 @@ export async function open(cards, enter) {
     doorAt: (name, door) => { const d = places.find(p => p.name === name)?.doors[door]; return d && { x: d.pos.x, z: d.pos.z }; },
     // stand in front of a doorway in this place, facing it (d metres out)
     faceDoor(name, door, d = 2) {
-      const w = places.find(p => p.name === name), dd = w?.doors[door]; if (!dd) return false;
+      const w = places.find(p => p.name === name), dd = w?.doors[door];
+      if (!w) return later(name, () => window.__mansion.faceDoor(name, door, d));
+      if (!dd) return false;
       place(w, { x: dd.pos.x + dd.normal.x * d, z: dd.pos.z + dd.normal.z * d, y: dd.pos.y, yaw: dd.yaw, pitch: 0 }); return true;
     },
   };

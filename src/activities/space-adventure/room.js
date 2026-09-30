@@ -151,6 +151,8 @@ export async function buildRoom(m) {
     },
     floor: cockpitFloor,
     watch: null,
+    // (the mansion puts it away when you're far off, and builds it again from its save as you come back)
+    putAway() { music.close(); talk.remove(); },
     update(t, dt = 0) {
       const paused = !!m.paused?.();
       if (paused !== wasPaused) { wasPaused = paused; music.hold(paused); }

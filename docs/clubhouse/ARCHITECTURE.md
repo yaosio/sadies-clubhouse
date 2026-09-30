@@ -39,7 +39,8 @@ activity is checked again, so something moves into it only once a second activit
   `words`, `picture`, `loadImage`, the shapes `kit`, `wallGeometry`, `doorway`, the card and its
   door's leaf), so the game still never imports the clubhouse (it imports `three` itself). It hands
   back a place like any room (`name`, `scene`, `floor`, `doors`, `faces`, `uses`, `light`, `spots`,
-  `update(t, dt)`), where a use with `play` is the game: `view` (the middle, facing way, width and
+  `update(t, dt)`, and if the mansion may put it away when you're far off, `putAway()`, which stops
+  anything of its own for good, like its sounds, and `scenes` if it has more than one), where a use with `play` is the game: `view` (the middle, facing way, width and
   height the screen has to fit), `start()` (called during the press, so sound is allowed),
   `stop()`, `steer(v, dt)` (held keys, -1 to 1) and `nudge(metres)` (the mouse or a finger, already
   turned into metres across the game), and `over` (set when the game ends: the mansion steps you
@@ -106,7 +107,20 @@ activity is checked again, so something moves into it only once a second activit
   that picture up by screen position. Walking across a doorway moves you to the same spot on the
   other side, turned round. So there are no loading screens, a place can be any size (bigger inside
   than out), and changing one place never touches another. Only the place you're in, and through
-  one doorway, get drawn. A door opens only when you walk up to it facing it (one at a time), and
+  one doorway, get drawn.
+  - **Building rooms as they're needed.** Only the garden, the hall and any building outside the
+    gate (seen from the lane) are built before the mansion opens (and the room you're coming back
+    to). Each other room is built afterwards, one at a time, nearest door first: while you stand
+    still (or read the letter, or pause), when you're within 7 m of its door, or when you walk up to
+    its door, which stays shut until the room's ready. What it made is noted, and warmed onto the
+    graphics card straight away. A room with `putAway()` that's three doors or more from you for 20
+    seconds (or the ones you were near longest ago, once more than 16 are built) is put away: it
+    stops its own things, everything it made that no other place uses goes back to the graphics
+    card, and it's built again from its save as you come back. So far the computer rooms, the
+    aquarium (and its ocean) and Space Adventure can be put away; Brickbuster (its yarn ball gets
+    out into the hall), the Music Room and Clyde's House stay built. A new room should be able to
+    be put away, and must look the same built again from its save. `tools/clubhouse/speed.mjs`
+    prints how quick it all is. A door opens only when you walk up to it facing it (one at a time), and
   closes behind you (the one you just came through waits till you're out of its swing). Both sides of a doorway show the same real door: it swings into the place
   further in (`swing`), so it's hinged on opposite sides as seen from each side.
   - `mansion.js`: you (walking, the eye following steps smoothly), the controls (WASD/arrows; the
@@ -179,8 +193,9 @@ any), and it gets a line in the list of activities in the main `README.md`. Noth
 | File | What it does |
 |---|---|
 | `tests/run.mjs` | `npm test`: every activity's headless checks, one activity after another (`npm test -- dropper-world` for one). |
-| `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` whenever anything in the page changed: about half a minute, the phone and the desktop side by side): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, two doors open side by side both showing their rooms, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, and the start-over buttons (NO keeps things, YES starts the letter over). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
+| `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` whenever anything in the page changed: about half a minute, the phone and the desktop side by side): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, the rooms built after the mansion opens (each under a time limit, all drawn with the same few materials), a room put away and built again as you walk up to its door with nothing piling up, two doors open side by side both showing their rooms, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, and the start-over buttons (NO keeps things, YES starts the letter over). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
 | `tools/clubhouse/shots.mjs` | Pictures of the mansion from its main spots (the gate, the front door from both sides, the hall, the stairs, the landing, an activity's door and room), as a desktop and a phone, from the built page: `dist/shots/clubhouse/`. |
+| `tools/clubhouse/speed.mjs` | How quick the mansion is, from the built page: how long the first picture took, how long each place took to build, what's on the graphics card, and three rounds of putting every room away and building it again (the numbers must come back the same). |
 | `tools/clubhouse/spot.mjs` | A picture of the mansion from anywhere: `node tools/clubhouse/spot.mjs <name> <place> <x> <z> <y> <lookX> <lookY> <lookZ>` stands there and looks at that point (`dist/shots/clubhouse/spot-<name>.png`), for checking how one thing looks. |
 | `tools/build.mjs` | `npm run build`: the one-file page in `dist/index.html` (the clubhouse and every activity), with the source embedded (everything but `art/`). Squeezed small (three.js is big); the readable source is what's embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title). |
 | `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the mansion's checks (unless exactly this page already passed them), then each activity's browser checks, each playing the phone and the desktop side by side. It prints how long each stage took. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus its tools (`tools/<name>/`), the clubhouse's shell (files directly in `src/`, not the mansion, unless its card has a `room`: then the mansion too), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. An activity's `browser.mjs` can export `prepare()` for anything its checks need made first (Dropper World's full board): it's started at the very beginning and runs alongside the headless tests. |

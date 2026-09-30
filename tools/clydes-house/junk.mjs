@@ -25,7 +25,7 @@ await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200
 const p = await ctx.newPage();
 p.on('pageerror', e => console.log('page error:', e.message));
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
-await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5, null, { timeout: 30000 });
+await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
 await p.evaluate(() => document.querySelector('#ok')?.click());
 await p.evaluate(() => window.__mansion.put('room:clydes-house', 'machine'));
 await p.waitForTimeout(300); await p.keyboard.press('KeyE');

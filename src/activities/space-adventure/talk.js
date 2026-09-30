@@ -41,5 +41,7 @@ export function makeTalk(sadieImage) {
     showing: () => (box.hidden ? null : text),
     // how black the screen is (0 to 1)
     black(k) { black.hidden = k <= 0; black.style.opacity = k; },
+    // gone from the page (the room's been put away)
+    remove() { box.remove(); black.remove(); style.remove(); },
   };
 }

@@ -41,7 +41,7 @@ for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(url);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5, null, { timeout: 30000 });
+  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
   for (const [name, go] of SPOTS) {
     if (only.length && !only.some(o => name.includes(o))) continue;
     if (go) await p.evaluate(`(${go})(window.__mansion); document.querySelector('#letter').hidden = true;`);
