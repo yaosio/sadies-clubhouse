@@ -1,7 +1,8 @@
 // The entrance hall: the bottom of the cat tree. A tall hall with sixteen flat walls (round enough,
 // in 1996), a giant scratching post up the middle and a spiral staircase round it. Each floor is a
-// ring of doors: the first landing has a door per activity (in folder order, starting where the
-// stairs come out) and boarded-up ones for the next; the second landing is still being built.
+// ring of doors: the first landing has a door per activity (each card's `slot`, 0 where the stairs
+// come out; a card without one takes the next free door, so a new activity never moves the others)
+// and boarded-up ones for the next; the second landing is still being built.
 //
 // It doesn't match the outside's size, on purpose: the front door just leads here.
 import { Mesh, Group, Scene, Color, Vector3, BoxGeometry, PlaneGeometry, CylinderGeometry, SphereGeometry, TorusGeometry,
@@ -25,6 +26,10 @@ export function buildHall(T, cards, doorPictures = []) {
 
   // ---------- the walls: three storeys of sixteen, some with a hole for a door ----------
   const doors = {}, activityDoors = [];
+  // which card has which door: its own slot if it says, else the next free one
+  const bySlot = [];
+  cards.forEach((c, i) => { if (Number.isInteger(c.slot)) bySlot[c.slot] = i; });
+  cards.forEach((c, i) => { if (!Number.isInteger(c.slot)) { let s = 0; while (bySlot[s] !== undefined) s++; bySlot[s] = i; } });
   const wallpaper = psx(T.damask, { rx: 1 / 1.3, ry: 1 / 1.3 }), brick = psx(T.brick, { rx: 1 / 1.2, ry: 1 / 1.2 });
   function wall(k, y0, h, mat, hole) {
     const th = faceAngle(k), [x, z] = at(A, th);
@@ -38,7 +43,7 @@ export function buildHall(T, cards, doorPictures = []) {
   const FRONT = 8;
   for (let k = 0; k < N; k++) {
     wall(k, 0, L1, wallpaper, k === FRONT ? [2.0, 3.0] : null);
-    const slot = SLOTS.indexOf(k), card = cards[slot];
+    const slot = SLOTS.indexOf(k), ci = bySlot[slot], card = cards[ci];
     wall(k, L1, L2 - L1, wallpaper, card ? [1.5, 2.45] : null);
     wall(k, L2, TOP - L2, brick);
     // the wainscot and its gold rail, round the ground floor (in two pieces either side of the front door)
@@ -46,7 +51,7 @@ export function buildHall(T, cards, doorPictures = []) {
     for (const [c, w] of pieces) { onWall(k, w, 1.1, psx(T.wainscot, { rx: w / 0.9, ry: 1, decal: true }), 0.55, c, 0.04); onWall(k, w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), 1.12, c, 0.08); }
     if (card) {
       const th = faceAngle(k), [x, z] = at(A, th);
-      const pic = doorPictures[slot], tex = pic ? picture(pic) : doorTexture(card);
+      const pic = doorPictures[ci], tex = pic ? picture(pic) : doorTexture(card);
       const d = doorway(scene, { pos: [x, L1, z], yaw: th + Math.PI, w: 1.5, h: 2.45, leaves: [{ front: tex, back: pic ? doorBack(pic) : tex }], hinge: -1 });
       doors[card.id] = d; activityDoors.push(d);
       onWall(k, 0.36, 0.36, psx(T.catdoor, { decal: true }), L1 + 0.18, 1.05);   // a cat door by every door
@@ -96,8 +101,12 @@ export function buildHall(T, cards, doorPictures = []) {
   { const mid = at((3.05 + IN) / 2, THTOP), len = IN - 3.0;
     box(1.3, 0.14, len, tread, [mid[0], L1 - 0.07, mid[1]], [0, THTOP, 0]);
     for (const s of [-0.62, 0.62]) { const o = at(s, THTOP + Math.PI / 2); plane(len, 1, psx(T.rail, { rx: 5, side: DoubleSide }), [mid[0] + o[0], L1 + 0.5, mid[1] + o[1]], [0, THTOP + Math.PI / 2, 0], 1); } }
-  // a dirt pile, where a mole came up through the floorboards (it gets everywhere)
-  { const [x, z] = at(A - 0.9, faceAngle(SLOTS[0]) - 0.14); cone(0.42, 0.3, 7, psx(T.bark, { tint: 0xc08050, rx: 2 }), [x, L1 + 0.15, z]); }
+  // a dirt pile by the door of an activity that asks for one (Dropper World: a mole came up through
+  // the floorboards; it gets everywhere)
+  cards.forEach((c, i) => {
+    if (c.doorstep !== 'dirt') return;
+    const [x, z] = at(A - 0.9, faceAngle(SLOTS[bySlot.indexOf(i)]) - 0.14); cone(0.42, 0.3, 7, psx(T.bark, { tint: 0xc08050, rx: 2 }), [x, L1 + 0.15, z]);
+  });
 
   // ---------- the second landing, half built: planks with gaps, scaffolding, tape and a sign ----------
   const plank = psx(T.wood, { rx: 1, ry: 3 });
@@ -183,6 +192,14 @@ export function buildHall(T, cards, doorPictures = []) {
   const inFront = (d, back) => { const [x, z] = [d.pos.x + d.normal.x * back, d.pos.z + d.normal.z * back]; return { x, z, yaw: d.yaw + Math.PI, pitch: 0 }; };
   return {
     name: 'hall', scene, floor, doors, faces: [], uses: [],
+    napping: sadie,   // Sadie asleep in her box in the sunbeam (a game can wake her: Brickbuster's loose yarn ball)
+    // the hall's solid shape, for things that bounce round it (Brickbuster's yarn ball): the walls'
+    // distance from the middle, the post's radius, the first landing (its inner edge, its height
+    // and thickness, the railing on it), the second landing's height (nothing goes above it), the
+    // spiral stairs' treads, and the furniture on the ground floor
+    shape: { wall: A, post: 1.16, landing: { inner: IN, y: L1, thick: 0.18, rail: 1.0 }, top: L2,
+      stairs: { r0: 1.45, r1: 3.05, th0: TH0, turn: TURN, rise: RISE, treads: STEPS + UPPER },
+      blocks: BLOCKS.map(([x, z, r]) => ({ x, z, r, h: 1.0 })) },
     light: { sun: 0.15, bulb: 0.75, lamp: [CH.x, CH.y - 0.4, CH.z] },
     spots: {
       start: { ...inFront(doors.front, 1.2), pitch: 0.25, y: 0 },

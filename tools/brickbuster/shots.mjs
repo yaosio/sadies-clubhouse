@@ -1,0 +1,93 @@
+// Pictures of Brickbuster '96's room, as a desktop and a phone, from the built page (npm run build
+// first): walking in, standing back, stepping up to play, the glass cracked, the heap of bricks, the
+// glass breaking and the yarn ball escaping, the room left broken and the sign on its door. dist/shots/brickbuster/
+//   node tools/brickbuster/shots.mjs
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { readFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/brickbuster');
+mkdirSync(out, { recursive: true });
+const require = createRequire(import.meta.url);
+let chromium;
+try { ({ chromium } = require('playwright')); }
+catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
+
+const server = createServer((q, s) => { s.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); s.end(readFileSync(join(root, 'dist/index.html'))); });
+await new Promise(ok => server.listen(0, '127.0.0.1', ok));
+const url = `http://127.0.0.1:${server.address().port}/`;
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
+for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
+  const ctx = await browser.newContext(opts);
+  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  const p = await ctx.newPage();
+  p.on('pageerror', e => console.log('page error:', e.message));
+  await p.goto(url);
+  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5, null, { timeout: 30000 });
+  await p.click('#ok');
+  const shot = async (name, wait = 1000) => { await p.waitForTimeout(wait); await p.screenshot({ path: join(out, `${device}-${name}.png`) }); console.log(`dist/shots/brickbuster/${device}-${name}.png`); };
+  await p.evaluate(() => { const m = window.__mansion; m.faceDoor('hall', 'brickbuster', 2.4); });
+  await shot('1-door');
+  await p.evaluate(() => { const m = window.__mansion; m.faceDoor('room:brickbuster', 'door', 0.6); m.turnTo(m.where().yaw + Math.PI, 0.3); });
+  await shot('2-walking-in');
+  await p.evaluate(() => window.__mansion.put('room:brickbuster', 'case'));
+  await shot('3-standing-back');
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: -2.5, z: 1.5, yaw: Math.PI + 0.7, pitch: 0.1, y: 0 }); });
+  await shot('4-sadie-and-poster');
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: 1, z: -2, yaw: -Math.PI / 2 + 0.2, pitch: 0.05, y: 0 }); });
+  await shot('5-poster');
+  await p.evaluate(() => window.__mansion.put('room:brickbuster', 'case'));
+  await p.waitForTimeout(300);
+  if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+  await shot('6-playing', 2500);
+  await p.evaluate(() => { const b = window.__brickbuster; b.throwBall(1, 1.5, 0.4, -5); });
+  await p.waitForTimeout(700);
+  await p.evaluate(() => { const b = window.__brickbuster; b.throwBall(3.2, 5, 0.4, 6); });
+  await shot('7-cracked', 500);
+  // knock out most of the bricks (they land on the heap), then break the bottom
+  await p.evaluate(() => window.__brickbuster.knockOut(30));
+  await p.keyboard.press('Escape').catch(() => {});
+  await p.evaluate(() => window.__mansion.put('room:brickbuster', { x: -1.5, z: 1.2, yaw: Math.PI - 0.3, pitch: -0.15, y: 0 }));
+  await shot('8-heap', 1200);
+  await p.evaluate(() => window.__mansion.put('room:brickbuster', 'case'));
+  await p.waitForTimeout(300);
+  if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+  await p.waitForTimeout(1500);
+  for (let i = 0; i < 6 && !(await p.evaluate(() => window.__brickbuster.state().broken)); i++) {
+    await p.evaluate(() => { const b = window.__brickbuster, s = b.state(); b.throwBall(s.paddle < 2.1 ? 3.6 : 0.6, 1.4, 0, -5); });
+    await p.waitForTimeout(500);
+  }
+  await shot('9-shatter', 150);
+  await shot('10-escaping', 1400);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: -1, z: -1, yaw: -1.2, pitch: 0.1, y: 0 }); });
+  await shot('11-poster', 1500);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: 0, z: -2, yaw: 0, pitch: 0, y: 0 }); });
+  await shot('12-out-the-door', 800);
+  await p.waitForTimeout(3000);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: 0, z: 1.2, yaw: Math.PI, pitch: -0.1, y: 0 }); });
+  await shot('13-broken-room', 1000);
+  await p.evaluate(() => { const m = window.__mansion; m.faceDoor('room:brickbuster', 'door', 3.5); m.turnTo(m.where().yaw, -0.1); });
+  await shot('13b-door-from-inside', 1000);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: -0.3, z: 2.6, yaw: Math.PI + 0.1, pitch: -0.45, y: 0 }); });
+  await shot('14-sad-paddle', 800);
+  await p.evaluate(() => window.__mansion.faceDoor('hall', 'brickbuster', 2.4));
+  await shot('15-out-of-order', 1500);
+  await p.evaluate(() => { const m = window.__mansion; m.faceDoor('hall', 'dropper-world', 2.4); m.turnTo(m.where().yaw, -0.3); });
+  await shot('16-dirt-by-dropper-world', 1200);
+  // out in the hall: stand back from the yarn ball and Sadie, looking at them
+  const lookAtBall = () => p.evaluate(() => {
+    const m = window.__mansion, h = window.__brickbuster.state().hall; if (!h) return;
+    const [x, y, z] = h.ball, a = Math.atan2(x, z), r = Math.hypot(x, z), onLanding = y > 4;
+    const sx = Math.sin(a + (onLanding ? 0.5 : 0)) * (onLanding ? 6.6 : Math.max(1.8, r - 3)), sz = Math.cos(a + (onLanding ? 0.5 : 0)) * (onLanding ? 6.6 : Math.max(1.8, r - 3));
+    const fy = onLanding ? 4.6 : 0;
+    m.put('hall', { x: sx, z: sz, y: fy, yaw: Math.atan2(-(x - sx), -(z - sz)), pitch: Math.atan2(y - fy - 1.6, Math.hypot(x - sx, z - sz)) });
+  });
+  for (const [name, wait] of [['17-hall-yarn-ball', 2500], ['18-hall-later', 9000], ['19-hall-later-still', 9000]]) {
+    await p.waitForTimeout(wait); await lookAtBall(); await shot(name, 150);
+  }
+  console.log(JSON.stringify(await p.evaluate(() => window.__brickbuster.state())));
+  await ctx.close();
+}
+await browser.close(); server.close();

@@ -106,9 +106,22 @@ export default async function ({ browser, page, check, outDir }) {
     const top = await M('where');
     check(`${device}: the stairs go up to the first landing`, top.y > 4.5, `at ${top.y.toFixed(2)} m`);
 
+    // two doors open side by side on the landing both show what's through them (neither goes black)
+    await M('faceDoor', 'hall', 'dropper-world', 1.3);
+    await M('faceDoor', 'hall', 'dropper-world', 2.4);
+    await M('turnTo', (await M('where')).yaw - 0.45);
+    await M('holdOpen', 'hall', 'dropper-world');
+    await M('holdOpen', 'room:brickbuster', 'door');
+    await p.waitForTimeout(700);
+    await shot('4b-two-doors');
+    const both = await M('showing');
+    await M('holdOpen', 'hall', null); await M('holdOpen', 'room:brickbuster', null);
+    check(`${device}: two open doors side by side both show their rooms`, both >= 2, `${both} showing`);
+
     // through Dropper World's door into its room
-    await M('faceDoor', 'hall', 'dropper-world', 2.2);
-    await walk(1500);
+    // (from 1.3 m out: further than that is off the landing, except in front of the first door)
+    await M('faceDoor', 'hall', 'dropper-world', 1.3);
+    await walk(1200);
     await shot('5-room');
     check(`${device}: Dropper World's door on the landing leads to its room`, (await M('where')).place === 'room:dropper-world');
 

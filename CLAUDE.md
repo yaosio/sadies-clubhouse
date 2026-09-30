@@ -2,7 +2,8 @@
 
 A lost 90s shareware activity center: Sadie's mansion, with a room per activity. Sadie is the
 owner's late cat, and she's in every activity (not always in the same way). The activities so far
-are Sadie's Dropper World (a cozy physics toy) and TypeFitter Deluxe 3.1 (text that never fits).
+are Sadie's Dropper World (a cozy physics toy), TypeFitter Deluxe 3.1 (text that never fits) and
+Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the house).
 
 ## The owner
 - Doesn't code, installs nothing, and doesn't know GitHub. Claude does all building, testing,
@@ -24,7 +25,9 @@ they fit together). Then only the docs of what you're changing:
 - **How anything looks:** also `docs/clubhouse/ART_STYLE.md` (the approved misremembered-90s look).
 - **The mansion, the page shell, the toolbox, the build or the checks:** `docs/clubhouse/` is enough.
 
-Don't start a parked idea (each activity's README lists them) unless asked.
+Don't start a parked idea (each activity's README lists them) unless asked. Never move a room: a
+new activity's door takes the next free spot on the landing (its card's `slot`), and anything by a
+door (like the dirt pile by Dropper World's) stays with it.
 
 ## Making a change
 1. `npm install` (esbuild, the bundler, and three.js, for the mansion), then edit only the modules

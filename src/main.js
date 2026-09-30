@@ -1,5 +1,6 @@
 // The clubhouse: the shell every activity runs in. It knows each activity only by its card
-// (src/activities/<name>/card.js: id, name, page, styles, start, and for the mansion its box and door),
+// (src/activities/<name>/card.js: id, name, page, styles, start, and for the mansion its box and door;
+// or, for a game that lives in its mansion room instead of on a computer, just room and door),
 // and runs one at a time.
 //
 // The build finds the activities by their folders, so adding one never changes this file. The page
@@ -39,6 +40,6 @@ async function enter(card) {
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) leave(); });
 }
 
-const wanted = cards.find(c => c.id === location.hash.slice(1));
+const wanted = cards.find(c => c.id === location.hash.slice(1) && c.start);   // (a game that lives in its room has no page of its own)
 if (wanted) enter(wanted);
 else import('./clubhouse/mansion.js').then(mansion => mansion.open(cards, enter));
