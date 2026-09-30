@@ -6,7 +6,8 @@
 // Every place (outside, the hall, each activity's room) is its own separate scene, joined only by
 // doorways. There are no loading screens: an open doorway shows the place on its other side (drawn
 // from where you'd be standing if you'd already walked through), and walking through it just moves
-// you there. Only the place you're in, and through the nearest open doorway, get drawn.
+// you there. Only the place you're in, and through the open doorways in front of you (the nearest
+// three: two doors on the landing can be open at once), get drawn.
 //
 // Controls are a normal game's: WASD or the arrows and the mouse (click to look around), a thumb
 // stick and dragging on a phone. E (or the button on a phone) uses what you're looking at. Esc or the
@@ -74,8 +75,8 @@ export async function open(cards, enter) {
   const renderer = new WebGLRenderer({ canvas, antialias: false });
   renderer.setPixelRatio(1);
   renderer.outputColorSpace = LinearSRGBColorSpace;
-  const through = new WebGLRenderTarget(320, 240, { minFilter: NearestFilter, magFilter: NearestFilter });
-  for (const s of sides) s.d.see.material.uniforms.pic.value = through.texture;
+  // a picture per open doorway in view (the nearest few): each doorway shows its own
+  const throughs = [0, 1, 2].map(() => new WebGLRenderTarget(320, 240, { minFilter: NearestFilter, magFilter: NearestFilter }));
   const cam = new PerspectiveCamera(70, 1, 0.1, 300);   // not too near: phones' depth is coarse
   cam.rotation.order = 'YXZ';   // turn round the upright first, then look up or down: the view never tips over
   const vcam = new PerspectiveCamera(); vcam.matrixAutoUpdate = false; vcam.matrixWorldAutoUpdate = false;
@@ -88,7 +89,7 @@ export async function open(cards, enter) {
     const iw = Math.ceil(w / k), ih = Math.ceil(h / k);
     if (drawnAt === iw + 'x' + ih) return;                      // resizing wipes the picture: only when it really changed
     drawnAt = iw + 'x' + ih;
-    renderer.setSize(iw, ih, false); through.setSize(iw, ih); res.set(iw, ih);
+    renderer.setSize(iw, ih, false); for (const t of throughs) t.setSize(iw, ih); res.set(iw, ih);
     cam.aspect = iw / ih;
     // a wide view on a wide screen; on a tall phone, not so tall that the walls lean when you look up or down
     cam.fov = Math.min(68, Math.max(55, 2 * Math.atan(Math.tan(80 * Math.PI / 360) / cam.aspect) * 180 / Math.PI));
@@ -181,7 +182,7 @@ export async function open(cards, enter) {
     return best;
   }
 
-  let viewing = null;   // the doorway being looked through this frame
+  let viewing = null;   // the nearest doorway being looked through this frame
   function draw() {
     cam.position.set(me.x, me.eye + EYE + Math.sin(me.bob) * 0.03, me.z);
     // exactly on a doorway's line (to a tenth of a millimetre) the drawing maths has nothing to work
@@ -193,21 +194,24 @@ export async function open(cards, enter) {
     cam.rotation.set(me.pitch, me.yaw, 0);
     cam.updateMatrixWorld();
     for (const f of me.world.faces) f.rotation.y = Math.atan2(cam.position.x - f.position.x, cam.position.z - f.position.z);
-    // the nearest open doorway you're in front of shows its other side
-    viewing = null; let near = 25;
+    // each open doorway you're in front of (the nearest few) shows its other side, in its own picture
+    const open = [];
     for (const s of sides) if (s.w === me.world && s.p.open > 0.02) {
       tmp.copy(cam.position).sub(s.d.pos);
       if (tmp.dot(s.d.normal) < -0.05) continue;
-      const d = tmp.length(); if (d < near) { near = d; viewing = s; }
+      const d = tmp.length(); if (d < 25) open.push([d, s]);
     }
-    if (viewing) {
-      lookThrough(viewing);
-      light(viewing.tw.light);
-      viewing.to.group.visible = false;   // the far side's frame, leaves and doorway box: never seen from behind
-      renderer.setRenderTarget(through); renderer.render(viewing.tw.scene, vcam); renderer.setRenderTarget(null);
-      viewing.to.group.visible = true;
-      viewing.d.see.material.uniforms.uOn.value = 1;
-    }
+    open.sort((a, b) => a[0] - b[0]);
+    viewing = open.length ? open[0][1] : null;
+    open.slice(0, throughs.length).forEach(([, s], i) => {
+      lookThrough(s);
+      light(s.tw.light);
+      s.to.group.visible = false;   // the far side's frame, leaves and doorway box: never seen from behind
+      renderer.setRenderTarget(throughs[i]); renderer.render(s.tw.scene, vcam); renderer.setRenderTarget(null);
+      s.to.group.visible = true;
+      s.d.see.material.uniforms.pic.value = throughs[i].texture;
+      s.d.see.material.uniforms.uOn.value = 1;
+    });
     light(me.world.light);
     renderer.render(me.world.scene, cam);
   }
@@ -217,7 +221,7 @@ export async function open(cards, enter) {
   const held = new Set();
   const stick = { id: null, x0: 0, y0: 0, x: 0, y: 0 }, drag = { id: null, x: 0, y: 0 };
   let locked = false, moved = false;
-  function turn(dx, dy) { me.yaw -= dx; me.pitch = Math.max(-0.75, Math.min(0.75, me.pitch - dy)); }
+  function turn(dx, dy) { if (me.world.watch) return; me.yaw -= dx; me.pitch = Math.max(-0.75, Math.min(0.75, me.pitch - dy)); }
   // held keys that steer a game you're playing in its room: -1 left, 1 right
   const steering = () => (held.has('r') || held.has('tr') ? 1 : 0) - (held.has('l') || held.has('tl') ? 1 : 0);
   const KEYS = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', KeyD: 'r', ArrowLeft: 'tl', ArrowRight: 'tr' };
@@ -416,7 +420,15 @@ export async function open(cards, enter) {
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = now / 1000;
     resize();
-    if (mode === 'play') {
+    if (mode === 'play' && me.world.watch) {
+      // something in this place everyone has to watch (Brickbuster's yarn ball getting out): your
+      // view follows it, and you can't walk or look away until it's gone
+      const w = me.world.watch, dx = w.x - me.x, dz = w.z - me.z, dy = w.y - (me.eye + EYE);
+      const yaw = Math.atan2(-dx, -dz), pitch = Math.max(-0.75, Math.min(0.75, Math.atan2(dy, Math.hypot(dx, dz))));
+      const k = Math.min(1, dt * 10), dyaw = yaw - me.yaw;
+      me.yaw += Math.atan2(Math.sin(dyaw), Math.cos(dyaw)) * k; me.pitch += (pitch - me.pitch) * k;
+      me.bob *= 0.85;
+    } else if (mode === 'play') {
       const tr = (held.has('tl') ? 1 : 0) - (held.has('tr') ? 1 : 0);
       me.yaw += tr * TURN * dt;
       let f = (held.has('f') ? 1 : 0) - (held.has('b') ? 1 : 0) - stick.y, st = (held.has('r') ? 1 : 0) - (held.has('l') ? 1 : 0) + stick.x;
@@ -461,7 +473,7 @@ export async function open(cards, enter) {
   function close() {
     cancelAnimationFrame(raf); off.abort();
     if (document.pointerLockElement) document.exitPointerLock();
-    through.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
+    for (const t of throughs) t.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();
     delete window.__mansion;
   }
@@ -473,6 +485,10 @@ export async function open(cards, enter) {
     where: () => ({ place: me.world.name, x: me.x, y: me.y, z: me.z, yaw: me.yaw }),
     target: () => target?.label || null,
     looking: () => viewing ? viewing.tw.name : null,
+    // how many doorways are showing what's through them right now (not black)
+    showing: () => sides.filter(s => s.w === me.world && s.d.see.material.uniforms.uOn.value > 0.5).length,
+    // hold a doorway open, as if something were going through it (null to let it go)
+    holdOpen(name, door) { const w = places.find(p => p.name === name); if (w) w.holding = door ? w.doors[door] : null; },
     places: () => places.map(p => p.name),
     // stand at one of a place's spots (or at {x, z, yaw, y}), and look straight ahead
     put(name, spot) {

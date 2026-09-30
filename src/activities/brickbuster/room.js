@@ -31,7 +31,9 @@ export async function buildRoom(m) {
   add(new Mesh(wallGeometry(2 * RD, RH), paper), [-RW, 0, 0], [0, Math.PI / 2, 0]);
   add(new Mesh(wallGeometry(2 * RD, RH), paper), [RW, 0, 0], [0, -Math.PI / 2, 0]);
   // the wainscot and its gold rail, all the way round
-  for (const [w, pos, rot] of [[2 * RW, [0, 0.55, -RD + 0.04], 0], [2 * RD, [-RW + 0.04, 0.55, 0], Math.PI / 2], [2 * RD, [RW - 0.04, 0.55, 0], -Math.PI / 2]]) {
+  // (in two pieces along the front wall, either side of the door)
+  const side = (RW - 0.9) / 2 + 0.9, sw = RW - 0.9;
+  for (const [w, pos, rot] of [[sw, [-side, 0.55, -RD + 0.04], 0], [sw, [side, 0.55, -RD + 0.04], 0], [2 * RD, [-RW + 0.04, 0.55, 0], Math.PI / 2], [2 * RD, [RW - 0.04, 0.55, 0], -Math.PI / 2]]) {
     plane(w, 1.1, psx(T.wainscot, { rx: w / 0.9, decal: true }), pos, [0, rot, 0], 2);
     plane(w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), [pos[0], 1.12, pos[2]], [0, rot, 0], 2);
   }
@@ -296,6 +298,7 @@ export async function buildRoom(m) {
       [new Vector3(1.6, R, -5.2), 0.6, null], [new Vector3(0.1, R, -6.2), 0.3, null], [new Vector3(0, R, -7.8), 0.2, null],
     ];
     escape = { hops, i: 0, t: 0, from: ball.position.clone() };
+    place.watch = ball.position;   // everyone in the room watches it go
   }
   const PADDLE_DOWN = new Vector3(0.5, 0.66, CZ - 1.6);
   function restPaddle() { paddle.position.copy(PADDLE_DOWN); paddle.rotation.set(1.0, Math.PI, 0.14); paddle.scale.set(1, 1, 1); }
@@ -311,7 +314,7 @@ export async function buildRoom(m) {
     if (noise === 'boing') sound?.boing(Math.random() * 2 - 1);
     if (noise === 'mute') { sound?.mute(); place.holding = door; run = { t: 0, from: sadie.position.clone() }; }
     e.from = to.clone(); e.t = 0; e.i++;
-    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; }
+    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; place.watch = null; }
   }
   // Sadie: off her box and straight out the door after it
   function runOn(dt) {
@@ -330,6 +333,7 @@ export async function buildRoom(m) {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie],
     uses: game.broken ? [] : [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 12, label: play.label, play }],
     holding: null,   // a door being held open (the yarn ball and Sadie on their way out)
+    watch: null,     // what your view follows (the yarn ball, while it's getting out)
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },
     spots: { case: { x: 0, z: CZ - 7.5, yaw: Math.PI, pitch: 0.25, y: 0 } },
     floor(x, z) {
@@ -417,6 +421,7 @@ export async function buildRoom(m) {
       bricks: game.bricks.filter(k => k.alive).length, pile: piled.filter(Boolean).length, broken: game.broken,
       cracks: { top: game.cracks.top.length, bottom: game.cracks.bottom.length },
       escape: escape === 'gone' ? 'gone' : escape ? 'hop ' + escape.i : null, sadie: sadie.visible, doorHeld: !!place.holding, sign: signUp,
+      yarn: ball.getWorldPosition(new Vector3()).toArray(), watched: !!place.watch,
       sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, heard: sound ? sound.log.slice() : [], face: showing }),
     // send the ball somewhere (x, y along the glass, and which way)
     throwBall(x, y, vx, vy) { Object.assign(game.ball, { x, y, vx, vy }); game.serving = false; wait = 0; },

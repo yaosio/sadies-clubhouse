@@ -117,8 +117,23 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('5-shattered');
     check(`${device}: the third crack breaks the glass, with the big shatter`, s.broken === 'bottom' && s.heard.includes('shatter') && !s.heard.includes('crack3'), `broken ${s.broken}, heard ${s.heard.slice(-4).join(' ')}`);
     check(`${device}: ...and you're stepped back to watch`, await modeIs('play'));
-    let held = false, muted = false;
-    for (let i = 0; i < 60 && (await B()).escape !== 'gone'; i++) { await p.waitForTimeout(250); const e = await B(); held ||= e.doorHeld; muted ||= e.lastSound === 'mute'; }
+    let held = false, muted = false, watched = 0, off = 0, walked = 0;
+    const at0 = await M('where');
+    if (!opts.hasTouch) await p.keyboard.down('KeyW');
+    for (let i = 0; i < 60 && (await B()).escape !== 'gone'; i++) {
+      await p.waitForTimeout(250);
+      const e = await B(), w = await M('where');
+      held ||= e.doorHeld; muted ||= e.lastSound === 'mute';
+      if (e.watched && i > 3) {   // (after a second: the view's had time to turn to it)
+        watched++;
+        const want = Math.atan2(-(e.yarn[0] - w.x), -(e.yarn[2] - w.z)), d = Math.abs(Math.atan2(Math.sin(want - w.yaw), Math.cos(want - w.yaw)));
+        off = Math.max(off, d);
+        walked = Math.max(walked, Math.hypot(w.x - at0.x, w.z - at0.z));
+      }
+    }
+    if (!opts.hasTouch) await p.keyboard.up('KeyW');
+    check(`${device}: your view follows the yarn ball round the room, and you can't walk off`, watched > 4 && off < 0.6 && walked < 0.05, `${watched} looks, at most ${off.toFixed(2)} off it, walked ${walked.toFixed(2)} m`);
+    check(`${device}: ...and it lets you go once the ball's out`, !(await B()).watched);
     await p.waitForTimeout(1500);
     s = await B();
     await shot('6-left-broken');

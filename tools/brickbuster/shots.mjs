@@ -68,6 +68,8 @@ for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800
   await p.waitForTimeout(3000);
   await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: 0, z: 1.2, yaw: Math.PI, pitch: -0.1, y: 0 }); });
   await shot('13-broken-room', 1000);
+  await p.evaluate(() => { const m = window.__mansion; m.faceDoor('room:brickbuster', 'door', 3.5); m.turnTo(m.where().yaw, -0.1); });
+  await shot('13b-door-from-inside', 1000);
   await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: -0.3, z: 2.6, yaw: Math.PI + 0.1, pitch: -0.45, y: 0 }); });
   await shot('14-sad-paddle', 800);
   await p.evaluate(() => window.__mansion.faceDoor('hall', 'brickbuster', 2.4));

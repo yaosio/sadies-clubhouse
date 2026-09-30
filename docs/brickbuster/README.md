@@ -14,7 +14,8 @@ owner's plan, 2026-09-29):
 2. **The break (built).** The third crack at the top or the bottom, or knocking out the very last
    brick (so it always breaks in the end), shatters all the glass at once (a big cheesy shatter,
    glass flying): the bricks left tumble out onto the heap, the paddle drops out into the rubble,
-   and you're stepped back to watch. The yarn ball bounces round the room a few times, loudly
+   and you're stepped back to watch: your view follows the yarn ball (no walking or looking away)
+   until it's out of the room. The yarn ball bounces round the room a few times, loudly
    (floor, wall, floor, ceiling, floor), until it smacks into Sadie's QUIET!! poster (a squeak,
    cut off like a speaker being switched off) and never makes a sound again. The door opens for it
    and it bounces out; Sadie jumps off her box and bolts after it. The door shuts and its landing
