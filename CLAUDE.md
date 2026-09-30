@@ -25,7 +25,9 @@ they fit together). Then only the docs of what you're changing:
 - **How anything looks:** also `docs/clubhouse/ART_STYLE.md` (the approved misremembered-90s look).
 - **The mansion, the page shell, the toolbox, the build or the checks:** `docs/clubhouse/` is enough.
 
-Don't start a parked idea (each activity's README lists them) unless asked.
+Don't start a parked idea (each activity's README lists them) unless asked. Never move a room: a
+new activity's door takes the next free spot on the landing (its card's `slot`), and anything by a
+door (like the dirt pile by Dropper World's) stays with it.
 
 ## Making a change
 1. `npm install` (esbuild, the bundler, and three.js, for the mansion), then edit only the modules

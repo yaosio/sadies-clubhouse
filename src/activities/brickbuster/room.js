@@ -6,7 +6,8 @@
 // textures and Sadie's sprite), so nothing here imports the clubhouse. It hands back a place like any
 // room's, plus a `play` on the case: the mansion eases your view back until the whole glass fits,
 // then passes the controls on to it (steer, nudge) until you step back.
-import { Scene, Color, Mesh, Group, Vector3, Shape, ExtrudeGeometry, BoxGeometry, PlaneGeometry, SphereGeometry } from 'three';
+import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ExtrudeGeometry, ShapeGeometry, BoxGeometry, PlaneGeometry, SphereGeometry,
+  DoubleSide, CanvasTexture, NearestFilter } from 'three';
 import { makeGame, step, launch, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS } from './game.js';
 import { makePlayer } from './sound.js';
 import { store } from '../../shared/storage.js';
@@ -50,7 +51,8 @@ export async function buildRoom(m) {
   cyl(0.02, 0.02, 1.2, 3, psx(null, { tint: 0xffd23a }), [0, RH - 0.9, 0]);
   // Sadie's QUIET!! poster, on the wall by the door
   const pim = await m.loadImage(posterPic);
-  plane(1.4, 1.84, psx(pim ? m.picture(pim) : T.dark, { decal: true, unlit: 0.3 }), [RW - 0.06, 2.4, -RD + 2.6], [0, -Math.PI / 2, 0], 2);
+  const POSTER = new Vector3(RW - 0.06, 2.4, -RD + 2.6);
+  plane(1.4, 1.84, psx(pim ? m.picture(pim) : T.dark, { decal: true, unlit: 0.3 }), POSTER.toArray(), [0, -Math.PI / 2, 0], 2);
 
   // ---------- the case: Brickbuster '96, built into the far wall ----------
   // Its own group, turned to face you: x runs across the glass left to right as you look at it, y up,
@@ -99,10 +101,10 @@ export async function buildRoom(m) {
     g.fillStyle = '#e8f8ff';
     for (let i = 0; i < 9; i++) { g.fillRect(Math.round(7 - i * 0.6), 3 + i, 1, 1); if (i < 5) g.fillRect(Math.round(10 - i * 0.6), 3 + i, 1, 1); }
   });
-  cplane(W, H, psx(glint, { unlit: 1, fade: 0.4 }), [0, H / 2, Z.glass]);
+  const glass = [cplane(W, H, psx(glint, { unlit: 1, fade: 0.4 }), [0, H / 2, Z.glass])];
   const CW = 84, CH = 132;   // the cracks' picture, in its chunky pixels (5 cm each)
   const cracksTex = tex(CW, CH, () => {}), cg = cracksTex.image.getContext('2d');
-  cplane(W, H, psx(cracksTex, { unlit: 0.95, decal: true }), [0, H / 2, Z.glass + 0.01]);
+  glass.push(cplane(W, H, psx(cracksTex, { unlit: 0.95, decal: true }), [0, H / 2, Z.glass + 0.01]));
 
   // ---------- inside: the bricks, the yarn ball and the paddle ----------
   const bevelTex = tex(8, 6, g => {
@@ -132,15 +134,60 @@ export async function buildRoom(m) {
   const faceMat = psx(faces.focus[1], { unlit: 0.7 });
   const face = new Mesh(keep(new PlaneGeometry(PADDLE.w - 0.16, (PADDLE.w - 0.16) * 10 / 32)), faceMat);
   face.position.set(0, 0, 0.16); paddle.add(face);
-  // bits of brick that fall down inside the case when one's knocked out
+
+  // ---------- where the bricks end up: a heap on the floor ----------
+  // A knocked-out brick falls to the bottom of the glass, down a slot, and pops out of the BRICK
+  // RETURN hatch at the foot of the machine onto the heap: along the front of the machine and down
+  // its right side, where nobody needs to walk. The heap fills from the floor up, nearest the hatch
+  // first, so it's always a proper pile. (game.pile: which rows fell, in order.)
+  const hatchTex = tex(32, 16, g => {
+    g.fillStyle = '#c89018'; g.fillRect(0, 0, 32, 16); g.fillStyle = '#0a0628'; g.fillRect(2, 6, 28, 9);
+    g.fillStyle = '#1c1238'; g.fillRect(1, 0, 30, 5); words(g, 'BRICK RETURN', 16, 0, 1, '#ffd23a', { align: 'center' });
+  });
+  cplane(0.8, 0.4, psx(hatchTex, { decal: true, unlit: 0.3 }), [1.6, -1.1, 1.11]);
+  const HATCH = cab.localToWorld(new Vector3(1.6, -1.12, 1.2));
+  const slots = pileSlots();
+  const piled = [];   // the heap's bricks, in the order they fell
+  const setPiled = (mesh, i) => { const s = slots[i]; mesh.position.set(s.x, s.y, s.z); mesh.rotation.set(s.tilt, s.yaw, s.roll); };
+  function pileBrick(i, row) {
+    const b = new Mesh(brickGeo, rowMats[row]); setPiled(b, i); scene.add(b); piled[i] = b; return b;
+  }
+  game.pile.forEach((row, i) => pileBrick(i, row));
+  // things flying through the air on an arc (bricks to the heap, the paddle to the floor)
+  const flights = [];
+  function fly(mesh, to, { delay = 0, dur = 0.7, h = 0.8, spin = 8, land } = {}) {
+    flights.push({ mesh, from: mesh.position.clone(), to, t: -delay, dur, h, spin: [(Math.random() - 0.5) * spin, (Math.random() - 0.5) * spin, (Math.random() - 0.5) * spin], land });
+  }
+  // bits of brick falling down inside the glass, on their way to the slot
   const falling = [];
 
   // ---------- Sadie, on a box beside the machine, watching the ball ----------
-  const perch = new Group(); perch.position.set(3.35, 0, CZ - 1.2); perch.rotation.y = -0.25; scene.add(perch);
+  const SADIE = new Vector3(3.35, 0.86, CZ - 1.2);
+  const perch = new Group(); perch.position.set(SADIE.x, 0, SADIE.z); perch.rotation.y = -0.25; scene.add(perch);
   const cardboard = psx(T.cardboard, { rx: 1, ry: 1 });
   { const b = new Mesh(keep(new BoxGeometry(0.9, 0.85, 0.75, 2, 2, 2)), cardboard); b.position.y = 0.425; perch.add(b); }
   const sadie = new Mesh(keep(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.31, 0)), psx(T.sadie, { unlit: 0.4 }));
-  sadie.position.set(3.35, 0.86, CZ - 1.2); scene.add(sadie);
+  sadie.position.copy(SADIE); scene.add(sadie);
+
+  // ---------- broken: the glass gone but for a jagged edge, and glitter all over the floor ----------
+  const edgeTex = tex(CW, CH, g => {
+    let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    const tooth = (x, y, dx, dy, len) => { for (let i = 0; i < len; i++) { const w = Math.round((1 - i / len) * 3); for (let j = -w; j <= w; j++) { g.fillStyle = i < 2 || Math.abs(j) === w ? '#ffffff' : '#bfe8ff'; g.fillRect(x + dx * i + dy * j, y + dy * i + dx * j, 1, 1); } } };
+    for (let x = 2; x < CW - 2; x += 3 + Math.floor(r() * 4)) { tooth(x, 0, 0, 1, 2 + Math.floor(r() * 9)); tooth(x, CH - 1, 0, -1, 2 + Math.floor(r() * 9)); }
+    for (let y = 2; y < CH - 2; y += 3 + Math.floor(r() * 4)) { tooth(0, y, 1, 0, 2 + Math.floor(r() * 7)); tooth(CW - 1, y, -1, 0, 2 + Math.floor(r() * 7)); }
+  });
+  const edges = cplane(W, H, psx(edgeTex, { unlit: 0.9, decal: true, side: DoubleSide }), [0, H / 2, Z.glass]);
+  const glitter = tex(32, 32, g => {
+    let s = 3; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 70; i++) { g.fillStyle = r() < 0.3 ? '#ffffff' : r() < 0.5 ? '#bfe8ff' : '#8ad8ff'; g.fillRect(Math.floor(r() * 32), Math.floor(r() * 32), 1 + (r() < 0.2 ? 1 : 0), 1); }
+  });
+  const shardsOnFloor = plane(7, 3.2, psx(glitter, { rx: 7 / 1.2, ry: 3.2 / 1.2, onFloor: true, unlit: 0.7 }), [0, 0, CZ - 3.3], [-Math.PI / 2, 0, 0], 4);
+  shardsOnFloor.renderOrder = -1;
+  const shardGeo = keep(new ShapeGeometry(new Shape([new Vector2(0, 0), new Vector2(0.22, 0.05), new Vector2(0.06, 0.3)])));
+  const shardMat = psx(null, { tint: 0xd8f6ff, unlit: 0.8, side: DoubleSide });
+  const shards = [];
+  // the landing's side of the door: Sadie's OUT OF ORDER sign, taped on crooked
+  const signed = m.doorImage ? outOfOrder(m.doorImage, words) : null;
 
   // ---------- drawing the marquee and the cracks ----------
   let shownScore = -1;
@@ -157,7 +204,7 @@ export async function buildRoom(m) {
     mg.drawImage(logo, 0, 0);
     mg.fillStyle = '#ffffff'; mg.fillRect(0, 17, 128, 1);
     words(mg, 'SCORE ' + String(game.score).padStart(6, '0'), 64, 22, 1, '#3ae8ff', { align: 'center' });
-    words(mg, 'FULL VERSION: 99 LEVELS!', 64, 31, 1, '#ff8ec8', { align: 'center' });
+    words(mg, game.broken ? 'OUT OF ORDER' : 'FULL VERSION: 99 LEVELS!', 64, 31, 1, game.broken ? '#e83a3a' : '#ff8ec8', { align: 'center' });
     marquee.needsUpdate = true;
   }
   function drawCracks() {
@@ -169,18 +216,20 @@ export async function buildRoom(m) {
 
   // ---------- playing ----------
   let active = false, wait = 0, dirty = false, savedAt = 0, mood = { name: 'calm', until: 0 }, pop = 0, now = 0;
-  let sound = null, showing = 'calm';
+  let sound = null, showing = 'calm', lastTock = 0;
   const keep_ = () => { store.set(KEY, save(game)); dirty = false; };
   addEventListener('pagehide', () => { if (dirty) keep_(); });
   function feel(name, secs) { mood = { name, until: now + secs }; }
+  const clunk = () => { if (sound && now - lastTock > 0.07) { lastTock = now; sound.tock(); } };
   const play = {
     label: "PLAY BRICKBUSTER '96",
     // what the view has to fit: the glass, and a bit of the case round it
     view: { center: new Vector3(0, FY + (H + 1.4) / 2, CZ - Z.glass), normal: new Vector3(0, 0, -1), w: W + 0.6, h: H + 1.7 },   // the glass and the marquee
+    over: false,   // broken: the mansion steps you back to watch
     start() {
       if (!sound) sound = makePlayer();
       sound.wake();
-      active = true; wait = game.serving ? 0.9 : 0.6;
+      if (!game.broken) { active = true; wait = game.serving ? 0.9 : 0.6; }
     },
     stop() { active = false; if (dirty) keep_(); },
     steer(v, dt) { if (active && v) pushPaddle(game, v, dt); },
@@ -195,23 +244,99 @@ export async function buildRoom(m) {
         sound.blip(e.brick.row); dirty = true;
         const i = game.bricks.indexOf(e.brick), src = bricks[i];
         const bit = part(new Mesh(brickGeo, rowMats[e.brick.row]), [src.position.x, src.position.y, Z.play]);
-        falling.push({ mesh: bit, vx: (Math.random() - 0.5) * 1.2, vy: 1.2, spin: (Math.random() - 0.5) * 12 });
+        falling.push({ mesh: bit, vx: (Math.random() - 0.5) * 1.2, vy: 1.2, spin: (Math.random() - 0.5) * 12, slot: e.slot, row: e.brick.row });
       } else if (e.type === 'crack') {
-        sound.crack(e.level); feel('wince', 1.1); drawCracks(); keep_();
-      } else if (e.type === 'cleared') dirty = true;
+        if (!game.broken) sound.crack(e.level);
+        feel('wince', 1.1); drawCracks(); keep_();
+      } else if (e.type === 'break') smash(e.spilled);
     }
   }
 
+  // ---------- the break ----------
+  // All the glass goes at once. The bricks still up there tumble out onto the heap, the paddle drops
+  // out into the rubble, and the yarn ball escapes: a few loud bounces round the room, smack into
+  // Sadie's QUIET!! poster (after which it never makes another sound), then out through the door,
+  // with Sadie bolting after it.
+  let escape = null;        // the yarn ball's way out: { hops, i, t }, then 'gone'
+  let run = null;           // Sadie chasing it
+  let doneAt = 0;
+  function brokenLook() {
+    for (const p of glass) p.visible = false;
+    edges.visible = true; shardsOnFloor.visible = true;
+    place.uses = [];
+    drawMarquee();
+  }
+  function smash(spilled) {
+    active = false; play.over = true;
+    sound.shatter(); feel('wince', 1.4);
+    brokenLook(); keep_();
+    // the glass flies out in bits
+    for (let i = 0; i < 44; i++) {
+      const s = new Mesh(shardGeo, shardMat);
+      s.position.copy(cab.localToWorld(new Vector3((Math.random() - 0.5) * W, Math.random() * H, Z.glass)));
+      s.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6); scene.add(s);
+      shards.push({ mesh: s, v: new Vector3((Math.random() - 0.5) * 3, Math.random() * 2, -1 - Math.random() * 3), spin: (Math.random() - 0.5) * 14, rest: 0 });
+    }
+    // the bricks left up there spill out onto the heap
+    const first = game.pile.length - spilled.length;
+    spilled.forEach((k, j) => {
+      const src = bricks[game.bricks.indexOf(k)], b = new Mesh(brickGeo, rowMats[k.row]);
+      b.position.copy(cab.localToWorld(src.position.clone())); scene.add(b);
+      fly(b, slotPos(first + j), { delay: 0.05 + Math.random() * 0.5, dur: 0.8 + Math.random() * 0.4, h: 0.9, spin: 10, land: () => { setPiled(b, first + j); piled[first + j] = b; clunk(); } });
+    });
+    // the paddle drops out into the rubble
+    scene.attach(paddle);
+    fly(paddle, PADDLE_DOWN.clone(), { delay: 0.2, dur: 1.0, h: 0.6, spin: 4, land: () => { restPaddle(); clunk(); } });
+    // the yarn ball gets out
+    scene.attach(ball);
+    const hops = [
+      [new Vector3(-1.8, R, 2.6), 0.9, 'boing'], [new Vector3(-RW + R, 3.2, 0.6), 1.0, 'boing'], [new Vector3(1.2, R, -0.4), 1.4, 'boing'],
+      [new Vector3(-1.0, RH - 0.3 - R, -1.2), 0, 'boing'], [new Vector3(-0.5, R, -2.4), 0, 'boing'],
+      [POSTER.clone().add(new Vector3(-R - 0.02, 0, 0)), 0.5, 'mute'],
+      [new Vector3(1.6, R, -5.2), 0.6, null], [new Vector3(0.1, R, -6.2), 0.3, null], [new Vector3(0, R, -7.8), 0.2, null],
+    ];
+    escape = { hops, i: 0, t: 0, from: ball.position.clone() };
+  }
+  const PADDLE_DOWN = new Vector3(0.5, 0.66, CZ - 1.6);
+  function restPaddle() { paddle.position.copy(PADDLE_DOWN); paddle.rotation.set(1.0, Math.PI, 0.14); paddle.scale.set(1, 1, 1); }
+  function slotPos(i) { const s = slots[i]; return new Vector3(s.x, s.y, s.z); }
+  function escapeOn(dt) {
+    const e = escape, [to, h, noise] = e.hops[e.i];
+    const dur = 0.25 + e.from.distanceTo(to) / 8.5;
+    e.t += dt;
+    const k = Math.min(1, e.t / dur);
+    ball.position.lerpVectors(e.from, to, k); ball.position.y += 4 * h * k * (1 - k);
+    ball.rotation.x += dt * 14; ball.rotation.z += dt * 9;
+    if (k < 1) return;
+    if (noise === 'boing') sound?.boing(Math.random() * 2 - 1);
+    if (noise === 'mute') { sound?.mute(); place.holding = door; run = { t: 0, from: sadie.position.clone() }; }
+    e.from = to.clone(); e.t = 0; e.i++;
+    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; }
+  }
+  // Sadie: off her box and straight out the door after it
+  function runOn(dt) {
+    run.t += dt;
+    const out = new Vector3(0, 0, -7.4), hop = 0.35, dist = run.from.distanceTo(out), dur = hop + dist / 5.5;
+    if (run.t < hop) { const k = run.t / hop; sadie.position.lerpVectors(run.from, new Vector3(2.9, 0, CZ - 1.9), k); sadie.position.y = run.from.y * (1 - k) + 0.5 * Math.sin(k * Math.PI); }
+    else { const k = Math.min(1, (run.t - hop) / (dur - hop)); sadie.position.lerpVectors(new Vector3(2.9, 0, CZ - 1.9), out, k); sadie.position.y = Math.abs(Math.sin(run.t * 16)) * 0.12; }
+    if (run.t >= dur) { sadie.visible = false; run = 'gone'; doneAt = now + 0.5; }
+  }
+  // done: the door shuts, and the landing's side of it has her sign on
+  let signUp = false;
+  function putSignUp() { if (signed && m.landingDoor) { m.landingDoor.paint(signed); signUp = true; } }
+  function finished() { place.holding = null; doneAt = 0; putSignUp(); }
+
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie],
-    uses: [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 12, label: play.label, play }],
+    uses: game.broken ? [] : [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 12, label: play.label, play }],
+    holding: null,   // a door being held open (the yarn ball and Sadie on their way out)
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },
     spots: { case: { x: 0, z: CZ - 7.5, yaw: Math.PI, pitch: 0.25, y: 0 } },
     floor(x, z) {
       const P = 0.35;
       if (Math.abs(x) > RW - P || z < -RD + P || z > RD - P) return null;
-      if (z > CZ - 1.75 - P && Math.abs(x) < W / 2 + 0.5 + P) return null;              // the case
-      if (Math.abs(x - 3.35) < 0.5 + P && Math.abs(z - (CZ - 1.2)) < 0.45 + P) return null;   // Sadie's box
+      if (heapZone(x, z, P)) return null;                                                   // the case, and the heap in front and down its side
+      if (Math.abs(x - SADIE.x) < 0.5 + P && Math.abs(z - SADIE.z) < 0.45 + P) return null;   // Sadie's box
       return 0;
     },
     update(t, dt = 0) {
@@ -223,44 +348,131 @@ export async function buildRoom(m) {
       }
       // the bricks, the ball and the paddle where the game has them
       game.bricks.forEach((k, i) => { bricks[i].visible = k.alive; });
-      const [bx, by] = at(game.ball.x, game.ball.y);
-      ball.position.set(bx, by, Z.play);
-      ball.rotation.set(-game.ball.spin * Math.sign(game.ball.vy || 1) * 0.7, 0, -game.ball.spin * Math.sign(game.ball.vx || 1) * 0.7);
-      paddle.position.x = at(game.paddle, 0)[0];
-      pop = Math.max(0, pop - dt * 5);
-      paddle.scale.set(1 + pop * 0.08, 1 - pop * 0.18, 1);
+      if (!game.broken) {
+        const [bx, by] = at(game.ball.x, game.ball.y);
+        ball.position.set(bx, by, Z.play);
+        ball.rotation.set(-game.ball.spin * Math.sign(game.ball.vy || 1) * 0.7, 0, -game.ball.spin * Math.sign(game.ball.vx || 1) * 0.7);
+        paddle.position.x = at(game.paddle, 0)[0];
+        pop = Math.max(0, pop - dt * 5);
+        paddle.scale.set(1 + pop * 0.08, 1 - pop * 0.18, 1);
+      }
+      // bits of brick falling inside the glass: down the slot, out of the hatch, onto the heap
       for (let i = falling.length - 1; i >= 0; i--) {
         const f = falling[i]; f.vy -= 9 * dt;
         f.mesh.position.x += f.vx * dt; f.mesh.position.y += f.vy * dt; f.mesh.rotation.z += f.spin * dt;
-        if (f.mesh.position.y < 0.1) { cab.remove(f.mesh); falling.splice(i, 1); }
+        if (f.mesh.position.y > 0.1 && !game.broken) continue;
+        cab.remove(f.mesh); falling.splice(i, 1);
+        const b = new Mesh(brickGeo, rowMats[f.row]); b.position.copy(HATCH); scene.add(b);
+        fly(b, slotPos(f.slot), { delay: game.broken ? Math.random() * 0.4 : 0.25, dur: 0.55, h: 0.35, land: () => { setPiled(b, f.slot); piled[f.slot] = b; clunk(); } });
       }
+      for (let i = flights.length - 1; i >= 0; i--) {
+        const f = flights[i]; f.t += dt;
+        if (f.t < 0) continue;
+        const k = Math.min(1, f.t / f.dur);
+        f.mesh.position.lerpVectors(f.from, f.to, k); f.mesh.position.y += 4 * f.h * k * (1 - k);
+        f.mesh.rotation.x += f.spin[0] * dt; f.mesh.rotation.y += f.spin[1] * dt; f.mesh.rotation.z += f.spin[2] * dt;
+        if (k >= 1) { flights.splice(i, 1); f.land?.(); }
+      }
+      for (let i = shards.length - 1; i >= 0; i--) {
+        const s = shards[i];
+        if (s.rest) { if (t > s.rest) { scene.remove(s.mesh); shards.splice(i, 1); } continue; }
+        s.v.y -= 9 * dt; s.mesh.position.addScaledVector(s.v, dt); s.mesh.rotation.x += s.spin * dt; s.mesh.rotation.y += s.spin * 0.7 * dt;
+        if (s.mesh.position.y < 0.02) { s.mesh.position.y = 0.02; s.mesh.rotation.set(-Math.PI / 2, 0, Math.random() * 6); s.rest = t + 1.5 + Math.random(); }
+      }
+      if (escape && escape !== 'gone') escapeOn(dt);
+      if (run && run !== 'gone') runOn(dt);
+      if (doneAt && t > doneAt) finished();
       // the paddle's face: calm while nobody's playing, focused while you are (nervous once the
       // glass has cracked), happy for a moment when it hits the ball, wincing at a crack; its eyes
-      // follow the ball
+      // follow the ball. Once it's broken: lying in the rubble, sad, sighing now and then.
       const cracked = game.cracks.top.length + game.cracks.bottom.length;
-      const name = t < mood.until ? mood.name : !active ? 'calm' : cracked ? 'nervous' : 'focus';
-      const look = game.ball.x < game.paddle - 0.3 ? 0 : game.ball.x > game.paddle + 0.3 ? 2 : 1;
+      let name = t < mood.until ? mood.name : !active ? 'calm' : cracked ? 'nervous' : 'focus';
+      if (game.broken && t >= mood.until) {
+        const sigh = (t % 7) > 5.6;
+        name = sigh ? 'sigh' : 'sad';
+        if (!flights.some(f => f.mesh === paddle)) paddle.scale.set(1, sigh ? 1 + 0.12 * Math.sin((t % 7 - 5.6) / 1.4 * Math.PI) : 1, 1);
+      }
+      const look = game.broken ? 1 : game.ball.x < game.paddle - 0.3 ? 0 : game.ball.x > game.paddle + 0.3 ? 2 : 1;
       faceMat.uniforms.map.value = faces[name][look]; showing = name;
       if (shownScore !== game.score) drawMarquee();
       // Sadie cranes up after the ball, and blinks now and then when nobody's playing
-      sadie.scale.y = 1 + 0.07 * (game.ball.y / H);
-      sadie.rotation.z = Math.sin(t * 0.7) * 0.03;
-      sadie.material.uniforms.map.value = !active && (t % 4.2) < 0.15 ? T.nap : T.sadie;
+      if (!run) {
+        sadie.scale.y = 1 + 0.07 * (game.ball.y / H);
+        sadie.rotation.z = Math.sin(t * 0.7) * 0.03;
+        sadie.material.uniforms.map.value = !active && (t % 4.2) < 0.15 ? T.nap : T.sadie;
+      } else { sadie.scale.y = 1; sadie.rotation.z = 0; sadie.material.uniforms.map.value = T.sadie; }
     },
   };
+
+  if (game.broken) {   // it broke before: how it's been left
+    brokenLook(); scene.attach(paddle); restPaddle(); ball.visible = false; sadie.visible = false;
+    escape = 'gone'; run = 'gone';
+    putSignUp();
+  }
+  else edges.visible = shardsOnFloor.visible = false;
 
   // for the checks (tests/brickbuster/browser.mjs)
   window.__brickbuster = {
     state: () => ({ active, serving: game.serving, score: game.score, paddle: game.paddle, ball: { ...game.ball },
-      bricks: game.bricks.filter(k => k.alive).length, cracks: { top: game.cracks.top.length, bottom: game.cracks.bottom.length },
-      sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, face: showing }),
+      bricks: game.bricks.filter(k => k.alive).length, pile: piled.filter(Boolean).length, broken: game.broken,
+      cracks: { top: game.cracks.top.length, bottom: game.cracks.bottom.length },
+      escape: escape === 'gone' ? 'gone' : escape ? 'hop ' + escape.i : null, sadie: sadie.visible, doorHeld: !!place.holding, sign: signUp,
+      sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, heard: sound ? sound.log.slice() : [], face: showing }),
     // send the ball somewhere (x, y along the glass, and which way)
     throwBall(x, y, vx, vy) { Object.assign(game.ball, { x, y, vx, vy }); game.serving = false; wait = 0; },
+    // knock out bricks (all but `leave` of them) without playing, for checking the heap
+    knockOut(leave = 0) {
+      for (const k of game.bricks) if (k.alive && game.bricks.filter(b => b.alive).length > leave) {
+        k.alive = false; game.pile.push(k.row); pileBrick(game.pile.length - 1, k.row);
+      }
+      keep_();
+    },
   };
   return place;
 }
 
-// The paddle's faces, a few moods, each looking left, ahead or right: little pictures 32 x 10, big
+// The machine and the heap of bricks round it, where nobody walks (with `pad` to spare round it).
+export function heapZone(x, z, pad = 0) {
+  return (z > CZ - 1.75 - pad && Math.abs(x) < W / 2 + 0.5 + pad) || (x < -W / 2 - 0.35 + pad && x > -3.75 - pad && z > CZ - 1.75 - pad);
+}
+
+// Where the heap's bricks go on the floor, nearest the hatch first, a layer at a time: 80 spots
+// along the front of the machine and down its right side (as you look at it).
+export function pileSlots() {
+  let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const out = [], front = CZ - 1.1;
+  const add = (x, z, layer) => out.push({ x: x + (r() - 0.5) * 0.08, y: 0.11 + layer * 0.21, z: z + (r() - 0.5) * 0.08, layer,
+    yaw: (r() - 0.5) * 0.7, tilt: (r() - 0.5) * 0.12, roll: (r() - 0.5) * 0.14 });
+  for (let L = 0; L < 3; L++) for (const z of L < 2 ? [front - 0.2, front - 0.52] : [front - 0.36]) for (let x = -2.4 + 0.2 * L; x <= 2.4 - 0.2 * L + 1e-6; x += 0.4) add(x, z, L);
+  for (let L = 0; L < 3; L++) for (const x of L === 0 ? [-2.95, -3.35] : [-3.15]) for (let i = 0; i < [6, 5, 2][L]; i++) add(x, 6.25 - 0.18 * L - i * 0.36, L);
+  const hx = -1.6, hz = front;
+  return out.map((p, i) => ({ ...p, k: p.layer * 100 + Math.hypot(p.x - hx, p.z - hz) + i * 1e-6 })).sort((a, b) => a.k - b.k).slice(0, 80);
+}
+
+// The landing's side of the door, with Sadie's sign taped on it: OUT OF ORDER in wobbly marker,
+// crooked, signed with a paw print.
+function outOfOrder(door, words) {
+  const c = document.createElement('canvas'); c.width = door.width * 2; c.height = door.height * 2;
+  const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+  g.drawImage(door, 0, 0, c.width, c.height);
+  const s = document.createElement('canvas'); s.width = 64; s.height = 38;
+  const k = s.getContext('2d');
+  k.fillStyle = '#b87838'; k.fillRect(0, 0, 64, 38); k.fillStyle = '#e8b070'; k.fillRect(1, 1, 62, 36);
+  k.fillStyle = '#d8a060'; for (let x = 2; x < 62; x += 3) k.fillRect(x, 1, 1, 36);
+  let wob = 5;
+  const scrawl = (text, x, y, col) => { for (const ch of text) { wob = (wob * 7 + 3) % 11; words(k, ch, x, y + (wob % 3) - 1, 2, col); x += 8; } };
+  scrawl('OUT OF', 8, 4, '#1c1238');
+  scrawl('ORDER', 12, 17, '#e83a3a');
+  k.fillStyle = '#e0509a';
+  k.fillRect(50, 31, 5, 4); for (const [x, y] of [[48, 29], [50, 27], [53, 27], [55, 29]]) k.fillRect(x, y, 2, 2);
+  g.save(); g.translate(c.width / 2, 40); g.rotate(-0.13); g.drawImage(s, -32, -19);
+  g.fillStyle = '#f4f4e8cc'; g.fillRect(-36, -22, 10, 5); g.fillRect(26, 16, 10, 5);   // tape
+  g.restore();
+  const t = new CanvasTexture(c); t.magFilter = t.minFilter = NearestFilter; t.generateMipmaps = false;
+  return t;
+}
+
+// The paddle's faces, a few moods (and once it's broken: sad, and sighing), each looking left, ahead or right: little pictures 32 x 10, big
 // chunky pixels so they read from across the room.
 function drawFaces(m) {
   const ink = '#1c1238', out = {};
@@ -271,6 +483,8 @@ function drawFaces(m) {
     for (const ex of [11, 20]) {
       const s = ex < 16 ? 1 : -1;
       if (name === 'happy') { px(g, ink, ex - 2, 3); px(g, ink, ex - 1, 2, 2, 1); px(g, ink, ex + 1, 3); }                 // ^ ^
+      else if (name === 'sad') { px(g, ink, ex - 2 * s, 3); px(g, ink, ex - s, 2); px(g, ink, ex, 1); px(g, '#ffffff', ex - 1, 4, 3, 2); px(g, ink, ex, 5, 1, 1); }   // brows up in the middle, looking down
+      else if (name === 'sigh') { px(g, ink, ex - 2, 4); px(g, ink, ex - 1, 5, 2, 1); px(g, ink, ex + 1, 4); }        // shut
       else if (name === 'wince') for (const [x, y] of [[-1, 1], [0, 2], [1, 3], [0, 4], [-1, 5]]) px(g, ink, ex + x * s, y);   // > <
       else if (name === 'calm') { px(g, ink, ex - 2, 3, 4, 1); px(g, '#ffffff', ex - 2, 4, 4, 1); px(g, ink, ex - 1 + d, 4, 2, 1); }   // sleepy
       else {                                                                                                                  // wide open, looking at the ball
@@ -283,10 +497,12 @@ function drawFaces(m) {
     else if (name === 'wince') for (let x = 12; x < 20; x++) px(g, ink, x, 7 + (x % 2));
     else if (name === 'nervous') { for (let x = 13; x < 19; x++) px(g, ink, x, 7 + ((x >> 1) % 2)); px(g, '#8ad8ff', 27, 1, 1, 1); px(g, '#8ad8ff', 26, 2, 3, 2); }
     else if (name === 'calm') { px(g, ink, 14, 7); px(g, ink, 15, 8, 2, 1); px(g, ink, 17, 7); }
+    else if (name === 'sad') { px(g, ink, 14, 7, 4, 1); px(g, ink, 13, 8); px(g, ink, 18, 8); px(g, '#8ad8ff', 8, 6, 1, 2); px(g, '#8ad8ff', 8, 8); }   // a frown, and a tear
+    else if (name === 'sigh') { px(g, ink, 15, 7, 2, 1); px(g, ink, 14, 8); px(g, ink, 17, 8); px(g, ink, 15, 9, 2, 1); }
     else px(g, ink, 14, 8, 4, 1);
     if (name !== 'wince') { px(g, '#ff8ec8', 5, 6, 2, 1); px(g, '#ff8ec8', 25, 6, 2, 1); }   // rosy cheeks
   });
-  for (const name of ['calm', 'focus', 'happy', 'wince', 'nervous']) out[name] = [0, 1, 2].map(l => draw(name, l));
+  for (const name of ['calm', 'focus', 'happy', 'wince', 'nervous', 'sad', 'sigh']) out[name] = [0, 1, 2].map(l => draw(name, l));
   return out;
 }
 

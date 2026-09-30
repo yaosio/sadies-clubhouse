@@ -1,7 +1,8 @@
 // Brickbuster '96's sounds, made right here as 8-bit, 11 kHz samples, like the .WAV files off a
-// 1996 shareware CD: crunchy, a bit hissy, with a cheap echo. The cracks get worse each time (the
-// third is a big stock "glass break"), the paddle goes BOING, bricks blip (higher up, higher notes)
-// and the sides of the case go tock.
+// 1996 shareware CD: crunchy, a bit hissy, with a cheap echo. The cracks get worse each time, the
+// glass breaking is a big stock shatter, the paddle goes BOING, bricks blip (higher up, higher
+// notes), the sides of the case (and bricks landing on the floor) go tock, and the escaped yarn
+// ball hitting Sadie's poster goes squeak-click, then never makes another sound.
 //
 // The sample-making part is plain numbers (the tests run it in Node); makePlayer() plays them in a
 // browser, and must first be called while the player is pressing something (browsers only allow
@@ -52,6 +53,39 @@ export function crack(level, seed = level * 77) {
     for (let i = Math.floor(0.08 * RATE); i < n; i++) { const t = i / RATE; a[i] += (r() * 2 - 1) * 0.3 * Math.exp(-(t - 0.08) * 3.2) * (0.6 + 0.4 * Math.sin(t * 60)); }
   }
   return finish(a, 0.32);
+}
+
+// The glass breaking: the big cheesy stock shatter. A huge snap and a boom, a long crash that comes
+// in two waves, and a shower of glass tinkling down for a couple of seconds.
+export function shatter(seed = 1996) {
+  const r = rng(seed), len = 2.6, n = Math.round(len * RATE), a = new Float32Array(n + Math.round(0.4 * RATE));
+  for (let i = 0; i < 90; i++) a[i] += (r() * 2 - 1) * (1 - i / 90) * 1.2;
+  for (let i = 0; i < 0.35 * RATE; i++) { const t = i / RATE; a[i] += Math.sin(TAU * (70 - 60 * t) * t) * Math.exp(-t * 9) * 0.8; }
+  for (let i = 0; i < n; i++) {
+    const t = i / RATE, wave = Math.exp(-t * 2.4) + (t > 0.38 ? 0.7 * Math.exp(-(t - 0.38) * 3.5) : 0);
+    a[i] += (r() * 2 - 1) * 0.42 * wave * (0.7 + 0.3 * Math.sin(t * 47));
+    if (r() < 0.05 * wave) { const w = 2 + Math.floor(r() * 8), amp = 0.5 * wave, sg = r() < 0.5 ? -1 : 1; for (let j = 0; j < w && i + j < n; j++) a[i + j] += sg * amp * (1 - j / w); }
+  }
+  for (let p = 0; p < 48; p++) {
+    const at = Math.floor((0.05 + Math.pow(r(), 0.7) * (len - 0.35)) * RATE), f = 1500 + r() * 3700, dec = 16 + r() * 30, amp = 0.1 + r() * 0.18;
+    for (let i = 0; at + i < n; i++) { const t = i / RATE, e = Math.exp(-t * dec); if (e < 0.01) break; a[at + i] += Math.sin(TAU * f * t) * e * amp; }
+  }
+  return finish(a, 0.35, 0.11);
+}
+
+// The yarn ball hitting Sadie's QUIET!! poster: a squeaky little wheee going up, then a sad droop
+// down that's cut off dead, like a speaker being switched off mid-sound.
+export function mute() {
+  const n = Math.round(0.62 * RATE), a = new Float32Array(n + Math.round(0.15 * RATE));
+  let ph = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / RATE;
+    const f = t < 0.14 ? 700 + 1100 * (t / 0.14) : 1800 * Math.pow(0.25, (t - 0.14) / 0.48) * (1 + 0.04 * Math.sin(TAU * 11 * t));
+    ph += f / RATE;
+    a[i] = (ph % 1 < 0.35 ? 0.4 : -0.4) * (t < 0.02 ? t / 0.02 : 1);
+  }
+  a[n - 1] = 0; a[n] = 0.6; a[n + 1] = -0.6;   // the click of it going off
+  return finish(a, 0);
 }
 
 // The paddle: a springy square-wave BOING, the pitch wobbling up.
@@ -106,10 +140,10 @@ export function makePlayer() {
     return made.get(key);
   }
   const player = {
-    played: 0, last: null,
+    played: 0, last: null, log: [],   // (how many, the last, and the last 40: for the checks)
     wake() { try { if (ctx && ctx.state !== 'running') ctx.resume(); } catch {} },
     play(key, make, volume = 1) {
-      player.played++; player.last = key;
+      player.played++; player.last = key; player.log.push(key); if (player.log.length > 40) player.log.shift();
       const b = buffer(key, make); if (!b) return;
       try {
         const src = ctx.createBufferSource(), g = ctx.createGain();
@@ -121,6 +155,8 @@ export function makePlayer() {
     blip: row => player.play('blip' + row, () => blip(row), 0.7),
     tock: () => player.play('tock', tock, 0.6),
     tink: () => player.play('tink', tink, 0.7),
+    shatter: () => player.play('shatter', shatter),
+    mute: () => player.play('mute', mute, 0.9),
   };
   return player;
 }

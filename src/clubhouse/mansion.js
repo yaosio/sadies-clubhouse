@@ -60,7 +60,8 @@ export async function open(cards, enter) {
   const rooms = await Promise.all(cards.map(async (c, i) => {
     if (!c.room) return buildRoom(T, c, boxes[i], doorPics[i]);
     const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
-    return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf });
+    return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
+      doorImage: doorPics[i], landingDoor: hall.doors[c.id] });
   }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
@@ -434,13 +435,16 @@ export async function open(cards, enter) {
     else if (mode === 'arcade') {
       Object.assign(me, arcadeView(arcade.u));   // (again every frame: the screen might have turned)
       arcade.u.play.steer(steering(), dt);
+      if (arcade.u.play.over) stepBack();         // the game's over (Brickbuster broke): step back and watch
     }
     if (mode !== 'going' && !arcade) me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps
     if (!hintGone && ((moved && now - born > 4000) || now - born > 15000)) { hintGone = true; $('#keysHint').style.opacity = 0; }
     // a door opens as you come up to it facing it (only one at a time), and closes behind you
     const opening = doorAhead();
     for (const p of portals) {
-      p.open += ((opening?.p === p ? 1 : 0) - p.open) * Math.min(1, dt * 5);
+      // (or while something in the place on either side holds it open: an escaping yarn ball)
+      const want = opening?.p === p || p.wa.holding === p.a || p.wb.holding === p.b;
+      p.open += ((want ? 1 : 0) - p.open) * Math.min(1, dt * 5);
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }
     for (const w of places) w.update(t, dt);

@@ -9,6 +9,7 @@ export default {
   id: 'dropper-world',
   name: "Sadie's Dropper World",
   page, styles, door,   // door: its door on the mansion's landing
+  slot: 1, doorstep: 'dirt',   // which door on the landing is its (they never move), and the mole's dirt pile by it
   box: { front, side: 0xc8127a },   // box: its picture (on its computer's screen and poster) and its room's colour
   keeps: ['sadies-dropper-world.', 'jellystack.', 'sadie.'],   // what it saves in the browser (the test version can clear it)
   start: () => import('./main.js'),

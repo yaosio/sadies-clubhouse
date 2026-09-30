@@ -42,7 +42,16 @@ activity is checked again, so something moves into it only once a second activit
   `update(t, dt)`), where a use with `play` is the game: `view` (the middle, facing way, width and
   height the screen has to fit), `start()` (called during the press, so sound is allowed),
   `stop()`, `steer(v, dt)` (held keys, -1 to 1) and `nudge(metres)` (the mouse or a finger, already
-  turned into metres across the game). An address naming it after the `#` just opens the mansion.
+  turned into metres across the game), and `over` (set when the game ends: the mansion steps you
+  back). Its place can hold its door open (`holding`: the doorway, while something goes out through
+  it). The kit also has its door's picture (`doorImage`) and its door on the landing
+  (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
+  ORDER sign). An address naming it after the `#` just opens the mansion.
+- **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
+  one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2), so a new activity never
+  shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
+  activity takes the next free slot. A card's `doorstep: 'dirt'` puts the mole's dirt pile by its
+  door (Dropper World).
 - **The clubhouse** (`src/main.js`) gets every card from the build (`import cards from
   'activities'`: `tools/build.mjs` makes that list from the folders, in folder order, so adding an
   activity never touches the clubhouse). The page opens in the mansion; an address naming an activity
@@ -86,9 +95,9 @@ activity is checked again, so something moves into it only once a second activit
     and sky materials, and every texture, drawn
     on little canvases when it opens. `pictures.js` (Sadie's sprite; drawn by
     `art/clubhouse/pictures.py`, never edited by hand) is still where her picture comes from.
-  - The hall: sixteen flat walls, three storeys. The first landing has a door per activity, in
-    folder order starting where the stairs come out (`SLOTS`: six so far), and boarded-up ones for
-    the next; the second landing is still being built. More activities than that will need the
+  - The hall: sixteen flat walls, three storeys. The first landing has a door per activity, each at
+    its card's `slot` starting where the stairs come out (`SLOTS`: six so far), and boarded-up ones
+    for the next; the second landing is still being built. More activities than that will need the
     second landing finished. Walking: the floor under you is worked out per place (`floor(x, z,
     y)`: the ground, each tread, the bridge, the landing); a step is at most half a metre, so the
     railings and the landing's edge hold you in by themselves.

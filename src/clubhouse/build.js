@@ -49,14 +49,14 @@ export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xff
   for (const [bw, bh, x, y] of [[0.12, h + 0.12, -w / 2 - 0.06, h / 2], [0.12, h + 0.12, w / 2 + 0.06, h / 2], [w + 0.24, 0.12, 0, h + 0.06]]) {
     const b = new Mesh(keep(new BoxGeometry(bw, bh, 0.1)), trimMat); b.position.set(x, y, 0.02); group.add(b);
   }
-  const hinges = [];
+  const hinges = [], fronts = [];
   const lw = leaves.length === 1 ? w : w / 2;
   for (const [side, t] of leaves.length === 1 ? [[hinge, leaves[0]]] : [[-1, leaves[0]], [1, leaves[1]]]) {
     const pivot = new Group(); pivot.position.set(side * w / 2, 0, 0); group.add(pivot);
     const geo = keep(new PlaneGeometry(lw, h, 2, 4));
     const face = new Mesh(geo, psx(t.front || t)), back = new Mesh(geo, psx(t.back || t));
     face.position.set(-side * lw / 2, h / 2, 0); back.position.copy(face.position); back.rotation.y = Math.PI;
-    pivot.add(face, back);
+    pivot.add(face, back); fronts.push(face);
     hinges.push([pivot, -side]);
   }
   const normal = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
@@ -66,6 +66,8 @@ export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xff
       for (const [pivot, s] of hinges) pivot.rotation.y = s * this.swing * k * 1.4;
       see.material.uniforms.uOn.value = 0;
     },
+    // paint a new picture on the door's front (Brickbuster's OUT OF ORDER sign)
+    paint(t) { for (const f of fronts) f.material.uniforms.map.value = t; },
     // a point in this doorway's own terms: x across, z out into the place (negative: through the door)
     local(x, z) { const dx = x - pos[0], dz = z - pos[2], c = Math.cos(yaw), s = Math.sin(yaw); return [dx * c - dz * s, dx * s + dz * c]; },
   };

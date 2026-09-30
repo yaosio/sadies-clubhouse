@@ -5,8 +5,9 @@
 // It walks through Brickbuster's door on the landing into its room, steps up to the case (the view
 // eases back to fit it), moves the paddle with the keys and the mouse (a finger on the phone), sends
 // the ball into the bottom of the glass to crack it (the crack sound, the paddle wincing), steps
-// back (the game stops where it was), comes back after a reload to find the crack still there, and
-// in the test version starts it over from the pause menu. Screenshots in dist/check/brickbuster/.
+// back (the game stops where it was), comes back after a reload to find the crack still there,
+// breaks it (the shatter, the heap, the yarn ball's escape, the sign on the door), finds it still
+// broken after a reload, and in the test version starts it over from the pause menu. Screenshots in dist/check/brickbuster/.
 // Any error on the page is a failure.
 import { join } from 'node:path';
 
@@ -99,6 +100,39 @@ export default async function ({ browser, page, check, outDir }) {
     s = await B();
     check(`${device}: the cracks are still there next time`, s.cracks.bottom === before + 1, `${s.cracks.bottom} cracks`);
 
+    // breaking it: three cracks at the bottom. The glass shatters, you're stepped back to watch, every
+    // brick ends up on the heap, the paddle on the floor, and the yarn ball bounces round the room,
+    // hits the poster (squeak, then silence) and goes out the door with Sadie after it; the door gets
+    // her sign, and it's broken for good
+    await M('put', 'room:brickbuster', 'case');
+    await p.waitForTimeout(300);
+    await use();
+    await modeIs('arcade');
+    await p.waitForTimeout(1200);
+    for (let i = 0; i < 8 && !(await B()).broken; i++) {
+      await p.evaluate(() => { const b = window.__brickbuster, s = b.state(); if (!s.broken) b.throwBall(s.paddle < 2.1 ? 3.6 : 0.6, 1.4, 0, -5); });
+      await p.waitForTimeout(450);
+    }
+    s = await B();
+    await shot('5-shattered');
+    check(`${device}: the third crack breaks the glass, with the big shatter`, s.broken === 'bottom' && s.heard.includes('shatter') && !s.heard.includes('crack3'), `broken ${s.broken}, heard ${s.heard.slice(-4).join(' ')}`);
+    check(`${device}: ...and you're stepped back to watch`, await modeIs('play'));
+    let held = false, muted = false;
+    for (let i = 0; i < 60 && (await B()).escape !== 'gone'; i++) { await p.waitForTimeout(250); const e = await B(); held ||= e.doorHeld; muted ||= e.lastSound === 'mute'; }
+    await p.waitForTimeout(1500);
+    s = await B();
+    await shot('6-left-broken');
+    check(`${device}: every brick lands on the heap, and the paddle's lying there sad`, s.bricks === 0 && s.pile === 80 && /sad|sigh/.test(s.face), `${s.pile} on the heap, face ${s.face}`);
+    check(`${device}: the yarn ball hits the poster (squeak) and goes out the door, which opens for it`, s.escape === 'gone' && muted && held && s.lastSound === 'mute');
+    check(`${device}: ...Sadie goes after it, and the door gets her OUT OF ORDER sign`, !s.sadie && s.sign && !s.doorHeld);
+    check(`${device}: ...and the case doesn't offer to play any more`, await M('target') === null);
+    await p.reload(); await up();
+    s = await B();
+    await M('faceDoor', 'hall', 'brickbuster', 2.4);
+    await p.waitForTimeout(800);
+    await shot('7-out-of-order');
+    check(`${device}: it's still broken next time: bricks on the heap, sign on the door`, s.broken === 'bottom' && s.pile === 80 && s.sign && !s.sadie && s.escape === 'gone');
+
     // the test version can start it over
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
     await p.waitForTimeout(200);
@@ -106,7 +140,7 @@ export default async function ({ browser, page, check, outDir }) {
       await p.click('#resets button:has-text("BRICKBUSTER")');
       await up();
       s = await B();
-      check(`${device}: the test version's pause menu can start Brickbuster over`, !s.cracks.bottom && !s.cracks.top);
+      check(`${device}: the test version's pause menu can start Brickbuster over: fixed`, !s.cracks.bottom && !s.cracks.top && !s.broken && !s.pile && s.bricks === 80 && s.sadie && !s.sign);
     }
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();

@@ -3,8 +3,8 @@
 //
 //   node tests/brickbuster/run.mjs
 import { makeGame, step, launch, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS, SPEED, ROWS, COLS } from '../../src/activities/brickbuster/game.js';
-import { crack, boing, blip, tock, tink, RATE } from '../../src/activities/brickbuster/sound.js';
-import { crackLines } from '../../src/activities/brickbuster/room.js';
+import { crack, boing, blip, tock, tink, shatter, mute, RATE } from '../../src/activities/brickbuster/sound.js';
+import { crackLines, pileSlots, heapZone } from '../../src/activities/brickbuster/room.js';
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -57,56 +57,62 @@ function play(seed, skill, secs, until) {
   check('...and a ball coming back up from the bottom goes through it', !step(g, 0.3).some(e => e.type === 'paddle') && g.ball.y > PADDLE.y + PADDLE.h / 2);
 }
 
-// 3. missing cracks the bottom of the glass: three cracks, then no more (breaking comes next)
+// 3. missing cracks the bottom of the glass: three cracks and it breaks, spilling every brick left
 {
   const r = play(7, 0, 120);
-  const cracks = r.events.filter(e => e.type === 'crack' && e.side === 'bottom');
+  const cracks = r.events.filter(e => e.type === 'crack' && e.side === 'bottom'), br = r.events.filter(e => e.type === 'break');
   check('leaving the paddle alone cracks the bottom within a minute', cracks.length >= 1 && cracks[0].t < 60, cracks.length && `first after ${cracks[0].t.toFixed(1)} s`);
-  check(`...up to ${CRACKS} cracks, each worse than the last, and no more`, cracks.length === CRACKS && cracks.every((c, i) => c.level === i + 1) && r.g.cracks.bottom.length === CRACKS,
-    `${cracks.length} cracks, levels ${cracks.map(c => c.level).join(' ')}`);
-  check('...after that the glass just goes tink', r.events.some(e => e.type === 'glass' && e.side === 'bottom'));
+  check(`...${CRACKS} cracks, each worse than the last, and the glass breaks`, cracks.length === CRACKS && cracks.every((c, i) => c.level === i + 1) && br.length === 1 && br[0].why === 'bottom' && r.g.broken === 'bottom',
+    `${cracks.length} cracks, levels ${cracks.map(c => c.level).join(' ')}, broke ${r.g.broken}`);
+  const slots = r.events.filter(e => e.type === 'brick').map(e => e.slot).concat(br[0] ? br[0].spilled.map((k, j) => r.g.pile.length - br[0].spilled.length + j) : []);
+  check('...each brick gets its own spot on the heap', new Set(slots).size === ROWS * COLS && slots.every(i => i >= 0 && i < ROWS * COLS));
+  check('...every brick ends up on the floor, and nothing happens any more', r.g.bricks.every(k => !k.alive) && r.g.pile.length === ROWS * COLS && br[0].spilled.length > 0 && !step(r.g, 1).length,
+    `${br[0]?.spilled.length} spilled out, ${r.g.pile.length} on the floor`);
 }
 
 // 4. playing well knocks a way through the bricks, and then the top cracks, three times
 {
   const times = [], bottoms = [];
   for (const s of [3, 11, 29, 47, 83]) {
-    const r = play(s, 1, 1800, g => g.cracks.top.length >= CRACKS);
-    times.push(r.g.cracks.top.length >= CRACKS ? r.t : Infinity);
+    const r = play(s, 1, 1800, g => g.broken);
+    times.push(r.g.broken === 'top' ? r.t : Infinity);
     bottoms.push(r.g.cracks.bottom.length);
   }
   const worst = Math.max(...times);
-  check('a good player breaks through the top: three cracks there', isFinite(worst), times.map(t => isFinite(t) ? (t / 60).toFixed(1) + ' min' : 'never').join(', '));
+  check('a good player breaks through the top: three cracks there, and it breaks', isFinite(worst), times.map(t => isFinite(t) ? (t / 60).toFixed(1) + ' min' : 'never').join(', '));
   // (this pretend player never misses and aims for the gaps: a person takes a good few minutes)
   check('...not in the first half minute, and within half an hour', Math.min(...times) > 30 && worst < 1800);
   check('...hardly ever missing on the way', Math.max(...bottoms) <= 1, `bottom cracks ${bottoms.join(' ')}`);
 }
 
-// 5. bricks: knocking one out scores it, and a cleared wall comes back
+// 5. bricks: knocking one out scores it and drops it on the floor; the very last one breaks the glass
 {
   const g = makeGame(9); launch(g);
   const k = g.bricks.find(b => b.row === ROWS - 1);
   Object.assign(g.ball, { x: k.x + k.w / 2, y: k.y - R - 0.02, vx: 0, vy: 4 });
   const ev = step(g, 0.05);
-  check('knocking out a brick scores it and bounces the ball back', !k.alive && g.score > 0 && g.ball.vy < 0 && ev.some(e => e.type === 'brick' && e.brick === k));
+  check('knocking out a brick scores it, bounces the ball back and drops it on the floor', !k.alive && g.score > 0 && g.ball.vy < 0 && ev.some(e => e.type === 'brick' && e.brick === k) && g.pile.join() === String(k.row));
   const b5 = g.bricks.find(b => b.row === ROWS - 1 && b.col === 5);
   for (const b of g.bricks) b.alive = b === b5;
   Object.assign(g.ball, { x: b5.x + b5.w / 2, y: b5.y - R - 0.02, vx: 0, vy: 4 });
-  check('...and a cleared wall comes back', step(g, 0.05).some(e => e.type === 'cleared') && g.bricks.every(b => b.alive));
+  const last = step(g, 0.05).find(e => e.type === 'break');
+  check('...and knocking out the very last one breaks the glass (so it always breaks in the end)', last?.why === 'cleared' && g.broken === 'cleared' && !last.spilled.length && g.bricks.every(b => !b.alive));
 }
 
 // 6. what's kept between visits
 {
-  const r = play(13, 0.8, 200);
+  const r = play(13, 0.8, 200, g => g.pile.length >= 12);
   const copy = load(makeGame(99), JSON.parse(JSON.stringify(save(r.g))));
-  check('the bricks, the cracks and the score are kept between visits',
-    save(copy).bricks === save(r.g).bricks && JSON.stringify(copy.cracks) === JSON.stringify(r.g.cracks) && copy.score === r.g.score && copy.serving,
+  check('the bricks, the heap on the floor, the cracks and the score are kept between visits',
+    save(copy).bricks === save(r.g).bricks && copy.pile.join() === r.g.pile.join() && copy.pile.length > 0 && JSON.stringify(copy.cracks) === JSON.stringify(r.g.cracks) && copy.score === r.g.score && copy.serving && !copy.broken,
     `${copy.bricks.filter(b => b.alive).length} bricks, ${copy.cracks.top.length} + ${copy.cracks.bottom.length} cracks, score ${copy.score}`);
   let ok = true;
   for (const junk of [null, 5, 'x', {}, { bricks: 'short', cracks: { top: [{ x: 'no' }, 1] }, score: -3 }, { cracks: { bottom: Array(9).fill({ x: 1, seed: 2 }) } }]) {
     try { const g = load(makeGame(1), junk); if (g.cracks.bottom.length > CRACKS || g.score < 0 || g.bricks.length !== ROWS * COLS) ok = false; } catch { ok = false; }
   }
   check('...and a broken save never breaks the game', ok);
+  const b = play(7, 0, 120).g, again = load(makeGame(3), JSON.parse(JSON.stringify(save(b))));
+  check('once broken, it stays broken', again.broken === 'bottom' && again.bricks.every(k => !k.alive) && again.pile.length === ROWS * COLS && !step(again, 1).length);
 }
 
 // 7. the sounds: 8-bit, 11 kHz, never silent, never past full volume; the cracks get worse
@@ -117,10 +123,12 @@ function play(seed, skill, secs, until) {
     return { peak, rms: Math.sqrt(sum / a.length), bits, secs: a.length / RATE };
   };
   const c = [1, 2, 3].map(l => stats(crack(l)));
-  const all = [...c, stats(boing(0)), stats(boing(1)), stats(blip(0)), stats(blip(5)), stats(tock()), stats(tink())];
+  const sh = stats(shatter()), mu = stats(mute());
+  const all = [...c, stats(boing(0)), stats(boing(1)), stats(blip(0)), stats(blip(5)), stats(tock()), stats(tink()), sh, mu];
   check('every sound is 8-bit, loud enough, and never past full volume', all.every(s => s.bits && s.peak > 0.2 && s.peak <= 1 && s.rms > 0.01), all.map(s => s.peak.toFixed(2)).join(' '));
   check('each crack is longer than the one before, the third a big one', c[0].secs < c[1].secs && c[1].secs < c[2].secs && c[2].secs > 1.5, c.map(s => s.secs.toFixed(2) + ' s').join(', '));
   check('...and louder', c[0].rms < c[2].rms, c.map(s => s.rms.toFixed(3)).join(' < '));
+  check('the glass breaking is the biggest sound of all', sh.secs > c[2].secs && sh.rms > c[2].rms, `${sh.secs.toFixed(2)} s, ${sh.rms.toFixed(3)}`);
   check('the same crack sounds the same every time', crack(2).every((v, i) => v === crack(2)[i]));
 }
 
@@ -135,6 +143,16 @@ function play(seed, skill, secs, until) {
   const inside = [1, 2, 3].every(l => ['top', 'bottom'].every(s => dots(l, s).every(([x, y]) => x >= -1 && x <= 85 && y >= -1 && y <= 133)));
   check('each crack drawn is bigger than the last', n[0] < n[1] && n[1] < n[2], n.join(' < ') + ' dots');
   check('...stays on the glass, and draws the same from its seed', inside && dots(3, 'bottom').join() === dots(3, 'bottom').join() && dots(3, 'bottom', 7).join() !== dots(3, 'bottom').join());
+}
+
+// 9. the heap on the floor: a spot for every brick, where nobody walks, filled from the floor up
+{
+  const spots = pileSlots();
+  const apart = spots.every((a, i) => spots.every((b, j) => i === j || a.layer !== b.layer || Math.hypot(a.x - b.x, a.z - b.z) > 0.25));
+  check(`the heap has a spot for every brick (${ROWS * COLS}), none on top of another`, spots.length === ROWS * COLS && apart);
+  check('...all where nobody needs to walk', spots.every(p => heapZone(p.x, p.z)));
+  const held = spots.every((p, i) => p.layer === 0 || spots.slice(0, i).some(q => q.layer === p.layer - 1 && Math.hypot(p.x - q.x, p.z - q.z) < 0.45));
+  check('...and filled from the floor up: no brick lands on thin air', held);
 }
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');

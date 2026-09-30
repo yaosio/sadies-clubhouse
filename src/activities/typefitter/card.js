@@ -9,6 +9,7 @@ export default {
   id: 'typefitter',
   name: 'TypeFitter Deluxe 3.1',
   page, styles, door,   // door: its door on the mansion's landing
+  slot: 2,              // which door on the landing is its (they never move)
   box: { front, side: 0x2a1766 },   // box: its picture (on its computer's screen and poster) and its room's colour
   start: () => import('./main.js'),
 };

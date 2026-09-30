@@ -1,5 +1,6 @@
 // Pictures of Brickbuster '96's room, as a desktop and a phone, from the built page (npm run build
-// first): walking in, standing back, stepping up to play, and the glass cracked. dist/shots/brickbuster/
+// first): walking in, standing back, stepping up to play, the glass cracked, the heap of bricks, the
+// glass breaking and the yarn ball escaping, the room left broken and the sign on its door. dist/shots/brickbuster/
 //   node tools/brickbuster/shots.mjs
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
@@ -45,6 +46,34 @@ for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800
   await p.waitForTimeout(700);
   await p.evaluate(() => { const b = window.__brickbuster; b.throwBall(3.2, 5, 0.4, 6); });
   await shot('7-cracked', 500);
+  // knock out most of the bricks (they land on the heap), then break the bottom
+  await p.evaluate(() => window.__brickbuster.knockOut(30));
+  await p.keyboard.press('Escape').catch(() => {});
+  await p.evaluate(() => window.__mansion.put('room:brickbuster', { x: -1.5, z: 1.2, yaw: Math.PI - 0.3, pitch: -0.15, y: 0 }));
+  await shot('8-heap', 1200);
+  await p.evaluate(() => window.__mansion.put('room:brickbuster', 'case'));
+  await p.waitForTimeout(300);
+  if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+  await p.waitForTimeout(1500);
+  for (let i = 0; i < 6 && !(await p.evaluate(() => window.__brickbuster.state().broken)); i++) {
+    await p.evaluate(() => { const b = window.__brickbuster, s = b.state(); b.throwBall(s.paddle < 2.1 ? 3.6 : 0.6, 1.4, 0, -5); });
+    await p.waitForTimeout(500);
+  }
+  await shot('9-shatter', 150);
+  await shot('10-escaping', 1400);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: -1, z: -1, yaw: -1.2, pitch: 0.1, y: 0 }); });
+  await shot('11-poster', 1500);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: 0, z: -2, yaw: 0, pitch: 0, y: 0 }); });
+  await shot('12-out-the-door', 800);
+  await p.waitForTimeout(3000);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: 0, z: 1.2, yaw: Math.PI, pitch: -0.1, y: 0 }); });
+  await shot('13-broken-room', 1000);
+  await p.evaluate(() => { const m = window.__mansion; m.put('room:brickbuster', { x: -0.3, z: 2.6, yaw: Math.PI + 0.1, pitch: -0.45, y: 0 }); });
+  await shot('14-sad-paddle', 800);
+  await p.evaluate(() => window.__mansion.faceDoor('hall', 'brickbuster', 2.4));
+  await shot('15-out-of-order', 1500);
+  await p.evaluate(() => { const m = window.__mansion; m.faceDoor('hall', 'dropper-world', 2.4); m.turnTo(m.where().yaw, -0.3); });
+  await shot('16-dirt-by-dropper-world', 1200);
   console.log(JSON.stringify(await p.evaluate(() => window.__brickbuster.state())));
   await ctx.close();
 }
