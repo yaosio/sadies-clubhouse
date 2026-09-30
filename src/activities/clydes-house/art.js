@@ -94,6 +94,9 @@ export function drawArt({ tex, words, C }) {
     H.forEach((row, y) => [...row].forEach((b, x) => b === '1' && rect(g, x < 3 && y < 2 ? '#ffc0e0' : C.pink2, x, y))); });
   A.spark = tex(7, 7, g => { rect(g, C.yellow, 3, 0, 1, 7); rect(g, C.yellow, 0, 3, 7, 1); rect(g, C.white, 3, 3); rect(g, C.yellow, 1, 1); rect(g, C.yellow, 5, 5); rect(g, C.yellow, 5, 1); rect(g, C.yellow, 1, 5); });
   // the treat: a little fish biscuit
+  // the toaster's toast (it pops out), and the idea bulb lit up
+  A.toast = tex(12, 11, g => { rect(g, '#7a4a2a', 0, 1, 12, 10); rect(g, '#7a4a2a', 1, 0, 10, 2); rect(g, '#e8b060', 1, 2, 10, 8); rect(g, '#f8d890', 2, 3, 8, 6); rect(g, '#c07838', 4, 5, 2, 1); rect(g, '#c07838', 7, 7, 1, 1); });
+  A.lit = tex(16, 16, g => { disc(g, C.gold, 8, 6, 6); disc(g, '#fffbe0', 8, 6, 4); rect(g, C.white, 6, 3, 2, 2); rect(g, '#8a88a8', 6, 11, 5, 4); rect(g, '#5e5c80', 6, 12, 5, 1); rect(g, '#5e5c80', 7, 14, 3, 1); for (const [x, y] of [[0, 6], [15, 6], [8, 0], [2, 1], [13, 1], [1, 11], [14, 11]]) rect(g, C.yellow, x, y, 1, 1); });
   A.treat = tex(12, 7, g => { rect(g, '#7a4a2a', 1, 1, 8, 5); rect(g, '#d89048', 2, 2, 6, 3); rect(g, '#7a4a2a', 9, 0, 3, 7); rect(g, '#d89048', 10, 1, 1, 5); rect(g, C.ink, 3, 2); rect(g, '#f0c080', 4, 4, 3, 1); });
   // the paper boat, folded out of an old manual
   A.boat = tex(20, 12, g => {

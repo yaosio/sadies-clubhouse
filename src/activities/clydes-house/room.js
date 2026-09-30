@@ -19,6 +19,7 @@ import { drawArt, K } from './art.js';
 import { buildHouse, DW, DH } from './house.js';
 import { makeMachine, saveOf, missing, partIn, swap, run, won, GAPS } from './machine.js';
 import * as L from './lines.js';
+import { REACT } from './reactions.js';
 import { makeSounds } from './sounds/index.js';
 import { store } from '../../shared/storage.js';
 
@@ -167,6 +168,7 @@ export async function buildRoom(m) {
     };
     gapBits[g].tag = sprite(gapBits[g].tagTex, 1.0, 0.14, at(...s.tag, 0.1), { unlit: 0.9 });
   }
+  const toast = sprite(A.toast, 0.17, 0.155, [0, -9, 0], { unlit: 0.3 });
   const arrow = sprite(A.arrow, 0.18, 0.14, [0, -9, 0], { unlit: 0.9 });
   const bubble = sprite(A.bubble, 3.3, 1.04, [0, 4.85, MZ + 0.5], { unlit: 1 });
   const right = { dominoes: [dominoes], seesaw: [plank, yarn], funnel: [funnel], fan: [fan], boat: [boat], cup: [cup, treat] };
@@ -197,10 +199,12 @@ export async function buildRoom(m) {
     clyde.position.set(...at(WHEEL[0], WHEEL[1] - WR + 0.03, 0.03)); clyde.scale.x = 1;
     offered.position.y = -9;
     sadie.position.set(BASKET[0], 0.12, MZ + BASKET[1]); sadie.scale.x = 1; naps = true;
-    for (const g of GAPS) { wobble[g] = 0; gapBits[g].junk.rotation.z = 0; gapBits[g].junk.position.set(...at(...SPOT[g].junk, 0.08)); }
+    for (const g of GAPS) { const j = gapBits[g].junk; j.rotation.z = 0; j.scale.set(1, 1, 1); j.position.set(...at(...SPOT[g].junk, 0.08)); }
+    react = null; toast.position.y = -9;
     showGaps();
   }
   const spin = { wheel: 0, fan: 0, junk: null }, wobble = {};
+  let react = null;   // the junk the machine's just bumped into, doing its thing (reactions.js)
   let naps = true;
   function showGaps() {
     for (const g of GAPS) {
@@ -327,13 +331,30 @@ export async function buildRoom(m) {
     say(L.TRY_AGAIN[Math.floor(Math.random() * L.TRY_AGAIN.length)]);
     now(() => { mood = null; tidy(); ready(); });
   }
-  // something bumps into what's in a gap: it wobbles, or (if nothing's there) a question mark
+  // something bumps into what's in a gap: the junk does its own thing, or (if nothing's there) a
+  // question mark
   function poke(gap, part) {
-    sfx(part === 'duck' ? 'squeak' : 'bonk');
-    if (part) wobble[gap] = 1;
     const [u, v] = SPOT[gap].c;
-    puffAt(A.what, u + 0.2, v + 0.25);
-    if (gap === 'dominoes' && !part) wobble.weight = 1;
+    if (!part) {
+      sfx('bonk'); puffAt(A.what, u + 0.2, v + 0.25);
+      if (gap === 'dominoes') wobble.weight = 1;
+      return;
+    }
+    const r = REACT[part];
+    react = { gap, part, t: 0 };
+    spin.junk = null; gapBits[gap].junk.rotation.z = 0;
+    if (r.sound) sfx(r.sound);
+    if (r.puff) { const [x, y] = SPOT[gap].junk; puffAt(A[r.puff], x + 0.22, y + 0.25); }
+  }
+  // (every frame, while it's at it)
+  function reacting(dt) {
+    const r = REACT[react.part], j = gapBits[react.gap].junk, [bu, bv] = SPOT[react.gap].junk;
+    react.t += dt;
+    const k = Math.min(1, react.t / r.dur), p = r.pose(k);
+    j.position.set(...at(bu + p.x, bv + p.y, 0.08)); j.rotation.z = p.rot; j.scale.set(p.sx, p.sy, 1);
+    if (r.toast) toast.position.set(...at(bu, bv + r.toast(k), 0.075));
+    if (r.lit) j.material.uniforms.map.value = r.lit(k) ? A.lit : A.junk[react.part];
+    if (r.sadie) naps = !r.sadie(k);
   }
   let puffT = 0;
   function puffAt(t, u, v, z = MZ + 0.15) { const p = t === A.heart ? heart : puff; p.material.uniforms.map.value = t; p.position.set(u, v, z); p.userData.t = 0; puffT = 0; }
@@ -498,10 +519,10 @@ export async function buildRoom(m) {
       if (spin.wheel) { spokes.rotation.z += dt * 9; belt.rotation.x = Math.sin(t * 30) * 0.3; }
       if (spin.fan) blades.rotation.z += dt * 25 * spin.fan;
       if (spin.junk) gapBits[spin.junk].junk.rotation.z += dt * 10;
+      if (react) reacting(dt);
       for (const g of GAPS) {
         const j = gapBits[g].junk;
-        j.scale.setScalar(Math.max(1, j.scale.x - dt * 1.5));
-        if (wobble[g] > 0) { wobble[g] = Math.max(0, wobble[g] - dt * 0.8); if (spin.junk !== g) j.rotation.z = Math.sin(t * 25) * 0.25 * wobble[g]; }
+        if (react?.gap !== g) j.scale.setScalar(Math.max(1, j.scale.x - dt * 1.5));
         gapBits[g].outline.material.uniforms.uFade.value = gapBits[g].outline.visible && Math.floor(t * 2.5) % 2 ? 0.5 : 0;
       }
       if (wobble.weight > 0) { wobble.weight = Math.max(0, wobble.weight - dt); weight.rotation.z = Math.sin(t * 30) * 0.08 * wobble.weight; }
@@ -532,6 +553,8 @@ export async function buildRoom(m) {
       picked: targets()[sel], sounds: sounds().played, heard: [...new Set(sounds().log)], naps, view: { x: view.center.x, w: view.w },
     }),
     speed(k) { speed = k; },
+    // (for tools/clydes-house/junk.mjs) put this bit of junk in the first empty gap
+    junk(part) { const g = missing(M)[0], x = M.gaps[g]; x.parts[x.parts.findIndex(p => p !== g)] = part; x.pick = x.parts.indexOf(part); showGaps(); return g; },
   };
   return place;
 }

@@ -136,8 +136,10 @@ activity is checked again, so something moves into it only once a second activit
     are drawn straight after their floor (`onFloor`, floor `renderOrder` -2, them -1); things on
     walls stand at least 4 cm off them. The camera's near plane is 0.1 m (phones' depth is coarse).
     Decals (`decal`, nudged toward the camera) are only for things seen up close: seen from far off
-    (the mansion's windows from the lane) the nudge is big enough to draw them over what's in front,
-    so those stand 10 to 15 cm proud of the wall instead.
+    the nudge is big enough to draw them over what's in front, and a phone's depth is too coarse to
+    keep even 15 cm between a window and its wall. So the mansion's outside windows are painted
+    into their walls' pictures (`painted()` in `outside.js`). A doorway's see-through box sits a
+    hair above any ground that runs on under it (Clyde's house), or the ground shows through.
     Door leaves open to 80 degrees, not flat, so they stay in sight as you go through.
   - Nothing flickers as you go through a doorway, and nothing jumps (the owner saw even a few
     centimetres as a stutter). Standing on a doorway's line, corners of the walls and floor along it

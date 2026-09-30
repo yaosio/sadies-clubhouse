@@ -25,6 +25,9 @@ export function buildHouse(m, A) {
   plane(W, H1, siding(W, H1), [hx, H1 / 2, hz - D], [0, Math.PI, 0]);
   const door = doorway(scene, { pos: [hx, 0, hz], yaw: 0, w: DW, h: DH, leaves: [{ front: A.door, back: A.doorBack }], hinge: -1, trim: 0xd97757 });
   door.group.traverse(o => { if (o.material?.uniforms?.uUnlit && !o.material.uniforms.pic) o.material.uniforms.uUnlit.value = 0.3; });
+  // the see-through box behind the door sits a hair above the grass, which runs on under the house:
+  // level with it, the grass flickered through the floor of the room you see through the door
+  door.see.position.y += 0.03;
   for (const s of [-1, 1]) plane(0.8, 1.0, psx(A.window, { unlit: 0.5 }), [hx + s * 1.75, 1.6, hz + 0.08], null, 1);
   box(1.9, 0.1, 0.8, tiles(2, 1), [hx, DH + 0.3, hz + 0.4]);                    // a little awning over the door
   for (const s of [-1, 1]) box(0.06, 0.3, 0.5, psx(null, { tint: 0xa8502e }), [hx + s * 0.85, DH + 0.15, hz + 0.25]);

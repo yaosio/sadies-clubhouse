@@ -9,6 +9,7 @@ import { wrap, LINE } from '../../src/activities/clydes-house/art.js';
 import { RATE } from '../../src/activities/clydes-house/sounds/synth.js';
 import { ALL } from '../../src/activities/clydes-house/sounds/index.js';
 import card from '../../src/activities/clydes-house/card.js';
+import { REACT } from '../../src/activities/clydes-house/reactions.js';
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -80,6 +81,16 @@ check('...and says what it keeps in the browser', card.keeps.every(k => k.starts
   check('Clyde has something to say about every bit of junk, and about an empty gap', JUNK.every(j => L.FAIL[j]) && L.FAIL[null]);
   check('...and a line for every round Clyde improves it', L.NEXT.length === ROUNDS.length - 1 && [1, 2, 3, 4].every(n => L.HOWTO[n]));
   check('every part\'s name fits its tag', Object.values(NAMES).every(n => n.length <= 14));
+}
+
+// 5b. every bit of junk does its own thing when the machine bumps into it
+{
+  const odd = JUNK.filter(j => !REACT[j] || !(REACT[j].dur > 0 && REACT[j].dur <= 2) || (REACT[j].sound && !ALL[REACT[j].sound]));
+  check('every bit of junk has its own reaction, under two seconds, with a sound that exists', !odd.length, odd.join());
+  const look = j => [0.1, 0.3, 0.5, 0.7, 1].map(k => Object.values(REACT[j].pose(k)).map(v => v.toFixed(2)).join()).join('|') + (REACT[j].toast ? 'toast' : '') + (REACT[j].lit ? 'lit' : '') + (REACT[j].sadie ? 'sadie' : '');
+  check('...and no two do the same thing', new Set(JUNK.map(look)).size === JUNK.length);
+  const far = JUNK.filter(j => [0, 0.25, 0.5, 0.75, 1].some(k => { const p = REACT[j].pose(k); return Math.abs(p.x) > 1 || Math.abs(p.y) > 1 || p.sx <= 0 || p.sy <= 0; }));
+  check('...and they all stay near their gap', !far.length, far.join());
 }
 
 // 6. every sound: soft, short, 8-bit, fading right down to nothing, no click (the owner can't

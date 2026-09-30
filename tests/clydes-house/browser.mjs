@@ -46,7 +46,14 @@ export default async function ({ browser, page, check, outDir }) {
       if (opts.hasTouch) {
         // move along to it (a swipe), then tap it: the view's centred on it, so tap down the middle till it changes
         for (let i = 0; i < 6 && (await S()).picked !== gap; i++) await press(0.5, 0.75, -140);
-        for (let y = 0.2; y < 0.8 && !good(await S()); y += 0.025) await press(0.5, y);
+        await p.waitForTimeout(800);   // (the view eases over to it)
+        for (let y = 0.2; y < 0.8 && !good(await S()); y += 0.025) {
+          const before = (await S()).parts;
+          await press(0.5, y);
+          // (hit another gap on the way? tap it round to where it was: four parts, so three more)
+          const after = (await S()).parts;
+          if (Object.keys(after).some(g => g !== gap && after[g] !== before[g])) for (let i = 0; i < 3; i++) await press(0.5, y);
+        }
         for (let i = 0; i < 5 && !good(await S()); i++) { await p.keyboard.press('KeyW'); }
       } else {
         for (let i = 0; i < 6 && (await S()).picked !== gap; i++) await p.keyboard.press('KeyD');
@@ -107,7 +114,7 @@ export default async function ({ browser, page, check, outDir }) {
     }
     s = await S();
     check(`${device}: after the fourth, Clyde's had the idea (the finale), and it's four treats`, s.finale && s.treats === ROUNDS.length && s.missing.length >= 2, JSON.stringify(s));
-    check(`${device}: every step made its sound, and Sadie and Clyde made theirs`, ['clunk', 'clatter', 'boing', 'fwoop', 'whoosh', 'clink', 'chime', 'mrrp', 'hello', 'idea', 'mew', 'pop', 'bonk'].every(k => s.heard.includes(k)), s.heard.join());
+    check(`${device}: every step made its sound, and Sadie and Clyde made theirs`, ['clunk', 'clatter', 'boing', 'fwoop', 'whoosh', 'clink', 'chime', 'mrrp', 'hello', 'idea', 'mew', 'pop'].every(k => s.heard.includes(k)), s.heard.join());
     if (opts.hasTouch) {
       const before = (await S()).view.x;
       await press(0.5, 0.75, 160); await p.waitForTimeout(500);

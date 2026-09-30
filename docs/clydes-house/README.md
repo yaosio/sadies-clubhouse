@@ -50,7 +50,13 @@ banana, one sock, a cactus, a floppy disk (DISK 2 OF 9), a toaster, a trophy, an
 bulb), a sandwich, a houseplant, one shoe, a fish bone, a yo-yo, an umbrella, cold pizza). With
 junk in a gap the machine runs up to it and stops: the marble bumps it, the weight lands on it,
 the yarn bounces off it, the junk spins where the fan should be, the fan blows at it, or the boat
-bumps it; and Clyde has a line about that particular piece of junk. An empty gap gets "NOTHING
+bumps it. Then **each bit of junk does its own thing** (`reactions.js`): the duck bounces and
+squeaks, the banana slips and lands on its back, the sock flops, the cactus shakes its head, the
+floppy disk ejects spinning, the toaster pops out a slice of toast, the trophy swells with pride,
+the bulb lights up and flickers out, the sandwich gets squashed, the houseplant sways (a heart for
+trying), the shoe flips over, the fish bone wakes Sadie up to look, the yo-yo goes down and up,
+the umbrella opens and floats up, and the pizza flies off like a frisbee and comes back. Clyde has
+a line about each. An empty gap gets "NOTHING
 THERE. VERY BRAVE. VERY UNSUCCESSFUL." One secret: **the rubber duck floats**, so in the boat's gap
 it works, sailing across the trough itself (squeak), and Clyde promotes it to boat.
 
@@ -88,15 +94,17 @@ finale, and the treats delivered. The pause menu's CLYDE'S HOUSE button starts i
 | `room.js` | The room (9.2 x 8.4 m, 5.6 m tall: a workshop with the chalkboard, PLAN V47, the bookshelf, sticky notes and MY FIRST CLIENT, a photo of Sadie) and the machine: every part, the timeline that plays a run one step after another, the gaps, Sadie, Clyde, the speech bubble. Builds the house outside too (`house.js`). Hands the mansion its place, with a `play` on the machine (`key`, every key; `touch`, every press as a line into the room) and `house` (its front door, so the mansion joins it to the outside). `window.__clydesHouse` for the checks (`state()`, and `speed(k)` to run it faster). |
 | `house.js` | The house from outside, built into the outside's scene on its plot: walls, the storeys, the turret, the chimney's puffs, the path, mailbox, sign, bushes, and Clyde by the door (waves when you're near). Tells the outside what's solid. |
 | `machine.js` | The machine's rules, with no screen (the tests run them): the steps, the gaps, the junk, the rounds, swapping, where a run stops, what happens when it works, what's saved. |
+| `reactions.js` | What each bit of junk does when the machine bumps into it: how long, its sound, a puff, and its pose over time (moved, turned, stretched), plus the toaster's toast, the bulb lighting up and Sadie waking for the fish bone. Plain numbers; the tests check every bit of junk has its own. |
 | `lines.js` | Everything Clyde says. The bubble holds four lines of 26 letters in the mansion's 3x5 font: no lower case, no double quotes (the tests check). |
 | `art.js` | Its pictures, drawn when the mansion opens: Clyde in nine moods (idle, blink, talk, happy, oops, think, wave, and two running), the junk, the house's siding, tiles, door and signs, the wallpaper, the chalkboard; and the ones drawn again as they change: the speech bubble, the tags, the treat counter. |
-| `sounds/` | Made in code, 8-bit, 11 kHz, a file per group: `machine.js` (every step's sound, the pop, bonk and squeak), `sadie.js` (mrrp, mew), `clyde.js` (hello, idea), `chime.js` (the treat landing); `synth.js`, what they're made with; `index.js`, which plays them (never the same one twice within a tenth of a second). |
+| `sounds/` | Made in code, 8-bit, 11 kHz, a file per group: `machine.js` (every step's sound, the pop, bonk and squeak, and the toaster's ding, the yo-yo's zip and the bulb's plink), `sadie.js` (mrrp, mew), `clyde.js` (hello, idea), `chime.js` (the treat landing); `synth.js`, what they're made with; `index.js`, which plays them (never the same one twice within a tenth of a second). |
 
-Checks: `tests/clydes-house/run.mjs` (the rules, the lines fitting the bubble, every sound soft and short) and
+Checks: `tests/clydes-house/run.mjs` (the rules, the lines fitting the bubble, every bit of junk reacting its own way, every sound soft and short) and
 `tests/clydes-house/browser.mjs` (walking out to the house and in, junk in a gap, the four
 rounds and the finale, every sound played, the phone's taps and swipe, kept after a reload). Pictures of it:
 `node tools/clydes-house/shots.mjs [desktop|phone]` (after a build) saves the house from the gate,
-the lane and the door, the castle from the lane, the room, and a run of the machine, in `dist/shots/clydes-house/`.
+the lane and the door, the castle from the lane, the room, and a run of the machine, in `dist/shots/clydes-house/`;
+`node tools/clydes-house/junk.mjs [part]` takes two of each bit of junk reacting.
 
 ## Parked ideas
 

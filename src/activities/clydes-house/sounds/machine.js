@@ -32,3 +32,19 @@ export const pop = () => finish(tone(blank(0.07), 0, 0.06, 520, 260, pluck(40), 
 export const bonk = () => finish(tone(blank(0.25), 0, 0.22, 220, 150, pluck(18), { gain: 0.4, tri: true }));
 // the rubber duck, whenever it's picked or bumped: squeak
 export const squeak = () => finish(tone(blank(0.2), 0, 0.18, 900, 1300, swell, { wob: 0.08, wobHz: 25, gain: 0.18 }));
+// the toaster popping: a little bell ding (it's done!)
+export function ding() {
+  const a = blank(0.5);
+  tone(a, 0, 0.5, 988, 988, pluck(8), { gain: 0.16 });
+  tone(a, 0, 0.5, 1976, 1976, pluck(18), { gain: 0.04 });
+  return finish(a, 0.1);
+}
+// the yo-yo: down and up (zip-zip)
+export function zip() {
+  const a = blank(0.4);
+  tone(a, 0, 0.17, 700, 300, swell, { gain: 0.2 });
+  tone(a, 0.2, 0.17, 300, 700, swell, { gain: 0.2 });
+  return finish(a);
+}
+// the bulb lighting up: one soft plink, high then settling
+export const plink = () => finish(tone(blank(0.4), 0, 0.38, 1200, 900, pluck(12), { gain: 0.16 }), 0.08);
