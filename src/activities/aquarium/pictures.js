@@ -63,3 +63,38 @@ export function scubaSadie(tex, C, sadie, blink) {
     px(g, C.gold3, 34, 42, 25, 4); px(g, C.gold, 35, 42, 23, 2); for (const x of [37, 46, 55]) px(g, C.gold3, x, 42, 1, 1);
   });
 }
+
+// The six finds from the ocean, as 16 x 16 pictures: in the OCEAN FINDS cabinet, and floating out at
+// sea where you find them
+export function findPics(tex, C) {
+  return {
+    mountain: tex(16, 16, g => {   // the looming mountain, sandcastle-sized, on its little sandbar
+      oval(g, 8, 14, 7.5, 2, '#f0d890', '#d8b868');
+      for (let y = 2; y < 14; y++) { const w = (y - 2) * 0.62; px(g, y < 5 ? C.white : y % 3 ? C.lav3 : C.slate, Math.round(8 - w), y, Math.max(1, Math.round(2 * w)), 1); }
+      px(g, C.lav2, 6, 8, 2, 3); px(g, C.pink, 8, 1, 1, 1);
+    }),
+    bottle: tex(16, 16, g => {     // a message in a bottle, the note inside signed with a paw
+      for (let x = 2; x < 12; x++) px(g, x % 5 ? '#3fbf6a' : '#78e090', x, 5, 1, 7);
+      px(g, '#3fbf6a', 12, 7, 2, 3); px(g, C.tan2, 14, 7, 2, 3); px(g, C.cream, 4, 7, 6, 3); px(g, C.pink2, 8, 8, 1, 1);
+      px(g, '#b8ffcf', 3, 6, 6, 1);
+    }),
+    hat: tex(16, 16, g => {        // a little captain's hat
+      oval(g, 8, 7, 6, 4, C.white, '#c8c8e0'); px(g, C.ink, 2, 9, 12, 3); px(g, C.black, 3, 12, 10, 2);
+      px(g, C.gold, 6, 6, 4, 2); px(g, C.gold2, 7, 7, 2, 1);
+    }),
+    duck: tex(16, 16, g => {       // a rubber duck, normal-sized
+      oval(g, 7, 10, 6, 4, C.gold, C.gold2); oval(g, 10, 5, 3.5, 3.5, C.gold, C.gold2);
+      px(g, '#ff7a2a', 13, 5, 3, 2); px(g, C.black, 11, 4, 1, 1); px(g, C.yellow, 4, 8, 4, 1);
+    }),
+    floppy: tex(16, 16, g => {     // a floppy disk: LIGHTHOUSE.EXE
+      px(g, C.ink, 1, 1, 14, 14); px(g, '#2a6af0', 2, 2, 12, 12); px(g, '#c8c8e0', 5, 2, 6, 4); px(g, C.ink, 8, 3, 2, 2);
+      px(g, C.white, 4, 8, 8, 5); for (const y of [9, 11]) px(g, C.red, 5, y, 6, 1);
+    }),
+    coconut: tex(16, 16, g => {    // a coconut with a face drawn on it
+      oval(g, 8, 9, 6.5, 6, C.tan3, '#4a2a18');
+      for (const [x, y] of [[4, 5], [7, 4], [11, 6], [5, 12], [12, 11]]) px(g, '#9a6a3a', x, y);
+      px(g, C.white, 5, 8, 2, 2); px(g, C.white, 10, 8, 2, 2); px(g, C.black, 6, 9, 1, 1); px(g, C.black, 11, 9, 1, 1);
+      px(g, C.white, 6, 12, 5, 1); px(g, C.white, 5, 11, 1, 1); px(g, C.white, 11, 11, 1, 1);
+    }),
+  };
+}

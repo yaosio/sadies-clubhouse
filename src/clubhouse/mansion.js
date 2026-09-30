@@ -63,7 +63,7 @@ export async function open(cards, enter) {
     if (!c.room) return buildRoom(T, c, boxes[i], doorPics[i]);
     const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
     return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
-      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z }) });
+      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }) });
   }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
@@ -185,6 +185,9 @@ export async function open(cards, enter) {
 
   let viewing = null;   // the nearest doorway being looked through this frame
   function draw() {
+    // how far you can see: a place can say (the open sea, from the aquarium)
+    const far = me.world.far || 300;
+    if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); }
     cam.position.set(me.x, me.eye + EYE + Math.sin(me.bob) * 0.03, me.z);
     // exactly on a doorway's line (to a tenth of a millimetre) the drawing maths has nothing to work
     // with, so draw from that far off it: far too little to see
@@ -408,7 +411,7 @@ export async function open(cards, enter) {
     const k = Math.min(1, glide.t), e = k * k * (3 - 2 * k), f = glide.from, to = glide.to;
     me.x = f.x + (to.x - f.x) * e; me.z = f.z + (to.z - f.z) * e; me.eye = f.eye + (to.eye - f.eye) * e;
     const dy = to.yaw - f.yaw; me.yaw = f.yaw + Math.atan2(Math.sin(dy), Math.cos(dy)) * e; me.pitch = f.pitch + (to.pitch - f.pitch) * e;
-    if (k >= 1) { const then = glide.then; glide = null; then(); }
+    if (k >= 1) { if (to.y !== undefined) me.y = to.y; const then = glide.then; glide = null; then(); }
   }
 
   // ---------- Sadie's letter (the first time only), and the pause menu ----------
@@ -475,7 +478,8 @@ export async function open(cards, enter) {
       let walked = false;
       if (m > 0.05) {
         const sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
-        walked = move((-sy * f + cy * st) * SPEED * dt, (-cy * f - sy * st) * SPEED * dt);
+        const v = (me.world.speed || SPEED) * dt;   // (a place can be quicker to get about: the aquarium's boat)
+        walked = move((-sy * f + cy * st) * v, (-cy * f - sy * st) * v);
         if (walked) moved = true;
       }
       me.bob = walked ? me.bob + dt * 10 : me.bob * 0.85;
