@@ -123,7 +123,12 @@ activity is checked again, so something moves into it only once a second activit
     card, and it's built again from its save as you come back. Every room can be put away (not while
     it says it's `busy()`). A building outside the gate keeps its house: the mansion hands it back
     to the room as `house` when it's built again, and keeps its `update` going meanwhile. A new room
-    must be able to be put away, and must look the same built again from its save. `tools/clubhouse/speed.mjs`
+    must be able to be put away, and must look the same built again from its save.
+  - **Far-off buildings.** A building outside the gate further than 90 m from you (or from the door
+    you're looking out of) is drawn as a plain block instead: its house hands the mansion a `group`
+    with everything in it, its `body` (what the block's sized to) and `farTint` (its colour). None
+    is that far yet; it's for a long lane of houses. (Fog, to hide the far end, is parked: the PS1
+    material has none, and adding it would change the approved look.) `tools/clubhouse/speed.mjs`
     prints how quick it all is. A door opens only when you walk up to it facing it (one at a time), and
   closes behind you (the one you just came through waits till you're out of its swing). Both sides of a doorway show the same real door: it swings into the place
   further in (`swing`), so it's hinged on opposite sides as seen from each side.

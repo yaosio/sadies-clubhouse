@@ -114,6 +114,16 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...a bit at a time, never holding the game up more than ${BIT} ms`, !long.length, bits.map(([k, ms]) => `${k.replace('room:', '')} ${ms}`).join(', '));
     check(`${device}: ...and every place draws with the same few materials`, sp2.programs <= PROGRAMS, `${sp2.programs} kinds so far`);
 
+    // a building outside the gate far off is drawn as a plain block (none is that far yet: here the
+    // distance is made short, standing at the gate)
+    await M('put', 'outside', 'start');
+    await M('farHouse', 5); await p.waitForTimeout(300);
+    await shot('4a-far-house');
+    const far = await M('houses');
+    await M('farHouse', 90); await p.waitForTimeout(300);
+    const near = await M('houses');
+    check(`${device}: a building outside the gate is a plain block when far off, and itself close up`, far.length && far.every(h => h.far) && near.every(h => !h.far), JSON.stringify(far));
+
     // up the spiral stairs to the landing, keeping to the middle of the steps
     await M('put', 'hall', 'stairs');
     for (let i = 0; i < 40; i++) {

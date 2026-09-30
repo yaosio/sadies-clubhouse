@@ -23,7 +23,7 @@
 // game that wants them, every key and every press on the screen: the music room's instruments)
 // until you step back. A use with `act` instead just does something there and then (turning a sign).
 import {
-  WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace,
+  WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace, Box3, Mesh, BoxGeometry,
 } from 'three';
 import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack } from './look.js';
 import { buildOutside } from './outside.js';
@@ -179,6 +179,27 @@ export async function open(cards, enter) {
     if (built.length > MAX) {
       const spare = built.filter(r => r.place && away(r) >= 2).sort((a, b) => b.far - a.far);
       for (const r of spare.slice(0, built.length - MAX)) putAway(r);
+    }
+  }
+  // A building outside the gate that's far off (FAR_HOUSE metres from where you are, or from the door
+  // you're looking out of) is drawn as a plain block its size instead (made the first time it's
+  // needed): with a long lane of houses, only the near ones are drawn in full.
+  let FAR_HOUSE = 90;
+  function farHouses() {
+    let from = me.world === outside ? me : null;
+    if (!from) for (const s of sides) if (s.w === me.world && s.tw === outside && s.p.open > 0.02) from = s.to.pos;
+    for (const r of slots) {
+      const g = r.house?.group; if (!g) continue;
+      const far = !!from && Math.hypot(from.x - r.house.door.pos.x, from.z - r.house.door.pos.z) > FAR_HOUSE;
+      if (far && !r.standIn) {
+        // (the size of the building itself, as the house says: `body`)
+        const b = new Box3(); g.updateMatrixWorld(true);
+        for (const o of r.house.body || [g]) b.expandByObject(o, true);
+        const size = b.getSize(new Vector3()), mid = b.getCenter(new Vector3());
+        r.standIn = new Mesh(keep(new BoxGeometry(size.x, size.y, size.z)), psx(null, { tint: r.house.farTint ?? 0xb89a78, unlit: 0.35 }));
+        r.standIn.position.copy(mid); outside.scene.add(r.standIn);
+      }
+      g.visible = !far; if (r.standIn) r.standIn.visible = far;
     }
   }
   // (what a room just built needs on the graphics card goes there now, not the first time you see it)
@@ -663,6 +684,7 @@ export async function open(cards, enter) {
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }
     for (const w of places) w.update(t, dt);
+    farHouses();
     // (a house outside the gate whose room is put away: the house still moves, like the rest of outside)
     for (const r of slots) if (r.house && !r.place) r.house.update(t, dt, { place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch });
     // Sadie on the gatepost blinks now and then
@@ -712,6 +734,9 @@ export async function open(cards, enter) {
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(() => true) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
+    // how far off a building outside the gate becomes a plain block (and which are, right now)
+    farHouse: metres => { FAR_HOUSE = metres; farHouses(); },
+    houses: () => slots.filter(r => r.house?.group).map(r => ({ name: r.name, far: !r.house.group.visible })),
     // how quick the mansion is: ms to the first picture, ms to build each place, and what's held on
     // the graphics card (and in the kit's list of things to hand back)
     speed: () => ({ ...speed, places: { ...speed.places }, bits: { ...speed.bits }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
