@@ -105,7 +105,7 @@ seconds, and every other lever goes back up. Pull it again and the sky clears. O
   pixelly streaks fall all round you.
 - **Snow:** pale lavender cloud, flakes drifting down, and the ground slowly goes white (it takes
   about forty seconds to settle, and melts in ten once it stops).
-- **2nd sun:** a second sun comes up over the hills beside the first, behind the mansion, and
+- **2nd sun:** a second sun comes up over the hills right beside the first (clear of the mansion, looking in from the gate), and
   everything's brighter.
 - **Cats:** pink cloud, and a cat at a time (ginger, black or grey) falls tumbling from the sky,
   rights itself just before the ground (they always land on their feet), sits a moment, and poofs.

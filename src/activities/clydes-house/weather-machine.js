@@ -90,7 +90,7 @@ export function buildWeather(m, group) {
   sky.add(cover);
   const coverTint = cover.material.uniforms.tint.value;
   const sun2 = new Mesh(keep(new PlaneGeometry(12, 12)), psx(T.sun, { unlit: 1 }));
-  const SUN2 = { x: 50, z: 130 };   // (it comes up over the hills beside the first, behind the mansion)
+  const SUN2 = { x: -82, z: 99 };   // (it comes up over the hills just left of the first, clear of the mansion)
   sun2.rotation.y = Math.atan2(SUN2.x, SUN2.z) + Math.PI; sky.add(sun2);
   const lying = new Mesh(keep(new PlaneGeometry(260, 260, 24, 24)), psx(A.snow, { rx: 130, ry: 130, onFloor: true, unlit: 0.3, fade: 1 }));
   lying.rotation.x = -Math.PI / 2; lying.renderOrder = -0.5; sky.add(lying);
@@ -148,7 +148,7 @@ export function buildWeather(m, group) {
     cover.visible = clouds > 0.01;
     // the second sun rises over the hills
     const s2 = amount.sun;
-    sun2.visible = s2 > 0.01; sun2.position.set(SUN2.x, 10 + s2 * 48, SUN2.z); sun2.scale.setScalar(1.3);
+    sun2.visible = s2 > 0.01; sun2.position.set(SUN2.x, 14 + s2 * 48, SUN2.z); sun2.scale.setScalar(1.3);
     // the snow on the ground: settles slowly, melts faster
     settled = now === 'snow' ? Math.min(1, settled + dt / SNOW_SETTLES) : Math.max(0, settled - dt * 4 / SNOW_SETTLES);
     lying.visible = settled > 0.01; lying.material.uniforms.uFade.value = 1 - settled * 0.75;

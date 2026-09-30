@@ -46,7 +46,7 @@ for (const [device, opts] of Object.entries(DEVICES)) {
     await p.evaluate(() => window.__weather.speed(8));
     await look('outside', -3, -31, 0, 2, 5, -10); await shot(`${w}-2-lane`, 1200);
     await look('outside', 1.2, -23.5, 0, 2.6, 2.7, -20.1); await shot(`${w}-3-sadie`, 400);
-    await look('outside', 0, -30, 0, 0, 30, 60); await shot(`${w}-4-sky`, 400);
+    await look('outside', 0, -27, 0, 0, 3, -20); await shot(`${w}-4-sky`, 400);
     await look('hall', 0, -3, 0, 0, 1.6, 2); await M('faceDoor', 'hall', 'front', 2.2); await shot(`${w}-5-from-the-hall`, 1500);
   }
   await ctx.close();
