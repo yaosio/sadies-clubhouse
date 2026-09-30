@@ -1,27 +1,26 @@
 // Brickbuster '96's sounds: every sound it makes, by name, and how loud. The sounds themselves are
 // made in their own files (the glass, the machine, the poster, Sadie), with the kit in retro.js;
-// player.js plays them. A new sound goes in the file it belongs with (or a new file), and gets a
-// line here.
-import { makePlayer, nearness } from './player.js';
+// the clubhouse's sound system (src/shared/sound.js) plays them, through the room's handle. A new
+// sound goes in the file it belongs with (or a new file), and gets a line here.
+import { RATE } from './retro.js';
 import { crack, shatter, tink } from './glass.js';
 import { boing, blip, tock } from './machine.js';
 import { mute } from './quiet.js';
 import * as sadie from './sadie.js';
 
-export function makeSounds() {
-  const p = makePlayer();
-  return Object.assign(p, {
-    crack: level => p.play('crack' + level, () => crack(level)),
-    boing: off => p.play('boing' + Math.round(off * 2), () => boing(Math.round(off * 2) / 2), 0.8),
-    blip: row => p.play('blip' + row, () => blip(row), 0.7),
-    tock: () => p.play('tock', tock, 0.6),
-    tink: () => p.play('tink', tink, 0.7),
-    shatter: () => p.play('shatter', shatter),
-    mute: () => p.play('mute', mute, 0.9),
-    // Sadie (a sound makeChatter picked), `d` metres from you. Too far off to hear: nothing.
-    sadie({ name, variant }, d) {
-      const loud = sadie.LOUD[name] * nearness(d);
-      if (loud > 0.01) p.play(`sadie-${name}${variant}`, () => sadie[name](variant), loud);
-    },
+// `h`: the room's handle (soundsFor). Every sample is 11 kHz, held 4 times over (no smoothing: it
+// keeps its crunch); everything at half volume, as it always was.
+export function makeSounds(h) {
+  const play = (key, make, loud = 1, more) => h.play(key, make, { loud: loud * 0.5, rate: RATE, hold: 4, ...more });
+  return Object.assign(h, {
+    crack: level => play('crack' + level, () => crack(level)),
+    boing: off => play('boing' + Math.round(off * 2), () => boing(Math.round(off * 2) / 2), 0.8),
+    blip: row => play('blip' + row, () => blip(row), 0.7, { gap: 0.03 }),
+    tock: () => play('tock', tock, 0.6),
+    tink: () => play('tink', tink, 0.7),
+    shatter: () => play('shatter', shatter),
+    mute: () => play('mute', mute, 0.9),
+    // Sadie (a sound makeChatter picked), `d` metres from you: a voice, fading with distance
+    sadie({ name, variant }, d) { play(`sadie-${name}${variant}`, () => sadie[name](variant), sadie.LOUD[name], { bus: 'voices', dist: d }); },
   });
 }

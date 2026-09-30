@@ -70,7 +70,9 @@ function hashOf(paths) {
 }
 const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
 // what an activity's tests depend on, and what its browser checks depend on besides
-const testPaths = a => ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
+// (the mansion's own headless tests: its music's, and that every sound in the game goes through the
+// sound director, so they depend on all of src/)
+const testPaths = a => a === 'clubhouse' ? ['package.json', 'src', 'tests/clubhouse'] : ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
 const pagePaths = a => [`tools/${a}`, 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
@@ -115,7 +117,7 @@ for (const a of toCheck) {
 // ---------- 1. each activity's headless tests (unless they passed on this exact code already) ----------
 if (!quick) {
   const liveAt = args.indexOf('--live'), liveFile = liveAt >= 0 ? args[liveAt + 1] : null;
-  for (const a of ACTIVITIES) {
+  for (const a of [...ACTIVITIES, 'clubhouse']) {
     if (!existsSync(join(root, 'tests', a, 'run.mjs'))) continue;
     const hash = hashOf(testPaths(a));
     if (liveFile && !existsSync(note('tests', a, hash)) && !retest) {

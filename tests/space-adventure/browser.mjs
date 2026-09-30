@@ -85,6 +85,9 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the black clears in her space room, and you can walk again`, await until(() => { const s = window.__space.state(); return s.stage === 'hangout' && !s.watching && s.t === null; }, 6000));
     s = await S();
     check(`${device}: she says "I love space!", and the radio plays`, s.line === 'I love space!' && s.radio && s.done);
+    // (the sound director hears the radio, so the clubhouse's theme makes way for it by itself)
+    const theme = await p.waitForFunction(() => { const m = window.__mansion.music(); return m.other && !m.playing; }, null, { timeout: 4000 }).then(() => true, () => false);
+    check(`${device}: ...and the clubhouse's theme makes way for the radio`, theme, JSON.stringify(await M('music')));
     const at = await M('where');
     check(`${device}: ...and you're standing just inside the door`, at.place === ROOM && Math.abs(at.z - (-2.2)) < 0.2);
     await p.waitForTimeout(400);

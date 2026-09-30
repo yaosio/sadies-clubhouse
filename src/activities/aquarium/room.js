@@ -18,6 +18,7 @@ import { SPOTS, BOAT, DECK, SAVE, readSave, reefOpen } from './chart.js';
 import { buildOcean, SURFACE } from './ocean.js';
 import { makeSounds, LIST } from './sounds/index.js';
 import { seaPacing } from './sounds/sea.js';
+import { soundsFor } from '../../shared/sound.js';
 import { store } from '../../shared/storage.js';
 import { px, dot, oval, fishPics, scubaSadie, findPics } from './pictures.js';
 
@@ -217,7 +218,7 @@ export async function buildRoom(m) {
   let saved = readSave(store.get(SAVE, null));
   const save = () => store.set(SAVE, saved);
   showFinds();
-  const sounds = makeSounds(), pacing = seaPacing();
+  const sounds = makeSounds(soundsFor('room:' + card.id)), pacing = seaPacing();
   const roomLight = { sun: 0.2, bulb: 0.8, lamp: [0, RH - 0.4, 1.5] }, seaLight = { sun: 0.75, bulb: 0, lamp: [0, -1000, 0] };
   const underLight = { sun: 0.2, bulb: 0.8, lamp: [0, RH - 0.4, 1.5] };   // (underwater at sea: lit just like the tank, round the copy of its floor)
   const off = { x: 0, z: 0 }, copyAt = { x: 0, z: 0 };   // where the sea is this trip, and the copy of the tank's floor

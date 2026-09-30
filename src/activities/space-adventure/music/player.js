@@ -2,24 +2,26 @@
 // played at exactly its time, a moment ahead, through a soft echo. Two tracks: the trip's song, and
 // the radio's (whose loudness follows how near you are to the radio).
 //
-// Browsers only let a page make sound once the player has pressed something, so it wakes itself on
-// the next press or key. If the browser has no sound at all it quietly does nothing, but still keeps
-// count of what it would have played (for the checks).
+// It plays on the clubhouse's sound system (src/shared/sound.js), through a music line: the main
+// theme makes way for it, the MUSIC volume turns it down, and it's only heard in its room. If the
+// browser has no sound at all it quietly does nothing, but still keeps count of what it would have
+// played (for the checks).
 import { RATE, INSTRUMENTS, soundKey } from './synth.js';
 
 const AHEAD = 0.6;   // how far ahead notes are handed to the browser (s)
 
-export function makeMusic(volume = 0.4) {
-  let ctx = null, out = null, echoIn = null;
-  try {
-    const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
-    ctx = new AC(); out = ctx.createGain(); out.gain.value = volume; out.connect(ctx.destination);
+// `h`: the room's handle (src/shared/sound.js); the music goes out through a music line of its own
+export function makeMusic(h, volume = 0.4) {
+  const line = h.line('music');
+  let ctx = line?.ctx ?? null, out = null, echoIn = null;
+  if (ctx) {
+    out = ctx.createGain(); out.gain.value = volume; out.connect(line.out);
     // the echo: a dotted-eighth-ish delay, dulled a little more each time round
     echoIn = ctx.createGain(); echoIn.gain.value = 0.3;
     const d = ctx.createDelay(1), fb = ctx.createGain(), lp = ctx.createBiquadFilter();
     d.delayTime.value = 0.42; fb.gain.value = 0.32; lp.type = 'lowpass'; lp.frequency.value = 2200;
     echoIn.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(out);
-  } catch { ctx = null; }
+  }
   const made = new Map();
   function buffer(e) {
     const key = soundKey(e);
@@ -89,17 +91,11 @@ export function makeMusic(volume = 0.4) {
 
   const music = {
     track,
-    wake() { try { if (ctx && ctx.state !== 'running') ctx.resume(); } catch {} },
-    // paused (the pause menu): everything stops where it is, and carries on after
-    hold(on) { try { if (ctx) on ? ctx.suspend() : ctx.resume(); } catch {} },
+    wake: () => h.wake(),
     // make a song's notes ahead of time (a few at a time, so nothing stutters)
     warm(notes, n = 6) { if (!ctx) return true; let k = 0; for (const e of notes) { if (made.has(soundKey(e))) continue; buffer(e); if (++k >= n) return false; } return true; },
+    close: () => h.close(),
   };
-  const off = new AbortController();
-  if (ctx && globalThis.addEventListener) for (const e of ['pointerdown', 'keydown', 'touchend'])
-    globalThis.addEventListener(e, () => music.wake(), { capture: true, passive: true, signal: off.signal });
-  // done with it for good (its room put away): the browser's sound goes, and it stops listening
-  music.close = () => { off.abort(); try { ctx?.close().catch(() => {}); } catch {} ctx = null; };
   return music;
 }
 
