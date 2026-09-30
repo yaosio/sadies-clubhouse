@@ -7,7 +7,8 @@
 // completely), comes back with ESC BACK to that computer with the tower saved, and comes back from an
 // address that went straight in. It checks the rooms are built after the mansion opens (and how quick
 // each is), and that a room put away is built again as you walk up to its door, with nothing piling
-// up. It pauses, and in the test version starts the letter over. A room's code is a file of its own:
+// up. The main theme plays, fades out in the Music Room and comes back; the pause menu's MUSIC button
+// goes SOFT, OFF and ON. It pauses, and in the test version starts the letter over. A room's code is a file of its own:
 // when that file won't come, the room's door stays shut and it's fetched again later. Any error
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
@@ -107,6 +108,15 @@ export default async function ({ browser, page, check, outDir }) {
     const settled = await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 20000 }).then(() => true, () => false);
     const sp2 = await M('speed'), slow = Object.entries(sp2.places).filter(([, ms]) => ms > SLOW);
     check(`${device}: ...and the rooms are built while you stand about`, settled, (await M('built')).join(', '));
+    // the main theme: playing (you've pressed something by now), fading out in the Music Room (it has
+    // music of its own) and back in once you've left it
+    const playing = () => p.waitForFunction(() => { const m = window.__mansion.music(); return m.playing && m.notes > 0 && m.level > 0.05; }, null, { timeout: 8000 }).then(() => true, () => false);
+    check(`${device}: the main theme plays`, await playing(), JSON.stringify(await M('music')));
+    await M('faceDoor', 'room:music-room', 'door', 2);
+    const hushed = await p.waitForFunction(() => { const m = window.__mansion.music(); return !m.playing && m.level < 0.01; }, null, { timeout: 8000 }).then(() => true, () => false);
+    check(`${device}: ...and fades out in the Music Room`, hushed, JSON.stringify(await M('music')));
+    await M('faceDoor', 'hall', 'dropper-world', 1.3);
+    check(`${device}: ...and back in once you've left`, await playing(), JSON.stringify(await M('music')));
     // how quick each place is to build (a slow one makes a hiccup as you walk up to its door), and
     // how many kinds of drawing the graphics card has had to learn (each new kind: a hiccup the first
     // time it's seen). Headless drawing is slow, so these are generous.
@@ -222,6 +232,13 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('8-paused');
     check(`${device}: ${opts.hasTouch ? 'the pause button' : 'Escape'} pauses`, await M('mode') === 'menu' && await p.isVisible('#menu'));
     check(`${device}: ...with the start-over buttons`, await p.isVisible('#resets button:has-text("INVITATION")'));
+    // the MUSIC button: ON, SOFT, OFF (remembered), and ON again
+    const tap = async () => { await p.click('#music'); return [await p.textContent('#music'), await p.evaluate(() => localStorage.getItem('mansion.music'))]; };
+    const soft = await tap(), offNow = await tap();
+    const silent = await p.waitForFunction(() => window.__mansion.music().level < 0.01, null, { timeout: 6000 }).then(() => true, () => false);
+    const onAgain = await tap();
+    check(`${device}: the pause menu's MUSIC button goes SOFT, OFF (silent) and ON again, and remembers`, soft[0] === 'MUSIC: SOFT' && offNow[0] === 'MUSIC: OFF' && silent && onAgain[0] === 'MUSIC: ON'
+      && JSON.parse(offNow[1]) === 'off' && JSON.parse(onAgain[1]) === 'on', `${soft[0]}, ${offNow[0]}, ${onAgain[0]}`);
     await p.click('#resets button:has-text("INVITATION")');
     await shot('9-sure');
     check(`${device}: a start-over button asks first`, await p.isVisible('#sureYes') && !(await p.isVisible('#resets')));

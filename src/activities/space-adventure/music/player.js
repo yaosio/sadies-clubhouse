@@ -6,14 +6,14 @@
 // the next press or key. If the browser has no sound at all it quietly does nothing, but still keeps
 // count of what it would have played (for the checks).
 import { RATE, INSTRUMENTS, soundKey } from './synth.js';
+import { openAudio } from '../../../shared/audio.js';
 
 const AHEAD = 0.6;   // how far ahead notes are handed to the browser (s)
 
 export function makeMusic(volume = 0.4) {
-  let ctx = null, out = null, echoIn = null;
+  let ctx = null, out = null, line = null, echoIn = null;
   try {
-    const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
-    ctx = new AC(); out = ctx.createGain(); out.gain.value = volume; out.connect(ctx.destination);
+    line = openAudio({ music: true }); ctx = line.ctx; out = ctx.createGain(); out.gain.value = volume; out.connect(line.out);
     // the echo: a dotted-eighth-ish delay, dulled a little more each time round
     echoIn = ctx.createGain(); echoIn.gain.value = 0.3;
     const d = ctx.createDelay(1), fb = ctx.createGain(), lp = ctx.createBiquadFilter();

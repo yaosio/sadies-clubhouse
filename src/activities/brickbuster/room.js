@@ -11,6 +11,7 @@ import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ExtrudeGeometry, Sh
 import { makeGame, step, launch, serve, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS } from './game.js';
 import { makeSounds } from './sounds/index.js';
 import { makeChatter } from './sounds/sadie.js';
+import { makeArcade } from './music/player.js';
 import { makeLoose, release, stepLoose, R as LR } from './loose.js';
 import { store } from '../../shared/storage.js';
 import posterPic from './poster.js';
@@ -227,7 +228,7 @@ export async function buildRoom(m) {
 
   // ---------- playing ----------
   let active = false, wait = 0, dirty = false, savedAt = 0, mood = { name: 'calm', until: 0 }, pop = 0, now = 0;
-  let sound = null, showing = 'calm', lastTock = 0;
+  let sound = null, music = null, showing = 'calm', lastTock = 0;
   const keep_ = () => { store.set(KEY, save(game)); dirty = false; };
   const leaving = new AbortController();
   addEventListener('pagehide', () => { if (dirty) keep_(); }, { signal: leaving.signal });
@@ -246,9 +247,13 @@ export async function buildRoom(m) {
     start() {
       if (!sound) sound = makeSounds();
       sound.wake();
-      if (!game.broken) { active = true; wait = game.serving ? 0.9 : 0.6; }
+      if (!game.broken) {
+        active = true; wait = game.serving ? 0.9 : 0.6;
+        // its arcade music (music/: the clubhouse's theme makes way for it by itself)
+        (music ||= makeArcade()).play();
+      }
     },
-    stop() { active = false; if (dirty) keep_(); },
+    stop() { active = false; music?.stop(); if (dirty) keep_(); },
     steer(v, dt) { if (active && v) pushPaddle(game, v, dt); },
     nudge(dx) { if (active) movePaddle(game, game.paddle + dx); },
   };
@@ -285,7 +290,7 @@ export async function buildRoom(m) {
   }
   function smash(spilled) {
     active = false; play.over = true;
-    sound.shatter(); feel('wince', 1.4);
+    music?.stop(0.15); sound.shatter(); feel('wince', 1.4);
     brokenLook(); keep_();
     // the glass flies out in bits
     for (let i = 0; i < 44; i++) {
@@ -387,7 +392,7 @@ export async function buildRoom(m) {
     busy: () => active || (escape && escape !== 'gone') || (run && run !== 'gone') || !!doneAt || flights.length > 0 || falling.length > 0,
     putAway() {
       if (dirty) keep_();
-      leaving.abort(); sound?.close();
+      leaving.abort(); sound?.close(); music?.close();
       if (hallBall) { hall.scene.remove(hallBall, hallCat); hall.faces.splice(hall.faces.indexOf(hallCat), 1); }
     },
     watch: null,     // what your view follows (the yarn ball, while it's getting out)
@@ -405,6 +410,8 @@ export async function buildRoom(m) {
       if (active) {
         if (wait > 0) { wait -= dt; if (wait <= 0) launch(game); }
         else happen(step(game, dt));
+        // (the arcade music gets more exciting as the glass cracks)
+        music?.tick(Math.min(1, Math.max(game.cracks.top.length, game.cracks.bottom.length) / 2));
         if (dirty && t - savedAt > 2) { savedAt = t; keep_(); }
       }
       // the bricks, the ball and the paddle where the game has them
@@ -488,6 +495,7 @@ export async function buildRoom(m) {
       yarn: ball.getWorldPosition(new Vector3()).toArray(), watched: !!place.watch,
       hall: loose?.ball ? { ball: [loose.ball.x, loose.ball.y, loose.ball.z], cat: [loose.cat.x, loose.cat.y, loose.cat.z], mode: loose.cat.mode,
         whacks: loose.whacks, pops: loose.pops, shown: hallBall.visible && hallCat.visible, napping: !!hall.napping?.visible } : null,
+      music: music ? { playing: music.playing, notes: music.played() } : null,
       sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, heard: sound ? sound.log.slice() : [], face: showing }),
     // put the ball back on the paddle (it stays there till it's thrown)
     catchBall() { serve(game); wait = 0; },

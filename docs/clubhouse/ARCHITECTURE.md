@@ -39,7 +39,7 @@ activity is checked again, so something moves into it only once a second activit
   `words`, `picture`, `loadImage`, `breathe` (a pause between big parts), the shapes `kit`, `wallGeometry`, `doorway`, the card and its
   door's leaf), so the game still never imports the clubhouse (it imports `three` itself). It hands
   back a place like any room (`name`, `scene`, `floor`, `doors`, `faces`, `uses`, `light`, `spots`,
-  `update(t, dt)`, and if the mansion may put it away when you're far off, `putAway()`, which stops
+  `update(t, dt)`, `hush` if the main theme should stay out of it altogether (see below; music of its own doesn't need it), and if the mansion may put it away when you're far off, `putAway()`, which stops
   anything of its own for good, like its sounds, and takes back anything it put in other places;
   `busy()` if it mustn't be put away just now, like mid-game; and `scenes` if it has more than one), where a use with `play` is the game: `view` (the middle, facing way, width and
   height the screen has to fit), `start()` (called during the press, so sound is allowed),
@@ -190,6 +190,26 @@ activity is checked again, so something moves into it only once a second activit
     your gaze drifting back to level while you walk with the thumb stick.
   - Every word painted in the mansion (signs, labels) uses the kit's 3x5 pixel font, drawn
     straight in (`words`), so none of them waits for a web font.
+  - **The main theme** (`src/clubhouse/music/`): soft music that plays while you're anywhere in the
+    mansion or outside, composed as it plays so it never repeats (the owner asked for that, and has
+    misophonia: no drums, no held pads or drones, every note dies away by itself, a quiet moment
+    between pieces). `compose.js` writes it with no browser (the tests run it): a piece at a time, a
+    minute or two long, each with its own key, mode (major, lydian, dorian, mixolydian, aeolian),
+    speed, 4 or 3 beats a bar and instruments, a form (intro, a tune it comes back to, a middle bit,
+    an ending), chord progressions for each part, and a motif each phrase plays a variation of, with
+    phrases of rest and soft echoes between. `voices.js` plays each note live on the browser's own
+    oscillators (an FM electric piano, a music box, a flute, a marimba, vibes, a harp, a bass: no
+    stored sounds, so it costs nothing to keep) through a soft echo; `theme.js` hands the notes over
+    a moment ahead, and fades. **It never plays over other music, by itself:** every sound in the
+    game goes out through the sound director (`src/shared/audio.js`, below), which hears when any
+    other music is actually playing (Space Adventure's song and radio, Brickbuster's arcade music, and
+    whatever a new room plays), and the theme fades out (about two seconds), staying away until that
+    music has been quiet for 6 seconds, then fades back in (about four), carrying on, or with a new
+    piece after a long quiet. No room has to do anything about it. A place can also ask for quiet
+    with `hush` (`true`, or a function): only the Music Room does, since its instruments are sounds,
+    not music. The pause menu's **MUSIC** button sets all music ON, SOFT or OFF (`mansion.music`;
+    the director turns every music channel down). It stops when an activity on a computer starts
+    (the mansion leaves the page), and rests while the page is out of sight.
 - **Saves** belong to each activity: its keys start with its own name (Dropper World's is
   `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
   uses `sadies-clubhouse.<id>.` for its keys, and lists what its keys start with in its card's
@@ -200,7 +220,15 @@ activity is checked again, so something moves into it only once a second activit
   `mansion.html`) says `<!--@badge-->` (at the end of the page if none does).
 - **The toolbox** (`src/shared/`) so far: `storage.js`, a safe localStorage wrapper (get, set,
   remove; never throws). The one place that touches browser storage, so a different home for saves
-  (itch.io, a desktop app) only changes this file.
+  (itch.io, a desktop app) only changes this file. And `audio.js`, **the sound director**: the one
+  place that makes the browser's sound. Anything that makes sound gets its line to the speakers from
+  `openAudio()` (`{ ctx, out }`, or null with no sound): `openAudio({ music: true })` for music (a
+  tune, a song, a radio), plain `openAudio()` for sounds (cracks, meows, instruments you play). Each
+  music channel has a meter the director reads (`otherMusic()`: was any music but the theme heard in
+  the last 6 seconds?) and a volume it sets (`setMusicLevel`, from the MUSIC button). So a new
+  room's music just goes through a music channel, and the theme makes way for it and the MUSIC
+  button works on it, for free. The clubhouse's headless test fails if anything else makes an
+  AudioContext or plays straight to the speakers.
 
 **Adding an activity:** a folder `src/activities/<name>/` with its `card.js`, `page.html`,
 `styles.css` and a `main.js` for `start()` to load; `tests/<name>/run.mjs` for its headless checks
@@ -214,7 +242,8 @@ any), and it gets a line in the list of activities in the main `README.md`. Noth
 | File | What it does |
 |---|---|
 | `tests/run.mjs` | `npm test`: every activity's headless checks, one activity after another (`npm test -- dropper-world` for one). |
-| `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` whenever anything in the page changed: about half a minute, the phone and the desktop side by side): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, the rooms built after the mansion opens (each under a time limit, all drawn with the same few materials), a room put away and built again as you walk up to its door with nothing piling up, two doors open side by side both showing their rooms, a room whose file won't come keeping its door shut (the others still built) and built once it does, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, and the start-over buttons (NO keeps things, YES starts the letter over). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
+| `tests/clubhouse/run.mjs` | The main theme's headless checks (a few seconds): three hours of it from seeds: pieces a minute or two long with quiet between, every mode, beat and instrument turning up, every note in its key, slow and gentle (no flurries), no drums, drones or long notes, soft starts, the tune resting a good share of phrases, and no eight bars ever coming round again. And that nothing in `src/` but the sound director makes an AudioContext. `tools/check.mjs` runs it with the activities' tests whenever anything in `src/` changed. |
+| `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` whenever anything in the page changed: about half a minute, the phone and the desktop side by side): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, the rooms built after the mansion opens (each under a time limit, all drawn with the same few materials), a room put away and built again as you walk up to its door with nothing piling up, two doors open side by side both showing their rooms, a room whose file won't come keeping its door shut (the others still built) and built once it does, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, the main theme playing, fading out in the Music Room and back after, the pause menu's MUSIC button (SOFT, OFF, ON, remembered), and the start-over buttons (NO keeps things, YES starts the letter over). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
 | `tools/clubhouse/shots.mjs` | Pictures of the mansion from its main spots (the gate, the front door from both sides, the hall, the stairs, the landing, an activity's door and room), as a desktop and a phone, from the built page: `dist/shots/clubhouse/`. |
 | `tools/clubhouse/speed.mjs` | How quick the mansion is, from the built page: how long the first picture took, how long each place took to build (and its longest bit), what's on the graphics card, each frame's work standing in each place, and three rounds of putting every room away and building it again (the numbers must come back the same). It draws with a pretend graphics chip, so it shows what the checks can't: anything that makes the browser wait for the graphics card, like reading a pixel back from a drawn canvas (that held the game up for half a second per room until it was fixed; read pixels only from a canvas made with `willReadFrequently`). |
 | `tools/clubhouse/spot.mjs` | A picture of the mansion from anywhere: `node tools/clubhouse/spot.mjs <name> <place> <x> <z> <y> <lookX> <lookY> <lookZ>` stands there and looks at that point (`dist/shots/clubhouse/spot-<name>.png`), for checking how one thing looks. |

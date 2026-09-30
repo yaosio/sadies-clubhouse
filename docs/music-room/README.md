@@ -82,6 +82,8 @@ SHH, she goes and sits beside one instead, silently, offended, then goes back to
 | `tests/music-room/run.mjs` | Headless: every sound (8-bit, soft, no click, fading to nothing), which key plays what, three hours of Sadie (how often, how many notes, never on what you're playing, never while SHH or while you're out), the tape deck. A few seconds. |
 | `tests/music-room/browser.mjs` | Phone and desktop: through its door, the piano (keys, a tap), the drums, the synth's sounds and demo, the theremin (only while held), recording and playing back a tune, the sign and Sadie sulking, Sadie across the piano (and on her tape), her hopping off the xylophone, the dial, the chimes, kept after a reload. |
 
+The clubhouse's main theme fades out as you come in (its place's `hush` is always on: this room is for your music; the instruments are sounds, not a music channel, so the MUSIC button never silences them) and back in once you've left.
+
 Saves (`sadies-clubhouse.music-room.`): `tape` (both tapes, and which is in), `sign`, `volume`.
 
 **Put away when you're far off.** The mansion puts the room away when you've been three doors or more from it for a while, but never with a tune or anything else still to happen in it (`busy()`). `putAway()` closes its sounds; the tape and the settings are already saved, so it's the same when built again.

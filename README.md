@@ -33,6 +33,9 @@ any feature idea for it), and its parked ideas. You only need to read the one yo
 - **Sadie's in it** somehow.
 - **Its own rules.** Each activity has its own design pillars, and nothing carries over from
   another activity unless the owner says so.
+- **The clubhouse's music.** A soft main theme plays round the mansion, composed as it plays so it
+  never repeats; it fades out wherever an activity has music of its own. The pause menu's MUSIC
+  button turns it (and the activities' music that follows it) SOFT or OFF.
 - **Its own folder.** Each activity's code, tests, tools and docs live apart from the others', so
   changing one never means retesting the others. How the clubhouse and the activities fit
   together: `docs/clubhouse/ARCHITECTURE.md`.

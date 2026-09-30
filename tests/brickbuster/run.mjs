@@ -10,6 +10,8 @@ import { mute } from '../../src/activities/brickbuster/sounds/quiet.js';
 import { pat, chirp, trill, meow, makeChatter, VARIANTS, CHATTER, LOUD } from '../../src/activities/brickbuster/sounds/sadie.js';
 import { crackLines, pileSlots, heapZone } from '../../src/activities/brickbuster/room.js';
 import { makeLoose, release, stepLoose, floorBelow, R as LR } from '../../src/activities/brickbuster/loose.js';
+import { makeTune, RANGE as TR, BPM } from '../../src/activities/brickbuster/music/tune.js';
+import { SHAPES as TS } from '../../src/activities/brickbuster/music/player.js';
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -221,6 +223,36 @@ function play(seed, skill, secs, until) {
   const L = makeLoose(shape, 3);
   release(L, [NaN, 2, 0], [0, 0, 0], [0, 0, 3], 0);
   check('a ball somewhere impossible pops back into the hall', stepLoose(L, 1 / 60).includes('pop') && Math.hypot(L.ball.x, L.ball.z) < A);
+}
+
+// ---------- the arcade music (music/): written as it plays ----------
+{
+  // twenty minutes at each heat (how cracked the glass is)
+  const at = heat => {
+    const tu = makeTune(heat * 10 + 4), bars = [];
+    for (let t = 0; t < 1200;) { const b = tu.next(heat); bars.push(b); t += b.secs; }
+    return bars;
+  };
+  const cool = at(0), warm = at(0.5), hot = at(1), all = [cool, warm, hot].flatMap(b => b.flatMap(x => x.notes));
+  check('arcade music: a square-wave tune, a soft arpeggio and a triangle bass, no drums', all.every(n => ['sq', 'pulse', 'tri'].includes(n.voice)) && cool.flat().length > 100);
+  check('...every note short, soft-edged and in its range', all.every(n => n.len > 0 && n.len <= 0.9 && n.vel > 0 && n.vel * TS[n.voice].gain < 0.4)
+    && all.every(n => n.voice === 'tri' ? n.midi >= TR.bass[0] && n.midi <= TR.bass[1] : n.midi >= TR.lead[0] && n.midi <= TR.lead[1] + 12)
+    && Object.values(TS).every(s => s.attack >= 0.005 && s.release >= 0.03), `longest ${Math.max(...all.map(n => n.len)).toFixed(2)} s`);
+  const bpm = bars => 60 / (bars[0].secs / 4);
+  check('...more exciting as the glass cracks: quicker, and the arpeggio joins in', bpm(cool) === BPM[0] && bpm(hot) === BPM[1] && bpm(warm) > bpm(cool)
+    && !cool.some(b => b.notes.some(n => n.voice === 'pulse')) && warm.some(b => b.notes.some(n => n.voice === 'pulse')), `${bpm(cool)}, ${Math.round(bpm(warm))}, ${bpm(hot)} beats a minute`);
+  // the tune takes a breath: the last bar of a round often has no tune
+  const breaths = cool.filter((b, i) => i % 8 === 7 && !b.notes.some(n => n.voice === 'sq')).length / (cool.length / 8);
+  check('...the tune takes a breath at the end of most rounds', breaths > 0.4, `${Math.round(breaths * 100)}%`);
+  let repeats = 0;
+  for (const bars of [cool, warm, hot]) {
+    const seen = new Set();
+    for (let i = 0; i + 8 <= bars.length; i += 8) {
+      const k = bars.slice(i, i + 8).map(b => b.notes.map(n => n.midi + '@' + Math.round(n.at * 16)).join(' ')).join('|');
+      if (seen.has(k)) repeats++; seen.add(k);
+    }
+  }
+  check('...and it never plays the same round twice in twenty minutes', !repeats, `${repeats} repeats`);
 }
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');

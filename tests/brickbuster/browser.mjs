@@ -60,6 +60,9 @@ export default async function ({ browser, page, check, outDir }) {
     let s = await B();
     check(`${device}: stepping up starts the game, the view eased back to fit the case`, playing && s.active && (await M('where')).z < stood.z - 0.3);
     check(`${device}: ...and the yarn ball is sent off by itself`, !s.serving);
+    const theme = await M('music');
+    check(`${device}: its arcade music plays, and the clubhouse's theme fades out for it`, s.music?.playing && s.music.notes > 0 && !theme.playing && theme.level < 0.05,
+      `${s.music?.notes} notes, theme at ${theme.level}`);
     await p.evaluate(() => window.__brickbuster.catchBall());   // (so it can't miss on its own while we check other things)
 
     // the paddle: keys and the mouse on a desktop, a finger on a phone
@@ -95,6 +98,8 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('4-stepped-back');
     check(`${device}: ${opts.hasTouch ? 'STEP BACK' : 'Escape'} steps back to where you stood`, back && Math.hypot((await M('where')).x - stood.x, (await M('where')).z - stood.z) < 0.05);
     check(`${device}: ...and the game waits, the ball where it was`, !(await B()).active && b1.x === b2.x && b1.y === b2.y);
+    check(`${device}: ...the arcade music stops, and the theme comes back`, !(await B()).music.playing
+      && await p.waitForFunction(() => window.__mansion.music().playing, null, { timeout: 12000 }).then(() => true, () => false));
 
     // the cracks are still there after a reload
     await p.reload(); await up();

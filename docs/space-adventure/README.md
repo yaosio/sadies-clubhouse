@@ -54,6 +54,8 @@ pause menu) gives you the first trip again.
 | `music/` | `song.js` (the notes: the trip's song in A minor, 29 bars that land exactly at touchdown and build a layer at a time; the radio's, the same tune happy in C major, going round), `synth.js` (the instruments, as plain numbers at 22 kHz: pads, plucks, bass, a lead, a bell, a soft kick and snare), `player.js` (plays the notes on time in the browser, through a soft echo; the radio's loudness follows how near you are). |
 | `door.js` | Its door on the landing: a spaceship's hatch with a SPACE sign, a rocket, a porthole with the planet in it, and hazard stripes. Drawn by `art/space-adventure/door.js` (`node tools/space-adventure/pictures.mjs`). |
 
+Its music goes through a music channel (`src/shared/audio.js`), so the clubhouse's main theme makes way for the trip's song and the radio by itself, and comes back once they've been quiet a few seconds; the pause menu's MUSIC button (ON, SOFT, OFF) turns them down too.
+
 The mansion changes it needed (`docs/clubhouse/ARCHITECTURE.md`): a place's `watch` can say `at`
 (where you're put while watching), the kit has `paused()`, and the thumb stick hides while you're
 made to watch something.

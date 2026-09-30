@@ -10,15 +10,15 @@ import * as machine from './machine.js';
 import * as sadie from './sadie.js';
 import * as clyde from './clyde.js';
 import * as weather from './weather.js';
+import { openAudio } from '../../../shared/audio.js';
 
 // every sound, by name
 export const ALL = { chime, ...machine, ...sadie, ...clyde, ...weather };
 
 export function makeSounds(volume = 0.45) {
-  let ctx = null, out = null;
+  let ctx = null, out = null, line = null;
   try {
-    const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
-    ctx = new AC(); out = ctx.createGain(); out.gain.value = volume; out.connect(ctx.destination);
+    line = openAudio(); ctx = line.ctx; out = ctx.createGain(); out.gain.value = volume; out.connect(line.out);
   } catch { ctx = null; }
   const made = new Map();
   // each sample held 4 times over at 44.1 kHz: no smoothing, so it keeps its 11 kHz crunch

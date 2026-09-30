@@ -28,6 +28,11 @@ they fit together). Then only the docs of what you're changing:
 - **How anything looks:** also `docs/clubhouse/ART_STYLE.md` (the approved misremembered-90s look).
 - **The mansion, the page shell, the toolbox, the build or the checks:** `docs/clubhouse/` is enough.
 
+**Sound:** everything that makes sound gets it from the sound director, `openAudio()` in
+`src/shared/audio.js` (never its own AudioContext; a check fails otherwise). Music (a tune, a song, a
+radio) asks for `openAudio({ music: true })`: then the main theme fades out for it and the MUSIC button
+works on it by itself. The owner has misophonia: nothing droning, constant or repetitive.
+
 Don't start a parked idea (each activity's README lists them) unless asked. Never move a room: a
 new activity's door takes the next free spot on the landing (its card's `slot`), and anything by a
 door (like the dirt pile by Dropper World's) stays with it. A building outside the gate takes the

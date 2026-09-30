@@ -37,6 +37,7 @@
   background:var(--panel);border:3px solid;border-color:var(--hi) var(--lo) var(--lo) var(--hi)}
 #mansion #menu h2{margin:0;font-size:20px;color:var(--gold);text-shadow:2px 2px 0 #a02a70}
 #mansion #menu h3{margin:4px 0 0;font-size:11px;color:#ff8ec8;letter-spacing:.06em}
+#mansion #menu #music{font-size:11px;padding:6px 14px;background:#8ad8ff;box-shadow:0 3px 0 #2a6a9a}
 #mansion #menu .how{margin:0;font-size:10px;line-height:1.7;color:#e8dcff}
 #mansion #dev{display:grid;gap:8px;justify-items:center;width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
 #mansion #resets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}

@@ -5,12 +5,12 @@
 // the next press or key (and whoever made it can wake() it during one). If the browser has no sound
 // at all, it quietly does nothing (but still counts, for the checks).
 import { RATE } from './retro.js';
+import { openAudio } from '../../../shared/audio.js';
 
 export function makePlayer(volume = 0.5) {
-  let ctx = null, out = null;
+  let ctx = null, out = null, line = null;
   try {
-    const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
-    ctx = new AC(); out = ctx.createGain(); out.gain.value = volume; out.connect(ctx.destination);
+    line = openAudio(); ctx = line.ctx; out = ctx.createGain(); out.gain.value = volume; out.connect(line.out);
   } catch { ctx = null; }
   const made = new Map();
   // each sample held 4 times over at 44.1 kHz: no smoothing, so it keeps its 11 kHz crunch

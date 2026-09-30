@@ -408,6 +408,7 @@ export async function buildRoom(m) {
   let chimedAt = -Infinity, swing = 0;
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie, ...notes],
+    hush: true,   // (the clubhouse's music stays out: this room is for yours, and its instruments aren't music channels)
     uses: [
       { pos: new Vector3(PX, 0.88, PZ + 0.52), reach: 2.6, label: piano.label, play: piano },
       { pos: new Vector3(XX, XY, XZ), reach: 2.4, label: xylophone.label, play: xylophone },
