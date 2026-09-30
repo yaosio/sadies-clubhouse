@@ -192,6 +192,14 @@ export function buildHall(T, cards, doorPictures = []) {
   const inFront = (d, back) => { const [x, z] = [d.pos.x + d.normal.x * back, d.pos.z + d.normal.z * back]; return { x, z, yaw: d.yaw + Math.PI, pitch: 0 }; };
   return {
     name: 'hall', scene, floor, doors, faces: [], uses: [],
+    napping: sadie,   // Sadie asleep in her box in the sunbeam (a game can wake her: Brickbuster's loose yarn ball)
+    // the hall's solid shape, for things that bounce round it (Brickbuster's yarn ball): the walls'
+    // distance from the middle, the post's radius, the first landing (its inner edge, its height
+    // and thickness, the railing on it), the second landing's height (nothing goes above it), the
+    // spiral stairs' treads, and the furniture on the ground floor
+    shape: { wall: A, post: 1.16, landing: { inner: IN, y: L1, thick: 0.18, rail: 1.0 }, top: L2,
+      stairs: { r0: 1.45, r1: 3.05, th0: TH0, turn: TURN, rise: RISE, treads: STEPS + UPPER },
+      blocks: BLOCKS.map(([x, z, r]) => ({ x, z, r, h: 1.0 })) },
     light: { sun: 0.15, bulb: 0.75, lamp: [CH.x, CH.y - 0.4, CH.z] },
     spots: {
       start: { ...inFront(doors.front, 1.2), pitch: 0.25, y: 0 },

@@ -10,6 +10,7 @@ import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ExtrudeGeometry, Sh
   DoubleSide, CanvasTexture, NearestFilter } from 'three';
 import { makeGame, step, launch, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS } from './game.js';
 import { makePlayer } from './sound.js';
+import { makeLoose, release, stepLoose, R as LR } from './loose.js';
 import { store } from '../../shared/storage.js';
 import posterPic from './poster.js';
 
@@ -226,7 +227,8 @@ export async function buildRoom(m) {
   const play = {
     label: "PLAY BRICKBUSTER '96",
     // what the view has to fit: the glass, and a bit of the case round it
-    view: { center: new Vector3(0, FY + (H + 1.4) / 2, CZ - Z.glass), normal: new Vector3(0, 0, -1), w: W + 0.6, h: H + 1.7 },   // the glass and the marquee
+    // (the glass, the marquee, and the floor in front with the heap of bricks on it)
+    view: { center: new Vector3(0, (FY + H + 1.5) / 2 - 0.35, CZ - Z.glass), normal: new Vector3(0, 0, -1), w: W + 1.2, h: FY + H + 2.3 },
     over: false,   // broken: the mansion steps you back to watch
     start() {
       if (!sound) sound = makePlayer();
@@ -314,7 +316,7 @@ export async function buildRoom(m) {
     if (noise === 'boing') sound?.boing(Math.random() * 2 - 1);
     if (noise === 'mute') { sound?.mute(); place.holding = door; run = { t: 0, from: sadie.position.clone() }; }
     e.from = to.clone(); e.t = 0; e.i++;
-    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; place.watch = null; }
+    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; place.watch = null; outInTheHall(true); }
   }
   // Sadie: off her box and straight out the door after it
   function runOn(dt) {
@@ -328,6 +330,30 @@ export async function buildRoom(m) {
   let signUp = false;
   function putSignUp() { if (signed && m.landingDoor) { m.landingDoor.paint(signed); signUp = true; } }
   function finished() { place.holding = null; doneAt = 0; putSignUp(); }
+
+  // ---------- out in the hall: the yarn ball loose for ever, and Sadie chasing it ----------
+  // (loose.js has how; here they're drawn in the hall, which the mansion hands over as m.hall)
+  const hall = m.hall, loose = hall?.shape ? makeLoose(hall.shape, Math.floor(Math.random() * 1e6) + 1) : null;
+  let hallBall = null, hallCat = null;
+  if (loose) {
+    hallBall = new Mesh(ball.geometry, ball.material); hallBall.visible = false; hall.scene.add(hallBall);
+    hallCat = new Mesh(sadie.geometry, psx(T.sadie, { unlit: 0.4 })); hallCat.visible = false; hall.scene.add(hallCat); hall.faces.push(hallCat);
+  }
+  // just now: bouncing out of the door onto the landing, Sadie a moment behind it; or (it got out
+  // before) somewhere on the ground floor, Sadie beside it
+  function outInTheHall(now) {
+    if (!loose) return;
+    if (hall.napping) hall.napping.visible = false;   // her box in the sunbeam is empty: she's busy
+    const d = m.landingDoor, s = hall.shape;
+    if (now && d) {
+      const n = d.normal, y = d.pos.y;
+      release(loose, [d.pos.x + n.x * 0.4, y + LR + 0.4, d.pos.z + n.z * 0.4], [n.x * 4.5 + n.z * 1.2, 2, n.z * 4.5 - n.x * 1.2], [d.pos.x + n.x * 0.3, y, d.pos.z + n.z * 0.3], 1.7);
+    } else {
+      const a = Math.random() * Math.PI * 2, r = s.post + 2.5;
+      release(loose, [Math.sin(a) * r, 0.8, Math.cos(a) * r], [0, 0, 0], [Math.sin(a + 0.25) * r, 0, Math.cos(a + 0.25) * r], 0);
+    }
+    hallBall.visible = true;
+  }
 
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie],
@@ -386,6 +412,13 @@ export async function buildRoom(m) {
       if (escape && escape !== 'gone') escapeOn(dt);
       if (run && run !== 'gone') runOn(dt);
       if (doneAt && t > doneAt) finished();
+      if (loose?.ball) {
+        stepLoose(loose, dt);
+        const b = loose.ball, c = loose.cat;
+        hallBall.position.set(b.x, b.y, b.z); hallBall.rotation.set(b.spin * 0.7, 0, b.spin * 0.5);
+        hallCat.visible = c.mode !== 'coming'; hallCat.position.set(c.x, c.y, c.z);
+        hallCat.scale.set(c.mode === 'whack' ? 1.15 : 1, c.mode === 'whack' ? 0.9 : 1, 1);   // (a crouch before the swat)
+      }
       // the paddle's face: calm while nobody's playing, focused while you are (nervous once the
       // glass has cracked), happy for a moment when it hits the ball, wincing at a crack; its eyes
       // follow the ball. Once it's broken: lying in the rubble, sad, sighing now and then.
@@ -411,7 +444,7 @@ export async function buildRoom(m) {
   if (game.broken) {   // it broke before: how it's been left
     brokenLook(); scene.attach(paddle); restPaddle(); ball.visible = false; sadie.visible = false;
     escape = 'gone'; run = 'gone';
-    putSignUp();
+    putSignUp(); outInTheHall(false);
   }
   else edges.visible = shardsOnFloor.visible = false;
 
@@ -422,6 +455,8 @@ export async function buildRoom(m) {
       cracks: { top: game.cracks.top.length, bottom: game.cracks.bottom.length },
       escape: escape === 'gone' ? 'gone' : escape ? 'hop ' + escape.i : null, sadie: sadie.visible, doorHeld: !!place.holding, sign: signUp,
       yarn: ball.getWorldPosition(new Vector3()).toArray(), watched: !!place.watch,
+      hall: loose?.ball ? { ball: [loose.ball.x, loose.ball.y, loose.ball.z], cat: [loose.cat.x, loose.cat.y, loose.cat.z], mode: loose.cat.mode,
+        whacks: loose.whacks, pops: loose.pops, shown: hallBall.visible && hallCat.visible, napping: !!hall.napping?.visible } : null,
       sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, heard: sound ? sound.log.slice() : [], face: showing }),
     // send the ball somewhere (x, y along the glass, and which way)
     throwBall(x, y, vx, vy) { Object.assign(game.ball, { x, y, vx, vy }); game.serving = false; wait = 0; },

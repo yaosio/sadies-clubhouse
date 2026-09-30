@@ -5,6 +5,7 @@
 import { makeGame, step, launch, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS, SPEED, ROWS, COLS } from '../../src/activities/brickbuster/game.js';
 import { crack, boing, blip, tock, tink, shatter, mute, RATE } from '../../src/activities/brickbuster/sound.js';
 import { crackLines, pileSlots, heapZone } from '../../src/activities/brickbuster/room.js';
+import { makeLoose, release, stepLoose, floorBelow, R as LR } from '../../src/activities/brickbuster/loose.js';
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -153,6 +154,38 @@ function play(seed, skill, secs, until) {
   check('...all where nobody needs to walk', spots.every(p => heapZone(p.x, p.z)));
   const held = spots.every((p, i) => p.layer === 0 || spots.slice(0, i).some(q => q.layer === p.layer - 1 && Math.hypot(p.x - q.x, p.z - q.z) < 0.45));
   check('...and filled from the floor up: no brick lands on thin air', held);
+}
+
+// 10. loose in the hall: the yarn ball bounces round for ever and Sadie keeps whacking it off again
+{
+  // the hall's shape, as hall.js hands it over (a copy: these tests don't load the mansion; the
+  // browser checks use the real one)
+  const A = 8 * Math.cos(Math.PI / 16);
+  const shape = { wall: A, post: 1.16, landing: { inner: 8 - 2.3, y: 4.6, thick: 0.18, rail: 1.0 }, top: 9.2,
+    stairs: { r0: 1.45, r1: 3.05, th0: -2.1, turn: 0.29, rise: 4.6 / 22, treads: 26 },
+    blocks: [{ x: -2.4, z: -6.9, r: 0.8 }, { x: -5.4, z: -4.5, r: 0.35 }, { x: 5.3, z: 2.0, r: 0.65 }].map(b => ({ ...b, h: 1.0 })) };
+  let outside = 0, inSlab = 0, catOff = 0, whacks = 0, pops = 0, longest = 0, ground = 0, landing = 0, frames = 0;
+  for (const seed of [1, 7, 42]) {
+    const L = makeLoose(shape, seed), th = 10 * Math.PI / 8, dx = Math.sin(th), dz = Math.cos(th);
+    release(L, [dx * (A - 0.4), 4.6 + LR + 0.4, dz * (A - 0.4)], [-dx * 4.5, 2, -dz * 4.5], [dx * (A - 0.3), 4.6, dz * (A - 0.3)], 1.7);
+    let last = 0;
+    for (let t = 0; t < 1800; t += 1 / 60) {
+      for (const e of stepLoose(L, 1 / 60)) { if (e === 'whack') { whacks++; longest = Math.max(longest, t - last); last = t; } if (e === 'pop') pops++; }
+      const b = L.ball, r = Math.hypot(b.x, b.z), c = L.cat;
+      if (r > A - LR + 1e-6 || b.y < LR - 1e-6 || b.y > shape.top) outside++;
+      if (r > shape.landing.inner + 0.01 && b.y + LR > 4.6 - 0.18 + 0.01 && b.y - LR < 4.6 - 0.01) inSlab++;
+      if (Math.hypot(c.x, c.z) > A || (!c.leap && c.mode !== 'coming' && Math.abs(c.y - floorBelow(shape, c.x, c.z, c.y + 0.05)) > 0.01)) catOff++;
+      if (b.on) { frames++; if (b.y > 4) landing++; else ground++; }
+    }
+  }
+  check('loose in the hall, the yarn ball never gets out of it, or through the landing', !outside && !inSlab, `${outside} outside, ${inSlab} in the landing, over 90 minutes`);
+  check('...Sadie keeps whacking it off again', whacks / 90 > 3 && longest < 60, `${(whacks / 90).toFixed(1)} a minute, longest wait ${longest.toFixed(0)} s`);
+  check('...it spends time both up on the landing and down below', landing / frames > 0.1 && ground / frames > 0.1, `${(landing / frames * 100).toFixed(0)}% on the landing`);
+  check('...Sadie always lands on something, inside the hall', !catOff);
+  check('...and it hardly ever needs popping back', pops <= 3, `${pops} times`);
+  const L = makeLoose(shape, 3);
+  release(L, [NaN, 2, 0], [0, 0, 0], [0, 0, 3], 0);
+  check('a ball somewhere impossible pops back into the hall', stepLoose(L, 1 / 60).includes('pop') && Math.hypot(L.ball.x, L.ball.z) < A);
 }
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');

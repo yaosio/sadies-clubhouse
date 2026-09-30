@@ -47,7 +47,10 @@ activity is checked again, so something moves into it only once a second activit
   it), and make everyone in it watch something (`watch`: a point; your view follows it and you
   can't walk or look away until it's null again: Brickbuster's escaping yarn ball). The kit also has its door's picture (`doorImage`) and its door on the landing
   (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
-  ORDER sign). An address naming it after the `#` just opens the mansion.
+  ORDER sign) and the hall itself (`hall`: its scene and `faces`, `napping`, Sadie asleep in her
+  box, and `shape`, its solid shape for things bouncing round it), so a game can let something
+  loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update` moves them,
+  since every place updates every frame). An address naming it after the `#` just opens the mansion.
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
   one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2), so a new activity never
   shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new

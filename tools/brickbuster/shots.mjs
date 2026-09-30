@@ -76,6 +76,17 @@ for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800
   await shot('15-out-of-order', 1500);
   await p.evaluate(() => { const m = window.__mansion; m.faceDoor('hall', 'dropper-world', 2.4); m.turnTo(m.where().yaw, -0.3); });
   await shot('16-dirt-by-dropper-world', 1200);
+  // out in the hall: stand back from the yarn ball and Sadie, looking at them
+  const lookAtBall = () => p.evaluate(() => {
+    const m = window.__mansion, h = window.__brickbuster.state().hall; if (!h) return;
+    const [x, y, z] = h.ball, a = Math.atan2(x, z), r = Math.hypot(x, z), onLanding = y > 4;
+    const sx = Math.sin(a + (onLanding ? 0.5 : 0)) * (onLanding ? 6.6 : Math.max(1.8, r - 3)), sz = Math.cos(a + (onLanding ? 0.5 : 0)) * (onLanding ? 6.6 : Math.max(1.8, r - 3));
+    const fy = onLanding ? 4.6 : 0;
+    m.put('hall', { x: sx, z: sz, y: fy, yaw: Math.atan2(-(x - sx), -(z - sz)), pitch: Math.atan2(y - fy - 1.6, Math.hypot(x - sx, z - sz)) });
+  });
+  for (const [name, wait] of [['17-hall-yarn-ball', 2500], ['18-hall-later', 9000], ['19-hall-later-still', 9000]]) {
+    await p.waitForTimeout(wait); await lookAtBall(); await shot(name, 150);
+  }
   console.log(JSON.stringify(await p.evaluate(() => window.__brickbuster.state())));
   await ctx.close();
 }

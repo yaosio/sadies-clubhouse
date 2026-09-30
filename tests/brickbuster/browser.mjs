@@ -141,8 +141,18 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the yarn ball hits the poster (squeak) and goes out the door, which opens for it`, s.escape === 'gone' && muted && held && s.lastSound === 'mute');
     check(`${device}: ...Sadie goes after it, and the door gets her OUT OF ORDER sign`, !s.sadie && s.sign && !s.doorHeld);
     check(`${device}: ...and the case doesn't offer to play any more`, await M('target') === null);
+    // out in the hall: the ball's loose, Sadie's after it, and her napping box is empty
+    await p.waitForTimeout(1500);
+    s = await B();
+    const r0 = Math.hypot(s.hall?.ball[0] ?? 99, s.hall?.ball[2] ?? 99);
+    check(`${device}: the yarn ball's loose in the hall, and Sadie's out there after it`, s.hall && s.hall.shown && !s.hall.napping && r0 < 7.8, s.hall && `ball ${r0.toFixed(1)} m from the middle, ${s.hall.ball[1].toFixed(1)} m up`);
+    await M('put', 'hall', 'start');
+    await p.waitForTimeout(300);
+    await shot('6b-hall');
     await p.reload(); await up();
     s = await B();
+    const h1 = s.hall; await p.waitForTimeout(2500); const h2 = (await B()).hall;
+    check(`${device}: ...and it still is next time, moving`, h1 && h2 && h2.shown && !h2.napping && (Math.hypot(h2.ball[0] - h1.ball[0], h2.ball[2] - h1.ball[2]) > 0.05 || Math.hypot(h2.cat[0] - h1.cat[0], h2.cat[2] - h1.cat[2]) > 0.05 || h2.whacks > h1.whacks));
     await M('faceDoor', 'hall', 'brickbuster', 2.4);
     await p.waitForTimeout(800);
     await shot('7-out-of-order');
@@ -155,7 +165,7 @@ export default async function ({ browser, page, check, outDir }) {
       await p.click('#resets button:has-text("BRICKBUSTER")');
       await up();
       s = await B();
-      check(`${device}: the test version's pause menu can start Brickbuster over: fixed`, !s.cracks.bottom && !s.cracks.top && !s.broken && !s.pile && s.bricks === 80 && s.sadie && !s.sign);
+      check(`${device}: the test version's pause menu can start Brickbuster over: fixed`, !s.cracks.bottom && !s.cracks.top && !s.broken && !s.pile && s.bricks === 80 && s.sadie && !s.sign && !s.hall);
     }
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
