@@ -84,7 +84,8 @@ export function buildHall(T, cards, doorPictures = []) {
   for (let i = 0; i < STEPS + UPPER; i++) {
     const th = TH0 + i * TURN, y = (i + 1) * RISE, [x, z] = at(2.1, th);
     add(new Mesh(treadGeo, i < STEPS + UPPER - 1 ? tread : wood), [x, y - 0.07, z], [0, th + Math.PI / 2, 0]);
-    if (i < STEPS) { const [px, pz] = at(3.0, th); cyl(0.03, 0.03, 0.9, 4, brown, [px, y + 0.45, pz]); railPts.push(new Vector3(px, y + 0.92, pz)); }
+    // the handrail stops a step short of the top, so it doesn't stand across the way onto the bridge
+    if (i < STEPS - 1) { const [px, pz] = at(3.0, th); cyl(0.03, 0.03, 0.9, 4, brown, [px, y + 0.45, pz]); railPts.push(new Vector3(px, y + 0.92, pz)); }
   }
   add(new Mesh(keep(new TubeGeometry(new CatmullRomCurve3(railPts), 40, 0.045, 4)), psx(null, { tint: 0xffd23a })));
   { const th = TH0 + (STEPS + UPPER) * TURN, [x, z] = at(2.1, th), y0 = (STEPS + UPPER) * RISE;
@@ -148,6 +149,8 @@ export function buildHall(T, cards, doorPictures = []) {
     for (const [w, p, r] of [[1.0, [0, 0.25, -0.35], 0], [1.0, [0, 0.25, 0.35], Math.PI], [0.7, [-0.5, 0.25, 0], Math.PI / 2], [0.7, [0.5, 0.25, 0], -Math.PI / 2]]) {
       const m = new Mesh(keep(new PlaneGeometry(w, 0.5)), psx(T.cardboard, { side: DoubleSide })); m.position.set(...p); m.rotation.y = r; nap.add(m); }
     const flap = new Mesh(keep(new PlaneGeometry(1.0, 0.35)), psx(T.cardboard, { side: DoubleSide })); flap.position.set(0, 0.55, -0.5); flap.rotation.x = -0.9; nap.add(flap);
+    // its bottom, so the floor's tiles don't show through inside it
+    const bottom = new Mesh(keep(new PlaneGeometry(0.96, 0.66)), psx(T.cardboard, { rx: 2, decal: true })); bottom.position.set(0, 0.03, 0); bottom.rotation.x = -Math.PI / 2; nap.add(bottom);
     BLOCKS.push([x, z, 0.65]); }
   const sadie = new Mesh(keep(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.31, 0)), psx(T.nap, { unlit: 0.4 }));
   sadie.position.copy(nap.position).add(new Vector3(0, 0.12, 0)); scene.add(sadie);
@@ -191,7 +194,7 @@ export function buildHall(T, cards, doorPictures = []) {
 
   const inFront = (d, back) => { const [x, z] = [d.pos.x + d.normal.x * back, d.pos.z + d.normal.z * back]; return { x, z, yaw: d.yaw + Math.PI, pitch: 0 }; };
   return {
-    name: 'hall', scene, floor, doors, faces: [], uses: [],
+    name: 'hall', scene, floor, doors, faces: [sadie], uses: [],   // Sadie turns to face you, like everywhere else
     napping: sadie,   // Sadie asleep in her box in the sunbeam (a game can wake her: Brickbuster's loose yarn ball)
     // the hall's solid shape, for things that bounce round it (Brickbuster's yarn ball): the walls'
     // distance from the middle, the post's radius, the first landing (its inner edge, its height

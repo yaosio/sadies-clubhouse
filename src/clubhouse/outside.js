@@ -72,7 +72,7 @@ export function buildOutside(T) {
   plane(2.0, 0.45, psx(T.fanlight, { decal: true, unlit: 0.3 }), [0, 3.72, -0.06], [0, Math.PI, 0], 1);
   const STEPS = [0, 1, 2].map(i => ({ w: 5.4 - i * 0.4, d: 3.4 - i * 0.5, z: -1.6 + i * 0.25, top: 0.15 * (i + 1) }));
   for (const s of STEPS) box(s.w, 0.15, s.d, psx(T.stone, { rx: 3, ry: 2 }), [0, s.top - 0.075, s.z]);
-  plane(1.5, 0.75, psx(T.mat, { decal: true }), [0, 0.46, -0.9], [-Math.PI / 2, 0, 0], 1);
+  plane(1.5, 0.75, psx(T.mat, { decal: true }), [0, 0.46, -0.9], [-Math.PI / 2, 0, Math.PI], 1);   // turned to read as you walk up
   const door = doorway(scene, { pos: [0, 0.45, 0], yaw: Math.PI, w: 2.0, h: 3.0, leaves: [T.leafL, T.leafR] });
 
   // a branch: the games wing, joined by a covered bridge; and a bare platform where the next goes
