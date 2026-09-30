@@ -152,12 +152,17 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('6b-hall');
     // Sadie's sounds: heard in the hall (unless she's right across it), never from another room;
     // and nothing the ball does makes a sound
-    const said = async () => { await p.evaluate(() => window.__brickbuster.sadieSays('meow')); return (await B()).heard.filter(k => k.startsWith('sadie-')).length; };
+    // (how many of her sounds that one call made, counted in the same moment: she chatters by
+    // herself in the hall too, and one of those landing between two looks isn't this meow)
+    const said = () => p.evaluate(() => {
+      const n = () => window.__brickbuster.state().sounds;
+      const n0 = n(); window.__brickbuster.sadieSays('meow'); return n() - n0;
+    });
     const w0 = await M('where'), c0 = (await B()).hall.cat, far = Math.hypot(c0[0] - w0.x, c0[1] + 0.3 - w0.y - 1.6, c0[2] - w0.z);
     const inHall = await said();
     await M('put', 'room:brickbuster', 'case'); await p.waitForTimeout(200);
     const inRoom = await said();
-    check(`${device}: Sadie's meow is heard in the hall, and not from her room`, (far > 15 || inHall >= 1) && inRoom === inHall, `${far.toFixed(1)} m off, heard ${inHall} then ${inRoom}`);
+    check(`${device}: Sadie's meow is heard in the hall, and not from her room`, (far > 15 || inHall === 1) && inRoom === 0, `${far.toFixed(1)} m off, heard ${inHall} in the hall, ${inRoom} in her room`);
     check(`${device}: ...and the yarn ball itself stays silent`, (await B()).heard.slice((await B()).heard.lastIndexOf('mute') + 1).every(k => k.startsWith('sadie-')), (await B()).heard.slice(-6).join(' '));
     await p.reload(); await up();
     s = await B();

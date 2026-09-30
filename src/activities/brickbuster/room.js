@@ -194,8 +194,9 @@ export async function buildRoom(m) {
   const shardGeo = keep(new ShapeGeometry(new Shape([new Vector2(0, 0), new Vector2(0.22, 0.05), new Vector2(0.06, 0.3)])));
   const shardMat = psx(null, { tint: 0xd8f6ff, unlit: 0.8, side: DoubleSide });
   const shards = [];
-  // the landing's side of the door: Sadie's OUT OF ORDER sign, taped on crooked
-  const signed = m.doorImage ? outOfOrder(m.doorImage, words) : null;
+  // the landing's side of the door: Sadie's OUT OF ORDER sign, taped on crooked (made once: it stays
+  // on the landing's door while the room's put away, and the room built again uses the same one)
+  const signed = m.doorImage ? signs.get(m.doorImage) || signs.set(m.doorImage, outOfOrder(m.doorImage, words)).get(m.doorImage) : null;
 
   // ---------- drawing the marquee and the cracks ----------
   let shownScore = -1;
@@ -381,13 +382,13 @@ export async function buildRoom(m) {
     uses: game.broken ? [] : [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 8.5, label: play.label, play }],
     holding: null,   // a door being held open (the yarn ball and Sadie on their way out)
     // (the mansion puts the room away when you're far off, never mid-game or while the ball's getting
-    // out; the yarn ball and Sadie leave the hall with it, and come back when it's built again)
+    // out; the yarn ball and Sadie leave the hall with it, and come back when it's built again; her sign
+    // stays on the landing's door)
     busy: () => active || (escape && escape !== 'gone') || (run && run !== 'gone') || !!doneAt || flights.length > 0 || falling.length > 0,
     putAway() {
       if (dirty) keep_();
       leaving.abort(); sound?.close();
       if (hallBall) { hall.scene.remove(hallBall, hallCat); hall.faces.splice(hall.faces.indexOf(hallCat), 1); }
-      if (signUp) m.landingDoor.paint(null);
     },
     watch: null,     // what your view follows (the yarn ball, while it's getting out)
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },
@@ -522,6 +523,8 @@ export function pileSlots() {
   const hx = -1.6, hz = front;
   return out.map((p, i) => ({ ...p, k: p.layer * 100 + Math.hypot(p.x - hx, p.z - hz) + i * 1e-6 })).sort((a, b) => a.k - b.k).slice(0, 80);
 }
+
+const signs = new WeakMap();   // (the sign, per door picture)
 
 // The landing's side of the door, with Sadie's sign taped on it: OUT OF ORDER in wobbly marker,
 // crooked, signed with a paw print.
