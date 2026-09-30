@@ -28,7 +28,9 @@ Built in `src/clubhouse/` (how it works: `docs/clubhouse/ARCHITECTURE.md`). The 
 `art/mansion/` (`mockup.js` is the 3D scene, `page.js` the page around it; `node
 art/mansion/build.mjs && node art/mansion/shots.mjs` builds it and takes the pictures), published at
 https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so far:
-- **Crappy late-90s 3D**, grown from a real-3D test room the owner approved: low resolution,
+- **Crappy late-90s 3D**, grown from a real-3D test room the owner approved: low resolution
+  (at most 960 pixels across the long side of the screen, so desktop gets about as much detail as
+  an upright phone and painted words stay readable; it used to be much blurrier on desktop),
   corners that snap to the pixel grid (textures swam too at first; the owner found it far too
   distracting, so they don't), few colors with dithering, lit per corner; characters stay flat
   pixel sprites that turn to face you. Its textures are drawn when the page opens (`look.js`);
