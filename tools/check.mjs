@@ -75,7 +75,7 @@ const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => 
 const testPaths = a => a === 'clubhouse' ? ['package.json', 'src', 'tests/clubhouse'] : ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
+const pagePaths = a => [`tools/${a}`, 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
@@ -106,7 +106,12 @@ function sameAsLive(file, paths) {
 // An activity's browser.mjs can export prepare(): it's started now, in the background, so it's made
 // while the headless tests run instead of after them. Its result is handed to the checks.
 const mode = preview ? 'preview' : 'real';
-const browserHash = a => hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode;
+// (every hash is worked out now, once, from the files as they are before anything's checked: a file
+// edited while the checks run can't then be noted as passed without being checked)
+const testHash = Object.fromEntries([...ACTIVITIES, 'clubhouse'].map(a => [a, hashOf(testPaths(a))]));
+const browserHashes = Object.fromEntries(ACTIVITIES.map(a => [a, hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode]));
+const browserHash = a => browserHashes[a];
+const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs']) + '-' + mode;
 const toCheck = ACTIVITIES.filter(a => existsSync(join(root, 'tests', a, 'browser.mjs')) && (retest || !existsSync(note('browser', a, browserHash(a)))));
 const suites = {}, prepared = {};
 for (const a of toCheck) {
@@ -119,7 +124,7 @@ if (!quick) {
   const liveAt = args.indexOf('--live'), liveFile = liveAt >= 0 ? args[liveAt + 1] : null;
   for (const a of [...ACTIVITIES, 'clubhouse']) {
     if (!existsSync(join(root, 'tests', a, 'run.mjs'))) continue;
-    const hash = hashOf(testPaths(a));
+    const hash = testHash[a];
     if (liveFile && !existsSync(note('tests', a, hash)) && !retest) {
       const why = sameAsLive(liveFile, testPaths(a));
       if (why) console.log(`\n== ${a}: live page\nits code isn't the same as the live page's (${why}), so its tests run`);
@@ -159,13 +164,15 @@ const browser = await chromium.launch();
 // the mansion: it has every activity's door, so any change to anything in the page runs it again
 // (only exactly the same page, already passed, skips it)
 console.log('\n== the clubhouse in a browser');
-const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs']) + '-' + mode;
 if (existsSync(note('browser', 'clubhouse', clubHash)) && !retest) console.log('already passed on exactly this page, not running it again');
 else {
   const t = Date.now(), dir = join(outDir, 'clubhouse'), before = failed;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
-  const { default: checks } = await import(join(root, 'tests/clubhouse/browser.mjs'));
-  await checks({ browser, page, check: (name, ok, detail) => check(`clubhouse: ${name}`, ok, detail), run, hashOf, root, outDir: dir });
+  // (a check that gets stuck counts as failed, and the rest still run)
+  try {
+    const { default: checks } = await import(join(root, 'tests/clubhouse/browser.mjs'));
+    await checks({ browser, page, check: (name, ok, detail) => check(`clubhouse: ${name}`, ok, detail), run, hashOf, root, outDir: dir }); }
+  catch (e) { check('clubhouse: the checks ran to the end', false, e.message.split('\n')[0]); }
   if (failed === before) passed('browser', 'clubhouse', clubHash);
   took(t);
 }
@@ -180,8 +187,10 @@ for (const a of ACTIVITIES) {
   const t = Date.now(), dir = join(outDir, a);
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
   const before = failed;
-  await suites[a].default({ browser, page, check: (name, ok, detail) => check(`${a}: ${name}`, ok, detail), run, hashOf, root, outDir: dir,
-    prepared: await prepared[a] });
+  try {
+    await suites[a].default({ browser, page, check: (name, ok, detail) => check(`${a}: ${name}`, ok, detail), run, hashOf, root, outDir: dir,
+      prepared: await prepared[a] });
+  } catch (e) { check(`${a}: the checks ran to the end`, false, e.message.split('\n')[0]); }
   if (failed === before) passed('browser', a, browserHash(a));
   took(t);
 }

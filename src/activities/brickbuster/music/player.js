@@ -21,14 +21,20 @@ const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 // `h`: the room's handle (src/shared/sound.js); the music goes out through a music line of its own
 export function makeArcade(h, seed = Date.now()) {
   const line = h.line('music');
-  let ctx = line?.ctx ?? null, out = null, echo = null;
-  if (ctx) {
+  let ctx = line?.ctx ?? null, out = null, wet = null, echo = null;
+  // the output notes go into, and the send into the echo beside it: both fade together when it
+  // stops (so no note already handed over carries on in the echo)
+  const fresh = () => {
     out = ctx.createGain(); out.gain.value = 0; out.connect(line.out);
+    wet = ctx.createGain(); wet.gain.value = 0; wet.connect(echo);
+  };
+  if (ctx) {
     // a short slapback, like a cabinet in a big room
     echo = ctx.createGain(); echo.gain.value = 0.22;
     const d = ctx.createDelay(1), fb = ctx.createGain(), lp = ctx.createBiquadFilter();
     d.delayTime.value = 0.16; fb.gain.value = 0.2; lp.type = 'lowpass'; lp.frequency.value = 1500;
     echo.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(line.out);
+    fresh();
   }
   const tune = makeTune(seed);
   let clock = 0, playing = false, notes = 0;
@@ -40,7 +46,7 @@ export function makeArcade(h, seed = Date.now()) {
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = s.cut;
     const o = ctx.createOscillator(); o.type = n.voice === 'tri' ? 'triangle' : n.voice === 'pulse' ? 'sawtooth' : 'square'; o.frequency.value = hz(n.midi);
     o.connect(lp); lp.connect(amp); amp.connect(out);
-    if (n.voice !== 'tri') { const w = ctx.createGain(); w.gain.value = 0.5; amp.connect(w); w.connect(echo); }
+    if (n.voice !== 'tri') { const w = ctx.createGain(); w.gain.value = 0.5; amp.connect(w); w.connect(wet); }
     o.start(when); o.stop(end + s.release * 8);
     o.onended = () => { try { amp.disconnect(); } catch {} };
   }
@@ -52,17 +58,18 @@ export function makeArcade(h, seed = Date.now()) {
       playing = true;
       if (!ctx) return;
       h.wake();
-      out.gain.cancelScheduledValues(ctx.currentTime); out.gain.setTargetAtTime(LOUD, ctx.currentTime, 0.05);
+      for (const [g, v] of [[out, LOUD], [wet, 1]]) { g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setTargetAtTime(v, ctx.currentTime, 0.05); }
     },
     // stop, fading out over about `secs`
     stop(secs = 0.4) {
       if (!playing) return;
       playing = false;
       if (!ctx) return;
-      out.gain.cancelScheduledValues(ctx.currentTime); out.gain.setTargetAtTime(0, ctx.currentTime, secs / 3);
+      const old = [out, wet];
+      for (const g of old) { g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setTargetAtTime(0, ctx.currentTime, secs / 3); }
       // (a fresh output for next time, so the notes already handed over fade with the old one)
-      const old = out; out = ctx.createGain(); out.gain.value = 0; out.connect(line.out);
-      setTimeout(() => { try { old.disconnect(); } catch {} }, secs * 1000 + 1500);
+      fresh();
+      setTimeout(() => { for (const g of old) try { g.disconnect(); } catch {} }, secs * 1000 + 1500);
       clock = 0;
     },
     // every frame while playing: hand over the notes coming up. `heat`: how cracked the glass is (0 to 1)

@@ -1,6 +1,6 @@
 // The wind chimes by the window, the one thing in the room that sounds without you playing it: only
 // when you walk under them, a few soft notes, and not again for a good while (room.js has when).
-import { blank, ring, finish, hz } from './retro.js';
+import { blank, ring, finish, hz } from '../../../shared/retro.js';
 
 export const TUBES = [79, 81, 84, 86, 88];   // a pentatonic handful, high and gentle
 export const REST = 25;                      // seconds before they'll chime again

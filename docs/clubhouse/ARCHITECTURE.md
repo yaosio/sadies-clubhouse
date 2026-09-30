@@ -33,14 +33,13 @@ activity is checked again, so something moves into it only once a second activit
   with the sign painted over; without one it gets a plain door with its name), and `keeps` if it
   saves anything (the start of its storage keys, for the pause menu's start-over buttons).
   None of an activity's code runs until `start()` is called (the build keeps it waiting), so its modules can look up its page's elements as they load.
-- **A game that lives in its room** (Brickbuster '96, the Music Room) has no page, styles or `start()`: its card
+- **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
   it opens, handing it the building kit (its textures `T`, the palette `C`, `psx`, `keep`, `tex`,
   `words`, `picture`, `loadImage`, `breathe` (a pause between big parts), the shapes `kit`, `wallGeometry`, `doorway`, the card and its
   door's leaf), so the game still never imports the clubhouse (it imports `three` itself). It hands
   back a place like any room (`name`, `scene`, `floor`, `doors`, `faces`, `uses`, `light`, `spots`,
-  `update(t, dt)`, `hush` if the main theme should stay out of it altogether (see below; music of its own doesn't need it), and if the mansion may put it away when you're far off, `putAway()`, which stops
-  anything of its own for good, like its sounds, and takes back anything it put in other places;
+  `update(t, dt)`, `hush` if the main theme should stay out of it altogether (see below; music of its own usually doesn't need it), and `putAway()` if it has anything to take back when the mansion puts it away (anything it put in other places, a save to write, something on the page; its sounds are stopped for it);
   `busy()` if it mustn't be put away just now, like mid-game; and `scenes` if it has more than one), where a use with `play` is the game: `view` (the middle, facing way, width and
   height the screen has to fit), `start()` (called during the press, so sound is allowed),
   `stop()`, `steer(v, dt)` (held keys, -1 to 1) and `nudge(metres)` (the mouse or a finger, already
@@ -68,7 +67,10 @@ activity is checked again, so something moves into it only once a second activit
   box, and `shape`, its solid shape for things bouncing round it), so a game can let something
   loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update` moves them,
   since every place updates every frame), and `ears()`, where you are right now (`place`, `x`, `y`, `z`: your eye, and `yaw`, `pitch`: where you're looking), so a
-  game can play a sound only where you'd hear it (Sadie out in the hall). An address naming it after the `#` just opens the mansion.
+  game can play a sound only where you'd hear it (Sadie out in the hall), and `outside` (where outside
+  is seen from: you, out there, or the door you're looking out of; null when it can't be seen: the
+  weather works out its rain and snow only then, round that spot). Both `ears()` and `paused()` work
+  while a room's still being built. An address naming it after the `#` just opens the mansion.
 - **A building outside the gate** (Clyde's House) is a game that lives in its room whose card has
   `lot` instead of `slot`: which plot along the lane outside the front gate is its (`LOTS` in
   `outside.js`: 0 is left of the path as you go out, 1 across from it, then further along each way;
@@ -110,7 +112,7 @@ activity is checked again, so something moves into it only once a second activit
   that picture up by screen position. Walking across a doorway moves you to the same spot on the
   other side, turned round. So there are no loading screens, a place can be any size (bigger inside
   than out), and changing one place never touches another. Only the place you're in, and through
-  one doorway, get drawn.
+  the doorways open in front of you, get drawn.
   - **Building rooms as they're needed.** Only the garden, the hall and any building outside the
     gate (seen from the lane) are built before the mansion opens (and the room you're coming back
     to). Each other room is built afterwards, one at a time, nearest door first: while you stand
@@ -121,7 +123,7 @@ activity is checked again, so something moves into it only once a second activit
     bit longer than 200 ms). What it made is noted, and warmed onto the
     graphics card straight away. A room with `putAway()` that's three doors or more from you for 20
     seconds (or the ones you were near longest ago, once more than 16 are built) is put away: it
-    stops its own things, everything it made that no other place uses goes back to the graphics
+    stops its sounds, its own `putAway()` (if it has one) takes back what it put elsewhere, everything it made that no other place uses goes back to the graphics
     card, and it's built again from its save as you come back. Every room can be put away (not while
     it says it's `busy()`). A building outside the gate keeps its house: the mansion hands it back
     to the room as `house` when it's built again, and keeps its `update` going meanwhile. A new room
@@ -214,13 +216,14 @@ activity is checked again, so something moves into it only once a second activit
   `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
   uses `sadies-clubhouse.<id>.` for its keys, and lists what its keys start with in its card's
   `keeps` (the pause menu's start-over buttons use it). The
-  mansion's own keys start with `mansion.`. Never rename a key that's already in use: everyone's
+  mansion's own keys start with `mansion.`. The mansion's checks put every room away and build it
+  again three times over, and fail if any save changed. Never rename a key that's already in use: everyone's
   saves would be lost.
 - **The test version's label** goes where an activity's `page.html` (or the mansion's
   `mansion.html`) says `<!--@badge-->` (at the end of the page if none does).
 - **The toolbox** (`src/shared/`) so far: `storage.js`, a safe localStorage wrapper (get, set,
   remove; never throws). The one place that touches browser storage, so a different home for saves
-  (itch.io, a desktop app) only changes this file. And `sound.js`, **the sound system**: every sound in
+  (itch.io, a desktop app) only changes this file. And `retro.js`, the kit the rooms' sounds are made with (plain numbers: 8-bit 11 kHz samples, `rng`, `hz`, `blank`, `ring`, `ping`, `resonance`, and two endings, the gentle `finish` and Brickbuster's `crunch`; the aquarium, Brickbuster, the Music Room and Clyde's house all use it). And `sound.js`, **the sound system**: every sound in
   the game is played through it, on one audio engine for the whole page. A room gets a handle with
   `soundsFor(owner)` (its place's name, `room:<id>`) and plays by name, `handle.play(key, make,
   { loud, bus, rate, hold, gap, dist })` (the samples made the first time, then kept), or asks for a
@@ -229,11 +232,13 @@ activity is checked again, so something moves into it only once a second activit
   `mansion.music`, `mansion.sounds`, `mansion.voices`): `music`, `sounds` (effects, instruments you
   play) and `voices` (Sadie, Clyde). **The rules live here, once** (the owner has misophonia): the
   same sound never again within its `gap` (0.08 s unless it says), a voice never the same thing
-  twice running, `dist` fading it with distance (`nearness`), never more than 14 sounds at once
+  twice running (within 10 s: a room with only one meow still meows later), nothing but music
+  behind the pause menu (the mansion says when it's up: `paused()`, so no room needs pause code for
+  its sounds), `dist` fading it with distance (`nearness`), never more than 14 sounds at once
   (more are dropped). A room's music is only heard while you're in that room (the mansion tells it
   where you are, `youAreIn`), and any music playing (a meter on every music line) makes the main
   theme fade out (`otherMusic()`). When the mansion puts a room away it stops everything that room
-  started (`closeSounds`), whatever the room forgot. So a new room just plays through its handle
+  started (`closeSounds`), whatever the room forgot, and every sound when it leaves the page (`closeSounds()`). So a new room just plays through its handle
   (music on a music line) and keeps every rule for free. The clubhouse's headless test fails if
   anything else makes an AudioContext or plays straight to the speakers, and its browser test
   visits every room and fails if any of its music is still heard after you've left, or anything
@@ -252,11 +257,12 @@ any), and it gets a line in the list of activities in the main `README.md`. Noth
 |---|---|
 | `tests/run.mjs` | `npm test`: every activity's headless checks, one activity after another (`npm test -- dropper-world` for one). |
 | `tests/clubhouse/run.mjs` | The main theme's headless checks (a few seconds): three hours of it from seeds: pieces a minute or two long with quiet between, every mode, beat and instrument turning up, every note in its key, slow and gentle (no flurries), no drums, drones or long notes, soft starts, the tune resting a good share of phrases, and no eight bars ever coming round again. And that nothing in `src/` but the sound system makes an AudioContext. `tools/check.mjs` runs it with the activities' tests whenever anything in `src/` changed. |
-| `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` whenever anything in the page changed: about half a minute, the phone and the desktop side by side): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, the rooms built after the mansion opens (each under a time limit, all drawn with the same few materials), a room put away and built again as you walk up to its door with nothing piling up, two doors open side by side both showing their rooms, a room whose file won't come keeping its door shut (the others still built) and built once it does, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, the main theme playing, fading out in the Music Room and back after, every room keeping the sound rules (its music not heard once you've left, nothing left once it's put away), the pause menu's MUSIC, SOUNDS and VOICES buttons (SOFT, OFF, ON, remembered), and the start-over buttons (NO keeps things, YES starts the letter over). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
+| `tests/clubhouse/browser.mjs` | The mansion in headless Chromium as a phone and a desktop (run by `tools/check.mjs` whenever anything in the page changed: about half a minute, the phone and the desktop side by side): it opens at the gate with Sadie's letter (and only the first time), walking (keys, and the thumb stick), the front door showing the hall through it and walking through it, climbing the stairs to the landing, the rooms built after the mansion opens (each under a time limit, all drawn with the same few materials), a room put away and built again as you walk up to its door with nothing piling up, two doors open side by side both showing their rooms, a room whose file won't come keeping its door shut (the others still built) and built once it does, Dropper World's door into its room, playing it at the computer with the mansion gone from the page, ESC BACK coming back to that computer with the tower saved, Escape coming back from a page opened at `#dropper-world`, pausing, the main theme playing, fading out in the Music Room and back after, every room (found from the cards, so a new one's checked with no new test) keeping the sound rules (its music not heard once you've left, nothing left once it's put away, nothing starting up after), and put away and built again three times over with nothing piling up (on the graphics card or the page), its save unchanged, and each rebuild as quick as a first build, the pause menu's MUSIC, SOUNDS and VOICES buttons (SOFT, OFF, ON, remembered), and the start-over buttons (NO keeps things, YES starts the letter over). Fails on any page error; screenshots in `dist/check/clubhouse/`. |
+| `tests/shared/browser.mjs` | What every room's browser checks start with: the phone and the desktop side by side (`bothDevices`), the page's errors collected, and the moves every check makes (`M`, the mansion's hook for the checks; `up`, `walk`, `use`, `modeIs`, `shot`). A change here runs every room's browser checks again. |
 | `tools/clubhouse/shots.mjs` | Pictures of the mansion from its main spots (the gate, the front door from both sides, the hall, the stairs, the landing, an activity's door and room), as a desktop and a phone, from the built page: `dist/shots/clubhouse/`. |
 | `tools/clubhouse/speed.mjs` | How quick the mansion is, from the built page: how long the first picture took, how long each place took to build (and its longest bit), what's on the graphics card, each frame's work standing in each place, and three rounds of putting every room away and building it again (the numbers must come back the same). It draws with a pretend graphics chip, so it shows what the checks can't: anything that makes the browser wait for the graphics card, like reading a pixel back from a drawn canvas (that held the game up for half a second per room until it was fixed; read pixels only from a canvas made with `willReadFrequently`). |
 | `tools/clubhouse/spot.mjs` | A picture of the mansion from anywhere: `node tools/clubhouse/spot.mjs <name> <place> <x> <z> <y> <lookX> <lookY> <lookZ>` stands there and looks at that point (`dist/shots/clubhouse/spot-<name>.png`), for checking how one thing looks. |
 | `tools/build.mjs` | `npm run build`: the page, `dist/index.html`, with the source embedded (everything but `art/`), and the game in files beside it in `dist/game/` (the clubhouse, then each room or activity's own, fetched when needed; each name has a fingerprint of what's in it, so a browser never mixes old and new). `dist/game-files.json` says which file each room's code went into, for the checks. Squeezed small (three.js is big); the readable source is what's embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title); `--readable` leaves it unsqueezed, so a profile shows the game's own function names (`tools/dropper-world/profile.mjs` builds it that way). |
-| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the mansion's checks (unless exactly this page already passed them), then each activity's browser checks, each playing the phone and the desktop side by side. It prints how long each stage took. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus its tools (`tools/<name>/`), the clubhouse's shell (files directly in `src/`, not the mansion, unless its card has a `room`: then the mansion too), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. An activity's `browser.mjs` can export `prepare()` for anything its checks need made first (Dropper World's full board): it's started at the very beginning and runs alongside the headless tests. |
+| `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the mansion's checks (unless exactly this page already passed them), then each activity's browser checks, each playing the phone and the desktop side by side. It prints how long each stage took. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus its tools (`tools/<name>/`), the clubhouse's shell (files directly in `src/`, not the mansion, unless its card has a `room`: then the mansion too), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. Every hash is worked out once, before anything's checked, so a file changed while the checks run is never noted as passed; a check that gets stuck counts as failed and the rest still run. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. An activity's `browser.mjs` can export `prepare()` for anything its checks need made first (Dropper World's full board): it's started at the very beginning and runs alongside the headless tests. |
 | `tools/unpack.mjs` | Rebuilds the project folder from a built page's embedded source. |
 | `tools/serve.mjs` | Serves `dist/` from a local web address (the page at `/`, its game files beside it), for the checks and every picture-taking tool: a page opened as a file can't fetch its game files. |

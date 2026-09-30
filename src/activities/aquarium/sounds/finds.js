@@ -2,7 +2,7 @@
 // owner has misophonia). The bottle bloops, the hat goes bom-bom, the duck gives a muffled squeak,
 // the floppy disk whirrs in a drive for a moment, the coconut knocks like hollow wood, and the
 // mountain (the last one) gets a little chime. `reef` is the gentle swell when the reef sinks.
-import { RATE, TAU, rng, hz, blank, ring, resonance, finish } from './retro.js';
+import { RATE, TAU, rng, hz, blank, ring, resonance, finish } from '../../../shared/retro.js';
 
 // a note that slides from f0 to f1 over its length, fading in and out: a bloop or a squeak
 function slide(a, f0, f1, amp, at = 0, len = a.length / RATE - at) {

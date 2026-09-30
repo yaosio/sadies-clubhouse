@@ -3,7 +3,7 @@
 //
 //   node tests/brickbuster/run.mjs
 import { makeGame, step, launch, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS, SPEED, ROWS, COLS } from '../../src/activities/brickbuster/game.js';
-import { RATE } from '../../src/activities/brickbuster/sounds/retro.js';
+import { RATE } from '../../src/shared/retro.js';
 import { crack, shatter, tink } from '../../src/activities/brickbuster/sounds/glass.js';
 import { boing, blip, tock } from '../../src/activities/brickbuster/sounds/machine.js';
 import { mute } from '../../src/activities/brickbuster/sounds/quiet.js';

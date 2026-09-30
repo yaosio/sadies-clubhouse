@@ -488,7 +488,6 @@ export async function buildRoom(m) {
     // (the mansion puts the room away when you're far off, never while the machine's going or Clyde's
     // talking; the house outside stays, and the room's built again from its save as you come back)
     busy: () => tl.length > 0,
-    putAway() { madeSounds?.close(); },
     uses: [{ pos: new Vector3(0, 2.2, MZ), reach: 7.5, label: machine.label, play: machine }],
     light: { sun: 0.25, bulb: 0.8, lamp: [0, H - 1.4, 1.5] },
     spots: {

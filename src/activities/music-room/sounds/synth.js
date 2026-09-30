@@ -2,7 +2,7 @@
 // chirp), BELL (a doorbell's ding) and CAN (a tin can, plinked). Its keys are laid out like the toy
 // piano's: middle C up to the E an octave and a bit above.
 // Its DEMO button plays three notes and then the screen says the rest is in the full version.
-import { RATE, TAU, blank, ring, finish, hz, resonance } from './retro.js';
+import { RATE, TAU, blank, ring, finish, hz, resonance } from '../../../shared/retro.js';
 
 export const VOICES = ['CAT', 'BIRD', 'BELL', 'CAN'];
 export const DEMO = [60, 64, 67];   // the notes the demo plays (then: FULL VERSION 1997!)

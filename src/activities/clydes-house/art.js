@@ -4,16 +4,17 @@
 // The speech bubble, the tags under the gaps and the treat counter are drawn again as they change.
 import { NAMES } from './machine.js';
 
+// (the pixel-drawing bits: weather-art.js uses them too)
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-const rect = (g, c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-function dith(g, a, b, x, y, w, h, amt) {
+export const rect = (g, c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+export function dith(g, a, b, x, y, w, h, amt) {
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) rect(g, BAYER[((y + j) % 4) * 4 + ((x + i) % 4)] / 16 < amt ? b : a, x + i, y + j, 1, 1);
 }
 function speckle(g, c, x, y, w, h, n, seed = 1) {
   let s = seed; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < n; i++) rect(g, c, x + Math.floor(r() * w), y + Math.floor(r() * h), 1, 1);
 }
-function disc(g, c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) rect(g, c, cx + x, cy + y); }
+export function disc(g, c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) rect(g, c, cx + x, cy + y); }
 
 // Clyde's own colours: terracotta, with a darker edge and a peach shine
 // the speech bubble's lines: at most this many letters

@@ -1,7 +1,7 @@
 // The drum kit, which is really Sadie's bed: a blanket stuffed in the bass drum, fur all over the
 // snare. So everything is muffled and soft, which suits it (the owner can't stand sharp, clicky
 // noise). The kick, the furry snare, two toms, the floor tom, the hi-hat and the cymbal.
-import { RATE, TAU, rng, blank, finish } from './retro.js';
+import { RATE, TAU, rng, blank, finish } from '../../../shared/retro.js';
 
 export const DRUMS = ['kick', 'snare', 'tom1', 'tom2', 'floor', 'hat', 'cymbal'];
 

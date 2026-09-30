@@ -102,5 +102,26 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check('every sound in the game goes through the sound system (nothing makes an AudioContext of its own)', !bad.length, bad.join(', '));
 }
 
+// Its rules, with no browser sound at all (it still counts what it would have played), on a clock
+// the check moves by hand: a voice never says the same thing twice running (but can, a good while
+// later: a room with only one meow still meows), and nothing but music plays behind the pause menu.
+{
+  const { soundsFor, paused, closeSounds, soundState } = await import('../../src/shared/sound.js');
+  let clock = 1000;
+  const real = performance.now.bind(performance);
+  performance.now = () => clock;
+  const h = soundsFor('check:rules'), none = () => new Float32Array(10);
+  const first = h.play('mew', none, { bus: 'voices' }), twice = (clock += 1000, h.play('mew', none, { bus: 'voices' }));
+  const later = (clock += 11000, h.play('mew', none, { bus: 'voices' }));
+  check('a voice never says the same thing twice running, but can a good while later', first && !twice && later);
+  paused(true); clock += 1000;
+  const hushed = !h.play('clunk', none) && !h.play('mrrp', none, { bus: 'voices' }) && h.play('note', none, { bus: 'music' });
+  paused(false); clock += 1000;
+  check('behind the pause menu only music plays, and everything is back after', hushed && h.play('clunk', none));
+  soundsFor('check:other'); closeSounds();
+  check('closing every sound (the mansion leaving the page) leaves none behind', !Object.keys(soundState().owners).length);
+  performance.now = real;
+}
+
 console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);

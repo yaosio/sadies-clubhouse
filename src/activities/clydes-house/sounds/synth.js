@@ -1,11 +1,9 @@
 // The little toolkit every sound in Clyde's house is made with: a tone that slides, a soft hush, and
 // the same ending for all of them (a gentle limit, a fade right down to nothing, 8 bits). Plain
-// numbers, no browser: 8-bit, 11 kHz, like every sound on the 1996 CD.
-export const RATE = 11025;
-export const TAU = Math.PI * 2;
-
-// room for a sound this many seconds long
-export const blank = s => new Float32Array(Math.round(s * RATE));
+// numbers, no browser: 8-bit, 11 kHz, like every sound on the 1996 CD (the toolbox's kit,
+// src/shared/retro.js, with a tone and a hush of its own).
+import { RATE, TAU, blank, finish as gentle } from '../../../shared/retro.js';
+export { RATE, TAU, blank };
 // how loud a sound is over time: a plucked one dies away (6 ms to come in, so no click); a swell
 // comes up and goes down again
 export const pluck = rate => t => Math.exp(-t * rate) * Math.min(1, t / 0.006);
@@ -40,13 +38,5 @@ export function hush(a, at, len, env, gain = 0.3, smooth = 0.08, seed = 7) {
   }
   return a;
 }
-// every sound ends the same way: rounded off, faded to nothing over its last bit, 8 bits
-export function finish(a, fade = 0.04) {
-  const f = Math.max(1, Math.round(fade * RATE));
-  for (let i = 0; i < a.length; i++) {
-    let v = Math.tanh(a[i]);
-    if (i > a.length - f) v *= (a.length - i) / f;
-    a[i] = Math.round(v * 127) / 127;
-  }
-  return a;
-}
+// every sound ends the same way: rounded off, faded to nothing over its last bit, 8 bits (no echo)
+export const finish = (a, fade = 0.04) => gentle(a, 0, 0, fade);

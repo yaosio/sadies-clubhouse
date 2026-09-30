@@ -344,7 +344,6 @@ export async function buildRoom(m) {
     // (the mansion puts the aquarium away when you're far off, and builds it again from its save as
     // you come back: both its scenes go back to the graphics card, and its sounds stop for good)
     scenes: [scene, ocean.scene],
-    putAway() { sounds.close(); },
     spots: {
       glass: { x: -0.9, z: GZ - 1.4, yaw: Math.PI + 0.1, pitch: 0.05, y: 0 },
       cabinet: { x: 2.2, z: 0.6, yaw: -Math.PI / 2, pitch: 0.05, y: 0 },
