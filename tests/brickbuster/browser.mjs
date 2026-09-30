@@ -168,15 +168,14 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('7-out-of-order');
     check(`${device}: it's still broken next time: bricks on the heap, sign on the door`, s.broken === 'bottom' && s.pile === 80 && s.sign && !s.sadie && s.escape === 'gone');
 
-    // the test version can start it over
+    // the pause menu can start it over (after asking)
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
     await p.waitForTimeout(200);
-    if (await p.evaluate(() => !!document.getElementById('testBadge'))) {
-      await p.click('#resets button:has-text("BRICKBUSTER")');
-      await up();
-      s = await B();
-      check(`${device}: the test version's pause menu can start Brickbuster over: fixed`, !s.cracks.bottom && !s.cracks.top && !s.broken && !s.pile && s.bricks === 80 && s.sadie && !s.sign && !s.hall);
-    }
+    await p.click('#resets button:has-text("BRICKBUSTER")');
+    await p.click('#sureYes');
+    await up();
+    s = await B();
+    check(`${device}: the pause menu can start Brickbuster over: fixed`, !s.cracks.bottom && !s.cracks.top && !s.broken && !s.pile && s.bricks === 80 && s.sadie && !s.sign && !s.hall);
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }));

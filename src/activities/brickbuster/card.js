@@ -9,6 +9,6 @@ export default {
   door,
   slot: 0,   // which door on the landing is its (the first one up the stairs; they never move)
   box: { side: 0x3a2a8e },   // its colour
-  keeps: ['sadies-clubhouse.brickbuster.'],   // what it saves in the browser (the test version can clear it)
+  keeps: ['sadies-clubhouse.brickbuster.'],   // what it saves in the browser (the pause menu can start it over)
   room: () => import('./room.js'),
 };
