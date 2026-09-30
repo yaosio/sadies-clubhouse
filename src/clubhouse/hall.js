@@ -150,7 +150,7 @@ export function buildHall(T, cards, doorPictures = []) {
       const m = new Mesh(keep(new PlaneGeometry(w, 0.5)), psx(T.cardboard, { side: DoubleSide })); m.position.set(...p); m.rotation.y = r; nap.add(m); }
     const flap = new Mesh(keep(new PlaneGeometry(1.0, 0.35)), psx(T.cardboard, { side: DoubleSide })); flap.position.set(0, 0.55, -0.5); flap.rotation.x = -0.9; nap.add(flap);
     // its bottom, so the floor's tiles don't show through inside it
-    const bottom = new Mesh(keep(new PlaneGeometry(0.96, 0.66)), psx(T.cardboard, { rx: 2, decal: true })); bottom.position.set(0, 0.03, 0); bottom.rotation.x = -Math.PI / 2; nap.add(bottom);
+    const bottom = new Mesh(keep(new PlaneGeometry(0.96, 0.66)), psx(T.cardboard, { rx: 2 })); bottom.position.set(0, 0.05, 0); bottom.rotation.x = -Math.PI / 2; nap.add(bottom);
     BLOCKS.push([x, z, 0.65]); }
   const sadie = new Mesh(keep(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.31, 0)), psx(T.nap, { unlit: 0.4 }));
   sadie.position.copy(nap.position).add(new Vector3(0, 0.12, 0)); scene.add(sadie);
