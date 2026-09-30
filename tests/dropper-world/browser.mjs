@@ -59,6 +59,8 @@ export default async function ({ browser, page, check, root, hashOf, outDir, pre
     p.on('pageerror', e => p.errors.push(e.message));
     p.on('console', m => { if (m.type() === 'error') p.errors.push(m.text()); });
     await p.goto(page + '#dropper-world');
+    // (the game's own file comes after the page: wait for it)
+    await p.waitForFunction(() => window.__jellyDebug, null, { timeout: 15000 }).catch(() => {});
     return p;
   }
 
