@@ -19,6 +19,7 @@ The owner doesn't code and installs nothing. Claude does all the building (how: 
 | **Sadie's Dropper World** | A cozy physics toy: a mole in a propeller beanie drops squishy jelly pieces, Sadie climbs the pile for her hay, and friends turn up. | `docs/dropper-world/` |
 | **TypeFitter Deluxe 3.1** | A 1993 text-fitting program where the text can never fit its box, on purpose, and you win anyway. | `docs/typefitter/` |
 | **Brickbuster '96** | Breakout built into the wall of a tall room (no computer): every miss, and every hit on the top, cracks the glass, until it breaks and Sadie's ball of yarn escapes into the house. Being built in steps. | `docs/brickbuster/` |
+| **The Music Room** | A room full of instruments you play right where they stand (a toy piano, drums, a fish xylophone, a synth, a theremin, a tape deck), and Sadie, who now and then walks across one. | `docs/music-room/` |
 | **The aquarium** | A room with a big fish tank where Sadie swims in a diving suit. Don't tap on the glass (you can, though): one day it takes you out into the ocean. Being built in steps. | `docs/aquarium/` |
 
 Each activity's docs start with its `README.md`: what it is, its own design rules (they win over

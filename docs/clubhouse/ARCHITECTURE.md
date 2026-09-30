@@ -33,7 +33,7 @@ activity is checked again, so something moves into it only once a second activit
   with the sign painted over; without one it gets a plain door with its name), and `keeps` if it
   saves anything (the start of its storage keys, for the test version's start-over buttons).
   None of an activity's code runs until `start()` is called (the build keeps it waiting), so its modules can look up its page's elements as they load.
-- **A game that lives in its room** (Brickbuster '96) has no page, styles or `start()`: its card
+- **A game that lives in its room** (Brickbuster '96, the Music Room) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
   it opens, handing it the building kit (its textures `T`, the palette `C`, `psx`, `keep`, `tex`,
   `words`, `picture`, `loadImage`, the shapes `kit`, `wallGeometry`, `doorway`, the card and its
@@ -43,11 +43,17 @@ activity is checked again, so something moves into it only once a second activit
   height the screen has to fit), `start()` (called during the press, so sound is allowed),
   `stop()`, `steer(v, dt)` (held keys, -1 to 1) and `nudge(metres)` (the mouse or a finger, already
   turned into metres across the game), and `over` (set when the game ends: the mansion steps you
-  back). A use can instead have `act({ from, EYE, glide })`: pressed, it's handed where you
-  stand and `glide(to, secs, then)`, which eases your view to `to` (`x`, `z`, `eye`, `yaw`, `pitch`)
-  and then calls `then`; once a `then` doesn't glide on, you have the controls back (the aquarium's tap on
-  the glass, rising over the rim and dipping into the water). A use's `button` is what the phone's
-  button says (PLAY if it hasn't one). Its place can hold its door open (`holding`: the doorway, while something goes out through
+  back). An instrument (the Music Room's) instead has `key(code, down, repeat)`, which gets every
+  key (it returns true for the ones it used; only Esc steps back then, W and S are notes), and
+  `touch(id, ray, 'down' | 'move' | 'up')`, every press on the screen as a line out into the room
+  (`origin`, `dir`) for it to find what's under it; its `view` can say `down` (how far, in radians,
+  to look down on it: a keyboard lying flat), and `hint` (`keys`, `touch`) is what the hint at the
+  top says while you play it. A use with `act` instead of `play` just does something when you press
+  E (turning a dial or a sign): its `label` can change, and `button` names it on a phone. `act` is
+  handed `{ from, EYE, glide }`: where you stand, and `glide(to, secs, then)`, which eases your view
+  to `to` (`x`, `z`, `eye`, `yaw`, `pitch`) and then calls `then`; once a `then` doesn't glide on,
+  you have the controls back (the aquarium's tap on the glass, rising over the rim and dipping into
+  the water). Its place can hold its door open (`holding`: the doorway, while something goes out through
   it), and make everyone in it watch something (`watch`: a point; your view follows it and you
   can't walk or look away until it's null again: Brickbuster's escaping yarn ball). The kit also has its door's picture (`doorImage`) and its door on the landing
   (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
@@ -57,9 +63,9 @@ activity is checked again, so something moves into it only once a second activit
   since every place updates every frame), and `ears()`, where you are right now (`place`, and `x`, `y`, `z`: your eye), so a
   game can play a sound only where you'd hear it (Sadie out in the hall). An address naming it after the `#` just opens the mansion.
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
-  one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2), so a new activity never
+  one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3), so a new activity never
   shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
-  activity takes the next free slot. A card's `doorstep: 'dirt'` puts the mole's dirt pile by its
+  activity takes the next free slot (the Music Room 3). A card's `doorstep: 'dirt'` puts the mole's dirt pile by its
   door (Dropper World).
 - **The clubhouse** (`src/main.js`) gets every card from the build (`import cards from
   'activities'`: `tools/build.mjs` makes that list from the folders, in folder order, so adding an

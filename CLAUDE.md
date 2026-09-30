@@ -2,8 +2,9 @@
 
 A lost 90s shareware activity center: Sadie's mansion, with a room per activity. Sadie is the
 owner's late cat, and she's in every activity (not always in the same way). The activities so far
-are Sadie's Dropper World (a cozy physics toy), TypeFitter Deluxe 3.1 (text that never fits) and
-Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the house).
+are Sadie's Dropper World (a cozy physics toy), TypeFitter Deluxe 3.1 (text that never fits),
+Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the house) and the Music
+Room (instruments to play where they stand, which Sadie walks across now and then).
 
 ## The owner
 - Doesn't code, installs nothing, and doesn't know GitHub. Claude does all building, testing,
