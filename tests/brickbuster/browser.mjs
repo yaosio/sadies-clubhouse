@@ -150,6 +150,15 @@ export default async function ({ browser, page, check, outDir }) {
     await M('put', 'hall', 'start');
     await p.waitForTimeout(300);
     await shot('6b-hall');
+    // Sadie's sounds: heard in the hall (unless she's right across it), never from another room;
+    // and nothing the ball does makes a sound
+    const said = async () => { await p.evaluate(() => window.__brickbuster.sadieSays('meow')); return (await B()).heard.filter(k => k.startsWith('sadie-')).length; };
+    const w0 = await M('where'), c0 = (await B()).hall.cat, far = Math.hypot(c0[0] - w0.x, c0[1] + 0.3 - w0.y - 1.6, c0[2] - w0.z);
+    const inHall = await said();
+    await M('put', 'room:brickbuster', 'case'); await p.waitForTimeout(200);
+    const inRoom = await said();
+    check(`${device}: Sadie's meow is heard in the hall, and not from her room`, (far > 15 || inHall >= 1) && inRoom === inHall, `${far.toFixed(1)} m off, heard ${inHall} then ${inRoom}`);
+    check(`${device}: ...and the yarn ball itself stays silent`, (await B()).heard.slice((await B()).heard.lastIndexOf('mute') + 1).every(k => k.startsWith('sadie-')), (await B()).heard.slice(-6).join(' '));
     await p.reload(); await up();
     s = await B();
     const h1 = s.hall; await p.waitForTimeout(2500); const h2 = (await B()).hall;

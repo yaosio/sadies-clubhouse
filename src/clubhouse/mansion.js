@@ -62,7 +62,7 @@ export async function open(cards, enter) {
     if (!c.room) return buildRoom(T, c, boxes[i], doorPics[i]);
     const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
     return (await c.room()).buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf,
-      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall });
+      doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z }) });
   }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of rooms) if (hall.doors[r.card.id]) portals.push({ a: hall.doors[r.card.id], wa: hall, b: r.doors.door, wb: r, open: 0 });
