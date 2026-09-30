@@ -65,7 +65,7 @@ activity is checked again, so something moves into it only once a second activit
   loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update` moves them,
   since every place updates every frame), and `ears()`, where you are right now (`place`, `x`, `y`, `z`: your eye, and `yaw`, `pitch`: where you're looking), so a
   game can play a sound only where you'd hear it (Sadie out in the hall). An address naming it after the `#` just opens the mansion.
-- **A building outside the gate** (Claude's House) is a game that lives in its room whose card has
+- **A building outside the gate** (Clyde's House) is a game that lives in its room whose card has
   `lot` instead of `slot`: which plot along the lane outside the front gate is its (`LOTS` in
   `outside.js`: 0 is left of the path as you go out, 1 across from it, then further along each way;
   the next free one has a COMING SOON stake). The kit handed to its `buildRoom` also has `outside`
@@ -135,6 +135,9 @@ activity is checked again, so something moves into it only once a second activit
   - No flicker: things painted on a floor (the path, rugs, the sunbeam) skip the depth test and
     are drawn straight after their floor (`onFloor`, floor `renderOrder` -2, them -1); things on
     walls stand at least 4 cm off them. The camera's near plane is 0.1 m (phones' depth is coarse).
+    Decals (`decal`, nudged toward the camera) are only for things seen up close: seen from far off
+    (the mansion's windows from the lane) the nudge is big enough to draw them over what's in front,
+    so those stand 10 to 15 cm proud of the wall instead.
     Door leaves open to 80 degrees, not flat, so they stay in sight as you go through.
   - Nothing flickers as you go through a doorway, and nothing jumps (the owner saw even a few
     centimetres as a stutter). Standing on a doorway's line, corners of the walls and floor along it

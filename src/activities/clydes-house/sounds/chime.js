@@ -1,8 +1,8 @@
-// The one sound in Claude's house: when the treat lands in Sadie's bowl, a soft music-box "ding-ding"
-// (two notes going up). It plays once per breakfast and never repeats, rings for under two seconds
-// and fades right down to nothing (the owner can't stand harsh or repetitive noise). Plain numbers,
-// no browser: 8-bit, 11 kHz, like every sound on the 1996 CD.
-export const RATE = 11025;
+// When the treat lands in Sadie's bowl: a soft music-box "ding-ding" (two notes going up). It plays
+// once per breakfast and never repeats, rings for under two seconds and fades right down to nothing
+// (the owner can't stand harsh or repetitive noise). Plain numbers, no browser: 8-bit, 11 kHz.
+import { RATE } from './synth.js';
+export { RATE };
 const TAU = Math.PI * 2;
 const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
 

@@ -1,10 +1,10 @@
-// Everything Claude says, in one place. Claude is eager, polite, and overthinks everything; the
+// Everything Clyde says, in one place. Clyde is eager, polite, and overthinks everything; the
 // machine is how a helper who can't do anything simply would give a cat a treat. Painted in the
 // mansion's little 3x5 letters, so: no double quotes, and about 150 letters a bubble at most.
 // A list is said one bubble after another.
 
 export const HELLO = [
-  "OH! A VISITOR! HELLO! I'M CLAUDE. WELCOME TO THE OVERTHINKERY.",
+  "OH! A VISITOR! HELLO! I'M CLYDE. WELCOME TO THE OVERTHINKERY.",
   "THIS IS MY GOOD MORNING MACHINE. IT GIVES SADIE HER BREAKFAST TREAT IN ONLY TEN STEPS.",
 ];
 export const HELLO_AGAIN = ["WELCOME BACK! THE MACHINE MISSED YOU. I ASSUME. IT DOESN'T SAY MUCH."];
@@ -14,10 +14,11 @@ export const PEEK = "OH! A VISITOR! COME AND SEE MY MACHINE!";
 export const HOWTO = {
   1: "ONE PIECE IS MISSING. PICK A PART FROM MY SPARE-PARTS BOX, THEN PULL THE LEVER!",
   2: "TWO PIECES ARE MISSING NOW. PICK A PART FOR EACH GAP, THEN PULL THE LEVER.",
-  3: "ALL THREE PIECES ARE MISSING. FOR SCIENCE. PICK THE PARTS, THEN PULL THE LEVER.",
+  3: "THREE PIECES ARE MISSING. FOR SCIENCE. PICK THE PARTS, THEN PULL THE LEVER.",
+  4: "FOUR PIECES ARE MISSING. I REGRET NOTHING. PICK THE PARTS, THEN PULL THE LEVER.",
 };
 
-// the machine worked, and what Claude does about it
+// the machine worked, and what Clyde does about it
 export const NEXT = [
   [
     "IT WORKED! SHE ATE IT! A FLAWLESS MORNING.",
@@ -25,12 +26,16 @@ export const NEXT = [
   ],
   [
     "WONDERFUL! TWO FOR TWO.",
-    "I'VE BEEN THINKING. I'M ALWAYS THINKING. WHAT IF ALL THREE PIECES WERE MISSING?",
+    "I'VE BEEN THINKING. I'M ALWAYS THINKING. WHAT IF THREE PIECES WERE MISSING?",
+  ],
+  [
+    "THREE FOR THREE! SHE DIDN'T EVEN OPEN HER EYES.",
+    "NEXT, FOUR PIECES. EVEN THE TEACUP. ESPECIALLY THE TEACUP.",
   ],
 ];
-// the finale: said in turn while Claude and Sadie do their bit (see room.js)
+// the finale: said in turn while Clyde and Sadie do their bit (see room.js)
 export const FINALE = {
-  ate: "SHE ATE IT! THAT'S THREE TREATS AND THIRTY STEPS.",
+  ate: "SHE ATE IT! THAT'S FOUR TREATS AND FORTY STEPS.",
   wait: "...WAIT.",
   idea: "WHAT IF I JUST... HANDED HER THE TREAT?",
   offer: "HERE YOU GO, SADIE. ONE TREAT. ZERO STEPS.",
@@ -61,10 +66,20 @@ export const FAIL = {
   bulb: "THAT'S AN IDEA. IT TURNS OUT JUST HAVING ONE ISN'T ENOUGH.",
   sandwich: "A SANDWICH. SADIE WOULD LOVE THIS STEP. THE MACHINE WON'T.",
   plant: "THE HOUSEPLANT. IT'S DOING ITS BEST. ITS BEST IS SITTING THERE.",
+  shoe: "ONE SHOE. IT GOES WITH THE SOCK. NEITHER OF THEM HELPED.",
+  fishbone: "A FISH BONE. SADIE SAYS IT'S HERS. SHE SAYS THAT ABOUT EVERYTHING.",
+  yoyo: "A YO-YO. IT WENT DOWN, THEN IT CAME BACK UP. THAT'S ALL IT DOES.",
+  umbrella: "AN UMBRELLA, IN CASE IT RAINS INDOORS. IT HASN'T YET. YET.",
+  pizza: "COLD PIZZA. I WAS SAVING IT FOR LATER. THIS WASN'T THE LATER I MEANT.",
 };
 export const TRY_AGAIN = [
   "HMM. LET'S TRY ANOTHER PART.",
   "NO HARM DONE. SWAP A PART AND PULL THE LEVER AGAIN.",
   "INTERESTING! WRONG, BUT INTERESTING. TRY ANOTHER?",
+];
+// the rubber duck in the boat's gap: it floats! (said when the treat gets there)
+export const DUCK = [
+  "THE DUCK! IT FLOATS! OF COURSE IT FLOATS!",
+  "I'M PROMOTING IT TO BOAT. IT'S BEEN A BIG DAY FOR THE DUCK.",
 ];
 export const BUSY = "SHH! IT'S RUNNING!";

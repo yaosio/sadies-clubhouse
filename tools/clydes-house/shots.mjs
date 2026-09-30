@@ -1,14 +1,14 @@
-// Pictures of Claude's house (npm run build first): from the gate looking out, from the lane, at the
-// front door, inside, and stepping up to the Good Morning Machine and running it (the right parts
-// put in, sped up), as a desktop and a phone. Saves dist/shots/claudes-house/<device>-<name>.png.
-//   node tools/claudes-house/shots.mjs [desktop|phone]
+// Pictures of Clyde's house (npm run build first): from the gate looking out, from the lane, at the
+// front door, the castle from the lane (its windows stay behind the fence), inside, and stepping up to the Good Morning Machine and running it (the right parts
+// put in, sped up), as a desktop and a phone. Saves dist/shots/clydes-house/<device>-<name>.png.
+//   node tools/clydes-house/shots.mjs [desktop|phone]
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/claudes-house');
+const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clydes-house');
 mkdirSync(out, { recursive: true });
 const require = createRequire(import.meta.url);
 let chromium;
@@ -38,21 +38,22 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   await look('outside', 0, -26, 0, 0, 3, -20); await shot('0-gate');
   await look('outside', 0, -27, 0, -10, 3, -38); await shot('1-turned-round');
   await look('outside', -3, -30, 0, -10, 3.5, -38); await shot('2-lane');
+  await look('outside', -8, -35, 0, 0, 6, 5); await shot('2b-castle-from-the-lane');
   await look('outside', -9.2, -33, 0, -10, 1.3, -37); await shot('3-door');
-  await M('faceDoor', 'outside', 'claudes-house', 1.6); await shot('4-door-open', 900);
-  await M('put', 'room:claudes-house', 'door'); await shot('5-inside');
-  await look('room:claudes-house', 0, -1, 0, -4.6, 2, 0); await shot('6-left-wall');
-  await look('room:claudes-house', 0, -1, 0, 4.6, 2, 0.5); await shot('7-right-wall');
-  await M('put', 'room:claudes-house', 'machine');
+  await M('faceDoor', 'outside', 'clydes-house', 1.6); await shot('4-door-open', 900);
+  await M('put', 'room:clydes-house', 'door'); await shot('5-inside');
+  await look('room:clydes-house', 0, -1, 0, -4.6, 2, 0); await shot('6-left-wall');
+  await look('room:clydes-house', 0, -1, 0, 4.6, 2, 0.5); await shot('7-right-wall');
+  await M('put', 'room:clydes-house', 'machine');
   await p.waitForTimeout(300);
   if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
   await shot('8-machine', 1200);
-  await p.evaluate(() => window.__claudesHouse.speed(6));
+  await p.evaluate(() => window.__clydesHouse.speed(6));
   await shot('9-hello', 1500);
   // put the right part in every gap, and pull the lever
-  const S = () => p.evaluate(() => window.__claudesHouse.state());
+  const S = () => p.evaluate(() => window.__clydesHouse.state());
   for (let i = 0; i < 20 && (await S()).phase !== 'ready'; i++) await p.waitForTimeout(300);
-  await p.evaluate(() => window.__claudesHouse.speed(1));
+  await p.evaluate(() => window.__clydesHouse.speed(1));
   let s = await S();
   for (const g of s.missing) {
     while ((await S()).picked !== g) await p.keyboard.press('KeyD');

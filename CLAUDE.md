@@ -5,7 +5,7 @@ owner's late cat, and she's in every activity (not always in the same way). The 
 are Sadie's Dropper World (a cozy physics toy), TypeFitter Deluxe 3.1 (text that never fits),
 Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the house) and the Music
 Room (instruments to play where they stand, which Sadie walks across now and then); outside the
-front gate, along a lane with plots for more buildings, is Claude's House (the Good Morning Machine).
+front gate, along a lane with plots for more buildings, is Clyde's House (the Good Morning Machine).
 
 ## The owner
 - Doesn't code, installs nothing, and doesn't know GitHub. Claude does all building, testing,

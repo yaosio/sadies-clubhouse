@@ -1,4 +1,4 @@
-// Claude's house's pictures, drawn on little canvases when the mansion opens: Claude (a little orange
+// Clyde's house's pictures, drawn on little canvases when the mansion opens: Clyde (a little orange
 // spark, in a few moods), the junk in the spare-parts box, the speech bubble, the house's siding,
 // door and signs, the wallpaper, the chalkboard, and the bits of the machine that are flat.
 // The speech bubble, the tags under the gaps and the treat counter are drawn again as they change.
@@ -15,15 +15,15 @@ function speckle(g, c, x, y, w, h, n, seed = 1) {
 }
 function disc(g, c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) rect(g, c, cx + x, cy + y); }
 
-// Claude's own colours: terracotta, with a darker edge and a peach shine
+// Clyde's own colours: terracotta, with a darker edge and a peach shine
 // the speech bubble's lines: at most this many letters
 export const LINE = 26;
 
 export const K = { body: '#d97757', dark: '#a8502e', edge: '#5a2414', shine: '#ffb48e', cheek: '#ff7aa8' };
 
-// Claude: a spark with eight stubby rays, big eyes and little legs. 24 x 28.
+// Clyde: a spark with eight stubby rays, big eyes and little legs. 24 x 28.
 // mood: 'idle', 'blink', 'talk', 'happy', 'oops', 'run1', 'run2', 'wave', 'think'
-function claude(g, mood) {
+function clyde(g, mood) {
   const cx = 12, cy = 12;
   // the rays (one lifted for a wave), an edge first, then the body
   for (const pass of [0, 1]) for (let k = 0; k < 8; k++) {
@@ -57,8 +57,8 @@ function claude(g, mood) {
 
 export function drawArt({ tex, words, C }) {
   const A = {};
-  A.claude = {};
-  for (const mood of ['idle', 'blink', 'talk', 'happy', 'oops', 'run1', 'run2', 'wave', 'think']) A.claude[mood] = tex(24, 28, g => claude(g, mood));
+  A.clyde = {};
+  for (const mood of ['idle', 'blink', 'talk', 'happy', 'oops', 'run1', 'run2', 'wave', 'think']) A.clyde[mood] = tex(24, 28, g => clyde(g, mood));
 
   // ---------- the spare-parts box: junk, 16 x 16 each ----------
   const J = {
@@ -72,6 +72,11 @@ export function drawArt({ tex, words, C }) {
     bulb: g => { disc(g, '#8a6a00', 8, 6, 5); disc(g, '#fff08a', 8, 6, 4); rect(g, C.white, 6, 3, 2, 2); rect(g, '#8a88a8', 6, 11, 5, 4); rect(g, '#5e5c80', 6, 12, 5, 1); rect(g, '#5e5c80', 7, 14, 3, 1); rect(g, C.gold, 1, 2, 1, 1); rect(g, C.gold, 14, 3, 1, 1); rect(g, C.gold, 2, 9, 1, 1); },
     sandwich: g => { for (let y = 0; y < 12; y++) { const w = Math.round((12 - y) * 1.1); rect(g, '#b87838', 2, 3 + y, w, 1); rect(g, '#f0d8a0', 3, 3 + y, Math.max(0, w - 2), 1); } rect(g, C.green, 3, 9, 10, 1); rect(g, C.pink, 3, 10, 9, 1); rect(g, C.yellow, 3, 8, 11, 1); },
     plant: g => { rect(g, '#b85a2a', 4, 10, 8, 6); rect(g, '#7a3a1a', 3, 10, 10, 1); for (const [x, y, w] of [[7, 2, 2], [3, 4, 4], [9, 4, 4], [5, 6, 6], [2, 7, 3], [11, 7, 3]]) { rect(g, C.green3, x, y, w, 3); rect(g, C.green, x, y, w - 1, 1); } rect(g, C.green3, 7, 5, 2, 5); },
+    shoe: g => { rect(g, C.ink, 2, 4, 7, 6); rect(g, C.ink, 1, 8, 14, 6); rect(g, '#2a8ad0', 3, 5, 5, 5); rect(g, '#2a8ad0', 2, 9, 12, 3); rect(g, C.white, 2, 12, 12, 1); rect(g, C.white, 4, 6, 3, 1); rect(g, C.white, 4, 8, 3, 1); rect(g, C.yellow, 10, 10, 2, 1); },
+    fishbone: g => { for (const x of [5, 7, 9]) { rect(g, C.ink, x - 1, 3, 3, 10); } rect(g, C.ink, 1, 6, 12, 4); rect(g, C.white, 2, 7, 10, 2); for (const x of [5, 7, 9]) { rect(g, C.white, x, 4, 1, 3); rect(g, C.white, x, 9, 1, 3); } disc(g, C.ink, 12, 8, 3); disc(g, C.white, 12, 8, 2); rect(g, C.ink, 13, 7); rect(g, C.ink, 0, 4, 2, 8); rect(g, C.white, 0, 5, 1, 2); rect(g, C.white, 0, 9, 1, 2); },
+    yoyo: g => { rect(g, C.ink, 8, 0, 1, 4); disc(g, C.ink, 8, 9, 6); disc(g, C.red, 8, 9, 5); rect(g, C.ink, 3, 9, 11, 1); rect(g, '#ff9a9a', 5, 5, 2, 2); rect(g, C.gold, 8, 9); },
+    umbrella: g => { disc(g, C.ink, 8, 8, 7); disc(g, '#8a4ae8', 8, 8, 6); rect(g, C.yellow, 5, 3, 2, 5); rect(g, C.yellow, 10, 3, 2, 5); g.clearRect(0, 9, 16, 7); rect(g, C.ink, 1, 8, 15, 1); rect(g, C.ink, 8, 8, 1, 7); rect(g, C.ink, 5, 14, 3, 1); rect(g, C.ink, 5, 12, 1, 2); },
+    pizza: g => { for (let y = 0; y < 12; y++) { const w = Math.max(1, 14 - Math.round(y * 1.2)), x = 8 - Math.floor(w / 2); rect(g, '#8a5a10', x, 3 + y, w, 1); rect(g, '#ffd060', x + 1, 3 + y, Math.max(0, w - 2), 1); } rect(g, '#8a5a10', 1, 1, 14, 3); rect(g, '#d89048', 2, 2, 12, 1); rect(g, C.red, 5, 6, 2, 2); rect(g, C.red, 9, 7, 2, 2); rect(g, C.red, 7, 10, 2, 2); },
   };
   A.junk = {};
   for (const [k, draw] of Object.entries(J)) A.junk[k] = tex(16, 16, draw);
@@ -125,8 +130,8 @@ export function drawArt({ tex, words, C }) {
     let y = Math.round((h - tot) / 2);
     lines.forEach(([text, s = 1, col = C.ink], i) => { words(g, text, w / 2, y, s, col, { align: 'center' }); y += lh[i]; });
   });
-  A.houseSign = board(76, 30, [['THE', 1, K.dark], ['OVERTHINKERY', 1, C.ink], ['CLAUDE: I CAN', 1, K.dark], ['HELP WITH THAT!', 1, K.dark]]);
-  A.mailbox = board(28, 11, [['CLAUDE', 1, C.ink]]);
+  A.houseSign = board(76, 30, [['THE', 1, K.dark], ['OVERTHINKERY', 1, C.ink], ['CLYDE: I CAN', 1, K.dark], ['HELP WITH THAT!', 1, K.dark]]);
+  A.mailbox = board(28, 11, [['CLYDE', 1, C.ink]]);
   A.mat = tex(40, 16, g => { rect(g, '#7a4a2a', 0, 0, 40, 16); rect(g, '#b87848', 1, 1, 38, 14); words(g, 'WIPE YOUR', 20, 2, 1, C.ink, { align: 'center' }); words(g, 'THOUGHTS', 20, 9, 1, C.ink, { align: 'center' }); });
   A.greet = tex(56, 13, g => bubble(g, 56, 13, ['HI! COME IN!'], words, C));
 

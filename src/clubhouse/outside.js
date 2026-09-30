@@ -41,16 +41,18 @@ export function buildOutside(T, cards = []) {
   const roof = cone(1, 1, 4, psx(T.roof, { rx: 10, ry: 5 }), [0, 10, 5], [0, Math.PI / 4, 0]); roof.scale.set(9.8 / 0.7071, 4, 5.8 / 0.7071);
   box(18.6, 0.35, 10.6, psx(T.wood, { tint: 0xffe0c0, rx: 8 }), [0, 8, 5]);
   box(18.2, 0.25, 0.3, trim, [0, 4.1, -0.05]);
-  const win = psx(T.window, { unlit: 0.4, decal: true });
-  for (const y of [2.1, 5.9]) for (const x of [-6.8, -3.9, 3.9, 6.8]) plane(1.3, 1.95, win, [x, y, -0.05], [0, Math.PI, 0], 1);
-  plane(1.3, 1.95, win, [0, 5.9, -0.05], [0, Math.PI, 0], 1);
+  // windows stand a little proud of the walls rather than being decals: from the lane, far off, a
+  // decal's depth nudge is big enough to draw them over the fence and the gateposts in front
+  const win = psx(T.window, { unlit: 0.4 });
+  for (const y of [2.1, 5.9]) for (const x of [-6.8, -3.9, 3.9, 6.8]) plane(1.3, 1.95, win, [x, y, -0.14], [0, Math.PI, 0], 1);
+  plane(1.3, 1.95, win, [0, 5.9, -0.14], [0, Math.PI, 0], 1);
 
   // the trunk: an octagonal tower out of the middle of the house, still being built on top
   const TR = 3.4, TOP = 19;
   cyl(TR, TR, TOP, 8, stucco(24, TOP), [0, TOP / 2, 5], [0, Math.PI / 8, 0]);
   const ap = TR * Math.cos(Math.PI / 8);
-  for (const y of [10.5, 14.5]) plane(1.1, 1.65, win, [0, y, 5 - ap - 0.05], [0, Math.PI, 0], 1);
-  plane(1.4, 1.4, psx(T.round, { unlit: 0.4, decal: true }), [0, 17.4, 5 - ap - 0.05], [0, Math.PI, 0], 1);
+  for (const y of [10.5, 14.5]) plane(1.1, 1.65, win, [0, y, 5 - ap - 0.14], [0, Math.PI, 0], 1);
+  plane(1.4, 1.4, psx(T.round, { unlit: 0.4 }), [0, 17.4, 5 - ap - 0.14], [0, Math.PI, 0], 1);
   for (const y of [8.9, 13, TOP]) cyl(TR + 0.15, TR + 0.15, 0.3, 8, trim, [0, y, 5], [0, Math.PI / 8, 0]);
   const scaf = psx(T.scaffold);
   const half = new Mesh(keep(new CylinderGeometry(TR, TR, 1.6, 8, 1, true, Math.PI / 8 + Math.PI / 4 * 3, Math.PI)), psx(T.brick, { rx: 8, ry: 1, side: DoubleSide }));
@@ -64,7 +66,7 @@ export function buildOutside(T, cards = []) {
   // the front turrets: a pointy roof on each, leaning out a little (from the gate, they're ears)
   for (const s of [-1, 1]) {
     cyl(1.6, 1.6, 11, 8, stucco(10, 11), [s * 9, 5.5, 0.4]);
-    plane(0.8, 1.2, win, [s * 9, 8.6, 0.4 - 1.6], [0, Math.PI, 0], 1);
+    plane(0.8, 1.2, win, [s * 9, 8.6, 0.4 - 1.72], [0, Math.PI, 0], 1);
     cyl(1.75, 1.75, 0.3, 8, trim, [s * 9, 11, 0.4]);
     cone(2.1, 4.6, 4, psx(T.roof, { rx: 3, ry: 3 }), [s * 9.25, 13.2, 0.4], [0, Math.PI / 4, s * -0.13]);
   }
@@ -79,8 +81,8 @@ export function buildOutside(T, cards = []) {
   box(5.2, 0.4, 3.2, psx(null, { tint: 0xfff4e4 }), [0, 4.25, -1.5]);
   const gable = new Shape(); gable.moveTo(-2.9, 0); gable.lineTo(2.9, 0); gable.lineTo(0, 1.8); gable.lineTo(-2.9, 0);
   add(new Mesh(keep(new ShapeGeometry(gable)), psx(T.roof, { rx: 0.4, ry: 0.4, side: DoubleSide })), [0, 4.45, -3.1]);
-  plane(0.9, 0.9, psx(T.round, { unlit: 0.4, decal: true }), [0, 5.05, -3.16], [0, Math.PI, 0], 1);
-  plane(2.0, 0.45, psx(T.fanlight, { decal: true, unlit: 0.3 }), [0, 3.72, -0.06], [0, Math.PI, 0], 1);
+  plane(0.9, 0.9, psx(T.round, { unlit: 0.4 }), [0, 5.05, -3.22], [0, Math.PI, 0], 1);
+  plane(2.0, 0.45, psx(T.fanlight, { unlit: 0.3 }), [0, 3.72, -0.12], [0, Math.PI, 0], 1);
   const STEPS = [0, 1, 2].map(i => ({ w: 5.4 - i * 0.4, d: 3.4 - i * 0.5, z: -1.6 + i * 0.25, top: 0.15 * (i + 1) }));
   for (const s of STEPS) box(s.w, 0.15, s.d, psx(T.stone, { rx: 3, ry: 2 }), [0, s.top - 0.075, s.z]);
   plane(1.5, 0.75, psx(T.mat, { decal: true }), [0, 0.46, -0.9], [-Math.PI / 2, 0, Math.PI], 1);   // turned to read as you walk up

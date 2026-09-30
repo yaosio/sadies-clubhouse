@@ -1,13 +1,14 @@
-// Inside Claude's house: a cosy, cluttered workshop (a chalkboard with PLAN V47 on it, a bookshelf,
-// sticky notes, a photo of Claude's first client), and across the back wall the Good Morning Machine:
+// Inside Clyde's house: a cosy, cluttered workshop (a chalkboard with PLAN V47 on it, a bookshelf,
+// sticky notes, a photo of Clyde's first client), and across the back wall the Good Morning Machine:
 // a lever lets a marble roll down a ramp into the dominoes, which push a one-pound weight onto a
 // seesaw, which flings a ball of yarn into a funnel; down the pipe it rolls into the hamster wheel,
-// where Claude starts running, which turns the fan by its belt, which blows a paper boat across the
+// where Clyde starts running, which turns the fan by its belt, which blows a paper boat across the
 // trough into a teacup, which tips the treat down a chute into Sadie's bowl. Sadie, asleep in her
 // basket, wakes up and eats it.
 //
-// Three pieces (the dominoes, the funnel, the fan) go missing; you fill each gap from Claude's box
-// of spare parts (mostly junk) and pull the lever. The rules are in machine.js, the words in
+// Six pieces (the dominoes, the seesaw, the funnel, the fan, the boat, the teacup) can go missing,
+// a few at a time; you fill each gap from Clyde's box of spare parts (mostly junk, though the rubber
+// duck floats) and pull the lever. The rules are in machine.js, the words in
 // lines.js. Stepping up to the machine is like playing an instrument in the music room: every key
 // and every press goes to it until you step back.
 //
@@ -21,7 +22,7 @@ import * as L from './lines.js';
 import { makeSounds } from './sounds/index.js';
 import { store } from '../../shared/storage.js';
 
-const KEY = 'sadies-clubhouse.claudes-house.machine';
+const KEY = 'sadies-clubhouse.clydes-house.machine';
 const RW = 4.6, RD = 4.2, H = 5.6;       // the room: half its width and depth, and its height
 const MZ = -RD + 0.35;                    // the machine stands this far out from the back wall
 const at = (u, v, dz = 0) => [u, v, MZ + dz];
@@ -38,8 +39,11 @@ const BASKET = [-1.5, 0.48], SADIE_SITS = [0.2, 0.55];
 // the gaps: where a part goes, how big, and where its name tag is
 const SPOT = {
   dominoes: { c: [-1.04, 3.3], w: 0.74, h: 0.32, junk: [-1.04, 3.34], tag: [-1.04, 2.99] },
+  seesaw: { c: [-0.1, 2.64], w: 1.0, h: 0.3, junk: [-0.42, 2.62], tag: [0.0, 2.34] },
   funnel: { c: [2.0, 3.22], w: 0.46, h: 0.42, junk: [2.0, 3.24], tag: [2.5, 3.24] },
   fan: { c: [-0.2, 1.55], w: 0.5, h: 0.52, junk: [-0.2, 1.5], tag: [-0.2, 1.12] },
+  boat: { c: [-0.8, 1.3], w: 0.42, h: 0.3, junk: [-0.8, 1.3], tag: [-0.9, 0.87] },
+  cup: { c: [-2.07, 1.3], w: 0.36, h: 0.32, junk: [-2.07, 1.3], tag: [-2.0, 0.87] },
 };
 
 export async function buildRoom(m) {
@@ -62,7 +66,7 @@ export async function buildRoom(m) {
   plane(2 * RW, 2 * RD, tint(0xfff0dc), [0, H, 0], [Math.PI / 2, 0, 0], 6);
   const door = doorway(scene, { pos: [0, 0, RD], yaw: Math.PI, w: DW, h: DH, leaves: [{ front: A.doorBack, back: A.door }], hinge: 1, trim: 0xd97757 });
   plane(3.2, 3.2, psx(A.rug, { rx: 2, ry: 2, onFloor: true }), [0, 0, 1.0], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
-  // a skirting board all round, in Claude's colour
+  // a skirting board all round, in Clyde's colour
   for (const [w, pos, rot] of [[2 * RW, [0, 0.12, -RD + 0.03], 0], [2 * RD, [-RW + 0.03, 0.12, 0], Math.PI / 2], [2 * RD, [RW - 0.03, 0.12, 0], -Math.PI / 2], [2 * RW, [0, 0.12, RD - 0.03], Math.PI]])
     plane(w, 0.24, tint(0xa8502e, { decal: true }), pos, [0, rot, 0], 2);
   // the lamp, on a long flex
@@ -71,12 +75,12 @@ export async function buildRoom(m) {
   // the left wall: the chalkboard with the plan, and a round window
   plane(2.6, 1.8, psx(A.chalk, { decal: true, unlit: 0.1 }), [-RW + 0.05, 2.1, -0.4], [0, Math.PI / 2, 0], 2);
   plane(1.1, 1.1, psx(A.round, { decal: true, unlit: 0.5 }), [-RW + 0.05, 2.4, 2.3], [0, Math.PI / 2, 0], 2);
-  // the right wall: the bookshelf (papers on top), sticky notes, a photo of Claude's first client
+  // the right wall: the bookshelf (papers on top), sticky notes, a photo of Clyde's first client
   box(0.5, 2.3, 2.0, psx(T.wood), [RW - 0.25, 1.15, 0.9]);
-  plane(1.9, 1.4, psx(A.books, { unlit: 0.1 }), [RW - 0.51, 1.3, 0.9], [0, -Math.PI / 2, 0], 2);
+  plane(1.9, 1.4, psx(A.books, { unlit: 0.1 }), [RW - 0.56, 1.3, 0.9], [0, -Math.PI / 2, 0], 2);
   plane(0.8, 0.8, psx(A.notes, { decal: true }), [RW - 0.05, 2.0, -1.5], [0, -Math.PI / 2, 0], 2);
-  plane(0.95, 0.9, psx(A.frame, { decal: true }), [RW - 0.05, 2.9, 0.9], [0, -Math.PI / 2, 0], 2);
-  sprite(T.sadie, 0.62, 0.5, [RW - 0.07, 3.0, 0.9], { unlit: 0.2 }).rotation.y = -Math.PI / 2;
+  plane(0.95, 0.9, psx(A.frame), [RW - 0.05, 2.9, 0.9], [0, -Math.PI / 2, 0], 2);
+  sprite(T.sadie, 0.62, 0.5, [RW - 0.12, 3.0, 0.9], { unlit: 0.2 }).rotation.y = -Math.PI / 2;
   // by the door, more notes
   plane(0.6, 0.6, psx(A.notes, { decal: true }), [1.9, 1.8, RD - 0.05], [0, Math.PI, 0], 2);
 
@@ -118,7 +122,7 @@ export async function buildRoom(m) {
   const funnel = mesh(new ConeGeometry(0.2, 0.3, 12, 1, true), tint(0xb8c0e0, { side: DoubleSide }), at(FUNNEL[0], 3.2), [Math.PI, 0, 0]);
   cyl(0.055, 0.055, 0.95, 8, metal, at(2.0, 2.58));
   slope(SLIDE[1], SLIDE[0], 0.105, wood);
-  // the hamster wheel (Claude's), its stand, and the belt to the fan
+  // the hamster wheel (Clyde's), its stand, and the belt to the fan
   box(0.06, 0.8, 0.04, tint(0x5e5c80), at(WHEEL[0], WHEEL[1] - 0.4, -0.06));
   mesh(new TorusGeometry(WR, 0.025, 5, 20), tint(0x2a8ad0), at(...WHEEL));
   const spokes = new Group(); spokes.position.set(...at(...WHEEL, -0.03)); scene.add(spokes);
@@ -147,8 +151,8 @@ export async function buildRoom(m) {
   cyl(0.44, 0.38, 0.18, 10, psx(T.rope, { tint: 0xe8b070, rx: 5, ry: 1 }), [BASKET[0], 0.09, MZ + BASKET[1]]);
   cyl(0.38, 0.38, 0.03, 10, tint(0xff8ec8), [BASKET[0], 0.17, MZ + BASKET[1]]);
   const sadie = sprite(T.nap, 0.72, 0.58, [BASKET[0], 0.12, MZ + BASKET[1]], { bottom: true, unlit: 0.3 });
-  // Claude, in the wheel; and a heart, a puff, the treat Claude offers
-  const claude = sprite(A.claude.idle, 0.43, 0.5, at(WHEEL[0], WHEEL[1] - WR + 0.03, 0.03), { bottom: true, unlit: 0.35 });
+  // Clyde, in the wheel; and a heart, a puff, the treat Clyde offers
+  const clyde = sprite(A.clyde.idle, 0.43, 0.5, at(WHEEL[0], WHEEL[1] - WR + 0.03, 0.03), { bottom: true, unlit: 0.35 });
   const heart = sprite(A.heart, 0.2, 0.18, [0, -9, 0], { unlit: 0.8 });
   const puff = sprite(A.what, 0.18, 0.18, [0, -9, 0], { unlit: 0.8 });
   const offered = sprite(A.treat, 0.15, 0.09, [0, -9, 0]);
@@ -165,7 +169,7 @@ export async function buildRoom(m) {
   }
   const arrow = sprite(A.arrow, 0.18, 0.14, [0, -9, 0], { unlit: 0.9 });
   const bubble = sprite(A.bubble, 3.3, 1.04, [0, 4.85, MZ + 0.5], { unlit: 1 });
-  const right = { dominoes: [dominoes], funnel: [funnel], fan: [fan] };
+  const right = { dominoes: [dominoes], seesaw: [plank, yarn], funnel: [funnel], fan: [fan], boat: [boat], cup: [cup, treat] };
 
   // a slope from a to b (where a ball's middle rolls), `under` below it
   function slope(a, b, under, mat) {
@@ -177,6 +181,7 @@ export async function buildRoom(m) {
   const M = makeMachine(store.get(KEY, {}) || {});
   A.count(M.treats);
   const sounds = (() => { let s = null; return () => (s ||= makeSounds()); })();
+  const sfx = k => sounds()[k]();
 
   // ---------- putting everything back where it starts ----------
   function tidy() {
@@ -189,10 +194,10 @@ export async function buildRoom(m) {
     spin.wheel = spin.fan = 0; spin.junk = null;
     boat.position.set(...at(BOAT[0], 1.13, 0.02)); boat.rotation.z = 0;
     cup.rotation.z = 0; treat.position.set(...at(...TREAT, 0.005)); treat.visible = true; treat.scale.setScalar(1);
-    claude.position.set(...at(WHEEL[0], WHEEL[1] - WR + 0.03, 0.03)); claude.scale.x = 1;
+    clyde.position.set(...at(WHEEL[0], WHEEL[1] - WR + 0.03, 0.03)); clyde.scale.x = 1;
     offered.position.y = -9;
     sadie.position.set(BASKET[0], 0.12, MZ + BASKET[1]); sadie.scale.x = 1; naps = true;
-    for (const g of GAPS) { wobble[g] = 0; gapBits[g].junk.rotation.z = 0; }
+    for (const g of GAPS) { wobble[g] = 0; gapBits[g].junk.rotation.z = 0; gapBits[g].junk.position.set(...at(...SPOT[g].junk, 0.08)); }
     showGaps();
   }
   const spin = { wheel: 0, fan: 0, junk: null }, wobble = {};
@@ -242,11 +247,12 @@ export async function buildRoom(m) {
     const did = s => steps.includes(s);
     A.say(L.BUSY);
     // the lever, and the marble down the ramp
-    step(0.35, k => { lever.rotation.z = lerp(0.55, -0.55, ease(k)); focus = LEVER[0]; }, { end: () => { peg.position.y = MARBLE[1] - 0.15; } });
+    step(0.35, k => { lever.rotation.z = lerp(0.55, -0.55, ease(k)); focus = LEVER[0]; }, { start: () => sfx('clunk'), end: () => { peg.position.y = MARBLE[1] - 0.15; } });
     step(0.55, k => { move(marble, MARBLE, RAMP_END)(k * k); focus = marble.position.x; });
     // the dominoes (or whatever's in their gap)
     if (did('dominoes')) {
       step(0.18, move(marble, RAMP_END, [DOMINOES[0] - 0.1, RAMP_END[1]]));
+      now(() => sfx('clatter'));
       tiles.forEach((p, i) => step(0.09, k => { p.rotation.z = -(i === tiles.length - 1 ? 1.3 : 1.0) * ease(k); focus = p.position.x; }));
       step(0.12, move(weight, WEIGHT, [-0.42, WEIGHT[1]]));
       step(0.22, k => weight.position.set(...at(lerp(-0.42, -0.45, k), lerp(WEIGHT[1], 2.79, k * k))));
@@ -255,46 +261,65 @@ export async function buildRoom(m) {
       step(0.25, move(marble, RAMP_END, [to, RAMP_END[1]]), { end: () => poke('dominoes', fail.part) });
       step(0.3, move(marble, [to, RAMP_END[1]], [to - 0.08, RAMP_END[1]]));
     });
-    // the seesaw flings the yarn
+    // the seesaw flings the yarn (or the weight lands on whatever's there instead)
+    if (!did('seesaw')) return failAt('seesaw', fail.part, () => {
+      if (fail.part) now(() => poke('seesaw', fail.part));
+      else step(0.25, k => { weight.position.y = lerp(2.79, 2.3, k * k); weight.rotation.z = k * 0.6; }, { end: () => poke('seesaw', null) });
+      wait(0.5);
+    });
+    now(() => sfx('boing'));
     step(0.12, k => { plank.rotation.z = lerp(-0.2, 0.25, k); weight.position.y = lerp(2.79, 2.6, k); yarn.position.y = lerp(YARN[1], 2.85, k); });
     const launch = [YARN[0], 2.85];
     if (did('funnel')) {
       step(0.85, k => { const a = arc(yarn, launch, FUNNEL, 0.9); a(k); focus = yarn.position.x; });
       step(0.2, k => { yarn.position.y = FUNNEL[1] - k * 0.2; yarn.scale.setScalar(1 - k * 0.6); });
-      now(() => { yarn.visible = false; }); wait(0.45);
+      now(() => { yarn.visible = false; sfx('fwoop'); }); wait(0.45);
       now(() => { yarn.visible = true; yarn.scale.setScalar(1); yarn.position.set(...at(...PIPE_OUT)); });
     } else return failAt('funnel', fail.part, () => {
       step(0.85, k => { arc(yarn, launch, FUNNEL, 0.9)(k); focus = yarn.position.x; }, { end: () => poke('funnel', fail.part) });
       const land = fail.part ? [2.6, 0.1] : [2.3, 0.1];
       step(0.7, k => yarn.position.set(...at(lerp(FUNNEL[0], land[0], k), lerp(FUNNEL[1], land[1], k * k) + Math.sin(k * Math.PI) * (fail.part ? 0.35 : 0), 0.2 * k)));
     });
-    // down the slide into the wheel: Claude starts running
+    // down the slide into the wheel: Clyde starts running
     step(0.12, move(yarn, PIPE_OUT, SLIDE[0]));
     step(0.45, k => { move(yarn, SLIDE[0], SLIDE[1])(k * k); focus = yarn.position.x; }, { end: () => { puffAt(A.bang, WHEEL[0] + 0.3, WHEEL[1] + 0.35); spin.wheel = 1; } });
     wait(0.35);
     if (did('fan')) {
-      step(0.3, k => { spin.fan = k; focus = lerp(WHEEL[0], FAN[0], k); });
+      step(0.3, k => { spin.fan = k; focus = lerp(WHEEL[0], FAN[0], k); }, { start: () => sfx('whoosh') });
     } else return failAt('fan', fail.part, () => {
       step(1.6, k => { focus = lerp(WHEEL[0], FAN[0], Math.min(1, k * 2)); if (fail.part) spin.junk = 'fan'; }, { end: () => poke('fan', fail.part) });
       now(() => { spin.wheel = 0; spin.junk = null; });
     });
-    // the boat across the trough, into the cup, which tips the treat down the chute
-    step(1.3, k => { boat.position.set(...at(lerp(BOAT[0], BOAT[1], k), 1.13 + Math.sin(k * 20) * 0.01, 0.02)); boat.rotation.z = Math.sin(k * 14) * 0.06; focus = boat.position.x; });
-    step(0.3, k => { cup.rotation.z = 1.4 * ease(k); });
+    // the boat across the trough (or the duck, which floats), into the cup, which tips the treat down the chute
+    const ducky = partIn(M, 'boat') === 'duck', sails = ducky ? gapBits.boat.junk : boat, sy = ducky ? SPOT.boat.junk[1] : 1.13;
+    if (!did('boat')) return failAt('boat', fail.part, () => {
+      step(1.2, k => { if (fail.part) gapBits.boat.junk.rotation.z = Math.sin(k * 30) * 0.08; focus = lerp(FAN[0], BOAT[0], Math.min(1, k * 2)); }, { end: () => poke('boat', fail.part) });
+      now(() => { spin.wheel = 0; spin.fan = 0; });
+    });
+    now(() => sfx(ducky ? 'squeak' : 'bloop'));
+    const sailTo = did('cup') ? BOAT[1] : fail.part ? -1.68 : -1.8;
+    step(1.3 * (BOAT[0] - sailTo) / (BOAT[0] - BOAT[1]), k => { sails.position.set(...at(lerp(BOAT[0], sailTo, k), sy + Math.sin(k * 20) * 0.01, ducky ? 0.08 : 0.02)); sails.rotation.z = Math.sin(k * 14) * 0.06; focus = sails.position.x; });
+    if (!did('cup')) return failAt('cup', fail.part, () => {
+      now(() => { poke('cup', fail.part); spin.wheel = 0; spin.fan = 0; });
+      wait(0.6);
+    });
+    step(0.3, k => { cup.rotation.z = 1.4 * ease(k); }, { start: () => sfx('clink') });
     step(0.22, arc(treat, TREAT, [-2.28, 1.16], 0.08, 0.005));
     step(0.35, k => { move(treat, [-2.28, 1.16], [-2.54, 0.44], 0.005)(k * k); focus = -2.3; });
     step(0.25, k => treat.position.set(BOWL[0], lerp(0.44, 0.1, k * k), MZ + lerp(0.005, BOWL[1], k)), { end: () => { sounds().chime(); spin.wheel = 0; spin.fan = 0; mood = 'happy'; } });
     // Sadie wakes, and has her breakfast
     now(() => { naps = false; });
     wait(0.4);
+    now(() => sfx('mrrp'));
     step(0.7, k => { sadie.position.set(lerp(BASKET[0], BOWL[0] + 0.45, k), 0.12 * (1 - k), MZ + lerp(BASKET[1], BOWL[1] + 0.12, k)); sadie.position.y += Math.abs(Math.sin(k * 9)) * 0.03; });
     step(1.3, k => { sadie.position.y = Math.abs(Math.sin(k * 16)) * 0.03; treat.scale.setScalar(1 - k); }, { end: () => { treat.visible = false; puffAt(A.heart, BOWL[0] + 0.45, 0.8, MZ + BOWL[1] + 0.2); } });
     now(() => {
       const what = won(M); store.set(KEY, saveOf(M)); A.count(M.treats);
+      if (ducky) for (const l of L.DUCK) say(l);
       afterWin(what);
     });
   }
-  // a run that stops at a gap: the bit that plays up to it, then what Claude makes of it
+  // a run that stops at a gap: the bit that plays up to it, then what Clyde makes of it
   function failAt(gap, part, play) {
     play();
     now(() => { mood = 'oops'; spin.wheel = 0; });
@@ -304,6 +329,7 @@ export async function buildRoom(m) {
   }
   // something bumps into what's in a gap: it wobbles, or (if nothing's there) a question mark
   function poke(gap, part) {
+    sfx(part === 'duck' ? 'squeak' : 'bonk');
     if (part) wobble[gap] = 1;
     const [u, v] = SPOT[gap].c;
     puffAt(A.what, u + 0.2, v + 0.25);
@@ -320,25 +346,25 @@ export async function buildRoom(m) {
     else finale();
     now(() => { sel = 0; tidy(); ready(); });
   }
-  // The finale (the first time all three gaps are filled right): Claude has an idea, hops out of the
+  // The finale (the first time the fourth round works): Clyde has an idea, hops out of the
   // wheel and offers Sadie the treat directly. She turns her back on it and goes to sit by the
   // machine. She wants the machine.
   function finale() {
     say(L.FINALE.ate); say(L.FINALE.wait);
-    now(() => { mood = 'think'; }); say(L.FINALE.idea);
+    now(() => { mood = 'think'; sfx('idea'); }); say(L.FINALE.idea);
     const wheelAt = [WHEEL[0], WHEEL[1] - WR + 0.03], by = [BASKET[0] + 0.75, 0], BY = 0.5;
     now(() => { mood = 'run'; });
-    step(0.9, k => { claude.position.set(lerp(wheelAt[0], by[0], k), lerp(wheelAt[1], 0, k) + Math.sin(k * Math.PI) * 0.4, MZ + lerp(0.03, BY, k)); focus = claude.position.x; });
+    step(0.9, k => { clyde.position.set(lerp(wheelAt[0], by[0], k), lerp(wheelAt[1], 0, k) + Math.sin(k * Math.PI) * 0.4, MZ + lerp(0.03, BY, k)); focus = clyde.position.x; });
     now(() => { mood = 'happy'; offered.position.set(by[0] - 0.24, 0.3, MZ + BY + 0.05); naps = false; });
     say(L.FINALE.offer);
-    step(0.4, k => { sadie.scale.x = k < 0.5 ? 1 : -1; });
+    step(0.4, k => { sadie.scale.x = k < 0.5 ? 1 : -1; }, { start: () => sfx('mew') });
     step(1.2, k => { sadie.position.set(lerp(BASKET[0], SADIE_SITS[0], k), Math.abs(Math.sin(k * 12)) * 0.03, MZ + lerp(BASKET[1], SADIE_SITS[1], k)); focus = sadie.position.x; },
       { end: () => { sadie.scale.x = 1; puffAt(A.heart, SADIE_SITS[0], 0.85, MZ + SADIE_SITS[1] + 0.1); } });
     now(() => { mood = 'oops'; }); say(L.FINALE.snub);
     now(() => { mood = 'think'; }); say(L.FINALE.wants);
     now(() => { mood = 'happy'; }); say(L.FINALE.fine);
     now(() => { mood = 'run'; offered.position.y = -9; });
-    step(0.9, k => { claude.position.set(lerp(by[0], wheelAt[0], k), lerp(0, wheelAt[1], k) + Math.sin(k * Math.PI) * 0.4, MZ + lerp(BY, 0.03, k)); focus = claude.position.x; });
+    step(0.9, k => { clyde.position.set(lerp(by[0], wheelAt[0], k), lerp(0, wheelAt[1], k) + Math.sin(k * Math.PI) * 0.4, MZ + lerp(BY, 0.03, k)); focus = clyde.position.x; });
     step(1.2, k => { sadie.position.set(lerp(SADIE_SITS[0], BASKET[0], k), 0.12 * k + Math.abs(Math.sin(k * 12)) * 0.03, MZ + lerp(SADIE_SITS[1], BASKET[1], k)); });
     now(() => { mood = null; });
   }
@@ -350,13 +376,13 @@ export async function buildRoom(m) {
   }
   // pick a gap (or the lever), and swap what's in it
   function choose(i) { const t = targets(); sel = (i + t.length) % t.length; }
-  function swapIn(g, by) { swap(M, g, by); showGaps(); const j = gapBits[g].junk; j.scale.setScalar(1.3); }
+  function swapIn(g, by) { sfx(swap(M, g, by) === 'duck' ? 'squeak' : 'pop'); showGaps(); const j = gapBits[g].junk; j.scale.setScalar(1.3); }
   function press(target, by = 1) {
     if (phase === 'talking' || (phase === 'running' && tl[0]?.line)) { skip(); return; }
     if (phase !== 'ready') return;
     if (target === 'lever') pull(); else if (target) { choose(targets().indexOf(target)); swapIn(target, by); }
   }
-  // pressing anything while Claude's talking moves things on
+  // pressing anything while Clyde's talking moves things on
   function skip() { if (tl[0]?.line) tl[0].t = tl[0].dur; }
   const talking = () => !!tl[0]?.line;
 
@@ -388,7 +414,7 @@ export async function buildRoom(m) {
     start() {
       sounds().wake(); playing = true;
       if (!greeted && phase === 'ready') {
-        greeted = true; phase = 'talking';
+        greeted = true; phase = 'talking'; sfx('hello');
         for (const l of M.treats ? L.HELLO_AGAIN : L.HELLO) say(l);
         now(() => ready());
       } else if (phase === 'ready') ready();
@@ -454,12 +480,12 @@ export async function buildRoom(m) {
       advance(dt);
       if (phase === 'running' && !tl.length) phase = 'ready';
       if (phase === 'talking' && !tl.length) ready();
-      // the bubble: what Claude's saying (just a hello from across the room until you step up)
+      // the bubble: what Clyde's saying (just a hello from across the room until you step up)
       if (!playing && !tl.length && phase === 'ready') A.say(greeted ? L.HOWTO[missing(M).length] : L.PEEK);
       // the view: all of it on a wide screen; on a narrow one, closer, following what's happening
       if (narrow()) {
         if (phase === 'ready') { const g = targets()[sel]; focus = g === 'lever' ? LEVER[0] : SPOT[g].c[0]; }
-        view.w = 3.3; view.center.x += (Math.max(-1.35, Math.min(1.35, focus)) - view.center.x) * Math.min(1, dt * 4);
+        view.w = 3.3; view.center.x += (Math.max(-2.1, Math.min(2.1, focus)) - view.center.x) * Math.min(1, dt * 4);
       } else { view.w = 6.4; view.center.x = 0; }
       bubble.position.x = playing ? view.center.x : 0;
       // the arrow over what you've picked (not needed with a finger)
@@ -484,26 +510,26 @@ export async function buildRoom(m) {
         p.material.uniforms.uFade.value = Math.max(0, p.userData.t - 0.6);
         if (p.userData.t > 1.8) p.position.y = -9;
       }
-      // Claude: running in the wheel, or in a mood, or talking, or just blinking now and then
+      // Clyde: running in the wheel, or in a mood, or talking, or just blinking now and then
       let face = 'idle';
       runT += dt;
       if (spin.wheel || mood === 'run') face = Math.floor(runT * 10) % 2 ? 'run1' : 'run2';
       else if (mood) face = mood;
       else if (clock < talkUntil) face = Math.floor(t * 7) % 2 ? 'talk' : 'idle';
       else if (t > blinkAt) { face = 'blink'; if (t > blinkAt + 0.15) blinkAt = t + 2.5 + Math.random() * 3; }
-      claude.material.uniforms.map.value = A.claude[face];
+      clyde.material.uniforms.map.value = A.clyde[face];
       sadie.material.uniforms.map.value = naps ? T.nap : T.sadie;
     },
   };
   tidy();
   A.say(L.PEEK);
 
-  // for the checks (tests/claudes-house/browser.mjs)
-  globalThis.__claudesHouse = {
+  // for the checks (tests/clydes-house/browser.mjs)
+  globalThis.__clydesHouse = {
     state: () => ({
       round: M.round, treats: M.treats, finale: M.finale, phase, lines: tl.filter(s => s.line).length,
       missing: missing(M), parts: Object.fromEntries(GAPS.map(g => [g, partIn(M, g)])), options: Object.fromEntries(missing(M).map(g => [g, M.gaps[g].parts])),
-      picked: targets()[sel], sounds: sounds().played, naps, view: { x: view.center.x, w: view.w },
+      picked: targets()[sel], sounds: sounds().played, heard: [...new Set(sounds().log)], naps, view: { x: view.center.x, w: view.w },
     }),
     speed(k) { speed = k; },
   };

@@ -1,24 +1,29 @@
 // The Good Morning Machine, as plain numbers (no browser: the tests run it in Node). It's a chain of
-// steps that ends with one treat in Sadie's bowl. Three of the steps are pieces that can go missing
+// steps that ends with one treat in Sadie's bowl. Six of the steps are pieces that can go missing
 // (GAPS); you put a part from the spare-parts box in each gap, pull the lever, and the machine runs
-// until it gets to a gap with the wrong part in it (or nothing).
+// until it gets to a gap with the wrong part in it (or nothing). One bit of junk secretly works:
+// the rubber duck floats, so it does fine as the boat.
 //
-// Each time it works, Claude "improves" it: more pieces go missing (ROUNDS). After the third, Claude
-// has an idea (the finale, in room.js), and from then on each run has one to three gaps at random.
+// Each time it works, Clyde "improves" it: more pieces go missing (ROUNDS, one to four). After the
+// fourth, Clyde has an idea (the finale, in room.js), and from then on each run has two to four
+// gaps at random.
 
 // every step, in the order the machine does them
 export const STEPS = ['lever', 'ramp', 'dominoes', 'seesaw', 'funnel', 'wheel', 'fan', 'boat', 'cup', 'bowl'];
 // the pieces that can go missing, in order along the machine
-export const GAPS = ['dominoes', 'funnel', 'fan'];
+export const GAPS = ['dominoes', 'seesaw', 'funnel', 'fan', 'boat', 'cup'];
 // the rest of the spare-parts box: none of it is any use
-export const JUNK = ['duck', 'banana', 'sock', 'cactus', 'floppy', 'toaster', 'trophy', 'bulb', 'sandwich', 'plant'];
+// (enough for four gaps at once, three each)
+export const JUNK = ['duck', 'banana', 'sock', 'cactus', 'floppy', 'toaster', 'trophy', 'bulb', 'sandwich', 'plant', 'shoe', 'fishbone', 'yoyo', 'umbrella', 'pizza'];
 export const NAMES = {
-  dominoes: 'DOMINOES', funnel: 'FUNNEL', fan: 'FAN',
+  dominoes: 'DOMINOES', seesaw: 'SEESAW', funnel: 'FUNNEL', fan: 'FAN', boat: 'PAPER BOAT', cup: 'TEACUP',
   duck: 'RUBBER DUCK', banana: 'BANANA', sock: 'ONE SOCK', cactus: 'CACTUS', floppy: 'FLOPPY DISK',
   toaster: 'TOASTER', trophy: 'TROPHY', bulb: 'AN IDEA', sandwich: 'SANDWICH', plant: 'HOUSEPLANT',
+  shoe: 'ONE SHOE', fishbone: 'FISH BONE', yoyo: 'YO-YO', umbrella: 'UMBRELLA', pizza: 'COLD PIZZA',
 };
 // which gaps are empty in each round, before the finale
-export const ROUNDS = [['dominoes'], ['dominoes', 'funnel'], ['dominoes', 'funnel', 'fan']];
+export const ROUNDS = [['dominoes'], ['seesaw', 'funnel'], ['dominoes', 'fan', 'boat'], ['seesaw', 'funnel', 'fan', 'cup']];
+export const MOST = 4;      // after the finale, two to this many gaps at once
 export const OPTIONS = 4;   // parts to choose from in each gap: the right one and three bits of junk
 
 // the same numbers every time from a seed
@@ -38,7 +43,7 @@ export function newRound(M) {
   let gone;
   if (!M.finale) gone = ROUNDS[Math.min(M.round, ROUNDS.length - 1)];
   else {
-    const pick = GAPS.slice().sort(() => r() - 0.5).slice(0, 1 + Math.floor(r() * 3));
+    const pick = GAPS.slice().sort(() => r() - 0.5).slice(0, 2 + Math.floor(r() * (MOST - 1)));
     gone = GAPS.filter(g => pick.includes(g));   // (in order along the machine)
   }
   const junk = JUNK.slice().sort(() => r() - 0.5);
@@ -53,6 +58,8 @@ export function newRound(M) {
 export const missing = M => GAPS.filter(g => M.gaps[g]);
 // what's in a gap right now: its right part if it isn't missing, else the part picked (or null)
 export function partIn(M, g) { const x = M.gaps[g]; return !x ? g : x.pick < 0 ? null : x.parts[x.pick]; }
+// does this part do the job in this gap? Its own part does; and a rubber duck floats
+export const works = (g, part) => part === g || (g === 'boat' && part === 'duck');
 // the next part in a gap (from empty, the first)
 export function swap(M, g, by = 1) {
   const x = M.gaps[g]; if (!x) return null;
@@ -64,14 +71,14 @@ export function swap(M, g, by = 1) {
 export function run(M) {
   const steps = [];
   for (const s of STEPS) {
-    if (GAPS.includes(s) && partIn(M, s) !== s) return { steps, fail: { gap: s, part: partIn(M, s) } };
+    if (GAPS.includes(s) && !works(s, partIn(M, s))) return { steps, fail: { gap: s, part: partIn(M, s) } };
     steps.push(s);
   }
   return { steps, fail: null };
 }
 
 // The treat got there. Returns what happens next: 'next' (another round, now a bit "improved"),
-// 'finale' (the first time the third round works) or 'again' (after the finale: any old gaps).
+// 'finale' (the first time the last round works) or 'again' (after the finale: any old gaps).
 export function won(M) {
   M.treats++;
   let what;
