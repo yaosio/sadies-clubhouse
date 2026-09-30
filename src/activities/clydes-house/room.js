@@ -41,10 +41,10 @@ const BASKET = [-1.5, 0.48], SADIE_SITS = [0.2, 0.55];
 const SPOT = {
   dominoes: { c: [-1.04, 3.3], w: 0.74, h: 0.32, junk: [-1.04, 3.34], tag: [-1.04, 2.99] },
   seesaw: { c: [-0.1, 2.64], w: 1.0, h: 0.3, junk: [-0.42, 2.62], tag: [0.0, 2.34] },
-  funnel: { c: [2.0, 3.22], w: 0.46, h: 0.42, junk: [2.0, 3.24], tag: [2.5, 3.24] },
-  fan: { c: [-0.2, 1.55], w: 0.5, h: 0.52, junk: [-0.2, 1.5], tag: [-0.2, 1.12] },
-  boat: { c: [-0.8, 1.3], w: 0.42, h: 0.3, junk: [-0.8, 1.3], tag: [-0.9, 0.87] },
-  cup: { c: [-2.07, 1.3], w: 0.36, h: 0.32, junk: [-2.07, 1.3], tag: [-2.0, 0.87] },
+  funnel: { c: [2.0, 3.22], w: 0.46, h: 0.42, junk: [2.0, 3.24], tag: [2.0, 2.8] },
+  fan: { c: [-0.2, 1.55], w: 0.5, h: 0.52, junk: [-0.2, 1.5], tag: [0.0, 1.1] },
+  boat: { c: [-0.8, 1.3], w: 0.42, h: 0.3, junk: [-0.8, 1.3], tag: [-0.75, 0.87] },
+  cup: { c: [-2.07, 1.3], w: 0.36, h: 0.32, junk: [-2.07, 1.3], tag: [-2.1, 0.87] },
 };
 
 export async function buildRoom(m) {
@@ -170,7 +170,8 @@ export async function buildRoom(m) {
       junk: sprite(A.junk.duck, 0.32, 0.32, at(...s.junk, 0.08), { unlit: 0.3 }),
       tagTex: A.tag(),
     };
-    gapBits[g].tag = sprite(gapBits[g].tagTex, 1.0, 0.14, at(...s.tag, 0.1), { unlit: 0.9 });
+    // (big enough to read on a wide screen, where the whole machine has to fit)
+    gapBits[g].tag = sprite(gapBits[g].tagTex, 1.6, 0.225, at(...s.tag, 0.1), { unlit: 0.9 });
   }
   const toast = sprite(A.toast, 0.17, 0.155, [0, -9, 0], { unlit: 0.3 });
   const arrow = sprite(A.arrow, 0.18, 0.14, [0, -9, 0], { unlit: 0.9 });
@@ -563,6 +564,8 @@ export async function buildRoom(m) {
     }),
     speed(k) { speed = k; },
     // (for tools/clydes-house/junk.mjs) put this bit of junk in the first empty gap
+    // (for tools/clydes-house/tags.mjs) every gap empty, with this part in it
+    everyGap(part) { for (const g of GAPS) M.gaps[g] = { parts: [part, g, g, g], pick: 0 }; showGaps(); },
     junk(part) { const g = missing(M)[0], x = M.gaps[g]; x.parts[x.parts.findIndex(p => p !== g)] = part; x.pick = x.parts.indexOf(part); showGaps(); return g; },
   };
   return place;
