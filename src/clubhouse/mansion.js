@@ -308,13 +308,22 @@ export async function open(cards, enter) {
     $('#stick').hidden = !touchy || inGame;
     if (inGame) $('#keysHint').hidden = true;
     if (inGame) btn.textContent = 'STEP BACK';
-    else if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = 'PLAY'; }
+    else if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = target.button || 'PLAY'; }
   }
   on($('#use'), 'click', () => { if (mode === 'arcade') stepBack(); else if (target && mode === 'play') use(target); });
   // Sit down at the computer: you lean in until the screen fills the view, then the program starts.
   let going = null;
   function use(u) {
     if (u.play) { stepUp(u); return; }
+    // something in the room that moves your view about by itself (tapping the aquarium's glass):
+    // it's handed where you stand and a way to glide your view, a step at a time; once a step's
+    // `then` doesn't glide on, you have the controls back
+    if (u.act) {
+      held.clear();
+      const step = (to, secs, then) => glideTo(to, secs, () => { then?.(); if (!glide) { mode = 'play'; showTarget(); } });
+      u.act({ from: { x: me.x, z: me.z, eye: me.eye, yaw: me.yaw, pitch: me.pitch }, EYE, glide: step });
+      return;
+    }
     mode = 'going'; held.clear(); showTarget();
     if (document.pointerLockElement) document.exitPointerLock();
     const d = tmp.copy(u.pos).sub(cam.position);
@@ -451,7 +460,7 @@ export async function open(cards, enter) {
       arcade.u.play.steer(steering(), dt);
       if (arcade.u.play.over) stepBack();         // the game's over (Brickbuster broke): step back and watch
     }
-    if (mode !== 'going' && !arcade) me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps
+    if (mode !== 'going' && mode !== 'gliding' && !arcade) me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps
     if (!hintGone && ((moved && now - born > 4000) || now - born > 15000)) { hintGone = true; $('#keysHint').style.opacity = 0; }
     // a door opens as you come up to it facing it (only one at a time), and closes behind you
     const opening = doorAhead();

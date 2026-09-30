@@ -1,0 +1,105 @@
+<title>Sadie's Aquarium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* One look on purpose: the game's own night-purple world, like the mansion mock-up. */
+:root {
+  color-scheme: dark;
+  --ground: #120a24; --panel: #2a1850; --edge: #5a3a9a; --hi: #c9b6f2;
+  --text: #f2eaff; --dim: #b8a8dc; --gold: #ffd23a; --pink: #ff8ec8; --ink: #1c1238; --sea: #2a8ad0;
+  --blocky: Silkscreen, "Courier New", monospace; --dos: VT323, "Courier New", monospace;
+}
+html, body { height: 100%; margin: 0; }
+body { background: var(--ground); color: var(--text); font-family: var(--dos); font-size: 20px; line-height: 1.25; }
+.wrap { max-width: 1100px; margin: 0 auto; padding-inline: 16px; padding-block: 14px 28px; display: grid; gap: 12px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+h1 { font-family: var(--blocky); font-weight: 700; font-size: 26px; margin: 0; color: var(--gold); text-shadow: 2px 2px 0 #a02a70; }
+.tag { font-family: var(--blocky); font-size: 11px; letter-spacing: .06em; color: var(--ink); background: var(--pink); padding: 2px 8px; }
+.bar { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; }
+button.pick { font-family: var(--blocky); font-size: 12px; letter-spacing: .04em; color: var(--text); background: var(--panel);
+  border: 2px solid var(--edge); border-top-color: var(--hi); border-left-color: var(--hi); padding: 6px 10px; cursor: pointer; }
+button.pick[aria-pressed="true"] { background: var(--gold); color: var(--ink); border-color: #8a5a10; border-top-color: #fff08a; border-left-color: #fff08a; }
+button:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+
+.shell { display: grid; justify-items: center; }
+#stage { position: relative; width: 100%; aspect-ratio: 16 / 10; max-height: 78vh; background: #000; border: 3px solid var(--edge); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+#stage[data-device="phone"] { width: auto; height: min(78vh, 720px); aspect-ratio: 9 / 19; max-width: 100%; border: 10px solid #231a3a; border-radius: 30px; }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; cursor: grab; touch-action: none; }
+#view:active { cursor: grabbing; }
+
+/* what the game shows on screen: only these */
+.hud { position: absolute; font-family: var(--blocky); font-size: 11px; letter-spacing: .05em; color: #fff; }
+.pause { top: 10px; right: 10px; width: 30px; height: 30px; display: grid; place-items: center; background: #1c1238b0; border: 2px solid #ffffff60; pointer-events: none; }
+.pause::before { content: ""; width: 10px; height: 12px; border-left: 3px solid #fff; border-right: 3px solid #fff; }
+.keys { bottom: 12px; left: 50%; transform: translateX(-50%); background: #1c1238a0; padding: 4px 10px; white-space: nowrap; pointer-events: none; }
+.key { display: inline-block; background: #f2eaff; color: var(--ink); padding: 0 4px; margin-right: 3px; box-shadow: 0 2px 0 #8a7ab8; }
+.go { bottom: 16px; left: 50%; transform: translateX(-50%); background: #1c1238d0; border: 2px solid var(--gold); padding: 5px 10px; white-space: nowrap; pointer-events: none; }
+#stick { left: 22px; bottom: 28px; width: 92px; height: 92px; border-radius: 50%; border: 2px solid #ffffff70; background: #ffffff18; display: grid; place-items: center; pointer-events: none; }
+#knob { width: 38px; height: 38px; border-radius: 50%; background: #ffffff80; }
+#tapBtn { right: 18px; bottom: 30px; width: 84px; height: 84px; border-radius: 50%; border: 0; background: var(--gold); color: var(--ink); font-family: var(--blocky); font-size: 11px; line-height: 1.1; box-shadow: 0 4px 0 #8a5a10; cursor: pointer; touch-action: none; }
+#tapBtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #8a5a10; }
+#stage:not([data-device="computer"]) .onComputer, #stage:not([data-device="phone"]) .onPhone { display: none; }
+#stage[data-near="no"] .onNear, #stage:not([data-near="no"]) .offNear { display: none; }
+#stage:not([data-dived="no"]) .hud { display: none; }
+
+/* after the dip: where the ocean will start */
+.dived { position: absolute; inset: 0; display: none; place-items: center; text-align: center; padding: 16px;
+  background: repeating-conic-gradient(#1a5ab0 0 25%, #2a8ad0 0 50%) 0 0 / 4px 4px; }
+#stage[data-dived="yes"] .dived { display: grid; }
+.dived .card { display: grid; gap: 12px; justify-items: center; max-width: 440px; background: #0a0628e0; border: 3px solid var(--gold); padding: 18px; }
+.dived h2 { margin: 0; font-family: var(--blocky); font-size: 22px; color: var(--gold); text-shadow: 2px 2px 0 #a02a70; }
+.dived p { margin: 0; color: var(--text); }
+#backBtn { font-family: var(--blocky); font-size: 13px; color: var(--ink); background: var(--gold); border: 0; padding: 6px 18px; box-shadow: 0 3px 0 #8a5a10; cursor: pointer; }
+
+.says { margin: 0; max-width: 70ch; }
+.says li { margin-block: 4px; }
+.note { margin: 0; max-width: 70ch; color: var(--dim); font-size: 18px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Sadie's Aquarium</h1>
+    <span class="tag">MOCK-UP · NOT THE GAME YET</span>
+  </header>
+  <div class="bar">
+    <div class="group" role="group" aria-label="Which screen">
+      <button class="pick" data-device="computer">COMPUTER</button>
+      <button class="pick" data-device="phone">PHONE</button>
+    </div>
+    <div class="group">
+      <button class="pick" id="toLanding">OUTSIDE THE DOOR</button>
+      <button class="pick" id="toRoom">IN THE ROOM</button>
+      <button class="pick" id="finds" aria-pressed="false">SHOW OCEAN FINDS</button>
+    </div>
+  </div>
+  <div class="shell">
+    <div id="stage" data-device="computer" data-near="no" data-dived="no">
+      <canvas id="view"></canvas>
+      <div class="hud pause"></div>
+      <div class="hud keys onComputer offNear"><span class="key">W A S D</span> WALK &nbsp; <span class="key">DRAG</span> LOOK</div>
+      <div class="hud go onComputer onNear"><span class="key">E</span> <span id="goText">TAP THE GLASS</span></div>
+      <div class="hud onPhone" id="stick"><div id="knob"></div></div>
+      <button class="hud onPhone onNear" id="tapBtn">TAP<br>THE<br>GLASS</button>
+      <div class="dived"><div class="card">
+        <h2>BLUB!</h2>
+        <p>This is where the ocean starts. In the real thing your view keeps going: it looks up, and you're out at sea with a boat's cockpit round the screen. No loading screen.</p>
+        <p>OCEAN COMING SOON!</p>
+        <button id="backBtn">BACK TO THE ROOM</button>
+      </div></div>
+    </div>
+  </div>
+  <ul class="says">
+    <li>Walk up to the tank. Sadie's swimming in it in her diving suit (fishbowl helmet, air tank, flippers), with the fish.</li>
+    <li>Its door, out on the landing (press OUTSIDE THE DOOR, or walk up to the door and press E): sea blue, with a sign that's a little tank of its own with a goldfish in it, a porthole, and water seeping out underneath. Inside, its sign is painted over, like every room's door.</li>
+    <li>The cardboard sign taped to the glass says <b>DON'T TAP ON THE GLASS!!</b> (she means it).</li>
+    <li>Stand close to the glass and look at it: a <b>TAP THE GLASS</b> prompt shows up (E on a computer, a big button on a phone). Swiping to look around never taps it.</li>
+    <li>Tap it: the fish scatter, Sadie turns and glares, then your view rises over the rim and dips into the water.</li>
+    <li>The cabinet on the right wall, <b>OCEAN FINDS</b>, is where things you pick up in the ocean will go. Press SHOW OCEAN FINDS to see it full.</li>
+  </ul>
+  <p class="note">It's silent on purpose. Drag the picture to look around, WASD (or the thumb stick on the phone view) to walk.</p>
+</div>
+<script type="module">
+/*@script*/
+</script>

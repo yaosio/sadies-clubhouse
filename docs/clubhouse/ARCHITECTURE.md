@@ -43,7 +43,11 @@ activity is checked again, so something moves into it only once a second activit
   height the screen has to fit), `start()` (called during the press, so sound is allowed),
   `stop()`, `steer(v, dt)` (held keys, -1 to 1) and `nudge(metres)` (the mouse or a finger, already
   turned into metres across the game), and `over` (set when the game ends: the mansion steps you
-  back). Its place can hold its door open (`holding`: the doorway, while something goes out through
+  back). A use can instead have `act({ from, EYE, glide })`: pressed, it's handed where you
+  stand and `glide(to, secs, then)`, which eases your view to `to` (`x`, `z`, `eye`, `yaw`, `pitch`)
+  and then calls `then`; once a `then` doesn't glide on, you have the controls back (the aquarium's tap on
+  the glass, rising over the rim and dipping into the water). A use's `button` is what the phone's
+  button says (PLAY if it hasn't one). Its place can hold its door open (`holding`: the doorway, while something goes out through
   it), and make everyone in it watch something (`watch`: a point; your view follows it and you
   can't walk or look away until it's null again: Brickbuster's escaping yarn ball). The kit also has its door's picture (`doorImage`) and its door on the landing
   (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
