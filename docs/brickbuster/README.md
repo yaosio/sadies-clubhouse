@@ -116,7 +116,7 @@ ball hanging where it was. The ball starts on the paddle and is sent off by itse
   cracks in about a minute (0.8 to 1.1 minutes over five games; never under half a minute), a real
   person takes a good few minutes. Leaving the paddle alone cracks the bottom within seconds.
 
-**Put away when you're far off.** The mansion puts the room away when you've been three doors or more from it for a while, but never mid-game or while the ball's getting out (`busy()`). `putAway()` saves the game, closes its sounds, takes the yarn ball and Sadie out of the hall and the sign off the landing door. When it's built again from its save, they're all back.
+**Put away when you're far off.** The mansion puts the room away when you've been three doors or more from it for a while, but never mid-game or while the ball's getting out (`busy()`). `putAway()` saves the game, closes its sounds, and takes the yarn ball and Sadie out of the hall; when it's built again from its save, they're back. The OUT OF ORDER sign stays on the landing door meanwhile (it's made once, and the room built again uses the same one), so the landing never shows the door without it.
 
 ## Parked ideas
 

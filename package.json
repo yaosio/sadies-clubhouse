@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Sadie's Clubhouse: a lost 90s shareware activity center, Sadie's mansion with a room per activity (Sadie's Dropper World, TypeFitter Deluxe 3.1, Brickbuster '96, the Music Room).",
+  "description": "Sadie's Clubhouse: a lost 90s shareware activity center, Sadie's mansion with a room per activity (Sadie's Dropper World, TypeFitter Deluxe 3.1, Brickbuster '96, the Music Room, the aquarium, Space Adventure) and Clyde's House outside the gate.",
   "scripts": {
     "build": "node tools/build.mjs",
     "check": "node tools/check.mjs",

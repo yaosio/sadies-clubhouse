@@ -7,10 +7,12 @@
 //   node tools/build.mjs              the real game (what goes on the game page)
 //   node tools/build.mjs --preview    the test version (for the test page): same game, but it says
 //                                     "test version" in the corner and in the tab title
+//   node tools/build.mjs --readable   not squeezed small, so function names and source files show
+//                                     (tools/dropper-world/profile.mjs builds it this way)
 //
-// The game is split into files, fetched as they're needed: the clubhouse (main-*.js, with the mansion
-// and every activity's card), each room or activity's own code (room-*.js, main-*.js), and the bits
-// several of them share (chunk-*.js). Walking up to a door fetches that room's file, so the page
+// The game is split into files, fetched as they're needed: the clubhouse (main-*.js, with every
+// activity's card), and in chunk-*.js files the mansion, each room or activity's own code, and the
+// bits several of them share (three.js). dist/game-files.json says which is which. Walking up to a door fetches that room's file, so the page
 // never grows with the number of rooms. Every file's name carries a fingerprint of what's in it, so
 // a browser never mixes an old file with a new page.
 //
@@ -24,7 +26,7 @@ import { join, relative } from 'node:path';
 import { execSync } from 'node:child_process';
 
 const root = new URL('..', import.meta.url).pathname;
-const preview = process.argv.includes('--preview');
+const preview = process.argv.includes('--preview'), readable = process.argv.includes('--readable');
 const EMBED = ['README.md', 'CLAUDE.md', '.gitignore', 'package.json', 'docs', 'src', 'tests', 'tools'];
 
 function collect(p, out) {
@@ -83,7 +85,7 @@ const result = await build({
   metafile: true,
   target: 'es2020',
   legalComments: 'none',
-  minify: true,   // three.js (the clubhouse's 3D) is big; readable source travels in the page anyway
+  minify: !readable,   // three.js (the clubhouse's 3D) is big; readable source travels in the page anyway
   write: false,
   // A browser remembers a file that failed to come and won't fetch it again, so every file's
   // `import()` goes through fetchAgain: after a failure, the next try asks for it under a new name

@@ -777,7 +777,7 @@ function drawLetter(c) {
   px('#6a3a88', 0, 0, W, H); px('#fff4e4', 1, 1, W - 2, H - 2);
   for (let x = 3; x < W - 3; x++) { px(x % 6 < 3 ? '#ff8ec8' : '#8ad8ff', x, 3); px(x % 6 < 3 ? '#ff8ec8' : '#8ad8ff', x, H - 4); }
   for (let y = 26; y < H - 16; y += 26) for (let x = 14; x < W - 14; x += 2) px('#dccff4', x, y + 22);
-  const t = document.createElement('canvas'); t.width = W; t.height = H; const k = t.getContext('2d');
+  const t = document.createElement('canvas'); t.width = W; t.height = H; const k = t.getContext('2d', { willReadFrequently: true });   // (read back below: kept off the graphics card)
   // written twice, a hair apart, so the strokes are thick enough to survive being made into pixels
   const write = (text, x, y) => { k.fillText(text, x, y); k.fillText(text, x + 0.7, y); k.fillText(text, x, y + 0.5); };
   k.font = '25px "Patrick Hand", "Comic Sans MS", "Trebuchet MS", sans-serif'; k.fillStyle = '#000'; k.textBaseline = 'top';

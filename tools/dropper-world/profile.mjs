@@ -9,7 +9,8 @@
 // --zoom keeps zooming in and out the whole time (like pinching back and forth), to see what that costs;
 // --zoomed-out zooms all the way out first and stays there.
 //
-// It builds the real game first (dist/index.html) unless --no-build. A hidden browser has no
+// It builds the real game first (dist/index.html), not squeezed small so the game's function names
+// show, unless --no-build (then build it with `node tools/build.mjs --readable` yourself). A hidden browser has no
 // graphics card, so "drawing to screen" costs look different from a real phone; the game's own
 // code (physics, the characters, preparing each drawing) is measured fairly.
 import { spawnSync } from 'node:child_process';
@@ -24,7 +25,7 @@ const opt = (name, d) => { const i = args.indexOf(name); return i < 0 ? d : args
 const seconds = +opt('--seconds', 40), slow = +opt('--slow', 4), desktop = args.includes('--desktop'), zoom = args.includes('--zoom'), zoomedOut = args.includes('--zoomed-out');
 const SAVE_KEY = 'sadies-dropper-world.save';
 
-if (!args.includes('--no-build') && spawnSync('node', ['tools/build.mjs'], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
+if (!args.includes('--no-build') && spawnSync('node', ['tools/build.mjs', '--readable'], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
 let boardFile = readdirSync(join(root, 'dist')).find(f => /^fullboard-.*\.json$/.test(f));
 if (!boardFile) {
   boardFile = 'fullboard-profile.json';

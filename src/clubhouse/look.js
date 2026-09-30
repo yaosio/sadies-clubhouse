@@ -169,11 +169,26 @@ export function words(g, text, x, y, s, color, o = {}) {
 }
 export const picture = im => tex(im.width, im.height, g => g.drawImage(im, 0, 0));   // a loaded picture, as a texture
 // the back of an activity's door: its picture with the sign painted over in the door's own colour
+// (That colour is read off one pixel of a tiny canvas kept for reading, once per picture: reading a
+// pixel back from a drawn canvas makes the browser wait for the graphics card, which held the game
+// up for as long as half a second each time a room was built.)
+const doorColours = new WeakMap();
+let reader = null;
+function doorColour(im) {
+  if (!doorColours.has(im)) {
+    reader ||= document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    reader.canvas.width = reader.canvas.height = 1;
+    reader.drawImage(im, Math.round(im.width / 2), Math.round(im.height * 0.44), 1, 1, 0, 0, 1, 1);
+    const [r, g, b] = reader.getImageData(0, 0, 1, 1).data;
+    doorColours.set(im, `rgb(${r},${g},${b})`);
+  }
+  return doorColours.get(im);
+}
 export function doorBack(im) {
+  const colour = doorColour(im);
   return tex(im.width, im.height, g => {
     g.drawImage(im, 0, 0);
-    const [r, gg, b] = g.getImageData(Math.round(im.width / 2), Math.round(im.height * 0.44), 1, 1).data;
-    g.fillStyle = `rgb(${r},${gg},${b})`; g.fillRect(4, 4, im.width - 8, Math.round(im.height * 0.4));
+    g.fillStyle = colour; g.fillRect(4, 4, im.width - 8, Math.round(im.height * 0.4));
   });
 }
 export const loadImage = src => new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
