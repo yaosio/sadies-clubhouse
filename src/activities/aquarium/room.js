@@ -125,16 +125,16 @@ export async function buildRoom(m) {
   shine.position.set(0, T1 - 0.01, BZ - 0.3); shine.rotation.x = Math.PI / 2; scene.add(shine);
 
   // ---------- the sign: cardboard taped to the glass, in Sadie's own capitals ----------
-  const sign = tex(64, 48, g => {
-    px(g, '#c89050', 0, 0, 64, 48); px(g, '#e8b878', 1, 1, 62, 46);
-    for (let x = 1; x < 63; x += 3) px(g, '#d8a060', x, 1, 1, 46);
-    words(g, "DON'T TAP", 32, 6, 2, C.red, { align: 'center' });
-    words(g, 'ON THE', 32, 19, 2, C.red, { align: 'center' });
-    words(g, 'GLASS!!', 32, 32, 2, C.red, { align: 'center' });
-    for (const [x, y] of [[-2, -1], [56, -2], [-1, 42], [55, 41]]) { px(g, '#f8f0d0', x + 1, y + 2, 9, 5); px(g, '#e8dcb0', x + 1, y + 6, 9, 1); }
-    px(g, C.pink2, 50, 37, 4, 3); for (const [x, y] of [[-1, -7], [1, -8], [3, -8], [5, -7]]) px(g, C.pink2, 50 + x, 42 + y - 1, 1, 1);
+  const sign = tex(80, 48, g => {   // (wide enough for DON'T TAP with room either side)
+    px(g, '#c89050', 0, 0, 80, 48); px(g, '#e8b878', 1, 1, 78, 46);
+    for (let x = 1; x < 79; x += 3) px(g, '#d8a060', x, 1, 1, 46);
+    words(g, "DON'T TAP", 40, 6, 2, C.red, { align: 'center' });
+    words(g, 'ON THE', 40, 19, 2, C.red, { align: 'center' });
+    words(g, 'GLASS!!', 40, 32, 2, C.red, { align: 'center' });
+    for (const [x, y] of [[-2, -1], [72, -2], [-1, 42], [71, 41]]) { px(g, '#f8f0d0', x + 1, y + 2, 9, 5); px(g, '#e8dcb0', x + 1, y + 6, 9, 1); }
+    px(g, C.pink2, 4, 37, 4, 3); for (const [x, y] of [[-1, -7], [1, -8], [3, -8], [5, -7]]) px(g, C.pink2, 4 + x, 42 + y - 1, 1, 1);
   });
-  plane(1.05, 0.79, psx(sign, { unlit: 0.25 }), [0.9, 2.25, GZ - 0.05], [0, Math.PI, 0.05], 2);
+  plane(1.31, 0.79, psx(sign, { unlit: 0.25 }), [0.9, 2.25, GZ - 0.05], [0, Math.PI, 0.05], 2);
   // what floats in the water when you dip in: the ocean isn't built yet
   const soonPic = tex(64, 32, g => {
     px(g, C.ink, 0, 0, 64, 32); px(g, C.gold, 1, 1, 62, 30);
