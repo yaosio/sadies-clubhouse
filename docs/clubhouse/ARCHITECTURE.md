@@ -58,7 +58,9 @@ activity is checked again, so something moves into it only once a second activit
   `scene`, `floor`, `faces`, `uses` and `light` whenever it likes: the mansion reads them every frame
   (the aquarium's room becomes the ocean that way, and is quicker to get about and see further in). Its place can hold its door open (`holding`: the doorway, while something goes out through
   it), and make everyone in it watch something (`watch`: a point; your view follows it and you
-  can't walk or look away until it's null again: Brickbuster's escaping yarn ball). The kit also has its door's picture (`doorImage`) and its door on the landing
+  can't walk or look away until it's null again: Brickbuster's escaping yarn ball; the thumb stick hides meanwhile). A `watch` can also
+  say `at` (`x`, `z`, and `y`, where you stand: you're eased there, or put there at once with `snap`): Space Adventure straps
+  you into its pilot's seat that way. The kit's `paused()` says whether the pause menu is up (a place keeps updating while it is). The kit also has its door's picture (`doorImage`) and its door on the landing
   (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
   ORDER sign) and the hall itself (`hall`: its scene and `faces`, `napping`, Sadie asleep in her
   box, and `shape`, its solid shape for things bouncing round it), so a game can let something
@@ -77,7 +79,7 @@ activity is checked again, so something moves into it only once a second activit
   place's `update` runs every frame wherever you are, so it animates the outside too. Nothing on the
   landing changes (the hall skips cards with a `lot`).
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
-  one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3), so a new activity never
+  one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3, the aquarium 4, Space Adventure 5), so a new activity never
   shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
   activity takes the next free slot (the Music Room 3). A card's `doorstep: 'dirt'` puts the mole's dirt pile by its
   door (Dropper World).
@@ -126,9 +128,9 @@ activity is checked again, so something moves into it only once a second activit
     on little canvases when it opens. `pictures.js` (Sadie's sprite; drawn by
     `art/clubhouse/pictures.py`, never edited by hand) is still where her picture comes from.
   - The hall: sixteen flat walls, three storeys. The first landing has a door per activity, each at
-    its card's `slot` starting where the stairs come out (`SLOTS`: six so far), and boarded-up ones
-    for the next; the second landing is still being built. More activities than that will need the
-    second landing finished. Walking: the floor under you is worked out per place (`floor(x, z,
+    its card's `slot` starting where the stairs come out (`SLOTS`: six, all taken now that Space
+    Adventure has the sixth); the second landing is still being built. The next activity's door needs
+    the second landing finished (or a building outside the gate instead). Walking: the floor under you is worked out per place (`floor(x, z,
     y)`: the ground, each tread, the bridge, the landing); a step is at most half a metre, so the
     railings and the landing's edge hold you in by themselves.
   - It only resizes the drawing when the screen's size really changes, and draws again at once.
