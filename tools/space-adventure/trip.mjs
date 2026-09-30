@@ -45,6 +45,9 @@ for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800
     await shot(`t${String(t).padStart(5, '0')}`);
   }
   await S('warp', 1); await S('jump', 109.4); await p.waitForTimeout(2500); await shot('9-after');
+  // her space room: looking back at the door, and at the button's sign from the front
+  await M('put', 'room:space-adventure', { x: 0, z: 0.5, yaw: 0, pitch: 0, y: 0 }); await p.waitForTimeout(500); await shot('9-after-door');
+  await M('put', 'room:space-adventure', { x: -2.2, z: -1.4, yaw: Math.PI, pitch: 0, y: 0 }); await p.waitForTimeout(500); await shot('9-after-sign');
   console.log(JSON.stringify(await S('state')));
   await ctx.close();
 }

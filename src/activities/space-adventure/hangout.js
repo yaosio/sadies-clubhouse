@@ -26,7 +26,9 @@ export function buildHangout(m, P, T) {
   const far = new Mesh(keep(new ShapeGeometry(W, 12)), wall(2 * HW, HH)); far.position.set(0, 0, FRONT); far.rotation.y = Math.PI; room.add(far);
   const ring = new Mesh(keep(new RingGeometry(1.1, 1.25, 20)), psx(null, { tint: 0xc8c6e0 })); ring.position.set(0, 1.8, FRONT - 0.04); ring.rotation.y = Math.PI; room.add(ring);
   // a silver rail round the walls (under the window)
-  for (const [w, pos, rot] of [[2 * HW, [0, 0.55, BACK + 0.04], 0], [2 * HW, [0, 0.55, FRONT - 0.04], Math.PI], [2 * HD, [-HW + 0.04, 0.55, mid], Math.PI / 2], [2 * HD, [HW - 0.04, 0.55, mid], -Math.PI / 2]])
+  // (on the door's wall, in two pieces either side of the doorway, so it doesn't cross it)
+  const GAP = 0.85, side = HW - GAP;
+  for (const [w, pos, rot] of [[side, [-(GAP + side / 2), 0.55, BACK + 0.04], 0], [side, [GAP + side / 2, 0.55, BACK + 0.04], 0], [2 * HW, [0, 0.55, FRONT - 0.04], Math.PI], [2 * HD, [-HW + 0.04, 0.55, mid], Math.PI / 2], [2 * HD, [HW - 0.04, 0.55, mid], -Math.PI / 2]])
     plane(w, 0.08, psx(null, { tint: 0xc8c6e0, decal: true }), pos, [0, rot, 0], 2);
   // the rug, and the poster
   plane(3.4, 3.4, psx(P.rug, { onFloor: true }), [0, 0, 1.2], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
@@ -74,7 +76,7 @@ export function buildHangout(m, P, T) {
   cyl(0.34, 0.34, 0.06, 8, psx(null, { tint: 0xffd23a }), [BUTTON.x, 0.93, BUTTON.z]);
   const knob = cyl(0.2, 0.22, 0.12, 10, psx(null, { tint: 0xe83a3a }), [BUTTON.x, 1.02, BUTTON.z]);
   ball(0.2, psx(null, { tint: 0xff5a5a }), [BUTTON.x, 1.08, BUTTON.z], 0.4);
-  for (const dx of [-0.6, 0.6]) cyl(0.03, 0.03, 2.3, 4, stand, [BUTTON.x + dx, 1.15, BUTTON.z + 0.35]);
+  for (const dx of [-0.6, 0.6]) cyl(0.03, 0.03, 2.3, 4, stand, [BUTTON.x + dx, 1.15, BUTTON.z + 0.42]);   // (behind the sign, as you look at it)
   const sign = new Mesh(keep(new PlaneGeometry(1.5, 0.6)), psx(P.sign, { unlit: 0.4, side: DoubleSide }));
   sign.position.set(BUTTON.x, 2.1, BUTTON.z + 0.36); sign.rotation.y = Math.PI; room.add(sign);
   // a telescope at the window, and a toy rocket
