@@ -1,9 +1,13 @@
-// Brickbuster '96's headless checks: the game (game.js), its sounds (sound.js) and its cracks, run
+// Brickbuster '96's headless checks: the game (game.js), its sounds (sounds/) and its cracks, run
 // in Node with pretend players, seeded so every run is the same. A few seconds.
 //
 //   node tests/brickbuster/run.mjs
 import { makeGame, step, launch, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS, SPEED, ROWS, COLS } from '../../src/activities/brickbuster/game.js';
-import { crack, boing, blip, tock, tink, shatter, mute, RATE } from '../../src/activities/brickbuster/sound.js';
+import { RATE } from '../../src/activities/brickbuster/sounds/retro.js';
+import { crack, shatter, tink } from '../../src/activities/brickbuster/sounds/glass.js';
+import { boing, blip, tock } from '../../src/activities/brickbuster/sounds/machine.js';
+import { mute } from '../../src/activities/brickbuster/sounds/quiet.js';
+import { pat, chirp, trill, meow, makeChatter, VARIANTS, CHATTER, LOUD } from '../../src/activities/brickbuster/sounds/sadie.js';
 import { crackLines, pileSlots, heapZone } from '../../src/activities/brickbuster/room.js';
 import { makeLoose, release, stepLoose, floorBelow, R as LR } from '../../src/activities/brickbuster/loose.js';
 
@@ -131,6 +135,11 @@ function play(seed, skill, secs, until) {
   check('...and louder', c[0].rms < c[2].rms, c.map(s => s.rms.toFixed(3)).join(' < '));
   check('the glass breaking is the biggest sound of all', sh.secs > c[2].secs && sh.rms > c[2].rms, `${sh.secs.toFixed(2)} s, ${sh.rms.toFixed(3)}`);
   check('the same crack sounds the same every time', crack(2).every((v, i) => v === crack(2)[i]));
+  // Sadie's: 8-bit too, short, softer than the case's sounds, and each version a bit different
+  const cat = { pat, chirp, trill, meow }, versions = Object.entries(cat).flatMap(([k, f]) => [...Array(VARIANTS)].map((_, v) => ({ k, v, a: f(v), s: stats(f(v)) })));
+  check("Sadie's sounds are 8-bit, never silent, short", versions.every(x => x.s.bits && x.s.peak > 0.2 && x.s.peak <= 1 && x.s.rms > 0.01 && x.s.secs < 1), versions.map(x => x.k + x.v + ' ' + x.s.secs.toFixed(2) + ' s').filter((_, i) => i % VARIANTS === 0).join(', '));
+  check('...and as loud as they play, softer than the smallest crack even right next to her', versions.every(x => x.s.rms * LOUD[x.k] < c[0].rms), versions.map(x => (x.s.rms * LOUD[x.k]).toFixed(3)).filter((_, i) => i % VARIANTS === 0).join(' ') + ' < ' + c[0].rms.toFixed(3));
+  check('...and each of her versions sounds a bit different', Object.keys(cat).every(k => new Set(versions.filter(x => x.k === k).map(x => x.a.join())).size === VARIANTS));
 }
 
 // 8. the cracks' drawing: inside the glass, bigger each time, the same every time from its seed
@@ -164,13 +173,17 @@ function play(seed, skill, secs, until) {
   const shape = { wall: A, post: 1.16, landing: { inner: 8 - 2.3, y: 4.6, thick: 0.18, rail: 1.0 }, top: 9.2,
     stairs: { r0: 1.45, r1: 3.05, th0: -2.1, turn: 0.29, rise: 4.6 / 22, treads: 26 },
     blocks: [{ x: -2.4, z: -6.9, r: 0.8 }, { x: -5.4, z: -4.5, r: 0.35 }, { x: 5.3, z: 2.0, r: 0.65 }].map(b => ({ ...b, h: 1.0 })) };
+  const chat = { pat: 0, chirp: 0, trill: 0, meow: 0 }, said = [];
   let catThrough = 0, lazy = 0, away = 0, outside = 0, inSlab = 0, catOff = 0, whacks = 0, pops = 0, longest = 0, ground = 0, landing = 0, frames = 0;
   for (const seed of [1, 7, 42]) {
     const L = makeLoose(shape, seed), th = 10 * Math.PI / 8, dx = Math.sin(th), dz = Math.cos(th);
     release(L, [dx * (A - 0.4), 4.6 + LR + 0.4, dz * (A - 0.4)], [-dx * 4.5, 2, -dz * 4.5], [dx * (A - 0.3), 4.6, dz * (A - 0.3)], 1.7);
     let last = 0, pc = null;
+    const chatter = makeChatter(seed);
     for (let t = 0; t < 1800; t += 1 / 60) {
-      for (const e of stepLoose(L, 1 / 60)) { if (e === 'whack') { whacks++; longest = Math.max(longest, t - last); last = t; } if (e === 'pop') pops++; }
+      for (const e of stepLoose(L, 1 / 60)) {
+        const x = chatter.heard(e, t);
+        if (x) { chat[x.name]++; said.push({ ...x, t: seed * 1e4 + t }); } if (e === 'whack' || e === 'mighty') { whacks++; longest = Math.max(longest, t - last); last = t; } if (e === 'pop') pops++; }
       const b = L.ball, r = Math.hypot(b.x, b.z), c = L.cat;
       if (r > A - LR + 1e-6 || b.y < LR - 1e-6 || b.y > shape.top) outside++;
       if (r > shape.landing.inner + 0.01 && b.y + LR > 4.6 - 0.18 + 0.01 && b.y - LR < 4.6 - 0.01) inSlab++;
@@ -192,6 +205,19 @@ function play(seed, skill, secs, until) {
   check('...never going through the landing or its railing', !catThrough, `${catThrough} times`);
   check('...and never just stands about while it rolls off', lazy / away < 0.25, `${(lazy / away * 100).toFixed(0)}% of the time it's more than 4 m off`);
   check('...and it hardly ever needs popping back', pops <= 3, `${pops} times`);
+  // Sadie's sounds while she plays: now and then, never close together, never the same twice running
+  let close = 0, voiceClose = 0, again = 0, busiest = 0;
+  for (let i = 1; i < said.length; i++) {
+    const gap = said[i].t - said[i - 1].t;
+    if (gap < CHATTER.gap) close++;
+    if (said[i].name === said[i - 1].name && said[i].variant === said[i - 1].variant) again++;
+  }
+  const voiced = said.filter(x => x.name !== 'pat');
+  for (let i = 1; i < voiced.length; i++) if (voiced[i].t - voiced[i - 1].t < CHATTER.voice) voiceClose++;
+  for (const x of said) busiest = Math.max(busiest, said.filter(y => y.t >= x.t && y.t < x.t + 60).length);
+  check("...Sadie makes her sounds now and then while she plays: pats, chirps, trills and the odd meow", Object.values(chat).every(n => n > 3) && said.length / 90 > 1.5 && said.length / 90 < 5, `${(said.length / 90).toFixed(1)} a minute: ${Object.entries(chat).map(([k, n]) => `${k} ${(n / 90).toFixed(2)}`).join(', ')} a minute`);
+  check('...never two close together, and never more than 5 in any minute', !close && !voiceClose && busiest <= CHATTER.most, `${close} close, ${voiceClose} voices close, busiest minute ${busiest}`);
+  check('...a meow at most once a minute, and never the same sound twice running', chat.meow / 90 <= 1 && !again, `${(chat.meow / 90).toFixed(2)} meows a minute, ${again} repeats`);
   const L = makeLoose(shape, 3);
   release(L, [NaN, 2, 0], [0, 0, 0], [0, 0, 3], 0);
   check('a ball somewhere impossible pops back into the hall', stepLoose(L, 1 / 60).includes('pop') && Math.hypot(L.ball.x, L.ball.z) < A);

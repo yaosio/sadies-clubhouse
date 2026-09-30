@@ -9,7 +9,8 @@
 import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ExtrudeGeometry, ShapeGeometry, BoxGeometry, PlaneGeometry, SphereGeometry,
   DoubleSide, CanvasTexture, NearestFilter } from 'three';
 import { makeGame, step, launch, serve, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS } from './game.js';
-import { makePlayer } from './sound.js';
+import { makeSounds } from './sounds/index.js';
+import { makeChatter } from './sounds/sadie.js';
 import { makeLoose, release, stepLoose, R as LR } from './loose.js';
 import { store } from '../../shared/storage.js';
 import posterPic from './poster.js';
@@ -237,7 +238,7 @@ export async function buildRoom(m) {
     after: { x: -3.4, z: 3.1, yaw: Math.PI + 0.5, pitch: 0.15 },
     over: false,   // broken: the mansion steps you back to watch
     start() {
-      if (!sound) sound = makePlayer();
+      if (!sound) sound = makeSounds();
       sound.wake();
       if (!game.broken) { active = true; wait = game.serving ? 0.9 : 0.6; }
     },
@@ -341,6 +342,15 @@ export async function buildRoom(m) {
   // (loose.js has how; here they're drawn in the hall, which the mansion hands over as m.hall)
   const hall = m.hall, loose = hall?.shape ? makeLoose(hall.shape, Math.floor(Math.random() * 1e6) + 1) : null;
   let hallBall = null, hallCat = null;
+  // Sadie's sounds while she plays (sounds/sadie.js: rare and soft, never two close together),
+  // heard only in the hall, fading the further off she is. The ball itself stays silent.
+  const chatter = makeChatter(Math.floor(Math.random() * 1e6) + 1);
+  function sadieHeard(said) {
+    const e = m.ears?.();
+    if (!said || !e || e.place !== hall) return;
+    if (!sound) sound = makeSounds();   // (it wakes on your next press or key, if the browser's still holding it back)
+    sound.sadie(said, Math.hypot(loose.cat.x - e.x, loose.cat.y + 0.3 - e.y, loose.cat.z - e.z));
+  }
   if (loose) {
     hallBall = new Mesh(ball.geometry, ball.material); hallBall.visible = false; hall.scene.add(hallBall);
     hallCat = new Mesh(sadie.geometry, psx(T.sadie, { unlit: 0.4 })); hallCat.visible = false; hall.scene.add(hallCat); hall.faces.push(hallCat);
@@ -419,7 +429,7 @@ export async function buildRoom(m) {
       if (run && run !== 'gone') runOn(dt);
       if (doneAt && t > doneAt) finished();
       if (loose?.ball) {
-        stepLoose(loose, dt);
+        for (const ev of stepLoose(loose, dt)) sadieHeard(chatter.heard(ev, t));
         const b = loose.ball, c = loose.cat;
         hallBall.position.set(b.x, b.y, b.z); hallBall.rotation.set(b.spin * 0.7, 0, b.spin * 0.5);
         hallCat.visible = c.mode !== 'coming'; hallCat.position.set(c.x, c.y, c.z);
@@ -466,6 +476,8 @@ export async function buildRoom(m) {
       sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, heard: sound ? sound.log.slice() : [], face: showing }),
     // put the ball back on the paddle (it stays there till it's thrown)
     catchBall() { serve(game); wait = 0; },
+    // Sadie makes one of her sounds right now, wherever she is (as if the chatter had picked it)
+    sadieSays(name) { if (loose?.ball) sadieHeard({ name, variant: 0 }); },
     // send the ball somewhere (x, y along the glass, and which way)
     throwBall(x, y, vx, vy) { Object.assign(game.ball, { x, y, vx, vy }); game.serving = false; wait = 0; },
     // knock out bricks (all but `leave` of them) without playing, for checking the heap

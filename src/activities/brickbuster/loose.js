@@ -51,7 +51,8 @@ function floorsAt(s, x, z) {
 // the floor something at height y would land on
 export function floorBelow(s, x, z, y) { return floorsAt(s, x, z).find(h => h <= y + 1e-6) ?? 0; }
 
-// Runs it on by dt seconds. Returns what happened: 'whack', 'pop'.
+// Runs it on by dt seconds. Returns what happened: 'pounce' (Sadie's going for it), 'whack', 'mighty'
+// (a mighty whack, from below towards the landing), 'pop'.
 export function stepLoose(L, dt) {
   const out = [];
   if (!L.ball) return out;
@@ -130,7 +131,7 @@ function cat(L, dt, out) {
   const speed = Math.hypot(b.vx, b.vy, b.vz), feet = floorBelow(s, b.x, b.z, b.y - R + 0.05);
   const d = Math.hypot(b.x - c.x, b.z - c.z);
   if (c.mode === 'watch') {
-    if (L.stopped > 0.15 || (b.on && speed < CAT.pounce)) { c.mode = 'chase'; c.t = 0; }
+    if (L.stopped > 0.15 || (b.on && speed < CAT.pounce)) { c.mode = 'chase'; c.t = 0; out.push('pounce'); }
     else if (d > CAT.keep + 1 || Math.abs(feet - c.y) > 0.3) {   // trot after it, keeping a little way off
       if (c.t > CAT.pause) { c.t = 0; plan(L, feet, CAT.keep, CAT.trot); }
       return;
@@ -148,13 +149,14 @@ function cat(L, dt, out) {
     // towards the walls, that can land it back up on the landing
     const away = Math.atan2(b.x - c.x, b.z - c.z), mid = Math.atan2(-b.x, -b.z), up = c.y > s.landing.y - 0.1;
     let a = mid + wrap(away - mid) * 0.5 + (L.r() - 0.5) * 0.8;
-    let v = CAT.whack[0] + L.r() * (CAT.whack[1] - CAT.whack[0]), vy = (up ? CAT.up[1] : CAT.up[0]) + L.r() * (CAT.up[1] - CAT.up[0]);
+    let mighty = false, v = CAT.whack[0] + L.r() * (CAT.whack[1] - CAT.whack[0]), vy = (up ? CAT.up[1] : CAT.up[0]) + L.r() * (CAT.up[1] - CAT.up[0]);
     if (!up && L.r() < CAT.mighty) {   // (timed to be over the landing at the top of its flight)
+      mighty = true;
       a = mid + Math.PI + (L.r() - 0.5) * 0.3; vy = 10.5 + L.r(); v = Math.max(0.6, (s.landing.inner + 0.6 + L.r() * 0.8 - Math.hypot(b.x, b.z)) / (vy / GRAVITY * 1.15));
     }
     b.vx = Math.sin(a) * v; b.vz = Math.cos(a) * v; b.vy = vy; b.on = false;
     L.stopped = 0; L.whacks++; c.mode = 'watch'; c.t = 0;
-    out.push('whack');
+    out.push(mighty ? 'mighty' : 'whack');
   }
 }
 

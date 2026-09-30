@@ -50,7 +50,8 @@ activity is checked again, so something moves into it only once a second activit
   ORDER sign) and the hall itself (`hall`: its scene and `faces`, `napping`, Sadie asleep in her
   box, and `shape`, its solid shape for things bouncing round it), so a game can let something
   loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update` moves them,
-  since every place updates every frame). An address naming it after the `#` just opens the mansion.
+  since every place updates every frame), and `ears()`, where you are right now (`place`, and `x`, `y`, `z`: your eye), so a
+  game can play a sound only where you'd hear it (Sadie out in the hall). An address naming it after the `#` just opens the mansion.
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
   one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2), so a new activity never
   shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
