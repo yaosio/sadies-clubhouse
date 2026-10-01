@@ -52,7 +52,10 @@ https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so
 - **Outside the gate, a lane** runs along the fence, with plots either side of the path for
   buildings of their own (the owner plans more). The first is Clyde's House, The Overthinkery: a
   crooked butter-yellow cottage with terracotta tiles (`docs/clydes-house/`), with Clyde's Weather
-  Machine beside it, which changes the weather outside (dithered cloud domes, pixel rain and snow). The next free plot
+  Machine beside it, which changes the weather outside (dithered cloud domes, pixel rain and snow). Across
+  the path is Chooter's Paint Shop (`docs/paint-shop/`): mint walls splattered in every colour, a
+  striped awning, a giant paint can tipping off the roof. Everything outside the gate belongs to
+  somebody else (the owner's rule): Sadie's things are in the mansion. The next free plot
   has a NEW HOUSE COMING SOON!! stake.
 - **The backyard**, behind the house, looks finished too (the owner asked, 2026-10-01): windows all
   round, a teal back door with a lion-sized cat flap (STAFF ONLY (CATS); it doesn't open), lamps,

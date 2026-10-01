@@ -22,6 +22,9 @@
 // controls go to the game (steering with the keys, nudging with the mouse or a finger; or, for a
 // game that wants them, every key and every press on the screen: the music room's instruments)
 // until you step back. A use with `act` instead just does something there and then (turning a sign).
+//
+// A place can also have a `brush` (the paint shop): there, pressing paints the place itself, as you
+// walk about (see "painting", below).
 import {
   WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace, Box3, Mesh, BoxGeometry,
 } from 'three';
@@ -465,7 +468,7 @@ export async function open(cards, enter) {
   // mouse: click to look around (the pointer locks to the view; Esc lets it go and pauses);
   // if the browser won't lock it, drag to look instead
   on(canvas, 'click', () => {
-    if (mode !== 'play' || touchy || locked || !canvas.requestPointerLock) return;
+    if (mode !== 'play' || touchy || locked || !canvas.requestPointerLock || (painting && me.world.brush)) return;
     try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch {}
   });
   on(document, 'pointerlockchange', () => {
@@ -492,15 +495,19 @@ export async function open(cards, enter) {
     }
     if (mode === 'arcade' && drag.id === null) { Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY }); try { canvas.setPointerCapture(e.pointerId); } catch {} return; }
     if (mode !== 'play') return;
+    // (with the mouse locked, in a place with a brush: holding the button paints where the dot is)
+    if (locked && me.world.brush && e.pointerType === 'mouse') { if (e.button === 0) brushDown(e.pointerId, null); return; }
     // the thumb stick stays in its corner, and only a touch that starts on it (or just round it) walks;
     // anywhere else, dragging looks around
     const sr = $('#stick').getBoundingClientRect(), cx = sr.left + sr.width / 2, cy = sr.top + sr.height / 2;
     if (e.pointerType === 'touch' && touchy && stick.id === null && Math.hypot(e.clientX - cx, e.clientY - cy) < sr.width * 0.75) {
       Object.assign(stick, { id: e.pointerId, x0: cx, y0: cy, x: 0, y: 0 });
-    } else if (drag.id === null && !locked) Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY });
+    } else if (painting && me.world.brush && !locked) brushDown(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    else if (drag.id === null && !locked) Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY });
     try { canvas.setPointerCapture(e.pointerId); } catch {}
   });
   on(canvas, 'pointermove', e => {
+    if (brushes.get(e.pointerId)) Object.assign(brushes.get(e.pointerId), { clientX: e.clientX, clientY: e.clientY });
     if (e.pointerId === stick.id) {
       // the knob follows your thumb to the stick's edge (and no further); full speed at the edge
       const dx = e.clientX - stick.x0, dy = e.clientY - stick.y0, m = Math.hypot(dx, dy), k = m > STICK ? STICK / m : 1;
@@ -521,10 +528,48 @@ export async function open(cards, enter) {
   const letGo = e => {
     if (e.pointerId === stick.id) { stick.id = null; stick.x = stick.y = 0; $('#stick i').style.transform = ''; }
     if (e.pointerId === drag.id) drag.id = null;
+    brushUp(e.pointerId);
     if (pressing.delete(e.pointerId) && arcade) arcade.u.play.touch?.(e.pointerId, null, 'up');
   };
   on(canvas, 'pointerup', letGo); on(canvas, 'pointercancel', letGo);
   if (touchy) { $('#keysHint').hidden = true; $('#stick').hidden = false; }
+
+  // ---------- painting: a place with a `brush` (the paint shop) ----------
+  // With the mouse locked, holding its button paints where the dot in the middle of the view is (and
+  // walking or looking about while you hold it paints a stroke). On a phone, or with the mouse free,
+  // the PAINT button switches pressing from looking around to painting wherever you press; the thumb
+  // stick still walks. The place is told each press as a line out into it, every frame while it's
+  // held: brush(id, ray, 'down' | 'move' | 'up'). Its `brushLook()` says what you're holding
+  // ({ color, label }), for the dot and the button.
+  let painting = false, brushPlace = null, brushShown = '';
+  const brushes = new Map();   // each press that's painting: where it is on the screen (null: the middle)
+  function middle() { ndc.set(0, 0, 0.5).unproject(cam); return { origin: cam.position.clone(), dir: ndc.clone().sub(cam.position).normalize() }; }
+  function brushDown(id, at) {
+    brushPlace = me.world; brushes.set(id, at);
+    brushPlace.brush(id, at ? pointAt(at) : middle(), 'down');
+    try { if (at) canvas.setPointerCapture(id); } catch {}
+  }
+  function brushUp(id) { if (brushes.delete(id)) brushPlace?.brush(id, null, 'up'); }
+  function brushOn() {
+    if (!brushes.size) return;
+    if (mode !== 'play' || me.world !== brushPlace) { for (const id of [...brushes.keys()]) brushUp(id); return; }
+    for (const [id, at] of brushes) brushPlace.brush(id, at ? pointAt(at) : middle(), 'move');
+  }
+  function showBrush() {
+    const b = mode === 'play' && me.world.brush ? me.world.brushLook?.() || {} : null;
+    if (!b) painting = false;   // (left the place, or paused: the switch goes back to looking)
+    const key = b ? [locked, painting, b.color, b.label].join('|') : '';
+    if (key === brushShown) return;
+    brushShown = key;
+    const btn = $('#paint'), aim = $('#aim');
+    btn.hidden = !b || locked; aim.hidden = !b || !locked;
+    if (!b) return;
+    btn.textContent = painting ? 'PAINTING' : 'PAINT'; btn.classList.toggle('on', painting);
+    btn.style.setProperty('--paint', b.color || '#fff');
+    aim.style.setProperty('--paint', b.color || '#fff');
+    aim.querySelector('span').textContent = b.label || '';
+  }
+  on($('#paint'), 'click', e => { e.stopPropagation(); if (mode === 'play' && me.world.brush) painting = !painting; showBrush(); });
 
   // ---------- using things: the computer in an activity's room ----------
   let target = null;
@@ -753,6 +798,7 @@ export async function open(cards, enter) {
     const hush = me.world.hush;
     theme.tick(typeof hush === 'function' ? !!hush() : !!hush);
     farHouses();
+    brushOn(); showBrush();
     // (a house outside the gate whose room is put away: the house still moves, like the rest of outside)
     for (const r of slots) if (r.house && !r.place) r.house.update(t, dt, ears());
     // Sadie on the gatepost blinks now and then
@@ -812,6 +858,9 @@ export async function open(cards, enter) {
     speed: () => ({ ...speed, places: { ...speed.places }, bits: { ...speed.bits }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
       textures: renderer.info.memory.textures, kept: made().length, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e5) / 10 : null }),
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
+    // the PAINT switch in a place with a brush (on: pressing paints), and how many presses are painting
+    painting: () => painting,
+    brushes: () => brushes.size,
     // the main theme: what it's doing; the sound system: what's playing, whose, and how loud
     music: () => theme.state(),
     sound: () => soundState(),

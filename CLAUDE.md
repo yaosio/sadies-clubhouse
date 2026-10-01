@@ -7,7 +7,8 @@ Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the h
 Room (instruments to play where they stand, which Sadie walks across now and then), the aquarium and
 Space Adventure (a spaceship trip with Sadie, who talks the whole way); beside the house is the
 Hedge Maze (made as you walk, letting you out into the backyard where Sadie naps); outside the
-front gate, along a lane with plots for more buildings, is Clyde's House (the Good Morning Machine, and the Weather Machine beside it).
+front gate, along a lane with plots for more buildings, is Clyde's House (the Good Morning Machine, and the Weather Machine beside it), and across the path
+Chooter's Paint Shop (paint the room itself). Everything outside the clubhouse belongs to somebody else.
 
 ## The owner
 - Doesn't code, installs nothing, and doesn't know GitHub. Claude does all building, testing,

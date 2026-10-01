@@ -23,6 +23,14 @@
 #mansion #stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#ffffff80}
 #mansion #use{right:calc(26px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom));min-width:78px;height:78px;border-radius:39px;
   padding:0 12px;background:var(--gold);color:var(--ink);border:0;box-shadow:0 3px 0 #8a5a10;font-size:12px;cursor:pointer}
+/* painting (a place with a brush): the PAINT switch, edged in the paint you're holding, and the dot in
+   the middle you paint with while the mouse is locked */
+#mansion #paint{right:calc(26px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));min-width:78px;height:44px;
+  padding:0 10px;background:#1c1238d0;color:#fff;border:3px solid var(--paint,#fff);font-size:11px;cursor:pointer}
+#mansion #paint.on{background:var(--paint,#fff);color:var(--ink);text-shadow:0 0 2px #fff}
+#mansion #aim{left:50%;top:50%;width:0;height:0;pointer-events:none}
+#mansion #aim i{position:absolute;left:-6px;top:-6px;width:12px;height:12px;border:2px solid var(--paint,#fff);outline:1px solid #1c1238;background:#ffffff40}
+#mansion #aim span{position:absolute;left:0;top:14px;transform:translateX(-50%);white-space:nowrap;background:#1c1238a8;padding:2px 6px;font-size:10px}
 #mansion #flash{position:absolute;inset:0;background:#10183a;pointer-events:none}
 /* Sadie's letter */
 #mansion #letter{position:absolute;inset:0;display:grid;place-items:center;background:#0a062890;padding:16px}
