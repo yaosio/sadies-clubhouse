@@ -97,7 +97,6 @@ check('the song lands on a bar line exactly at touchdown', Math.abs(notes.find(n
 const loud = (t0, t1) => notes.filter(n => n.t >= t0 && n.t < t1).reduce((s, n) => s + (n.vol || 0.5) * (n.len || 0.4), 0) / (t1 - t0);
 const parts = [0, 4, 8, 12, 16, 20, 24].map(b0 => loud(b0 * bar, (b0 + 4) * bar));   // (each four bars)
 check('the music builds: every stretch fuller than the one before, up to touchdown', parts.every((v, i) => i === 0 || v > parts[i - 1] * 0.98), parts.map(v => v.toFixed(2)).join(' < '));
-const after = notes.filter(n => n.t > LANDING * bar + 0.01);
 check('...its biggest chord right at touchdown, then it fades out and leaves her to talk', notes.filter(n => n.kind === 'pad').reduce((a, b) => (b.vol > a.vol ? b : a)).t === LANDING * bar && Math.max(...notes.map(n => n.t + (n.len || 2.2))) < T.closer - T.go, `ends ${(Math.max(...notes.map(n => n.t + (n.len || 2.2))) + T.go).toFixed(1)} s`);
 check('no droning: every note but the last chord is under 3.2 s', notes.every(n => (n.len || 0) < 3.2 || n.t === LANDING * bar));
 check('no hi-hats ticking away, and no drums until half way', !notes.some(n => n.kind === 'hat') && notes.filter(n => n.kind === 'kick' || n.kind === 'snare').every(n => n.t > 14 * bar));

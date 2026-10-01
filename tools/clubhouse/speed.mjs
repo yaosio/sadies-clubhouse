@@ -10,7 +10,6 @@ import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
 import { join } from 'node:path';
 
-const root = new URL('../..', import.meta.url).pathname;
 const require = createRequire(import.meta.url);
 let chromium;
 try { ({ chromium } = require('playwright')); }

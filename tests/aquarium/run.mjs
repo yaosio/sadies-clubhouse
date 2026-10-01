@@ -8,7 +8,7 @@
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import card from '../../src/activities/aquarium/card.js';
-import { TW, T0, T1, GZ, BZ, WATER, FISH, FINDS, sadieAt, dive, surfaceHome, LOW } from '../../src/activities/aquarium/tank.js';
+import { TW, T0, T1, GZ, BZ, FINDS, dive, surfaceHome, LOW } from '../../src/activities/aquarium/tank.js';
 import { SPOTS, START, SEA_R, BOAT, REEF_R, sailable, findHere, reefOpen, loom, MT, LOOK, readSave } from '../../src/activities/aquarium/chart.js';
 import { FIND_SOUNDS, reef } from '../../src/activities/aquarium/sounds/finds.js';
 import { wave, sail, seaPacing, GAP, WAVE_MIN, WAVES } from '../../src/activities/aquarium/sounds/sea.js';

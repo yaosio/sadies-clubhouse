@@ -8,7 +8,7 @@
 // then passes the controls on to it (steer, nudge) until you step back.
 import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ExtrudeGeometry, ShapeGeometry, BoxGeometry, PlaneGeometry, SphereGeometry,
   DoubleSide, CanvasTexture, NearestFilter } from 'three';
-import { makeGame, step, launch, serve, movePaddle, pushPaddle, save, load, W, H, R, PADDLE, CRACKS } from './game.js';
+import { makeGame, step, launch, serve, movePaddle, pushPaddle, save, load, W, H, R, PADDLE } from './game.js';
 import { makeSounds } from './sounds/index.js';
 import { makeChatter } from './sounds/sadie.js';
 import { makeArcade } from './music/player.js';
@@ -24,9 +24,9 @@ const Z = { play: 0.25, glass: 0.55 };   // in the case: where the game is, and 
 const ROW_COLS = [0xff3a3a, 0xff7a2a, 0xffa41e, 0xffe23a, 0x58d04a, 0x3ac8f0, 0x5a6af0, 0xb04af0];
 
 export async function buildRoom(m) {
-  const { T, C, psx, keep, tex, words, kit, wallGeometry, doorway, card, leaf } = m;
+  const { T, psx, keep, tex, words, kit, wallGeometry, doorway, card, leaf } = m;
   const scene = new Scene(); scene.background = new Color(0x0a0628);
-  const { add, box, plane, cyl } = kit(scene);
+  const { add, plane, cyl } = kit(scene);
 
   // ---------- the room: tall walls, arcade carpet, the door ----------
   const paper = psx(T.damask, { rx: 1 / 1.3, ry: 1 / 1.3, tint: 0xd8ccff });

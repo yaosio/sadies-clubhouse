@@ -2,7 +2,7 @@
 // Run in Node, seeded, in a second or two.
 //
 //   node tests/hedge-maze/run.mjs
-import { makeMaze, S, DI, DJ, edgeKey } from '../../src/activities/hedge-maze/grow.js';
+import { makeMaze, S, DI, DJ } from '../../src/activities/hedge-maze/grow.js';
 import { makeComposer, SCALES } from '../../src/activities/hedge-maze/music.js';
 import card from '../../src/activities/hedge-maze/card.js';
 
