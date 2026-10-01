@@ -26,8 +26,9 @@ const BOARD = { x: -2.2, z: 16 };     // the score board, at the back of the pat
 const PULL = 1.2;                     // metres of pull back (dragging) for the hardest putt
 const CHARGE = 1.3;                   // seconds of holding Space for the hardest putt
 const WAIT = 1.2;                     // seconds Sadie waits before her trick shot
-const ASSIST = 'sadies-clubhouse.mini-golf.assist';   // (assist mode on or off: kept, it's how you like to play)
-const AIM_DOTS = 14;                  // dots in the aim line (with assist, as many as the whole way needs)
+const ASSIST = 'sadies-clubhouse.mini-golf.assist';   // (the aim line's setting: kept, it's how you like to play)
+const AIMS = ['short', 'full', 'off'];   // the aim line's settings, in the order the button goes round
+const SHORT = 240;                    // the short aim line: up to the first bounce, or 2 s of rolling (steps)
 
 export async function buildRoom(m) {
   const house = m.house || await buildCourse(m);
@@ -79,10 +80,13 @@ async function buildCourse(m) {
   sadie.visible = false; outside.scene.add(sadie); outside.faces.push(sadie);
 
   // ---------- what's on the screen while you play: Sadie's tail (how hard), strokes, pins, words ----------
-  // Assist mode (the owner's idea): the aim dots show the ball's whole way, not just the start, so
-  // you can line them up with the pins and the hole. A button on the screen (or Q) turns it on and off.
-  let assist = !!store.get(ASSIST, false);
-  const setAssist = on => { assist = !!on; store.set(ASSIST, assist); hud.assist(assist); };
+  // The aim line (the owner's idea: it's not meant to be brutally hard): SHORT shows where the ball
+  // goes up to its first bounce (or two seconds of rolling), FULL its whole way, so you can line it up
+  // with the pins and the hole, and OFF none. A button on the screen (or Q) goes round them.
+  const was = store.get(ASSIST, 'short');
+  let assist = AIMS.includes(was) ? was : was === true ? 'full' : 'short';
+  const setAssist = a => { assist = AIMS.includes(a) ? a : 'short'; store.set(ASSIST, assist); hud.assist(assist); };
+  const nextAssist = () => setAssist(AIMS[(AIMS.indexOf(assist) + 1) % AIMS.length]);
   const hud = makeHud();
   hud.assist(assist);
 
@@ -153,7 +157,7 @@ async function buildCourse(m) {
     const play = {
       label: `PLAY HOLE ${i + 1}: ${hole.name.toUpperCase()}`, view, over: false,
       hint: {
-        keys: '<kbd>A D</kbd> AIM &nbsp; HOLD <kbd>SPACE</kbd> PULL BACK, LET GO: PUTT &nbsp; (OR DRAG BACK) &nbsp; <kbd>Q</kbd> ASSIST &nbsp; <kbd>ESC</kbd> STEP BACK',
+        keys: '<kbd>A D</kbd> AIM &nbsp; HOLD <kbd>SPACE</kbd> PULL BACK, LET GO: PUTT &nbsp; (OR DRAG BACK) &nbsp; <kbd>Q</kbd> AIM LINE &nbsp; <kbd>ESC</kbd> STEP BACK',
         touch: 'DRAG BACK FROM THE BALL, LET GO TO PUTT',
       },
       start() {
@@ -173,7 +177,7 @@ async function buildCourse(m) {
           if (down) { if (!repeat) { g.turning = s; g.turnFor = 0; } } else if (g.turning === s) g.turning = 0;
           return true;
         }
-        if (code === 'KeyQ') { if (down && !repeat) setAssist(!assist); return true; }
+        if (code === 'KeyQ') { if (down && !repeat) nextAssist(); return true; }
         if (['Space', 'KeyW', 'ArrowUp', 'Enter', 'KeyE'].includes(code)) {
           if (down && !repeat) {
             if (g.phase === 'aim' && !g.drag) { g.charging = true; g.power = 0; }
@@ -389,20 +393,23 @@ async function buildCourse(m) {
         club.position.x += Math.cos(g.yaw) * 0.13; club.position.z -= Math.sin(g.yaw) * 0.13;
         club.rotation.set(0, g.yaw, -0.35);
       }
-      // the aim: dots along where the ball will really go (round the slopes, off the walls) for the
-      // first stretch of the shot, a bit further the harder you pull (worked out with the engine itself)
-      const aiming = g.active && g.phase === 'aim';
+      // the aim: dots along where the ball will really go (round the slopes, off the walls), worked out
+      // with the engine itself: up to the first bounce or two seconds (SHORT), or the whole way (FULL)
+      const aiming = g.active && g.phase === 'aim' && assist !== 'off';
       let dotsUp = 0;
       if (aiming) {
         const c = newPlay(hole), b = g.pl.ball;
         Object.assign(c.ball, { x: b.x, y: b.y, deck: b.deck }); c.pins = g.pl.pins.slice(); c.clock = g.pl.clock;
         putt(c, planAngle(g.yaw), Math.max(0.02, g.power));
-        const far = assist ? Infinity : 14 + g.power * 26, gap = assist ? 3.5 : far / AIM_DOTS;
+        const gap = 3.5, full = assist === 'full';
         let went = 0, next = gap, lx = b.x, ly = b.y;
-        for (let k = 0; k < (assist ? 3600 : 900) && c.ball.moving && !c.sunk && dotsUp < dots.length && went < far; k++) {
-          if (step(c).some(e => e.type === 'grab' || e.type === 'tunnel')) break;
+        for (let k = 0; k < (full ? 3600 : SHORT) && c.ball.moving && !c.sunk && dotsUp < dots.length; k++) {
+          const ev = step(c);
+          if (ev.some(e => e.type === 'grab' || e.type === 'tunnel')) break;
+          const bounced = !full && ev.some(e => e.type === 'wall' || e.type === 'bump' || e.type === 'bat');
           went += Math.hypot(c.ball.x - lx, c.ball.y - ly); lx = c.ball.x; ly = c.ball.y;
-          if (went >= next) { next += gap; dots[dotsUp++].position.set(P.x(lx), P.y(ballHeight(c)) + 0.012, P.z(ly)); }
+          if (went >= next || bounced) { next = went + gap; dots[dotsUp++].position.set(P.x(lx), P.y(ballHeight(c)) + 0.012, P.z(ly)); }
+          if (bounced) break;
         }
       }
       dots.forEach((q, n) => { q.visible = n < dotsUp; });
@@ -429,7 +436,7 @@ async function buildCourse(m) {
     root.append(el, msg);
     const q = (e, k) => e.querySelector(`[data-k="${k}"]`);
     const cv = el.querySelector('canvas'), cx = cv.getContext('2d');
-    q(el, 'assist').addEventListener('click', e => { e.stopPropagation(); setAssist(!assist); });
+    q(el, 'assist').addEventListener('click', e => { e.stopPropagation(); nextAssist(); });
     let drawn = -1, msgLeft = 0, last = '';
     // Sadie's tail, from her rump at the bottom: thin when relaxed, puffed right up for a big hit
     function tail(power) {
@@ -468,7 +475,7 @@ async function buildCourse(m) {
         msg.hidden = false; msgLeft = secs;
       },
       state: () => ({ shown: !el.hidden, message: msg.hidden ? null : q(msg, 'big').textContent }),
-      assist(on) { q(el, 'assist').textContent = on ? 'ASSIST: ON' : 'ASSIST: OFF'; },
+      assist(a) { q(el, 'assist').textContent = 'AIM LINE: ' + a.toUpperCase(); },
     };
   }
 
@@ -500,9 +507,14 @@ async function buildCourse(m) {
       if (clock !== undefined) g.pl.clock = clock;
       const [dx, dz] = g.parts.P.dir(angle); g.yaw = Math.atan2(-dx, -dz); g.power = power; g.shoot(angle); return true;
     },
+    // aim without putting (the aim line follows): which way and how hard
+    aim(i, angle, power) {
+      const g = games[i]; if (g.phase !== 'aim') return false;
+      const [dx, dz] = g.parts.P.dir(angle); g.yaw = Math.atan2(-dx, -dz); g.power = power; return true;
+    },
     best: () => readBest(),
-    // assist mode (the whole way shown), and how many aim dots are showing on a hole
-    assist: on => { if (on !== undefined) setAssist(on); return assist; },
+    // the aim line's setting ('short', 'full', 'off'), and how many aim dots are showing on a hole
+    assist: a => { if (a !== undefined) setAssist(a); return assist; },
     dots: i => games[i].parts.dots.filter(q => q.visible).length,
     hud: () => hud.state(),
   };

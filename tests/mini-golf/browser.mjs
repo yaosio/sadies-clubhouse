@@ -42,14 +42,16 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...with Sadie's tail and the strokes on the screen`, (await G('hud')).shown);
 
     // a putt of your own: hold Space and let go (the desktop), or drag back from the ball (the phone),
-    // with assist mode on (its button on the screen): the dots show the ball's whole way
+    // with the aim line on FULL (its button on the screen goes SHORT, FULL, OFF): the dots show the
+    // ball's whole way
+    check(`${device}: the aim line starts on SHORT`, await G('assist') === 'short');
     await p.click('#golfHud [data-k="assist"]');
-    check(`${device}: the ASSIST button turns assist mode on`, await G('assist') === true);
+    check(`${device}: the AIM LINE button turns it to FULL`, await G('assist') === 'full');
     let dotsShown = 0;
     if (opts.hasTouch) {
       const box = await p.locator('#mansion #view').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height * 0.55;
       await p.mouse.move(cx, cy); await p.mouse.down();
-      for (let k = 1; k <= 6; k++) { await p.mouse.move(cx, cy + k * 25); await p.waitForTimeout(30); }
+      for (let k = 1; k <= 10; k++) { await p.mouse.move(cx, cy + k * 25); await p.waitForTimeout(30); }
       await shot('4-pulling-back');
       dotsShown = await G('dots', 0);
       await p.mouse.up();
@@ -59,11 +61,16 @@ export default async function ({ browser, page, check, outDir }) {
       dotsShown = await G('dots', 0);
       await p.keyboard.up('Space');
     }
-    check(`${device}: ...and with it on, the aim dots show the whole way (not just the start)`, dotsShown > 14, `${dotsShown} dots`);
-    await G('assist', false);
+    check(`${device}: ...and on FULL, the aim dots show where it goes`, dotsShown > 0, `${dotsShown} dots`);
     let h = await hole(0);
     check(`${device}: pulling back and letting go putts the ball`, h.strokes === 1 && (h.ball.moving || h.phase !== 'aim'), JSON.stringify(h));
     await waitFor(0, "h.phase === 'aim' || h.phase === 'done'");
+    // a long shot round the walls (Sadie's trick shot's aim): FULL shows the whole way round, SHORT
+    // only up to the first wall, OFF nothing
+    const dotsFor = async a => { await G('assist', a); await G('aim', 0, ...HOLES[0].shots.trick[0].slice(0, 2)); await p.waitForTimeout(150); return G('dots', 0); };
+    const [full, short, off] = [await dotsFor('full'), await dotsFor('short'), await dotsFor('off')];
+    check(`${device}: ...the aim line: FULL shows the whole way, SHORT the start, OFF nothing`, full > 30 && short > 0 && short < full / 3 && off === 0, `full ${full}, short ${short}, off ${off}`);
+    await G('assist', 'short');
     // the pause menu: the hole carries on after it
     await p.click('#pause'); await p.waitForTimeout(400);
     await p.click('#resume'); await p.waitForTimeout(400);

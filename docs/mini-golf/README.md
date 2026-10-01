@@ -19,11 +19,12 @@ a bigger backyard, far apart).
 
 **Playing**: walk up to a tee and press E (PLAY on a phone). The view drops in behind the ball.
 Aim with A and D (or the arrows) and hold Space to pull back; let go to putt. Or drag back from the
-ball (mouse or finger) like a slingshot and let go. The dots show where the ball will really go for
-the first stretch (round the slopes, off the walls), further the harder you pull. **Assist mode** (the
-owner's idea; the ASSIST button on the screen, or Q) shows the ball's whole way instead, so you can
-line it up with the pins and the hole. It's kept on or off for next time
-(`sadies-clubhouse.mini-golf.assist`), and the trick shot award still counts with it on. How hard is Sadie's tail, bottom left, puffing
+ball (mouse or finger) like a slingshot and let go. The dots show where the ball will really go (round
+the slopes, off the walls). The **aim line** has three settings (the owner's idea: it's not meant to
+be brutally hard), gone round with the AIM LINE button on the screen, or Q: SHORT (the start, up to
+the first bounce or two seconds of rolling), FULL (the ball's whole way, so you can line it up with
+the pins and the hole) and OFF. It's kept for next time (`sadies-clubhouse.mini-golf.assist`), and
+the trick shot award counts whichever it's on. How hard is Sadie's tail, bottom left, puffing
 up the harder you pull. The club is something silly: a fish, a spoon, a stuffed sock. A big hit
 goes BONK. Esc (STEP BACK on a phone) walks away.
 
