@@ -54,6 +54,8 @@ changed, saying when and why).
 | The real game is published once GitHub's check on main is green, without running the checks again | GitHub already checked exactly that code, as the real build; running it again took ten minutes |
 | Every card is checked against the clubhouse's rules (`tests/clubhouse/cards.mjs`) | A misplaced or misspelt card shows up as a plain reason, not a broken game |
 | The docs every change reads have a size limit (`tools/docs.mjs`) | Each thread reads only a small part of the project to change one area |
+| Each kind of control (a way of playing) is a file of its own in `src/clubhouse/play/`, lent only what it needs; the mansion just passes it keys, presses and frames | They used to be written into `mansion.js` one by one, so it grew with every new kind of play, inside or out |
+| The shared code (mansion, outside, shell, toolbox) never names an activity, and a check fails if it does | Reviews noted controls piling up in the mansion but only listed it as a limit; a check catches it the day it happens |
 
 ## Known limits (go through these in every review)
 Things that are fine today but will need work as the game grows. Add any new limit a feature hits;
@@ -64,10 +66,6 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
   but nothing makes room by itself; a room that saves a lot (pictures) should keep them small.
 - **The outside is built whole.** It has levels now, but a town walkable as one space will need it
   to load in pieces as you walk, like rooms. (When the town starts growing.)
-- **Every new kind of control is written into `mansion.js`** (and its buttons into `mansion.html`):
-  playing a game in its room, instruments, painting. An activity that reuses one (`play`, `act`,
-  `brush`) doesn't touch it, but a new one (an outdoor game, say) does. Next step: give each kind
-  of control its own file any room can use.
 - **Every building outside is built at the start** (only its room is ever put away; the house lives
   all game), so starting gets slower with each one. A town needs houses built and put away by
   distance.

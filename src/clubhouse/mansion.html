@@ -1,8 +1,7 @@
 <!-- The mansion's screen: src/clubhouse/mansion.js puts it in the page, and takes it out again when
      an activity starts. On screen there's only the pause button, a hint at a door or a computer (or
-     how to play a game that's in its room), the PAINT button and the dot you paint with in a place
-     you can paint,
-     and on a phone the thumb stick: the mansion is the whole screen. -->
+     how to play a game that's in its room), on a phone the thumb stick, and whatever a way of playing
+     puts in before #flash (src/clubhouse/play/: painting's switch and box): the mansion is the whole screen. -->
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
 <div id="mansion">
   <canvas id="view" aria-label="Sadie's mansion, in 3D"></canvas>
@@ -12,10 +11,6 @@
   <div id="arcadeHint" class="hud" hidden></div>
   <div id="stick" class="hud" hidden><i></i></div>
   <button id="use" class="hud" hidden>GO</button>
-  <button id="paint" class="hud" hidden aria-label="Paint or look around"><b>LOOK</b><b>PAINT</b></button>
-  <div id="holding" class="hud" hidden><canvas width="16" height="16"></canvas><div><small>YOU'RE HOLDING</small><b></b>
-    <span><i></i><em></em></span></div><p></p></div>
-  <div id="aim" class="hud" hidden><i></i></div>
   <div id="flash" hidden></div>
   <div id="letter" hidden>
     <div class="card"><canvas id="letterArt" width="360" height="228"></canvas><button id="ok">OK</button></div>

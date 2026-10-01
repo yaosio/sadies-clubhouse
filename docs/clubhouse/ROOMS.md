@@ -1,7 +1,9 @@
 # How a room plugs in
 
 The full contract between the mansion and an activity: its card, the building kit the mansion
-hands a room, the place a room hands back, and the ways of playing. The short overview is
+hands a room, the place a room hands back, and the ways of playing (each a file of its own in
+`src/clubhouse/play/`: `arcade.js` for a use with `play`, `paint.js` for a `brush`; a new kind of
+control goes there as something any place can use, never in `mansion.js` or a room). The short overview is
 `ARCHITECTURE.md`; read this page when you're making or changing an activity's room or card. The
 room checker (`tests/clubhouse/cards.mjs`) checks every card against what this page says: a field
 it doesn't know, a place that doesn't exist or is taken, or saves that aren't the card's own.

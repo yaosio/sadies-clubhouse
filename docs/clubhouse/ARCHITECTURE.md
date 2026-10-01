@@ -34,7 +34,10 @@ art/                            mock-ups, and the scripts that draw pictures
 - **Anything many rooms need is one shared system** (a "director"), never something each room does
   for itself, and **a check loops over every room** for it, so a new room is checked with no new test.
 - **Adding an activity never touches the clubhouse.** The build finds every `src/activities/*/card.js`.
-  The exceptions: a new plot or grounds spot (`OUTSIDE.md`), and a new kind of control (`DECISIONS.md`).
+  The exception: a new plot or grounds spot (`OUTSIDE.md`). A new kind of control is a file of its own
+  in `src/clubhouse/play/` any place can use (`ROOMS.md`).
+- **The shared code names no room.** Anything only one room needs lives in its folder; a check fails
+  if the mansion, the outside, the shell or the toolbox name an activity.
 - **Nothing that's placed ever moves:** a door, a plot along the lane, a spot in the grounds. A new
   activity takes a new one. The clubhouse can grow in any direction, with doors anywhere.
 - **Why things are the way they are:** `DECISIONS.md`. Check it before undoing something.
