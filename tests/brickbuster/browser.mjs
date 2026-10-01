@@ -12,7 +12,7 @@
 import { bothDevices } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs, rest }) => {
     const B = () => p.evaluate(() => window.__brickbuster.state());
     // a finger sliding across the screen (dx pixels), or the mouse moving
     const slide = dx => p.evaluate(async dx => {
@@ -70,7 +70,7 @@ export default async function ({ browser, page, check, outDir }) {
     // missing: the ball goes past the paddle and cracks the bottom of the glass
     const before = (await B()).cracks.bottom;
     await p.evaluate(() => { const b = window.__brickbuster, s = b.state(); b.throwBall(s.paddle < 2.1 ? 3.6 : 0.6, 1.4, 0, -5); });
-    await p.waitForTimeout(450);
+    await rest(450);   // (in the game's time: on a slow computer the ball's not there yet by the clock)
     s = await B();
     await shot('3-cracked');
     check(`${device}: missing cracks the bottom of the glass, with a crack sound`, s.cracks.bottom === before + 1 && /^crack/.test(s.lastSound || ''), `cracks ${s.cracks.bottom}, last sound ${s.lastSound}`);
@@ -125,7 +125,7 @@ export default async function ({ browser, page, check, outDir }) {
     if (!opts.hasTouch) await p.keyboard.up('KeyW');
     check(`${device}: your view follows the yarn ball round the room, and you can't walk off`, watched > 4 && off < 0.6 && walked < 0.05, `${watched} looks, at most ${off.toFixed(2)} off it, walked ${walked.toFixed(2)} m`);
     check(`${device}: ...and it lets you go once the ball's out`, !(await B()).watched);
-    await p.waitForTimeout(1500);
+    await rest(1500);   // (Sadie's walk after it, in the game's time)
     s = await B();
     await shot('6-left-broken');
     check(`${device}: every brick lands on the heap, and the paddle's lying there sad`, s.bricks === 0 && s.pile === 80 && /sad|sigh/.test(s.face), `${s.pile} on the heap, face ${s.face}`);
