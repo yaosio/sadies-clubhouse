@@ -35,7 +35,9 @@ changed, saying when and why).
 ## Saves
 | Decision | Why |
 |---|---|
-| `src/shared/storage.js` is the only thing touching browser storage | A new home for saves (itch.io, a desktop app) changes one file |
+| `src/shared/storage.js` is the only thing touching browser storage; rooms save through their kit's box | A new home for saves (itch.io, a desktop app) changes one file |
+| A save that can't be read is put aside (`.unreadable`), never wiped; old save shapes are upgraded | Nobody loses progress to a bug or a change |
+| Backups are a file the owner saves and loads from the pause menu, all or nothing | Browsers can clear saves; a half-loaded backup would mix two games |
 | Never rename a save key in use | Everyone's saves would be lost |
 | The test page keeps its own save | A test build never touches the owner's real progress |
 
@@ -55,8 +57,8 @@ changed, saying when and why).
 ## Known limits (go through these in every review)
 Things that are fine today but will need work as the game grows. Add any new limit a feature hits;
 remove one once it's fixed. (The full write-up: the project's `review/architecture-corners-2026-10-01.md`.)
-- **Saves:** each room saves by hand, an old save can be thrown away (Dropper World), there's no
-  backup, and all rooms share about 5 MB with running out silent. (Planned: a save director.)
+- **Saves:** all rooms share the browser's about 5 MB. The pause menu warns when it's nearly full,
+  but nothing makes room by itself; a room that saves a lot (pictures) should keep them small.
 - **The page carries its own source** (about 1.7 MB, growing per room) against a 16 MB page limit. (Planned.)
 - **Where new doors go:** the landing's six are taken and the outside's plots are a fixed list; the
   clubhouse is meant to grow anywhere. (Planned: doors anywhere.)

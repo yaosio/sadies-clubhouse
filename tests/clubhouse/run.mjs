@@ -6,6 +6,7 @@
 import { makeComposer, MODES, RANGE, LONGEST } from '../../src/clubhouse/music/compose.js';
 import { SHAPES, RELEASE } from '../../src/clubhouse/music/voices.js';
 import { checkCards } from './cards.mjs';
+import { store, saveBox, saveRoom, backup, loadBackup } from '../../src/shared/storage.js';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -123,6 +124,38 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   soundsFor('check:other'); closeSounds();
   check('closing every sound (the mansion leaving the page) leaves none behind', !Object.keys(soundState().owners).length);
   performance.now = real;
+}
+
+// ---------- the save director (src/shared/storage.js), on a pretend browser storage ----------
+{
+  // like a browser's: about 5 million letters of keys and saves, and a save past that fails
+  const data = new Map(), size = () => [...data].reduce((n, [k, v]) => n + k.length + v.length, 0);
+  globalThis.localStorage = {
+    get length() { return data.size; }, key: i => [...data.keys()][i] ?? null,
+    getItem: k => data.has(k) ? data.get(k) : null, removeItem: k => data.delete(k),
+    setItem(k, v) { v = String(v); if (size() - (data.has(k) ? k.length + data.get(k).length : 0) + k.length + v.length > 5e6) throw new Error('QuotaExceededError'); data.set(k, v); },
+  };
+  const box = saveBox('aquarium');
+  box.set('ocean', { found: ['duck'] });
+  check('a room\'s saves are named after it, and come back as they went in', data.has('sadies-clubhouse.aquarium.ocean') && box.get('ocean').found[0] === 'duck');
+  data.set('sadies-clubhouse.aquarium.ocean', '{not a save');
+  const back = box.get('ocean', 'fresh');
+  check('a save that can\'t be read is put aside, never wiped', back === 'fresh' && data.get('sadies-clubhouse.aquarium.ocean.unreadable') === '{not a save');
+  check('...and how much room the saves take is known', saveRoom().used > 0 && !saveRoom().nearlyFull && !saveRoom().failed);
+  const PRE = ['mansion.', 'sadies-clubhouse.aquarium.'];
+  box.set('ocean', { found: ['duck', 'hat'] }); store.set('mansion.music', 'soft'); data.set('someone.else', 'theirs');
+  const file = backup(PRE);
+  box.set('ocean', { found: [] }); box.set('extra', 1); store.set('mansion.music', 'off');
+  const why = loadBackup(file, PRE);
+  check('a backup puts every save back as it was (and only the clubhouse\'s)', !why && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft'
+    && box.get('extra', null) === null && data.get('someone.else') === 'theirs' && !JSON.parse(file).saves['someone.else'], why);
+  check('...and something that isn\'t a backup changes nothing', loadBackup('hello', PRE) && loadBackup('{"format":"other"}', PRE) && box.get('ocean').found.length === 2);
+  const big = JSON.stringify({ format: 'sadies-clubhouse-backup/1', saves: { 'sadies-clubhouse.aquarium.huge': 'x'.repeat(5.1e6) } });
+  check('...nor one too big to fit: all or nothing', loadBackup(big, PRE) && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft');
+  store.set('sadies-clubhouse.aquarium.fill', 'x'.repeat(4.2e6));
+  check('nearly full saves are noticed', saveRoom().nearlyFull && !saveRoom().failed);
+  check('...and a save that doesn\'t fit fails and is noticed', !store.set('sadies-clubhouse.aquarium.more', 'x'.repeat(1e6)) && saveRoom().failed);
+  delete globalThis.localStorage;
 }
 
 // ---------- the room checker: every activity's card (tests/clubhouse/cards.mjs) ----------

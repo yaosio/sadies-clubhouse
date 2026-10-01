@@ -22,9 +22,8 @@ import { STAMPS, SADIE_PAW } from './stamps.js';
 import { POTS, TOOLS, tool, START, RAINBOW_STEP } from './tools.js';
 import { makeSounds } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';
-import { store } from '../../shared/storage.js';
 
-const PAINT_KEY = 'sadies-clubhouse.paint-shop.paint', HOLD_KEY = 'sadies-clubhouse.paint-shop.holding';
+const PAINT_KEY = 'paint', HOLD_KEY = 'holding';
 const RW = 5, RD = 4.5, H = 4;          // the room: half its width and depth, and its height
 const DENSITY = 24, SMALL = 40;         // pixels of paint a metre: the room, and the things in it
 const FLAP = { x: 3.7, z: -RD + 0.3 };  // Sadie's cat flap, in the back wall
@@ -181,21 +180,21 @@ export async function buildRoom(m) {
   // ---------- what you're holding, and keeping the paint ----------
   let madeSounds = null;
   const sounds = () => (madeSounds ||= makeSounds(soundsFor('room:' + card.id)));
-  const saved = store.get(HOLD_KEY, null);
+  const saved = m.saves.get(HOLD_KEY, null);
   const held = { ...START, ...(saved && TOOLS.some(t => t.id === saved.tool) && POTS.some(p => p.paint === saved.paint) ? saved : {}) };
-  S.load(store.get(PAINT_KEY, null));
+  S.load(m.saves.get(PAINT_KEY, null));
   let clock = 0, saveAt = 0;
   const ears = () => m.ears?.();
   let picks = 0;   // (how many times you've picked something up: the mansion switches to painting each time)
   function hold(t, paint, sound) {
     held.tool = t; held.paint = paint; picks++;
-    store.set(HOLD_KEY, { tool: t, paint });
+    m.saves.set(HOLD_KEY, { tool: t, paint });
     for (const [id, h] of Object.entries(hooks)) h.visible = id !== t;
     sounds()[sound]?.();
   }
   for (const [id, h] of Object.entries(hooks)) h.visible = id !== held.tool;
   chooter.material.uniforms.map.value = A.chooter(held.paint, 0); A.chooter(held.paint, 1);   // (both his pictures now, not mid-game)
-  function keepPaint() { if (S.changedSinceSave()) store.set(PAINT_KEY, S.save()); saveAt = 0; }
+  function keepPaint() { if (S.changedSinceSave()) m.saves.set(PAINT_KEY, S.save()); saveAt = 0; }
   const later = () => { saveAt = clock + 1.5; };
   const onHide = () => keepPaint();
   addEventListener('pagehide', onHide);
@@ -373,7 +372,7 @@ export async function buildRoom(m) {
     state: () => ({
       holding: { ...held }, painted: Object.fromEntries(S.list.map(s => [s.name, S.painted(s)])),
       total: S.list.reduce((a, s) => a + S.painted(s), 0), surfaces: S.list.length,
-      saved: (localStorage.getItem(PAINT_KEY) || '').length, sadie: { on: walk.on, prints: walk.prints, paint: walk.paint },
+      saved: JSON.stringify(m.saves.get(PAINT_KEY, '')).length, sadie: { on: walk.on, prints: walk.prints, paint: walk.paint },
       armed: armed > 0, heard: [...new Set(sounds().log)], played: sounds().played,
     }),
     hold: (t, paint) => hold(t, paint ?? held.paint),

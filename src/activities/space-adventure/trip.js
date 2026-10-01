@@ -136,7 +136,7 @@ export function sadieAt(t) {
 }
 
 // What's saved: whether you've been on the trip (after it, the door opens onto Sadie's space room).
-export const SAVE = 'sadies-clubhouse.space-adventure.trip';
+export const SAVE = 'trip';
 export const readSave = v => ({ done: !!(v && v.done) });
 
 // The land, in its own metres: the beach you land on at 0, 0 (its sand GROUND high), the sea off to

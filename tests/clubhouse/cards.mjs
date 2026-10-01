@@ -7,7 +7,8 @@
 //   - it's either on a computer (`start`, with its `page` and `styles`) or lives in its room (`room`);
 //   - it has exactly one place: a door on the landing (`slot`), a plot along the lane (`lot`) or a
 //     spot in the grounds (`grounds`), which exists, and no other card has taken;
-//   - its saves: `keeps` names where they start; a new activity's start `sadies-clubhouse.<id>.`;
+//   - its saves: a room saves through its kit's box (`m.saves`, src/shared/storage.js), never
+//     straight to the browser; `keeps` names where they start; a new activity's start `sadies-clubhouse.<id>.`;
 //     no two activities' overlap, nor the mansion's own (`mansion.`); an activity that saves
 //     anything (uses the toolbox's `store`) has `keeps`; and it never names another activity's save.
 // The mansion's browser check also looks at every save actually written while it walks round every
@@ -79,7 +80,8 @@ export async function checkCards(check) {
     // saves
     const keeps = c.keeps || [], own = `sadies-clubhouse.${id}.`, old = OLD_KEEPS[id] || [];
     need(Array.isArray(keeps) && keeps.every(k => typeof k === 'string' && (k.startsWith(own) || old.includes(k))), `its saves must start ${own} (keeps: ${keeps})`);
-    const src = sourceOf(dir), saves = /\bstore\.(get|set|remove)\(/.test(src) || /localStorage/.test(src);
+    const src = sourceOf(dir), saves = /\b(store|saves)\.(get|set|remove)\(|saveBox\(|localStorage/.test(src);
+    need(!room || !/shared\/storage\.js|localStorage/.test(src), "a room saves through its kit's box (m.saves), not straight to the browser");
     need(!saves || keeps.length, "it saves things but its card doesn't say what (keeps)");
     const others = [...new Set([...src.matchAll(/['"`](sadies-clubhouse\.[\w-]+\.)/g)].map(m => m[1]).filter(k => k !== own))];
     need(!others.length, `it names another activity's save: ${others.join(', ')}`);

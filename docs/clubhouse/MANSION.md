@@ -84,7 +84,7 @@ further in (`swing`), so it's hinged on opposite sides as seen from each side.
   A/D, the arrows, the mouse without clicking, or a finger sliding anywhere go to the game; Esc,
   W, S or STEP BACK glide you back to where you stood; the pause menu stops the game too), Sadie's letter (`mansion.invited`: the first time only), the
   pause menu (Esc or the pause button; it also starts over everything, the invitation, or an
-  activity's saves, each only after a YES on its "are you sure?"), and `window.__mansion` for the checks.
+  activity's saves, each only after a YES on its "are you sure?"; and YOUR SAVES: how full they are, and backups), and `window.__mansion` for the checks.
 - `look.js`: the PS1 material (corners snapping to the pixel grid, light per corner, few colours
   with dithering; no swimming textures, which the owner found far too distracting), the doorway
   and sky materials, and every texture, drawn

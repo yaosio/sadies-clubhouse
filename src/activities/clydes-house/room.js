@@ -22,9 +22,8 @@ import * as L from './lines.js';
 import { REACT } from './reactions.js';
 import { makeSounds } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';
-import { store } from '../../shared/storage.js';
 
-const KEY = 'sadies-clubhouse.clydes-house.machine';
+const KEY = 'machine';
 const RW = 4.6, RD = 4.2, H = 5.6;       // the room: half its width and depth, and its height
 const MZ = -RD + 0.35;                    // the machine stands this far out from the back wall
 const at = (u, v, dz = 0) => [u, v, MZ + dz];
@@ -186,7 +185,7 @@ export async function buildRoom(m) {
   }
 
   // ---------- the machine's state, kept in the browser ----------
-  const M = makeMachine(store.get(KEY, {}) || {});
+  const M = makeMachine(m.saves.get(KEY, {}) || {});
   A.count(M.treats);
   let madeSounds = null;
   const sounds = () => (madeSounds ||= makeSounds(soundsFor('room:' + card.id)));
@@ -325,7 +324,7 @@ export async function buildRoom(m) {
     step(0.7, k => { sadie.position.set(lerp(BASKET[0], BOWL[0] + 0.45, k), 0.12 * (1 - k), MZ + lerp(BASKET[1], BOWL[1] + 0.12, k)); sadie.position.y += Math.abs(Math.sin(k * 9)) * 0.03; });
     step(1.3, k => { sadie.position.y = Math.abs(Math.sin(k * 16)) * 0.03; treat.scale.setScalar(1 - k); }, { end: () => { treat.visible = false; puffAt(A.heart, BOWL[0] + 0.45, 0.8, MZ + BOWL[1] + 0.2); } });
     now(() => {
-      const what = won(M); store.set(KEY, saveOf(M)); A.count(M.treats);
+      const what = won(M); m.saves.set(KEY, saveOf(M)); A.count(M.treats);
       if (ducky) for (const l of L.DUCK) say(l);
       afterWin(what);
     });

@@ -5,11 +5,12 @@
 // Two ways to clear it: clearTower() starts a fresh board but Sadie keeps her friends and bests;
 // startOver() forgets everything, as if the game had never been played here.
 //
-// If a save can't be read (from an older version of the game, or damaged), the game just starts
-// fresh rather than breaking. Bump SAVE_VERSION when the format changes in a way old saves can't
-// be loaded into.
+// If a save can't be read (from an older version of the game, or damaged), the game starts fresh
+// rather than breaking, and the old save is put aside (sadies-dropper-world.save.unreadable), never
+// wiped. Bump SAVE_VERSION when the format changes, and teach restore() to read the old version:
+// a format change must never lose anyone's tower.
 import { U, W } from '../config.js';
-import { store } from '../../../shared/storage.js';
+import { store, putAside } from '../../../shared/storage.js';
 import { world } from './world.js';
 import { SHAPES } from './physics/pieceTypes.js';
 import { makePiece, aabb } from './physics/body.js';
@@ -120,7 +121,7 @@ export function loadGame() {
   const s = store.get(SAVE_KEY, null);
   if (!s) return false;
   try { restore(s); return true; }
-  catch (e) { resetGame(); return false; }
+  catch (e) { putAside(SAVE_KEY); resetGame(); return false; }   // (kept as sadies-dropper-world.save.unreadable, never wiped)
 }
 // A fresh board. Sadie keeps her friends and her bests.
 export function clearTower() { resetGame(); saveGame(); }
