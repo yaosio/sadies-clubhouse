@@ -1,7 +1,7 @@
 // The paint shop's sounds: each one short and soft, once, when something happens. Painting itself
 // makes no sound at all (a brush going back and forth would be the same noise over and over), and the
 // dynamite is a soft fwump, not a bang.
-import { blank, pluck, swell, tone, hush, finish } from './synth.js';
+import { blank, pluck, tone, hush, finish } from './synth.js';
 
 // dipping the brush in a pot: plip
 export const plip = () => finish(tone(blank(0.14), 0, 0.12, 520, 860, pluck(30), { gain: 0.26 }));
