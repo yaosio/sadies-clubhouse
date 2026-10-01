@@ -51,8 +51,11 @@ export function makeSurfaces({ psx, keep }) {
       if (!seen(h.object) || h.object.userData.ghost || !h.uv) continue;
       const s = h.object.userData.surface;
       if (!s) return null;
-      const part = h.face?.materialIndex ?? 0;
-      return { s, part, x: h.uv.x * s.L.w, y: h.uv.y * s.L.h, point: h.point.clone(), clip: s.cells ? s.cells[part] : undefined };
+      // (which side of a box: the cell of the picture the spot's in. The hit's own materialIndex is
+      // always 0 with one material, which kept the paint to one side)
+      const x = h.uv.x * s.L.w, y = h.uv.y * s.L.h;
+      const part = s.cells ? Math.max(0, s.cells.findIndex(c => x >= c.x0 && x < c.x1 && y >= c.y0 && y < c.y1)) : 0;
+      return { s, part, x, y, point: h.point.clone(), clip: s.cells ? s.cells[part] : undefined };
     }
     return null;
   }

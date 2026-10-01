@@ -48,9 +48,9 @@ export function drawArt(m) {
   const door = (g, open) => {
     rect(g, '#2a5ae8', 0, 0, 24, 40); rect(g, '#1a3ab0', 1, 1, 22, 38);
     rect(g, '#2a5ae8', 3, 3, 18, 34); rect(g, C.ink, 5, 5, 14, 12); dith(g, '#8ad8ff', '#c8f0ff', 6, 6, 12, 10, 0.4);
-    if (open) { rect(g, C.white, 6, 20, 12, 6); words(g, 'OPEN', 12, 20, 1, C.red, { align: 'center' }); }
-    rect(g, C.gold, 18, 24, 2, 2);
-    splat(g, PAINT_CSS[3], 6, 32, 1, 5); splat(g, PAINT_CSS[10], 16, 34, 1, 8);
+    if (open) { rect(g, C.ink, 2, 19, 20, 9); rect(g, C.white, 3, 20, 18, 7); words(g, 'OPEN', 12, 21, 1, C.red, { align: 'center' }); }
+    rect(g, C.gold, 18, 30, 2, 2);
+    splat(g, PAINT_CSS[3], 6, 33, 1, 5); splat(g, PAINT_CSS[10], 12, 36, 1, 8);
   };
   A.door = tex(24, 40, g => door(g, true));
   A.doorBack = tex(24, 40, g => door(g, false));
@@ -70,7 +70,7 @@ export function drawArt(m) {
   A.boardBack = tex(24, 32, g => {
     rect(g, C.tan3, 0, 0, 24, 32); rect(g, C.ink, 2, 2, 20, 28);
     words(g, 'ALSO', 12, 4, 1, C.yellow, { align: 'center' });
-    words(g, 'THE', 12, 11, 1, C.white, { align: 'center' }); words(g, 'FLOOR', 12, 17, 1, C.white, { align: 'center' }); words(g, '& CAT?', 12, 23, 1, C.pink, { align: 'center' });
+    words(g, 'FLOOR', 12, 10, 1, C.white, { align: 'center' }); words(g, 'AND', 12, 16, 1, C.white, { align: 'center' }); words(g, 'CAT?', 12, 22, 1, C.pink, { align: 'center' });
   });
   // the giant paint can tipping off the roof: its label, and the paint pouring down the front
   A.canLabel = tex(32, 16, g => {
@@ -95,7 +95,7 @@ export function drawArt(m) {
   A.morePaint = tex(132, 10, g => { rect(g, C.ink, 0, 0, 132, 10); rect(g, C.white, 1, 1, 130, 8); words(g, 'MORE COLOURS IN THE FULL VERSION', 66, 3, 1, C.plum, { align: 'center' }); });
   A.pegboard = tex(16, 16, g => { rect(g, '#d8a868', 0, 0, 16, 16); for (let y = 2; y < 16; y += 4) for (let x = 2; x < 16; x += 4) rect(g, '#8a5a30', x, y); });
   A.counter = tex(16, 16, g => { rect(g, C.tan, 0, 0, 16, 16); rect(g, C.tan2, 0, 7, 16, 1); rect(g, C.tan2, 0, 15, 16, 1); splat(g, PAINT_CSS[6], 4, 4, 1, 2); splat(g, PAINT_CSS[1], 12, 11, 1, 9); });
-  A.plaque = tex(48, 10, g => { rect(g, C.gold3, 0, 0, 48, 10); rect(g, C.gold, 1, 1, 46, 8); words(g, 'SADIE. PAINT ME', 24, 3, 1, C.ink, { align: 'center' }); });
+  A.plaque = tex(48, 10, g => { rect(g, C.gold3, 0, 0, 48, 10); rect(g, C.gold, 1, 1, 46, 8); words(g, 'SADIE', 24, 3, 1, C.ink, { align: 'center' }); });
   A.catflap = tex(12, 12, g => { rect(g, C.tan3, 0, 0, 12, 12); rect(g, '#5a2a78', 1, 1, 10, 10); rect(g, '#7a4a98', 2, 2, 8, 2); words(g, 'S', 5, 5, 1, C.pink); });
 
   // the tools, as they hang on the pegboard (16 x 16, see-through round them)
@@ -126,9 +126,9 @@ export function drawArt(m) {
   A.rainbowTop = tex(16, 16, g => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) rect(g, loud[Math.floor(Math.hypot(x - 7.5, y - 7.5) / 1.6) % loud.length], x, y); });
   // the plunger's box: TNT, for the whole room
   A.tnt = tex(32, 24, g => {
-    rect(g, C.tan3, 0, 0, 32, 24); rect(g, C.red, 1, 1, 30, 22); dith(g, C.red, '#a02030', 1, 16, 30, 7, 0.5);
-    words(g, 'TNT', 16, 3, 2, C.yellow, { align: 'center', shadow: C.ink });
-    words(g, 'WHOLE ROOM', 16, 15, 1, C.white, { align: 'center' });
+    rect(g, C.tan3, 0, 0, 32, 24); rect(g, C.red, 1, 1, 30, 22);
+    words(g, 'TNT', 16, 0, 2, C.yellow, { align: 'center', shadow: C.ink });
+    words(g, 'WHOLE', 16, 12, 1, C.white, { align: 'center', shadow: C.ink }); words(g, 'ROOM', 16, 18, 1, C.white, { align: 'center', shadow: C.ink });
   });
   // the BOOM, Kid Pix style: a starburst with the word on it
   A.boom = tex(40, 28, g => {
@@ -140,8 +140,8 @@ export function drawArt(m) {
   });
   // Chooter (the black lab/pitbull mix from Dropper World), sitting by his counter: stocky, floppy
   // ears, a white blaze, his tongue out, a blue collar with a gold tag, and a tail that never stops
-  // wagging (two pictures). He always gets the paint on himself: splotches of whatever you just
-  // dipped in (every colour at once for RAINBOW). Made the first time each paint's needed.
+  // wagging (two pictures). He wears a painter's cap, and holds a paintbrush in his mouth, in
+  // whatever you just dipped in (stripes for RAINBOW), so you can see your colour on him. Made the first time each paint's needed.
   const dogs = new Map();
   A.chooter = (paint, wag) => {
     const k = paint + '/' + wag;
@@ -169,8 +169,13 @@ export function drawArt(m) {
     rect(g, DOG.ink, 11, 13, 7, 1); rect(g, DOG.tongue, 13, 14, 3, 3); rect(g, '#d9546f', 14, 14, 1, 2);
     // his collar and its tag
     rect(g, DOG.collar, 8, 16, 13, 2); rect(g, DOG.tag, 14, 18, 2, 2);
-    // and the paint all over him
-    disc(g, spot(0), 19, 24, 2); disc(g, spot(1), 9, 4, 1); rect(g, spot(2), 9, 29, 3, 2); rect(g, spot(3), 20, 9, 2, 2);
+    // his painter's cap, in the paint you're holding (striped, for RAINBOW), tipped over one ear
+    rect(g, DOG.ink, 7, 0, 13, 4); rect(g, DOG.ink, 6, 2, 15, 2);
+    for (let x = 7; x < 20; x++) rect(g, spot(Math.floor((x - 7) / 3)), x, x < 8 || x > 18 ? 2 : 1, 1, x < 8 || x > 18 ? 1 : 2);
+    rect(g, DOG.ink, 13, 0, 1, 1);
+    // and a paintbrush in his mouth, its bristles dipped in it too
+    rect(g, DOG.ink, 16, 11, 7, 3); rect(g, '#b87848', 16, 12, 6, 1);
+    rect(g, DOG.ink, 22, 10, 6, 5); rect(g, '#c8c8d8', 22, 11, 1, 3); rect(g, spot(0), 23, 11, 4, 3);
   }
   A.sure = tex(48, 10, g => { rect(g, C.ink, 0, 0, 48, 10); rect(g, C.yellow, 1, 1, 46, 8); words(g, 'SURE? PUSH AGAIN', 24, 3, 1, C.red, { align: 'center' }); });
   return A;

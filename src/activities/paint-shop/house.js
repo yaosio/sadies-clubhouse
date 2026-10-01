@@ -1,11 +1,11 @@
 // Chooter's Paint Shop from outside, on its plot along the lane: a mint shop splattered in every colour
 // (its customers paint the outside too), a pink and yellow awning, its sign, two windows full of paint
-// cans, a sandwich board on the path (TODAY: PAINT THE WALLS / ALSO THE FLOOR & CAT?), and a giant
+// cans, a sandwich board on the path (TODAY: PAINT THE WALLS / ALSO FLOOR AND CAT?), and a giant
 // paint can tipping off the roof, pouring pink down the front.
 //
 // Built into the outside's own scene, in a group of its own (the mansion hands the room this place
 // and the plot); the front door is a doorway into the room, like every door in the mansion.
-import { Group, Mesh, CylinderGeometry, DoubleSide } from 'three';
+import { Group, Mesh, CylinderGeometry, BoxGeometry, DoubleSide } from 'three';
 
 export const DW = 1.3, DH = 2.4;   // the front door
 
@@ -47,6 +47,9 @@ export function buildHouse(m, A) {
     const face = plane(0.62, 0.85, psx(t, { unlit: 0.4 }), [0, 0, 0], null, 1);
     scene.remove(face); board.add(face);
     face.position.set(0, 0.42, s * 0.12); face.rotation.set(-s * 0.28, s < 0 ? Math.PI : 0, 0);
+    // (a wooden board behind each sign, so it's a solid thing from every side, not a picture in the air)
+    const back = new Mesh(keep(new BoxGeometry(0.66, 0.89, 0.03)), psx(null, { tint: 0x7a4a2a, unlit: 0.3 }));
+    back.position.z = -0.02; face.add(back);
   }
 
   // what's solid: the shop and the board

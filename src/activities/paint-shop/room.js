@@ -1,5 +1,5 @@
 // Inside Chooter's Paint Shop (Chooter: the dog from Dropper World, who sits by his counter, wagging,
-// with paint all over him): a big plain room you paint. All of it: the walls, the floor, the ceiling,
+// in a cap the colour of your paint): a big plain room you paint. All of it: the walls, the floor, the ceiling,
 // and the things in it (a plaster Sadie on a plinth, a wooden fish hanging from the ceiling, an easel,
 // a beach ball, a crate). Paint pots on the counter (every colour, and RAINBOW), tools on the pegboard
 // (a brush, a roller, a spray can, a paint bucket, four stamps, and the dynamite, which blows the paint
@@ -61,12 +61,18 @@ export async function buildRoom(m) {
     ['left wall', 2 * RD, [-RW, 0, 0], Math.PI / 2, false],
     ['right wall', 2 * RD, [RW, 0, 0], -Math.PI / 2, false],
   ];
+  // (each runs on a little past the room's edges, behind the others, with its paint where it was: the
+  // PS1 wobble opens hairline cracks along the corners, and through them you'd see the night)
+  const OVER = 0.15;
   for (const [name, w, pos, yaw, hole] of walls) {
-    const geo = fitUv(hole ? wallGeometry(w, H, DW, DH) : wallGeometry(w, H), w, H);
+    const geo = fitUv(hole ? wallGeometry(w + 2 * OVER, H, DW, DH) : wallGeometry(w + 2 * OVER, H), w, H);
     S.paintOn(surface(name, w, H, 'wall'), add(new Mesh(geo, null), pos, [0, yaw, 0]));
   }
-  S.paintOn(surface('floor', 2 * RW, 2 * RD, 'floor'), plane(2 * RW, 2 * RD, null, [0, 0, 0], [-Math.PI / 2, 0, 0], 8));
-  S.paintOn(surface('ceiling', 2 * RW, 2 * RD, 'ceiling', DENSITY, { unlit: 0.6 }), plane(2 * RW, 2 * RD, null, [0, H, 0], [Math.PI / 2, 0, 0], 8));
+  const flat = (name, y, rx, o) => {
+    const p = S.paintOn(surface(name, 2 * RW, 2 * RD, name, DENSITY, o), plane(2 * RW + 2 * OVER, 2 * RD + 2 * OVER, null, [0, y, 0], [rx, 0, 0], 8));
+    fitUv(p.geometry, 2 * RW, 2 * RD, -RW, -RD);
+  };
+  flat('floor', 0, -Math.PI / 2); flat('ceiling', H, Math.PI / 2, { unlit: 0.6 });
   const door = doorway(scene, { pos: [0, 0, RD], yaw: Math.PI, w: DW, h: DH, leaves: [{ front: A.doorBack, back: A.door }], hinge: 1, trim: 0xffd23a });
   await m.breathe?.();
 
@@ -106,7 +112,8 @@ export async function buildRoom(m) {
   for (const s of [-1, 1]) mesh(new BoxGeometry(0.05, 1.9, 0.05), leg, [s * 0.45, 0.95, 0], [0.12, 0, s * -0.08], easel);
   mesh(new BoxGeometry(0.05, 1.8, 0.05), leg, [0, 0.9, -0.35], [-0.25, 0, 0], easel);
   mesh(new BoxGeometry(1.1, 0.06, 0.12), leg, [0, 0.62, 0.08], null, easel);
-  S.paintOn(S.surface('canvas', Math.round(1.0 * SMALL), Math.round(1.3 * SMALL), SMALL, BARE.canvas), mesh(new PlaneGeometry(1.0, 1.3, 2, 2), null, [0, 1.32, 0.1], [-0.12, 0, 0], easel));
+  const canvas = S.paintOn(S.surface('canvas', Math.round(1.0 * SMALL), Math.round(1.3 * SMALL), SMALL, BARE.canvas), mesh(new PlaneGeometry(1.0, 1.3, 2, 2), null, [0, 1.32, 0.1], [-0.12, 0, 0], easel));
+  mesh(new BoxGeometry(1.0, 1.3, 0.03), tint(0xd8bc8c, { unlit: 0.4 }), [0, 0, -0.018], null, canvas);   // (its back: a stretcher of plain canvas)
   // a beach ball, and a wooden crate
   paintRound('beach ball', new SphereGeometry(0.45, 16, 12), 0.45, 'plaster', [1.5, 0.45, 1.6]);
   paintBox('crate', 0.9, 0.9, 0.9, 'wood', [-2.6, 0.45, -2.4]).rotation.y = 0.3;
