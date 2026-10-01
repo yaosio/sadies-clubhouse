@@ -23,14 +23,32 @@
 #mansion #stick i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#ffffff80}
 #mansion #use{right:calc(26px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom));min-width:78px;height:78px;border-radius:39px;
   padding:0 12px;background:var(--gold);color:var(--ink);border:0;box-shadow:0 3px 0 #8a5a10;font-size:12px;cursor:pointer}
-/* painting (a place with a brush): the PAINT switch, edged in the paint you're holding, and the dot in
-   the middle you paint with while the mouse is locked */
-#mansion #paint{right:calc(26px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));min-width:78px;height:44px;
-  padding:0 10px;background:#1c1238d0;color:#fff;border:3px solid var(--paint,#fff);font-size:11px;cursor:pointer}
-#mansion #paint.on{background:var(--paint,#fff);color:var(--ink);text-shadow:0 0 2px #fff}
+/* painting (a place with a brush): the LOOK | PAINT switch (the side you're on lit up, in the paint you're
+   holding), the YOU'RE HOLDING box with how to paint, and the dot in the middle you paint with while the
+   mouse is locked */
+#mansion #paint{right:calc(26px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));height:44px;display:flex;
+  padding:0;background:#1c1238d0;color:#fff;border:3px solid var(--paint,#fff);font-size:11px;cursor:pointer;font-family:var(--px)}
+#mansion #paint b{display:grid;place-items:center;padding:0 10px;font-weight:normal;opacity:.6}
+#mansion #paint b:first-child{border-right:2px solid var(--paint,#fff)}
+#mansion #paint:not(.on) b:first-child,#mansion #paint.on b:last-child{opacity:1;background:var(--paint,#fff);color:var(--ink);text-shadow:0 0 2px #fff}
+#mansion #holding{left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));max-width:calc(100% - 70px);display:grid;
+  grid-template-columns:48px auto;gap:2px 8px;align-items:center;background:#1c1238d8;border:2px solid #ffffff70;padding:6px 10px 6px 6px;pointer-events:none}
+#mansion #holding canvas{width:48px;height:48px;image-rendering:pixelated;background:#d8a868;border:2px solid #8a5a30}
+#mansion #holding div{display:grid;gap:3px}
+#mansion #holding small{font-size:9px;color:var(--hi)}
+#mansion #holding b{font-size:13px;font-weight:normal;color:var(--gold)}
+#mansion #holding span{display:flex;align-items:center;gap:6px}
+#mansion #holding span[hidden]{display:none}
+#mansion #holding i{width:14px;height:14px;background:var(--paint,#fff);border:2px solid #fff}
+#mansion #holding p{grid-column:1/-1;margin:2px 0 0;font-size:10px;color:#fff;max-width:250px;line-height:1.4}
+#mansion #holding.new{animation:held .6s steps(6)}
+@keyframes held{0%,33%,67%{border-color:var(--gold);transform:scale(1.06)}17%,50%,83%{border-color:#ffffff70;transform:none}}
+#mansion #holding{transform-origin:0 0}
+/* (on a phone the test version's label moves down out of its way) */
+@media (max-width:600px){body:has(#mansion #holding:not([hidden])) #testBadge{top:calc(124px + env(safe-area-inset-top))!important}}
+#mansion #view.painting{cursor:var(--brush,crosshair)}
 #mansion #aim{left:50%;top:50%;width:0;height:0;pointer-events:none}
 #mansion #aim i{position:absolute;left:-6px;top:-6px;width:12px;height:12px;border:2px solid var(--paint,#fff);outline:1px solid #1c1238;background:#ffffff40}
-#mansion #aim span{position:absolute;left:0;top:14px;transform:translateX(-50%);white-space:nowrap;background:#1c1238a8;padding:2px 6px;font-size:10px}
 #mansion #flash{position:absolute;inset:0;background:#10183a;pointer-events:none}
 /* Sadie's letter */
 #mansion #letter{position:absolute;inset:0;display:grid;place-items:center;background:#0a062890;padding:16px}

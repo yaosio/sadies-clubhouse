@@ -537,11 +537,14 @@ export async function open(cards, enter) {
   // ---------- painting: a place with a `brush` (the paint shop) ----------
   // With the mouse locked, holding its button paints where the dot in the middle of the view is (and
   // walking or looking about while you hold it paints a stroke). On a phone, or with the mouse free,
-  // the PAINT button switches pressing from looking around to painting wherever you press; the thumb
-  // stick still walks. The place is told each press as a line out into it, every frame while it's
-  // held: brush(id, ray, 'down' | 'move' | 'up'). Its `brushLook()` says what you're holding
-  // ({ color, label }), for the dot and the button.
-  let painting = false, brushPlace = null, brushShown = '';
+  // the LOOK | PAINT switch says what pressing does: look around, or paint wherever you press (the
+  // thumb stick still walks). Picking something up switches it to PAINT, so the next press paints.
+  // The place is told each press as a line out into it, every frame while it's held:
+  // brush(id, ray, 'down' | 'move' | 'up'). Its `brushLook()` says what you're holding, for the
+  // YOU'RE HOLDING box, the switch and the dot: { color, tool, icon (a little picture), paint (its
+  // name, or none), verb (what pressing does: PAINT, STAMP...), drags (painting a line as you drag),
+  // picks (a count, up one each time something's picked up) }.
+  let painting = false, brushPlace = null, brushShown = '', picks = null;
   const brushes = new Map();   // each press that's painting: where it is on the screen (null: the middle)
   function middle() { ndc.set(0, 0, 0.5).unproject(cam); return { origin: cam.position.clone(), dir: ndc.clone().sub(cam.position).normalize() }; }
   function brushDown(id, at) {
@@ -555,19 +558,39 @@ export async function open(cards, enter) {
     if (mode !== 'play' || me.world !== brushPlace) { for (const id of [...brushes.keys()]) brushUp(id); return; }
     for (const [id, at] of brushes) brushPlace.brush(id, at ? pointAt(at) : middle(), 'move');
   }
+  // how to paint, in a line: what pressing does, with the mouse locked, the switch on PAINT or on LOOK
+  function howTo(b) {
+    const press = touchy ? 'TAP' : 'CLICK', it = b.verb === 'PAINT' || b.verb === 'SPRAY' || b.verb === 'STAMP' || b.verb === 'FILL' ? ' IT' : '';
+    if (locked) return b.drags ? `HOLD THE MOUSE BUTTON TO ${b.verb} WHERE THE DOT IS` : `CLICK TO ${b.verb} WHERE THE DOT IS`;
+    if (!painting) return `${press} PAINT (BOTTOM RIGHT), THEN ${press} ANYTHING IN THE ROOM`;
+    return `${press} ANYTHING TO ${b.verb}${it}${b.drags ? ` (OR ${touchy ? 'SLIDE YOUR FINGER' : 'DRAG'} ACROSS IT)` : ''}. ${press} LOOK TO LOOK AROUND`;
+  }
+  const cursor = c => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='7' fill='none' stroke='#1c1238' stroke-width='5'/><circle cx='12' cy='12' r='7' fill='none' stroke='${c}' stroke-width='3'/><rect x='11' y='11' width='2' height='2' fill='#1c1238'/></svg>`)}") 12 12, crosshair`;
   function showBrush() {
     const b = mode === 'play' && me.world.brush ? me.world.brushLook?.() || {} : null;
     if (!b) painting = false;   // (left the place, or paused: the switch goes back to looking)
-    const key = b ? [locked, painting, b.color, b.label].join('|') : '';
+    // (picking something up: the switch goes to PAINT, and the box flashes)
+    const picked = b && picks !== null && b.picks !== picks;
+    if (picked && !locked) painting = true;
+    picks = b ? b.picks ?? 0 : null;
+    const key = b ? [locked, painting, b.color, b.tool, b.paint, b.verb].join('|') : '';
+    const box = $('#holding');
+    if (picked) { box.classList.remove('new'); void box.offsetWidth; box.classList.add('new'); }
+    canvas.classList.toggle('painting', !!b && painting && !locked);
     if (key === brushShown) return;
     brushShown = key;
     const btn = $('#paint'), aim = $('#aim');
-    btn.hidden = !b || locked; aim.hidden = !b || !locked;
+    btn.hidden = !b || locked; aim.hidden = !b || !locked; box.hidden = !b;
     if (!b) return;
-    btn.textContent = painting ? 'PAINTING' : 'PAINT'; btn.classList.toggle('on', painting);
-    btn.style.setProperty('--paint', b.color || '#fff');
-    aim.style.setProperty('--paint', b.color || '#fff');
-    aim.querySelector('span').textContent = b.label || '';
+    btn.classList.toggle('on', painting);
+    for (const el of [btn, aim, box]) el.style.setProperty('--paint', b.color || '#fff');
+    canvas.style.setProperty('--brush', cursor(b.color || '#fff'));
+    const g = box.querySelector('canvas').getContext('2d');
+    g.clearRect(0, 0, 16, 16); if (b.icon) g.drawImage(b.icon, 0, 0, 16, 16);
+    box.querySelector('b').textContent = b.tool || '';
+    box.querySelector('span').hidden = !b.paint;
+    box.querySelector('em').textContent = b.paint || '';
+    box.querySelector('p').textContent = howTo(b);
   }
   on($('#paint'), 'click', e => { e.stopPropagation(); if (mode === 'play' && me.world.brush) painting = !painting; showBrush(); });
 
@@ -859,7 +882,7 @@ export async function open(cards, enter) {
     speed: () => ({ ...speed, places: { ...speed.places }, bits: { ...speed.bits }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
       textures: renderer.info.memory.textures, kept: made().length, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e5) / 10 : null }),
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
-    // the PAINT switch in a place with a brush (on: pressing paints), and how many presses are painting
+    // the LOOK | PAINT switch in a place with a brush (on PAINT: pressing paints), and how many presses are painting
     painting: () => painting,
     brushes: () => brushes.size,
     // the main theme: what it's doing; the sound system: what's playing, whose, and how loud

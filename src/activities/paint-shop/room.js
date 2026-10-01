@@ -131,9 +131,9 @@ export async function buildRoom(m) {
   // the pegboard on the left wall, a tool on each hook (the one you're holding isn't there)
   plane(4.4, 1.5, psx(A.pegboard, { rx: 11, ry: 3.75 }), [-RW + 0.05, 1.6, 0], [0, Math.PI / 2, 0], 2);
   plane(1.9, 0.3, psx(A.toolSign, { unlit: 0.4 }), [-RW + 0.07, 2.55, 0], [0, Math.PI / 2, 0], 1);
-  const hooks = {};
+  const hooks = {}, icons = {};
   TOOLS.forEach((t, i) => {
-    const z = -1.84 + i * 0.46, pic = t.kind === 'stamp' ? A.stampIcon(STAMPS[t.stamp]) : A.tool[t.id];
+    const z = -1.84 + i * 0.46, pic = icons[t.id] = t.kind === 'stamp' ? A.stampIcon(STAMPS[t.stamp]) : A.tool[t.id];
     hooks[t.id] = plane(0.4, 0.4, psx(pic, { unlit: 0.35 }), [-RW + 0.1, 1.6, z], [0, Math.PI / 2, 0], 1);
     uses.push({ pos: new Vector3(-RW + 0.1, 1.6, z), reach: 2.2, label: 'TAKE THE ' + t.name, button: 'TAKE', act: () => hold(t.id, held.paint, 'tok') });
   });
@@ -179,8 +179,9 @@ export async function buildRoom(m) {
   S.load(store.get(PAINT_KEY, null));
   let clock = 0, saveAt = 0;
   const ears = () => m.ears?.();
+  let picks = 0;   // (how many times you've picked something up: the mansion switches to painting each time)
   function hold(t, paint, sound) {
-    held.tool = t; held.paint = paint;
+    held.tool = t; held.paint = paint; picks++;
     store.set(HOLD_KEY, { tool: t, paint });
     for (const [id, h] of Object.entries(hooks)) h.visible = id !== t;
     sounds()[sound]?.();
@@ -213,12 +214,16 @@ export async function buildRoom(m) {
     p.last = h;
     later();
   }
+  // what you're holding, for the mansion's YOU'RE HOLDING box: the tool and its picture, the paint
+  // (none for a stamp or the dynamite, which bring their own), and what pressing does with it
+  const VERB = { brush: 'PAINT', spray: 'SPRAY', fill: 'FILL', stamp: 'STAMP', boom: 'BLOW THE PAINT OFF' };
   const brushLook = () => {
     const t = tool(held.tool), rainbow = held.paint === 'rainbow';
     const paints = t.kind === 'brush' || t.kind === 'spray' || t.kind === 'fill';
     return {
-      color: rainbow ? PAINT_CSS[RAINBOW[Math.floor(clock * 3) % RAINBOW.length]] : PAINT_CSS[held.paint],
-      label: paints ? `${t.name}: ${rainbow ? 'RAINBOW' : PAINTS[held.paint].name}` : t.name,
+      color: !paints ? '#fff' : rainbow ? PAINT_CSS[RAINBOW[Math.floor(clock * 3) % RAINBOW.length]] : PAINT_CSS[held.paint],
+      tool: t.name, icon: icons[t.id]?.image, paint: paints ? (rainbow ? 'RAINBOW' : PAINTS[held.paint].name) : null,
+      verb: VERB[t.kind], drags: t.kind === 'brush' || t.kind === 'spray', picks,
     };
   };
 

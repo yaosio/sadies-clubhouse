@@ -48,9 +48,12 @@ Walk out of the gate and across the path from Clyde's House, and in through the 
   flies off in little bits, BOOM, and it's bare again).
 - **Painting:** with the mouse locked (click first), hold the button and it paints where the dot in
   the middle of the view points, and keeps painting as you walk and look about. On a phone (or with
-  the mouse free), the PAINT button switches pressing from looking around to painting wherever you
-  press; the thumb stick still walks. The dot and the button are edged in your paint, and the dot
-  says what you're holding (BRUSH: RED).
+  the mouse free), the LOOK | PAINT switch (bottom right) says what pressing does: look around, or
+  paint wherever you press; the thumb stick still walks. Picking up a tool or dipping in a pot flips
+  it to PAINT, so your next press paints. The YOU'RE HOLDING box (top left) always shows the tool (its
+  picture from the pegboard), the paint (none for a stamp or the dynamite), and in a line how to use
+  it right now; it blinks gold when you pick something up. The switch, the dot and the mouse pointer
+  are in your paint.
 - **The plunger** (a TNT box by the door): push it once and it asks (SURE? PUSH AGAIN, for four
   seconds); again and every painted thing in the room blows up, one after another, back to bare.
 
@@ -80,8 +83,8 @@ the shop's), and they stop paint going through them.
 
 **The mansion's part (`brush`):** a place with a `brush(id, ray, 'down' | 'move' | 'up')` is painted
 as you walk about: the mansion hands it every press as a line out into the place, every frame while
-it's held (so walking while you hold it paints a stroke), and shows the PAINT button and the dot
-(`brushLook()`: `{ color, label }`). See `docs/clubhouse/ARCHITECTURE.md`.
+it's held (so walking while you hold it paints a stroke), and shows the switch, the YOU'RE HOLDING
+box and the dot (`brushLook()`: `{ color, tool, icon, paint, verb, drags, picks }`). See `docs/clubhouse/ARCHITECTURE.md`.
 
 **Put away when you're far off.** `putAway()` saves the paint. The shop outside stays.
 
@@ -89,7 +92,7 @@ Checks: `tests/paint-shop/run.mjs` (the brush, the roller's square, the spray's 
 staying in its patch and on its side, stamps the right way up, keeping and getting back any paint
 exactly, the worst case fitting in the browser, the pots and tools, every sound soft and short, no
 sound for painting) and `tests/paint-shop/browser.mjs` (in through the door, dipping and taking with E
-or USE, the PAINT switch and a silent stroke, a stamp, the bucket, the dynamite, Sadie's prints, kept
+or USE, the YOU'RE HOLDING box and the switch going to PAINT on its own, LOOK and back, a silent stroke, a stamp, the bucket, the dynamite, Sadie's prints, kept
 after a reload, the plunger asking then blowing up everything). Pictures: `node tools/paint-shop/shots.mjs
 [desktop|phone]` (after a build) saves the shop, inside, and a round of painting in
 `dist/shots/paint-shop/`.
