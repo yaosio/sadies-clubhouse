@@ -15,7 +15,7 @@
 // mansion puts you in the seat and keeps your eyes on the way ahead. The trip's timing and Sadie's
 // words are in trip.js; the pieces in cockpit.js, space.js, land.js and hangout.js; her words on
 // screen in talk.js; the music in music/.
-import { Scene, Mesh, PlaneGeometry, Color } from 'three';
+import { Scene, Mesh, PlaneGeometry } from 'three';
 import { RW, RD, RH, DASH, SEAT, EYE, LOCK_Z, T, lineAt, AFTER, planetSize, PLANET_FROM, entry, shipAt, sadieAt, SAVE, readSave, smooth } from './trip.js';
 import { buildCockpit } from './cockpit.js';
 import { buildSpace } from './space.js';

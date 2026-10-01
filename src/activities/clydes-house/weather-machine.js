@@ -14,7 +14,7 @@
 // Built into the outside's scene with the house, so it stays when the room inside is put away, and
 // it's the same after a reload (the weather is saved).
 import { Mesh, Group, Color, Vector3, BufferGeometry, BufferAttribute, PlaneGeometry, ConeGeometry, CylinderGeometry, SphereGeometry, DoubleSide } from 'three';
-import { KEY, KINDS, NAMES, LOOK, SADIE, pull as next, loaded } from './weather.js';
+import { KEY, KINDS, NAMES, LOOK, pull as next, loaded } from './weather.js';
 import { drawWeatherArt, KNOB } from './weather-art.js';
 import { makeSounds } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';

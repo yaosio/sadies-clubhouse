@@ -63,7 +63,7 @@ function check(name, ok, detail) {
 // you're playing, never while the sign says SHH, never while you're out of the room
 {
   const HOURS = 3, DT = 0.1;
-  let walks = 0, notes = 0, onPlaying = 0, perWalk = [], cur = 0, sulks = 0, shhNotes = 0, awayNotes = 0, gaps = [], lastEnd = null, loudest = 0;
+  let walks = 0, onPlaying = 0, perWalk = [], cur = 0, sulks = 0, shhNotes = 0, awayNotes = 0, gaps = [], lastEnd = null, loudest = 0;
   const S = makeSadie(42);
   let mode = S.mode;
   for (let t = 0; t < HOURS * 3600; t += DT) {
@@ -72,7 +72,7 @@ function check(name, ok, detail) {
     const welcome = hour !== 1, here = !(t % 1800 > 1500);   // (the second hour: SHH; now and then: out of the room)
     const ev = stepSadie(S, DT, { here, playing, welcome });
     for (const e of ev) {
-      notes++; cur++; loudest = Math.max(loudest, e.loud);
+      cur++; loudest = Math.max(loudest, e.loud);
       if (e.inst === playing) onPlaying++;
       if (!welcome) shhNotes++;
       if (!here) awayNotes++;

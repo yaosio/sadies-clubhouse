@@ -15,7 +15,7 @@ export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
   // (all in one group, so the mansion can swap it for a plain stand-in when you're far off)
   const scene = new Group(); outside.scene.add(scene);
-  const { add, box, plane, cyl, ball } = kit(scene);
+  const { add, box, plane, ball } = kit(scene);
   const hx = lot.x, hz = lot.z, W = 5.4, D = 5, H1 = 3.6;
   // (it faces the gate, away from the sun, so it's lit a little from within: never drab)
   const siding = (w, h) => psx(A.siding, { rx: w / 1.6, ry: h / 1.6, unlit: 0.35 });

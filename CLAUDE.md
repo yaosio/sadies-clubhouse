@@ -49,7 +49,7 @@ spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spo
    clubhouse; only from its own folder and `src/shared/` (the toolbox, kept small: a change there
    retests every activity). In Dropper World, `core/` never touches the DOM or imports from
    `render/`, `ui/` or `input/`.
-3. `npm run check -- --preview` must pass: it runs `npm test`, builds the test version, and plays
+3. `npm run check -- --preview` must pass: it runs the code checker (`npm run lint`), `npm test`, builds the test version, and plays
    it in headless Chromium as a phone and a desktop (any page error fails). Look at the screenshots
    in `dist/check/`. While working, `--quick` skips the tests (Dropper World's take about a
    minute). Each activity's checks (and the mansion's) are skipped anyway if they already passed on exactly its code; the check prints how long each stage took. If a change is meant to move

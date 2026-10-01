@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { bothDevices } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk }) => {
     const A = () => p.evaluate(() => window.__aquarium.state());
     const until = (fn, ms) => p.waitForFunction(fn, null, { timeout: ms }).then(() => true, () => false);
 

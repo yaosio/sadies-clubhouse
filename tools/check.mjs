@@ -3,6 +3,9 @@
 //
 //   npm run check                  everything (about 2.5 minutes if nothing can be skipped)
 //   npm run check -- --quick       skip the headless tests (for a quick look while working)
+//
+// It starts with the code checker (ESLint, `npm run lint`, a few seconds, every time): it finds
+// mistakes like a misspelt name or a leftover that's never used, without running anything.
 //   npm run check -- --preview     build and check the test version (the one for the test page)
 //   npm run check -- --retest      run everything even if it already passed on this exact code
 //   npm run check -- --live <file> the live game page, saved: an activity whose code is exactly
@@ -118,6 +121,9 @@ for (const a of toCheck) {
   suites[a] = await import(join(root, 'tests', a, 'browser.mjs'));
   if (suites[a].prepare) prepared[a] = suites[a].prepare({ root, hashOf });
 }
+
+// ---------- the code checker (a few seconds, so always) ----------
+check('code checker (npm run lint)', run('code checker', 'npx', ['eslint', '.']));
 
 // ---------- 1. each activity's headless tests (unless they passed on this exact code already) ----------
 if (!quick) {

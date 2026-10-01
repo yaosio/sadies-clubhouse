@@ -3,7 +3,7 @@
 // flat 90s clouds you come down through. All of it in its own metres (trip.js's heightAt: the beach
 // you land on is at 0, 0); the room moves the whole land round the cockpit as you come in (`place`).
 import { Group, Mesh, PlaneGeometry, SphereGeometry, BufferGeometry, Float32BufferAttribute, BackSide, DoubleSide, Matrix4, Vector3, Color } from 'three';
-import { LAND, heightAt, shore, GROUND, EYE, SEAT } from './trip.js';
+import { LAND, heightAt, shore, EYE, SEAT } from './trip.js';
 
 export function buildLand(m, P) {
   const { psx, keep } = m;
