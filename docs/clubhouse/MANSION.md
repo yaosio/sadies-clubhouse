@@ -75,12 +75,16 @@ further in (`swing`), so it's hinged on opposite sides as seen from each side.
   turns round the upright first, then looks up or down, so the view never tips over; E, or the button on a phone, to use), the
   doorways, using the computer (you lean in until the screen fills the view, then the mansion
   leaves the page and the activity comes in; it notes which one in `sessionStorage`, so coming
-  back puts you at that computer), playing a game that lives in its room (mode `arcade`: the view
-  glides back until the game's `view` fits the screen, looking at it square on from a little below;
-  A/D, the arrows, the mouse without clicking, or a finger sliding anywhere go to the game; Esc,
-  W, S or STEP BACK glide you back to where you stood; the pause menu stops the game too), Sadie's letter (`mansion.invited`: the first time only), the
+  back puts you at that computer), easing your view somewhere (`glideTo`), passing keys, presses and
+  frames to the ways of playing, Sadie's letter (`mansion.invited`: the first time only), the
   pause menu (Esc or the pause button; it also starts over everything, the invitation, or an
   activity's saves, each only after a YES on its "are you sure?"; and YOUR SAVES: how full they are, and backups), and `window.__mansion` for the checks.
+- `play/`: the ways of playing, each lent only what it needs (`you`: the view, the controls held,
+  the mode, `glideTo`). `arcade.js`, playing a game that lives in its room (mode `arcade`: the view
+  glides back until the game's `view` fits the screen, looking at it square on from a little below;
+  A/D, the arrows, the mouse without clicking, or a finger sliding anywhere go to the game; Esc, W,
+  S or STEP BACK glide you back to where you stood; the pause menu stops the game too). `paint.js`,
+  painting a place with a `brush` (its switch, box and dot are its own HTML and CSS beside it).
 - `look.js`: the PS1 material (corners snapping to the pixel grid, light per corner, few colours
   with dithering; no swimming textures, which the owner found far too distracting), the doorway
   and sky materials, and every texture, drawn

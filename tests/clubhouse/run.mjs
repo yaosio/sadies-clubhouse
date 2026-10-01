@@ -105,6 +105,29 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check('every sound in the game goes through the sound system (nothing makes an AudioContext of its own)', !bad.length, bad.join(', '));
 }
 
+// ---------- the shared code names no room ----------
+// The mansion, the outside, the shell and the toolbox work the same for every room: anything only
+// one room needs lives in that room's folder, and a new kind of control goes in src/clubhouse/play/
+// as something any place can use. So none of their code (comments aside) names an activity, by its
+// folder or its card's name.
+{
+  const src = new URL('../../src/', import.meta.url).pathname, acts = join(src, 'activities'), bad = [];
+  const rooms = readdirSync(acts).filter(d => statSync(join(acts, d)).isDirectory()).flatMap(d => {
+    const name = readFileSync(join(acts, d, 'card.js'), 'utf8').match(/\bname:\s*(['"`])(.*?)\1/)?.[2];
+    return [d, ...(name ? [name] : [])];
+  });
+  const walk = d => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.(m?js|html|css)$/.test(f)) {
+    const code = readFileSync(p, 'utf8').replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
+    for (const r of rooms) if (code.includes(r)) bad.push(`${p.slice(src.length)} names ${r}`);
+  } } };
+  for (const d of ['clubhouse', 'shared']) walk(join(src, d));
+  for (const f of ['main.js', 'index.html']) {
+    const code = readFileSync(join(src, f), 'utf8').replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
+    for (const r of rooms) if (code.includes(r)) bad.push(`${f} names ${r}`);
+  }
+  check(`the mansion, the outside, the shell and the toolbox name no room (${rooms.length / 2} rooms)`, !bad.length, bad.join('; '));
+}
+
 // Its rules, with no browser sound at all (it still counts what it would have played), on a clock
 // the check moves by hand: a voice never says the same thing twice running (but can, a good while
 // later: a room with only one meow still meows), and nothing but music plays behind the pause menu.
