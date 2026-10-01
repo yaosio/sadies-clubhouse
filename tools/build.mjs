@@ -107,6 +107,16 @@ writeFileSync(join(root, 'dist/game-files.json'), JSON.stringify(outputs, null, 
 const gameKB = game.reduce((n, f) => n + statSync(join(root, 'dist/game', f)).size, 0) / 1024;
 const biggest = Math.max(...game.map(f => statSync(join(root, 'dist/game', f)).size)) / 1024;
 let html = readFileSync(join(root, 'src/index.html'), 'utf8');
+// Every file the page needs before the mansion's first picture is asked for at once, at the top of the
+// page (`modulepreload`): the clubhouse, the mansion, and everything they bring in (three.js). Left to
+// itself, a browser only finds each one once the one before it has come, a wait for each in a row.
+const out = result.metafile.outputs, mansionFile = Object.keys(out).find(f => out[f].entryPoint?.endsWith('src/clubhouse/mansion.js'));
+const needs = new Set(), need = f => {
+  if (!f || needs.has(f)) return;
+  needs.add(f);
+  for (const i of out[f].imports) if (i.kind === 'import-statement') need(i.path);
+};
+need(Object.keys(out).find(f => out[f].entryPoint?.endsWith('src/main.js'))); need(mansionFile);
 
 const files = {};
 for (const p of EMBED) collect(p, files);
@@ -121,6 +131,7 @@ const put = (marker, text) => {
   html = html.slice(0, i) + text + html.slice(i + marker.length);
 };
 put('/*@script*/', js);
+put('<!--@preload-->', [...needs].map(f => `<link rel="modulepreload" href="./game/${f.split('/').pop()}">`).join('\n'));
 put('<!--@source-->', `<script type="application/json" id="jelly-source">${json}</script>`);
 
 if (preview) {
