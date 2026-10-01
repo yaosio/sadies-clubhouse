@@ -945,6 +945,9 @@ export async function open(cards, enter) {
     // how far the view leans over sideways (0: not at all), and how open the last doorway walked through is
     tilt: () => Math.abs(new Vector3(1, 0, 0).applyQuaternion(cam.quaternion).y),
     lastDoorOpen: () => lastThrough ? lastThrough.open : null,
+    floorAt: (name, x, z, y) => places.find(p => p.name === name)?.floor(x, z, y) ?? null,
+    // (the outside itself, for the check that its ground has levels: it adds a bridge and takes it away again)
+    outside: () => outside,
     doorAt: (name, door) => { const d = places.find(p => p.name === name)?.doors[door]; return d && { x: d.pos.x, z: d.pos.z }; },
     // stand in front of a doorway in this place, facing it (d metres out)
     faceDoor(name, door, d = 2) {

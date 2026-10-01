@@ -5,8 +5,11 @@
 //   - its id is its folder's name, it has a name, and it only uses card fields the clubhouse knows
 //     (a misspelt one would just be ignored);
 //   - it's either on a computer (`start`, with its `page` and `styles`) or lives in its room (`room`);
-//   - it has exactly one place: a door on the landing (`slot`), a plot along the lane (`lot`) or a
+//   - it has exactly one place: a door on a landing (`slot`), a plot along the lane (`lot`) or a
 //     spot in the grounds (`grounds`), which exists, and no other card has taken;
+//   - and nothing placed ever moves: every door, plot and spot is still exactly where
+//     tests/clubhouse/spots.json says, in the same order (a new one goes on the end of its list, and
+//     on the end of the file's list too: that's what's never allowed to change after);
 //   - its saves: a room saves through its kit's box (`m.saves`, src/shared/storage.js), never
 //     straight to the browser; `keeps` names where they start; a new activity's start `sadies-clubhouse.<id>.`;
 //     no two activities' overlap, nor the mansion's own (`mansion.`); an activity that saves
@@ -86,6 +89,15 @@ export async function checkCards(check) {
     const others = [...new Set([...src.matchAll(/['"`](sadies-clubhouse\.[\w-]+\.)/g)].map(m => m[1]).filter(k => k !== own))];
     need(!others.length, `it names another activity's save: ${others.join(', ')}`);
     check(`room checker: ${id}'s card is right`, !bad.length, bad.join('; ') || `${where} ${n}${keeps.length ? ', saves ' + keeps.join(' ') : ', saves nothing'}`);
+  }
+
+  // nothing placed ever moves
+  const was = JSON.parse(readFileSync(join(root, 'tests/clubhouse/spots.json'), 'utf8')), now = { slot: SLOTS, lot: LOTS, grounds: GROUNDS };
+  for (const where of Object.keys(PLACES)) {
+    const moved = was[where].map((o, i) => JSON.stringify(o) === JSON.stringify(now[where][i]) ? null : `${i}: was ${JSON.stringify(o)}, now ${JSON.stringify(now[where][i]) ?? 'gone'}`).filter(Boolean);
+    const unlisted = now[where].length - was[where].length;
+    check(`room checker: no ${where === 'slot' ? 'door' : where === 'lot' ? 'plot' : 'spot in the grounds'} has moved (tests/clubhouse/spots.json)`, !moved.length && !unlisted,
+      moved.join('; ') || (unlisted > 0 ? `${unlisted} new one(s): add them to the end of its list in spots.json` : `${now[where].length}`));
   }
 
   // nothing shared between cards

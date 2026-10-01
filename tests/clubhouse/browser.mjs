@@ -155,6 +155,36 @@ export default async function ({ browser, page, check, outDir }) {
     }
     const top = await M('where');
     check(`${device}: the stairs go up to the first landing`, top.y > 4.5, `at ${top.y.toFixed(2)} m`);
+    // the outside's ground can have levels: a bridge over the lane, something solid under it, and you
+    // stand on whichever is nearest your feet (only checked once: it's the same on any screen)
+    if (device === 'desktop') {
+      const lv = await p.evaluate(() => {
+        const o = window.__mansion.outside(), f = (x, z, y) => o.floor(x, z, y);
+        const gone = [
+          o.surface((x, z) => Math.abs(x) < 3 && Math.abs(z + 31) < 1 ? 3 : null),   // a bridge 3 m up, across the lane
+          o.block(-1, 1, -31.5, -30.5, 0, 1),                                         // a crate under it
+          o.block(2, 3, -31.5, -30.5, 2.8, 3.1)];                                     // a lamp post's top, sticking up through the bridge
+        const got = { under: f(0, -31, 0), onTop: f(0, -31, 3), beside: f(2.5, -31, 0), lampOnTop: f(2.5, -31, 3), lane: f(10, -31, 0), off: f(10, -31, 3) };
+        for (const g of gone) g();
+        got.after = f(0, -31, 0);   // (and taken away again, it's plain ground)
+        return got;
+      });
+      check(`${device}: outside, the ground can have levels: a bridge over the lane, a crate under it`,
+        lv.under === null && lv.onTop === 3 && lv.beside === 0 && lv.lampOnTop === null && lv.lane === 0 && lv.off === null && lv.after === 0, JSON.stringify(lv));
+    }
+
+    // ...and on round again to the second landing, and off the stairs onto it
+    for (let i = 0; i < 60; i++) {
+      const w = await M('where');
+      if (w.y > 9.1) break;
+      const th = Math.atan2(w.x, w.z), r = Math.hypot(w.x, w.z);
+      await M('turnTo', th - Math.PI / 2 + (r - 2.2) * 0.4);
+      await walk(150);
+    }
+    { const w = await M('where'); await M('turnTo', Math.atan2(w.x, w.z) + Math.PI); }   // (straight out from the middle, along the bridge)
+    await walk(1500);
+    const up2 = await M('where'), r2 = Math.hypot(up2.x, up2.z);
+    check(`${device}: ...and round again to the second landing, and off the stairs onto it`, up2.y > 9.1 && r2 > 6, `at ${up2.y.toFixed(2)} m, ${r2.toFixed(1)} m from the middle`);
 
     // two doors open side by side on the landing both show what's through them (neither goes black)
     await M('faceDoor', 'hall', 'dropper-world', 1.3);
