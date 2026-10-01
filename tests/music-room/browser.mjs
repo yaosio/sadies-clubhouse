@@ -161,11 +161,15 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: walking under the wind chimes, they chime`, s.heard.some(h => h.startsWith('chime')), s.heard.slice(-3).join(' '));
     await shot('8-chimes');
 
-    // kept after a reload: the dial, and the tape
+    // kept after a reload: the dial, and the tape just as it was (Sadie's walk on it is the last
+    // she finished: stepping up to the xylophone cut one short, and on a slow computer that one
+    // got fewer notes in, so the count is compared with before rather than with a number)
+    const before = (await R()).tape;
     await p.reload(); await up();
     await M('put', 'room:music-room', 'door'); await p.waitForTimeout(200);
     s = await R();
-    check(`${device}: the volume and the tape are kept after a reload`, s.volume === 'LOUD' && s.welcome === true && s.tape.sadie >= 4);
+    check(`${device}: the volume and the tape are kept after a reload`, s.volume === 'LOUD' && s.welcome === true && s.tape.sadie > 0 && s.tape.sadie === before.sadie && s.tape.mine === before.mine,
+      `${s.volume}, Sadie's tape ${s.tape.sadie} notes (was ${before.sadie}), yours ${s.tape.mine} (was ${before.mine})`);
     check(`${device}: no errors on the page`, !errors.length, errors[0]);
     await ctx.close();
   });
