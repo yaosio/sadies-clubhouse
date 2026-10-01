@@ -83,14 +83,15 @@ spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spo
   green (the run the merge started; it's the real build, not the test version, and on code the pull
   request already passed it takes a few minutes). Don't run the checks again here: build it
   (`npm run build`, no `--preview`) and make sure `grep -c '<div id="testBadge"' dist/index.html` is 0
-  (that's the test version's label; the bare word also appears in the embedded source of the build tool).
+  (that's the test version's label; the bare word also appears in the build tool's own code).
 - The page comes with its game files (`dist/game/`): publish `dist/index.html` with every file in
   `dist/game/` passed in `files` as `game/<name>`, and `null` for the page's older `game/` files
   that this build doesn't have (list them first), so they don't pile up.
 - Publish with `capabilities: {downloads: true}` (the pause menu's SAVE A BACKUP needs it; on the
   game page and the test page alike).
-- Read the live page first. If its embedded source differs from `main` as it was before the merge
-  (unpack it with `tools/unpack.mjs` and compare), stop and ask.
+- Read the live page first, and its copy of the project (`game/source-*.json`, named in the page;
+  save it in a `game/` folder beside the page). If that differs from `main` as it was before the
+  merge (unpack it with `tools/unpack.mjs` and compare), stop and ask.
 - The test page is https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the working branch, built
   with `--preview`, published after every pushed change without asking. It's never the source of
   truth and can be overwritten any time. Publish it from a copy outside `dist/` (the scratchpad: the page

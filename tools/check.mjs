@@ -9,7 +9,7 @@
 // tools/docs.mjs: the docs every change reads are still short, and every page they name is there.
 //   npm run check -- --preview     build and check the test version (the one for the test page)
 //   npm run check -- --retest      run everything even if it already passed on this exact code
-//   npm run check -- --live <file> the live game page, saved: an activity whose code is exactly
+//   npm run check -- --live <file> the live game page, saved (with its game/source-*.json beside it): an activity whose code is exactly
 //                                  what that page was built from counts as having passed its tests
 //   npm run check -- --only a,b    just those activities ('clubhouse': the mansion's own checks)
 //   npm run check -- --plan        just print which activities still need checking (for GitHub)
@@ -27,7 +27,7 @@
 // Once either has passed on exactly those files it isn't run again until one of them changes. This
 // session remembers it in dist/, which makes the check at merge time quick when the branch was
 // checked here. A fresh session has no memory of it, but the live game page does: it's only ever
-// published after passing, and it carries its own source. So with --live (the page read before
+// published after passing, and it carries a copy of its project. So with --live (the page read before
 // publishing anyway), an activity whose code the change doesn't touch skips its tests.
 //
 // The browser checks always build the page, then walk round Sadie's mansion, the clubhouse
@@ -46,6 +46,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from './serve.mjs';
+import { readSource } from './source.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -100,9 +101,10 @@ mkdirSync(join(root, 'dist'), { recursive: true });
 
 // Are these files exactly what the saved live page was built from?
 function sameAsLive(file, paths) {
-  const m = readFileSync(file, 'utf8').match(/<script type="application\/json" id="jelly-source">([\s\S]*?)<\/script>/);
-  if (!m) return 'no embedded source in ' + file;
-  const live = JSON.parse(m[1]).files, ours = new Set();
+  let source;
+  try { source = readSource(file); } catch (e) { return e.message; }
+  if (!source) return 'no copy of the project with ' + file;
+  const live = source.files, ours = new Set();
   const walk = p => {
     if (!existsSync(join(root, p))) return;
     if (statSync(join(root, p)).isDirectory()) { for (const f of readdirSync(join(root, p))) walk(join(p, f)); }
@@ -172,6 +174,11 @@ if (!quick) {
 if (!run('build', 'node', ['tools/build.mjs', ...(preview ? ['--preview'] : [])])) {
   console.log('\nthe build failed, nothing else to check'); process.exit(1);
 }
+// the copy of the project beside the page is all there, and the page itself stays small
+{ const page = join(root, 'dist/index.html'), copy = readSource(page), size = statSync(page).size;
+  const missing = ['README.md', 'CLAUDE.md', 'package.json', 'src/main.js', 'tools/build.mjs'].filter(f => copy?.files[f] !== readFileSync(join(root, f), 'utf8'));
+  check('the copy of the project travels beside the page, and the page stays small', copy && !missing.length && size < 50e3,
+    missing.length ? 'missing or different: ' + missing.join(', ') : `page ${(size / 1024).toFixed(1)} kB, ${Object.keys(copy.files).length} files beside it`); }
 
 // ---------- 2. the page in a browser ----------
 const require = createRequire(import.meta.url);
