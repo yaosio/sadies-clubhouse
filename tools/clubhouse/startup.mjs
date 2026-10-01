@@ -1,0 +1,45 @@
+// How long the game takes to start (npm run build first): opens the built page as a desktop a few
+// times and prints how long it took from asking for the page to the mansion's first picture (the
+// middle of the runs, and each run). Every file the page asks for (the game files, the font) can be
+// held up as a real connection would (`--delay <ms>`, 100 by default: the game page's files come
+// from the internet, so each one fetched in a row adds a wait), and the font can be left out
+// (`--no-font`, as the checks do).
+//   node tools/clubhouse/startup.mjs [--runs 5] [--delay 100] [--no-font] [--phone]
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
+import { serve } from '../serve.mjs';
+import { join } from 'node:path';
+
+const require = createRequire(import.meta.url);
+let chromium;
+try { ({ chromium } = require('playwright')); }
+catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
+
+const arg = (k, d) => { const i = process.argv.indexOf(k); return i < 0 ? d : Number(process.argv[i + 1]); };
+const RUNS = arg('--runs', 5), DELAY = arg('--delay', 100), FONT = !process.argv.includes('--no-font');
+const PHONE = process.argv.includes('--phone');
+const server = await serve();
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const wait = ms => new Promise(ok => setTimeout(ok, ms));
+const times = [];
+for (let i = 0; i < RUNS; i++) {
+  const ctx = await browser.newContext(PHONE ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } : { viewport: { width: 1280, height: 800 } });
+  const p = await ctx.newPage();
+  p.on('pageerror', e => console.log('page error:', e.message));
+  const fetched = [];
+  await p.route(/fonts\.(googleapis|gstatic)\.com/, async r => {
+    if (!FONT) return r.fulfill({ status: 200, contentType: 'text/css', body: '' });
+    await wait(DELAY); fetched.push(['font', performance.now()]); return r.continue();
+  });
+  await p.route(/127\.0\.0\.1/, async r => { await wait(DELAY); fetched.push([r.request().url().split('/').pop(), performance.now()]); return r.continue(); });
+  const t0 = performance.now();
+  await p.goto(`http://127.0.0.1:${server.address().port}/`, { waitUntil: 'commit' });
+  const at = await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 0 && performance.now(), null, { timeout: 60000, polling: 'raf' });
+  const ms = Math.round(await at.jsonValue());
+  times.push(ms);
+  console.log(`run ${i + 1}: first picture ${ms} ms after asking for the page; files: ${fetched.map(([f, t]) => `${f.slice(0, 18)} @${Math.round(t - t0)}`).join(', ')}`);
+  await ctx.close();
+}
+times.sort((a, b) => a - b);
+console.log(`first picture: ${times[times.length >> 1]} ms (middle of ${RUNS}; fastest ${times[0]}, slowest ${times[times.length - 1]}), files held up ${DELAY} ms each${FONT ? '' : ', no font'}${PHONE ? ', as a phone' : ''}`);
+await browser.close(); server.close();

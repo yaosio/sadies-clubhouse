@@ -6,6 +6,7 @@ export default {
   id: 'clydes-house',
   name: "Clyde's House",
   lot: 0,   // the first plot along the lane outside the gate
+  weather: true,   // it changes how all of outside looks (its Weather Machine): built before the mansion opens, wherever you start
   box: { side: 0xd97757 },   // its colour
   keeps: ['sadies-clubhouse.clydes-house.'],   // how far you've got with the machine, the treats delivered, and the weather
   room: () => import('./room.js'),

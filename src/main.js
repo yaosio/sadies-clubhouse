@@ -59,4 +59,10 @@ async function enter(card) {
 
 const wanted = cards.find(c => c.id === location.hash.slice(1) && c.start);   // (a game that lives in its room has no page of its own)
 if (wanted) enter(wanted);
-else fetchPiece(() => import('./clubhouse/mansion.js')).then(mansion => mansion.open(cards, enter));
+else {
+  // The buildings outside (on the lane, or in the grounds) are built before the mansion opens, as you
+  // can see them from the gate: their code is asked for now, alongside the mansion's, not one after
+  // another once it's here. (If one doesn't come, the mansion asks again when it builds it.)
+  for (const c of cards) if (c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds))) c.room().catch(() => {});
+  fetchPiece(() => import('./clubhouse/mansion.js')).then(mansion => mansion.open(cards, enter));
+}
