@@ -68,12 +68,14 @@ export default async function ({ browser, page, check, outDir }) {
     }
 
     // missing: the ball goes past the paddle and cracks the bottom of the glass
-    const before = (await B()).cracks.bottom;
+    const { cracks: { bottom: before }, sounds: played0 } = await B();
+    const since = s => s.heard.slice(-(s.sounds - played0) || s.heard.length);   // (the sounds since: the log keeps the last 200)
     await p.evaluate(() => { const b = window.__brickbuster, s = b.state(); b.throwBall(s.paddle < 2.1 ? 3.6 : 0.6, 1.4, 0, -5); });
-    await p.waitForTimeout(450);
+    // (until it's cracked, however slow the computer: a set wait could end before, or long after)
+    await p.waitForFunction(n => window.__brickbuster.state().cracks.bottom > n, before, { timeout: 8000 }).catch(() => {});
     s = await B();
     await shot('3-cracked');
-    check(`${device}: missing cracks the bottom of the glass, with a crack sound`, s.cracks.bottom === before + 1 && /^crack/.test(s.lastSound || ''), `cracks ${s.cracks.bottom}, last sound ${s.lastSound}`);
+    check(`${device}: missing cracks the bottom of the glass, with a crack sound`, s.cracks.bottom === before + 1 && s.sounds > played0 && since(s).some(h => /^crack/.test(h)), `cracks ${s.cracks.bottom}, heard ${since(s).join(' ')}`);
     check(`${device}: ...and the paddle winces`, s.face === 'wince', s.face);
     // (back on the paddle: left to itself, the ball is sent off again and, with nobody moving the
     // paddle, misses again before a slow computer has stepped back, and breaks the glass)
