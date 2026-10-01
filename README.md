@@ -4,7 +4,7 @@ A lost 90s shareware activity center. Sadie is the owner's late cat, and this is
 she's decided to share it with all her friends. It's her mansion, in crappy late-90s 3D. You start
 at the front gate (the first time, Sadie's letter invites you in), walk in through the front door,
 up the spiral staircase round a giant scratching post, and through an activity's door into its
-room (or, outside the gate, along the lane to a house of its own), where you play it at the computer (or, for a game that lives in its room, right there in it). Normal game controls: WASD and the mouse, or a thumb stick
+room (or, outside the gate, along the lane to a house of its own, or beside the house, into the hedge maze), where you play it at the computer (or, for a game that lives in its room, right there in it). Normal game controls: WASD and the mouse, or a thumb stick
 on a phone. It's a real, recognizable mansion a cat has clearly taken over.
 
 Sadie is in every activity, but not always in the same way: in one she's a living character with
@@ -22,6 +22,7 @@ The owner doesn't code and installs nothing. Claude does all the building (how: 
 | **The Music Room** | A room full of instruments you play right where they stand (a toy piano, drums, a fish xylophone, a synth, a theremin, a tape deck), and Sadie, who now and then walks across one. | `docs/music-room/` |
 | **The aquarium** | A room with a big fish tank where Sadie swims in a diving suit. Don't tap on the glass (you can, though): it takes you out into a whole ocean, in a little sailboat, to find six things for the cabinet, with a mountain looming over it all that turns out to be tiny. | `docs/aquarium/` |
 | **Space Adventure** | A room that's a spaceship's cockpit: walk in and you're strapped in for Sadie's slow, philosophical trip down to a planet (sad synthwave, a landing by the sea), which she finds disappointing. Afterwards it's her space room, with a radio and a button to go again. | `docs/space-adventure/` |
+| **The Hedge Maze** | Not in the mansion: a hedge block beside it, much bigger inside, made in front of you as you walk. After 5 to 8 turns, the next turn is the end, which lets you out into the backyard, where Sadie naps on a bench in the sun. It's sneaky: even going in from the backyard, the end lets you out into the backyard, and walking back in, it's a new maze past the first corner. | `docs/hedge-maze/` |
 | **Clyde's House** | Not in the mansion: the first house outside the front gate, down a little path off the lane. Claude (a little orange spark who overthinks everything) built the Good Morning Machine, a ten-step contraption to give Sadie one treat; you fill its missing pieces from a box of mostly junk and pull the lever. Beside it, Clyde's Weather Machine: four levers (rain, snow, a second sun, cats) that change the weather outside, and Sadie reacts. | `docs/clydes-house/` |
 
 Each activity's docs start with its `README.md`: what it is, its own design rules (they win over

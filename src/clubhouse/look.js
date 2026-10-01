@@ -298,6 +298,27 @@ export function drawTextures(sadie, sadieNap) {
   T.soonSign = sign(96, 32, 'MORE ROOMS', 'COMING SOON!!');
   T.wingSign = sign(72, 32, 'NEW WING', 'SOON!!');
   T.lotSign = sign(88, 32, 'NEW HOUSE', 'COMING SOON!!');   // on the next free plot along the lane outside the gate
+  // the back of the house: the back door (a cat flap fit for a lion), its sign, flowers, a patch of
+  // sun on the grass, and the Zs Sadie naps out
+  T.backDoor = tex(16, 40, g => {
+    rect(g, '#2a8a8a', 0, 0, 16, 40); rect(g, '#5ac8c0', 0, 0, 1, 40); rect(g, '#1a5a60', 15, 0, 1, 40); rect(g, '#5ac8c0', 0, 0, 16, 1);
+    rect(g, C.cream, 3, 3, 10, 8); bands(g, [C.yellow, C.gold], 4, 4, 8, 6); rect(g, C.cream, 7, 4, 2, 6);
+    rect(g, '#1a5a60', 2, 14, 12, 8); rect(g, '#3aa8a0', 3, 15, 10, 6);
+    rect(g, C.gold, 12, 23, 2, 2);
+    rect(g, C.tan3, 2, 26, 12, 13); rect(g, C.gold2, 3, 27, 10, 11); rect(g, '#d8b0e8', 4, 28, 8, 10); rect(g, C.lav3, 4, 28, 8, 1);
+  });
+  T.backSign = sign(96, 32, 'STAFF ONLY', '(CATS)');
+  T.flowers = tex(16, 16, g => {
+    rect(g, C.green2, 0, 0, 16, 16); speckle(g, C.green3, 0, 0, 16, 16, 30, 5);
+    for (const [x, y, c] of [[2, 3, C.pink], [9, 2, C.yellow], [13, 7, C.white], [5, 9, C.yellow], [11, 12, C.pink], [2, 13, C.lav3], [7, 5, C.red]]) { rect(g, c, x, y, 2, 2); rect(g, C.gold, x, y, 1, 1); }
+  });
+  T.sunPatch = tex(32, 24, g => {
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 32; x++) {
+      const r = Math.hypot((x - 15.5) / 16, (y - 11.5) / 12);
+      if (r < 1 && (r < 0.75 || (x + y) % 2)) rect(g, r < 0.5 ? '#fff4a0' : '#ffe070', x, y, 1, 1);
+    }
+  });
+  T.zzz = tex(16, 16, g => { words(g, 'Z', 9, 0, 2, C.white, { shadow: C.ink }); words(g, 'z', 2, 9, 1, C.white, { shadow: C.ink }); });
   T.cat = tex(16, 16, g => {   // the weathervane: a sitting cat in black iron
     const k = C.ink;
     rect(g, k, 5, 7, 7, 8); rect(g, k, 6, 3, 5, 5); rect(g, k, 6, 1, 1, 2); rect(g, k, 10, 1, 1, 2); rect(g, k, 4, 12, 9, 3);

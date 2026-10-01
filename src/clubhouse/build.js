@@ -70,6 +70,9 @@ export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xff
     // paint a new picture on the door's front (Brickbuster's OUT OF ORDER sign), or (null) its own back
     paint(t) { for (const [i, f] of fronts.entries()) f.material.uniforms.map.value = t || own[i]; },
     // a point in this doorway's own terms: x across, z out into the place (negative: through the door)
-    local(x, z) { const dx = x - pos[0], dz = z - pos[2], c = Math.cos(yaw), s = Math.sin(yaw); return [dx * c - dz * s, dx * s + dz * c]; },
+    local(x, z) { const dx = x - this.pos.x, dz = z - this.pos.z, c = Math.cos(this.yaw), s = Math.sin(this.yaw); return [dx * c - dz * s, dx * s + dz * c]; },
+    // move it somewhere else in its place (the hedge maze's gate to the backyard, which is always at
+    // the maze's end): only while nobody can see either spot
+    moveTo(p, y) { group.position.set(...p); group.rotation.y = y; this.pos.set(...p); this.yaw = y; this.normal.set(Math.sin(y), 0, Math.cos(y)); },
   };
 }

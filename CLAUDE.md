@@ -5,7 +5,8 @@ owner's late cat, and she's in every activity (not always in the same way). The 
 are Sadie's Dropper World (a cozy physics toy), TypeFitter Deluxe 3.1 (text that never fits),
 Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the house) and the Music
 Room (instruments to play where they stand, which Sadie walks across now and then), the aquarium and
-Space Adventure (a spaceship trip with Sadie, who talks the whole way); outside the
+Space Adventure (a spaceship trip with Sadie, who talks the whole way); beside the house is the
+Hedge Maze (made as you walk, letting you out into the backyard where Sadie naps); outside the
 front gate, along a lane with plots for more buildings, is Clyde's House (the Good Morning Machine, and the Weather Machine beside it).
 
 ## The owner
@@ -38,7 +39,8 @@ put away, with nothing more to do. The owner has misophonia: nothing droning, co
 Don't start a parked idea (each activity's README lists them) unless asked. Never move a room: a
 new activity's door takes the next free spot on the landing (its card's `slot`), and anything by a
 door (like the dirt pile by Dropper World's) stays with it. A building outside the gate takes the
-next free plot along the lane instead (its card's `lot`); plots never move either.
+next free plot along the lane instead (its card's `lot`), and one in the grounds round the house a
+spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spots never move either.
 
 ## Making a change
 1. `npm install` (esbuild, the bundler, and three.js, for the mansion), then edit only the modules
