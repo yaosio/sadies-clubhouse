@@ -117,7 +117,7 @@ export async function open(cards, enter) {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
         w = await code.buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
           doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null,
-          ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null, skyMat, house: r.house, ears, paused: () => mode === 'menu' });
+          ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null, skyMat, snapshot, house: r.house, ears, paused: () => mode === 'menu' });
       }
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
@@ -233,6 +233,24 @@ export async function open(cards, enter) {
       }
       g.visible = !far; if (r.standIn) r.standIn.visible = far;
     }
+  }
+  // A picture of something in a place, taken once (not every frame): `obj` on its own (nothing else in
+  // its place shows; the rest is see-through), from `from` looking at `at`, `fov` degrees tall, w x h
+  // pixels, lit as `place` is. A place that can't see the real thing shows the picture instead, so
+  // it's never out of date: the hedge maze's view of the clubhouse over its hedges.
+  function snapshot(obj, place, { from, at, fov = 40, w = 256, h = 256 }) {
+    const target = keep(new WebGLRenderTarget(w, h, { minFilter: NearestFilter, magFilter: NearestFilter }));
+    const c = new PerspectiveCamera(fov, w / h, 0.5, 400); c.position.set(...from); c.lookAt(...at); c.updateMatrixWorld();
+    const was = res.clone(), alpha = renderer.getClearAlpha(), hid = [];
+    obj.parent?.updateMatrixWorld(true);
+    // (only it: everything else in its place hidden for a moment)
+    for (const o of obj.parent?.children || []) if (o !== obj && o.visible) { o.visible = false; hid.push(o); }
+    const bg = place.scene.background; place.scene.background = null;
+    res.set(w, h); light(place.light); renderer.setClearAlpha(0);
+    renderer.setRenderTarget(target); renderer.clear(); renderer.render(place.scene, c); renderer.setRenderTarget(null);
+    renderer.setClearAlpha(alpha); res.copy(was); place.scene.background = bg;
+    for (const o of hid) o.visible = true;
+    return target.texture;
   }
   // (what a room just built needs on the graphics card goes there now, not the first time you see it)
   function warm(w) {

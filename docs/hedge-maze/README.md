@@ -8,13 +8,18 @@ to the front door. It's in the grounds' first spot (`grounds` 0: `GROUNDS` in
 
 **Outside** it's a hedge block with a leafy arch and a green garden gate at each end. The front
 one's sign says HEDGE MAZE / ENTRANCE; the backyard one's says MAZE EXIT / NO ENTRY!!, which nobody
-minds. A path turns off the main path just before the porch (by the last lantern) to the front gate,
-and one runs from the backyard's path to the back gate.
+minds. A path turns off the main path just before the porch (through a gap in the garden hedges, by
+the last lantern on the left) to the front gate, and one runs from the backyard's path to the back
+gate. Both stop just short of their gates (running on under them, they flickered).
 
 **Inside** it's much bigger than the block: corridors of hedge under an open sky, with soft music.
 It's made in front of you as you walk. After 5 to 8 corners, the next corner you turn is the end: a
 short stretch with a garden gate at the end of it, which lets you out into **the backyard**, behind
 the clubhouse.
+
+**The clubhouse** shows over the hedges, off to one side, the way it would beside the real block (a
+little further off: it's bigger inside). It's a picture of the real house, taken once as the maze is
+built, so it's never out of date when the house changes.
 
 **Sadie** is in it the way she'd most like to be: not in the maze at all, but asleep on the bench in
 the sun in the backyard, where the maze lets you out (built with the backyard, in `outside.js`).
@@ -65,6 +70,12 @@ the sun in the backyard, where the maze lets you out (built with the backyard, i
   door at it shows a shut gate. The grass is one big square per region, centred on its gate (in
   whole tiles, so it never seems to move); the sky follows you (from outside, it's round each gate).
   It notices you coming in and going out by a door (`ears()`), and tells the maze.
+  The clubhouse over the hedges: as it's built, it takes a picture of the outside's `house` group
+  with the kit's `snapshot` (from the block's side of the house, 28 m off, at eye height, wide enough
+  for all of it), and hangs it 70 m off, facing you, drawn after the grass and before the hedges.
+  Inside, it's turned the way the door nearest you turns things (so it's on your left as you come
+  in the front, as the house is outside), easing round if that changes; from outside, there's one
+  beyond each gate. `tools/hedge-maze/look.mjs` takes pictures from inside, looking all round.
 - `block.js`: the hedge block outside, its arches, gates, signs and paths. Its two gates are its
   `doors` (`door` and `back`), joined by the mansion to the room's two doors of the same names.
 - `art.js`: the hedge, the gates and the signs.

@@ -12,7 +12,7 @@
 // Behind the house, the backyard: the back of the house finished off (windows, a back door that's
 // strictly for cats, flower beds), a patio, a bench in the sun where Sadie naps, and a fence round
 // it all. You get there round either side of the house (or through the hedge maze).
-import { Mesh, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
+import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
 import { psx, keep, skyMat, tex } from './look.js';
 import { kit, wallGeometry, doorway } from './build.js';
 
@@ -58,6 +58,9 @@ export function buildOutside(T, cards = []) {
   }
   const across = (x, w) => ((x / w) % 1 + 1) % 1;   // (texture coordinates in metres, from the middle)
   const trim = psx(null, { tint: 0xe8b070 });
+  // ---------- the house (all of it goes in a group of its own: `house`, so a place that can't see
+  // the real thing can have a picture of it, like the hedge maze) ----------
+  const mark = scene.children.length;
   // the main block: two floors, a fish-scale hip roof, and a front wall with a hole for the door
   const front = [{ t: T.fanlight, u: 0, y: 3.72, w: 2.0, h: 0.45 }, { t: T.window, u: 0, y: 5.9, w: 1.3, h: 1.95 }];
   for (const y of [2.1, 5.9]) for (const x of [-6.8, -3.9, 3.9, 6.8]) front.push({ t: T.window, u: across(x, 18), y, w: 1.3, h: 1.95 });
@@ -116,15 +119,13 @@ export function buildOutside(T, cards = []) {
   plane(1.5, 0.75, psx(T.mat, { decal: true }), [0, 0.46, -0.9], [-Math.PI / 2, 0, Math.PI], 1);   // turned to read as you walk up
   const door = doorway(scene, { pos: [0, 0.45, 0], yaw: Math.PI, w: 2.0, h: 3.0, leaves: [T.leafL, T.leafR] });
 
-  // a branch: the games wing, joined by a covered bridge; and a bare platform where the next goes
+  // a branch: the games wing, joined by a covered bridge
   box(6, 11, 6, psx(painted(T.stucco, 1.5, 6, 11, [2.2, 5.8, 9].map(y => ({ t: T.window, u: 0.5, y, w: 1.1, h: 1.6 })))), [16, 5.5, 6]);
   const wr = cone(1, 1, 4, psx(T.roof, { rx: 4, ry: 3 }), [16, 13.2, 6], [0, Math.PI / 4, 0]); wr.scale.set(3.4 / 0.7071, 4.4, 3.4 / 0.7071);
   box(4.2, 2.4, 2.6, psx(painted(T.stucco, 1.5, 4.2, 2.4, [-1, 1].map(x => ({ t: T.window, u: 0.5 + x / 4.2, y: 1.2, w: 0.8, h: 1.2 })))), [11, 6.4, 4.5]);
   const br = cone(1, 1, 4, psx(T.roof, { rx: 3, ry: 1 }), [11, 8.3, 4.5], [0, Math.PI / 4, 0]); br.scale.set(2.8 / 0.7071, 1.4, 1.7 / 0.7071);
-  box(6, 0.2, 2.6, psx(T.wood, { rx: 4 }), [-11.9, 5.1, 7]);
-  for (const x of [-11, -14.8]) for (const z of [5.8, 8.2]) cyl(0.06, 0.06, 5.1, 4, scaf, [x, 2.55, z]);
-  box(0.1, 0.35, 2.6, psx(T.hazard, { rx: 1, ry: 1, unlit: 0.3 }), [-15, 5.6, 7]);
-  plane(2.4, 1.05, psx(T.wingSign, { unlit: 0.4, side: DoubleSide }), [-14, 6.4, 5.6], [0, Math.PI, 0], 1);
+  const house = new Group(); scene.add(house);
+  for (const o of scene.children.slice(mark, -1)) house.add(o);
 
   // the front garden: gate, fence, hedges, lanterns, trees, and one hedge cat
   const stone = psx(T.stone, { rx: 1, ry: 3 });
@@ -133,9 +134,17 @@ export function buildOutside(T, cards = []) {
     plane(26, 1.5, psx(T.fence, { rx: 26 / 1.5, side: DoubleSide }), [s * (3.05 + 13), 0.75, -20], [0, 0, 0], 1);
   }
   const HEDGES = [];
-  for (const s of [-1, 1]) for (const z of [-17, -11.5, -6]) { box(1, 1.1, 4, psx(T.leaf, { rx: 3, ry: 1.5 }), [s * 2.3, 0.55, z]); HEDGES.push([s * 2.3, z]); }
+  // (the last one on the left is shorter, and its lantern is round the corner, leaving room for the
+  // path off to the hedge maze)
+  for (const s of [-1, 1]) for (const z of [-17, -11.5, -6]) {
+    const short = s < 0 && z === -6, len = short ? 2.6 : 4, mid = short ? -6.7 : z;
+    box(1, 1.1, len, psx(T.leaf, { rx: 3 * len / 4, ry: 1.5 }), [s * 2.3, 0.55, mid]); HEDGES.push([s * 2.3, mid, len]);
+  }
   const lit = psx(T.lantern, { unlit: 1 });
-  for (const s of [-1, 1]) for (const z of [-15.5, -9.5, -3.5]) { cyl(0.05, 0.05, 1.8, 4, iron, [s * 1.85, 0.9, z]); box(0.3, 0.38, 0.3, lit, [s * 1.85, 1.95, z]); }
+  for (const s of [-1, 1]) for (const z of [-15.5, -9.5, -3.5]) {
+    const [x, zz] = s < 0 && z === -3.5 ? [-2.1, -5.3] : [s * 1.85, z];
+    cyl(0.05, 0.05, 1.8, 4, iron, [x, 0.9, zz]); box(0.3, 0.38, 0.3, lit, [x, 1.95, zz]);
+  }
   const bark = psx(T.bark, { rx: 2, ry: 2 }), leaf = psx(T.leaf, { rx: 3, ry: 3 });
   const TREES = [[-14, -8, 1.2], [-24, -2, 1.5], [22, -6, 1.3], [26, 10, 1.6], [-26, 14, 1.4]];
   for (const [x, z, s] of TREES) {
@@ -193,7 +202,7 @@ export function buildOutside(T, cards = []) {
   const P = 0.35;
   const RECTS = [[-9, 9, 0, 10], [13, 19, 3, 9], [-7.3, -5.7, -9.8, -8.2], [-8.2, -2.6, 10, 11], [2.6, 8.2, 10, 11], [-1.2, 1.2, 10, 11.1],
     [4.3, 6.7, 17.5, 18.15], [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
-    ...HEDGES.map(([x, z]) => [x - 0.5, x + 0.5, z - 2, z + 2]),
+    ...HEDGES.map(([x, z, len]) => [x - 0.5, x + 0.5, z - len / 2, z + len / 2]),
     ...[-1, 1].map(s => [s * 2.6 - 0.45, s * 2.6 + 0.45, -20.45, -19.55]),
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
   if (free) RECTS.push([free.x - 1, free.x + 1, free.z - 1.1, free.z - 0.9]);
@@ -208,7 +217,7 @@ export function buildOutside(T, cards = []) {
   }
 
   return {
-    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs], sadie, napper, uses: [], lots: LOTS, grounds: GROUNDS,
+    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs], sadie, napper, uses: [], lots: LOTS, grounds: GROUNDS, house,
     // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r)
     block(x0, x1, z0, z1) { RECTS.push([x0, x1, z0, z1]); },
     blockRound(x, z, r) { CIRCLES.push([x, z, r]); },

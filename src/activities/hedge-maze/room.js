@@ -9,7 +9,7 @@
 // the end always lets you out into the backyard, whichever way you came in.
 //
 // Nothing's saved: it's a new maze every time anyway.
-import { Scene, Color, Mesh, Group, BoxGeometry, PlaneGeometry, SphereGeometry } from 'three';
+import { Scene, Color, Mesh, Group, Box3, Vector3, BoxGeometry, PlaneGeometry, SphereGeometry } from 'three';
 import { makeMaze, S, DI, DJ } from './grow.js';
 import { buildBlock, DW, DH, TRIM } from './block.js';
 import { drawArt } from './art.js';
@@ -122,8 +122,66 @@ export async function buildRoom(m) {
   // the two doors (garden gates, seen from inside), put where the maze says by draw()
   const leaves = [{ front: A.gateR, back: A.gateL }, { front: A.gateL, back: A.gateR }];
   const doors = { door: doorway(scene, { pos: [0, 0, 0], yaw: 0, w: DW, h: DH, leaves, trim: TRIM }), back: doorway(scene, { pos: [0, 0, 0], yaw: 0, w: DW, h: DH, leaves, trim: TRIM }) };
+  for (const d of Object.values(doors)) d.see.position.y += 0.03;   // (a hair above the grass: level with it, they flickered)
   draw(); mz.changed();
   await m.breathe?.();
+
+  // ---------- the clubhouse, over the hedges ----------
+  // The maze isn't really beside the house (it's bigger inside), so the house can't be seen from it.
+  // Instead, a picture of the real house is taken once, as the maze is built (m.snapshot), from
+  // where the hedge block stands, and hung far off in the same direction it'd be in (turned the way
+  // the door you came in by turns things). Change the house and the picture changes with it.
+  const view = backdrop();
+  await m.breathe?.();
+  function backdrop() {
+    const H = m.outside?.house, gd = m.ground;
+    if (!H || !gd || !m.snapshot || !house) return null;
+    const box = new Box3().setFromObject(H), mid = box.getCenter(new Vector3());
+    // (looked at from the hedge block's side, but from further off than it really is: the maze is
+    // bigger inside, so the house is further away, and seen whole)
+    const eye = 1.6, dir = new Vector3(mid.x - gd.x, 0, mid.z - gd.z).normalize();
+    const from = new Vector3(mid.x, eye, mid.z).addScaledVector(dir, -28);
+    // wide enough for every corner of the house (it's looked at level, so the horizon's in the middle)
+    const side = new Vector3(-dir.z, 0, dir.x);
+    let tan = 0.2;
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+      const v = new Vector3(x, y, z).sub(from), fwd = v.dot(dir);
+      if (fwd > 1) tan = Math.max(tan, Math.abs(v.dot(side)) / fwd, Math.abs(v.y) / fwd);
+    }
+    tan *= 1.05;
+    const fov = 2 * Math.atan(tan) * 180 / Math.PI;
+    const pic = m.snapshot(H, m.outside, { from: from.toArray(), at: from.clone().add(dir).toArray(), fov, w: 512, h: 512 });
+    const FAR = 70, size = 2 * FAR * tan;
+    const mt = psx(pic, { unlit: 1, tint: 0xe4e4e4 });
+    // (drawn after the grass, never hidden by it, but behind every hedge and gate)
+    mt.depthTest = false; mt.depthWrite = false;
+    const geoB = keep(new PlaneGeometry(size, size, 4, 4));
+    const pics = [0, 1].map(() => { const o = new Mesh(geoB, mt); o.renderOrder = -1; scene.add(o); return o; });
+    // which way the house is through each door: outside, it's `dir` from the block; in here, turned
+    // as going through that door turns you
+    const yaws = Object.fromEntries(Object.entries(house.doors).map(([k, d]) => [k, d.yaw]));
+    const turn = k => doors[k].yaw - yaws[k] + Math.PI;
+    let a = null;   // (the way it's turned now, inside: it eases round, never jumps)
+    const hang = (o, x, z, t) => {
+      const c = Math.cos(t), s = Math.sin(t), dx = dir.x * c + dir.z * s, dz = -dir.x * s + dir.z * c;
+      o.position.set(x + dx * FAR, eye, z + dz * FAR); o.rotation.y = Math.atan2(-dx, -dz); o.visible = true;
+    };
+    return {
+      update(here, e, near, dt) {
+        if (here) {
+          const want = turn(near);
+          if (a === null) a = want;
+          const d = Math.atan2(Math.sin(want - a), Math.cos(want - a));
+          a += Math.sign(d) * Math.min(Math.abs(d), 0.4 * dt);
+          hang(pics[0], e.x, e.z, a); pics[1].visible = false;
+        } else {
+          a = null;
+          hang(pics[0], doors.door.pos.x, doors.door.pos.z, turn('door'));
+          hang(pics[1], doors.back.pos.x, doors.back.pos.z, turn('back'));
+        }
+      },
+    };
+  }
 
   // ---------- walking ----------
   // inside a cell, kept off the hedges on its shut sides, and out of its corners (the posts)
@@ -158,6 +216,7 @@ export async function buildRoom(m) {
       // the sky around you (or, from outside, around the door you might be looking in at)
       if (here) { skies[0].position.set(e.x, 0, e.z); skies[1].position.copy(skies[0].position); }
       else { skies[0].position.copy(doors.door.pos); skies[1].position.copy(doors.back.pos); }
+      view?.update(here, e, here && nearest(e.x, e.z), dt);
     },
   };
   // for the checks: where the doors are, the maze you're in, and the next step on the way through

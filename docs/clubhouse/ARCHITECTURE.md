@@ -88,7 +88,10 @@ activity is checked again, so something moves into it only once a second activit
   the lane: its card has `grounds` instead of `lot`, which spot in the grounds is its (`GROUNDS` in
   `outside.js`, each with its middle `x`, `z` and its room, `w` across and `d` deep; 0 is beside the
   house on the left, from the front garden to the backyard). Its kit has `ground` (that spot) instead
-  of `lot`, and `skyMat` (the outside's sky, for a room that's out of doors). A building can have more
+  of `lot`, `skyMat` (the outside's sky, for a room that's out of doors) and `snapshot(obj, place,
+  { from, at, fov, w, h })`, which takes a picture of one thing in a place, once, with everything
+  else see-through (the outside's `house` is the house itself, in a group of its own, so the maze
+  can show it over its hedges and it's never out of date). A building can have more
   than one way in: its `house` can hand back `doors` (`{ door, back }`), each joined to the room's
   own door of that name (the outside's names for them: its card's id, and `<id>.back`). A doorway can
   move (`moveTo(pos, yaw)`): the maze's door to the backyard is always wherever its end is.

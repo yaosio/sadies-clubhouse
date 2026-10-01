@@ -41,8 +41,10 @@ export function buildBlock(m, A) {
   const path = (x, z, w, d) => { plane(w, d, psx(T.path, { rx: w / 1.5, ry: d / 1.5, onFloor: true }), [x, 0, z], [-Math.PI / 2, 0, 0], 4).renderOrder = -1; };
   const TURN = -3.4, YARD = 12.6;   // (where the main path's turning is, and the backyard's path)
   path((-1.5 + gx - 0.6) / 2, TURN, -1.5 - (gx - 0.6), 1.2);
-  path(gx, (TURN - 0.6 + z0) / 2, 1.2, z0 - (TURN - 0.6));
-  path(gx, (z1 + YARD + 0.7) / 2, 1.2, YARD + 0.7 - z1);
+  // (stopping just short of each gate: running on under it, it flickered against the maze's grass)
+  const e0 = z0 - 0.08, e1 = z1 + 0.08;
+  path(gx, (TURN - 0.6 + e0) / 2, 1.2, e0 - (TURN - 0.6));
+  path(gx, (e1 + YARD + 0.7) / 2, 1.2, YARD + 0.7 - e1);
   // what's solid: the block and its posts
   outside.block(x0 - 0.05, x1 + 0.05, z0 - 0.45, z1 + 0.45);
   outside.blockRound(gx + 2.1, z0 - 0.9, 0.12); outside.blockRound(gx + 2.1, z1 + 0.9, 0.12);
