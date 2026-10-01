@@ -17,7 +17,7 @@ const STEPS = 22, RISE = L1 / STEPS, TURN = 0.29, TH0 = -2.1, UPPER = 4;    // t
 const THTOP = TH0 + (STEPS - 1) * TURN;
 const IN = R - 2.3;                                                          // the landing's inner edge
 // which walls on the first landing get doors, in order: starting where the stairs come out
-const SLOTS = [10, 11, 9, 12, 13, 7];
+export const SLOTS = [10, 11, 9, 12, 13, 7];
 
 export function buildHall(T, cards, doorPictures = []) {
   const scene = new Scene(); scene.background = new Color(0x0a0628);

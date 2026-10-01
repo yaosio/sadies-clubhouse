@@ -48,6 +48,8 @@ changed, saying when and why).
 | Browser checks wait in game time or for the thing itself, never a clock-timed pause | Slower computers (GitHub's) run fewer frames and fall behind the clock |
 | `package-lock.json` is committed | Every tool at an exact version, so builds are repeatable |
 | No auto-formatter | Only Claude writes the code; reformatting every file gains little and clashes with work in progress |
+| The real game is published once GitHub's check on main is green, without running the checks again | GitHub already checked exactly that code, as the real build; running it again took ten minutes |
+| Every card is checked against the clubhouse's rules (`tests/clubhouse/cards.mjs`) | A misplaced or misspelt card shows up as a plain reason, not a broken game |
 | The docs every change reads have a size limit (`tools/docs.mjs`) | Each thread reads only a small part of the project to change one area |
 
 ## Known limits (go through these in every review)
@@ -55,7 +57,6 @@ Things that are fine today but will need work as the game grows. Add any new lim
 remove one once it's fixed. (The full write-up: the project's `review/architecture-corners-2026-10-01.md`.)
 - **Saves:** each room saves by hand, an old save can be thrown away (Dropper World), there's no
   backup, and all rooms share about 5 MB with running out silent. (Planned: a save director.)
-- **Cards:** nothing checks that a door, plot or spot exists and isn't taken twice. (Planned: a room checker.)
 - **The page carries its own source** (about 1.7 MB, growing per room) against a 16 MB page limit. (Planned.)
 - **Where new doors go:** the landing's six are taken and the outside's plots are a fixed list; the
   clubhouse is meant to grow anywhere. (Planned: doors anywhere.)
