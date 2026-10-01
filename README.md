@@ -49,8 +49,9 @@ any feature idea for it), and its parked ideas. You only need to read the one yo
   (named after the first activity, from before there was a clubhouse). All changes are made,
   tested and committed here first.
 - **The game** is published at https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
-  Claude publishes it from the coding session, always built from `main`. The page also carries
-  a backup copy of the source, as JSON in `<script type="application/json" id="jelly-source">`.
+  Claude publishes it from the coding session, always built from `main`. It also carries a backup
+  copy of the project, a file beside the page (`game/source-*.json`, named in the page's
+  `<link id="jelly-source">`; `tools/unpack.mjs` turns it back into the folder).
   If the page and the repo ever disagree, trust the repo and say so.
 - **The test version** is at https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the work in
   progress, for the owner to try before it's merged. It says "test version" near the top right and keeps

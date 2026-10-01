@@ -16,14 +16,16 @@
 // never grows with the number of rooms. Every file's name carries a fingerprint of what's in it, so
 // a browser never mixes an old file with a new page.
 //
-// The page contains a loader for the game plus a copy of every project file (as JSON in a
-// <script type="application/json" id="jelly-source"> tag). That embedded copy is how the
-// source travels with the published artifact: tools/unpack.mjs turns a built page back into
-// the project folder.
+// Beside the game files goes a copy of every project file (game/source-<fingerprint>.json, which the
+// page names in a <link id="jelly-source">). That copy is how the source travels with the published
+// artifact: tools/unpack.mjs turns a built page (and that file) back into the project folder. It used
+// to be inside the page, which grew with every room towards the page limit (16 MB); nothing in the
+// game ever fetches it.
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync, rmSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
 const root = new URL('..', import.meta.url).pathname;
 const preview = process.argv.includes('--preview'), readable = process.argv.includes('--readable');
@@ -122,8 +124,9 @@ const files = {};
 for (const p of EMBED) collect(p, files);
 const pkg = JSON.parse(files['package.json'] || '{}');
 const bundle = { format: 'jelly-source/1', builtAt: new Date().toISOString(), version: pkg.version || '0', files };
-// "<" is escaped so nothing inside the JSON can close the script tag early
-const json = JSON.stringify(bundle).replace(/</g, '\\u003c');
+// (its name's fingerprint is of the files alone, so the same project gets the same name)
+const sourceFile = `source-${createHash('sha256').update(JSON.stringify(files)).digest('hex').slice(0, 8).toUpperCase()}.json`;
+writeFileSync(join(root, 'dist/game', sourceFile), JSON.stringify(bundle));
 
 const put = (marker, text) => {
   const i = html.indexOf(marker);
@@ -132,7 +135,7 @@ const put = (marker, text) => {
 };
 put('/*@script*/', js);
 put('<!--@preload-->', [...needs].map(f => `<link rel="modulepreload" href="./game/${f.split('/').pop()}">`).join('\n'));
-put('<!--@source-->', `<script type="application/json" id="jelly-source">${json}</script>`);
+put('<!--@source-->', `<link rel="alternate" type="application/json" id="jelly-source" href="./game/${sourceFile}">`);
 
 if (preview) {
   html = html.replace(/<title>(.*?)<\/title>/, '<title>$1 (test version)</title>');
@@ -141,4 +144,4 @@ if (preview) {
 
 mkdirSync(join(root, 'dist'), { recursive: true });
 writeFileSync(join(root, 'dist/index.html'), html);
-console.log(`built dist/index.html${preview ? ' (test version)' : ''}  ${(html.length / 1024).toFixed(1)} kB  (game ${gameKB.toFixed(1)} kB in ${game.length} files in dist/game, the biggest ${biggest.toFixed(1)} kB; ${activities.length} ${activities.length === 1 ? 'activity' : 'activities'}, ${Object.keys(files).length} source files embedded)`);
+console.log(`built dist/index.html${preview ? ' (test version)' : ''}  ${(html.length / 1024).toFixed(1)} kB  (game ${gameKB.toFixed(1)} kB in ${game.length} files in dist/game, the biggest ${biggest.toFixed(1)} kB; ${activities.length} ${activities.length === 1 ? 'activity' : 'activities'}, ${Object.keys(files).length} project files in game/${sourceFile})`);

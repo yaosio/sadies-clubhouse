@@ -49,8 +49,8 @@ the doorways open in front of you, get drawn.
 - **Starting quickly.** Everything the page needs before the first picture is asked for at once:
   the build lists the clubhouse's and the mansion's files (and three.js) at the top of the page
   (`modulepreload`), the clubhouse asks for the buildings outside's files alongside the mansion's,
-  the page asks for the mansion's lettering straight away, and the clubhouse starts without waiting
-  for the copy of the project at the end of the page (it's big). Left alone, a browser finds each
+  the page asks for the mansion's lettering straight away, and the page itself is tiny (the copy of
+  the project is a file beside it, never fetched by the game). Left alone, a browser finds each
   file only once the one before it has come, a wait for each in a row (that, and building every
   house outside before the first picture, had made starting about twice as slow). How long it
   takes: `tools/clubhouse/startup.mjs`.

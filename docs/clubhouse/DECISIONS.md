@@ -14,6 +14,7 @@ changed, saying when and why).
 | Places joined by doorways that show the other side, no loading screens | A place can be any size, bigger inside than out, and changing one never touches another |
 | Rooms are built near you a bite at a time, put away when far, rebuilt from their save | Starting stays quick and memory stays flat however many rooms there are |
 | Each room's code is its own file, fetched when first needed | The page doesn't grow with the number of rooms (16 MB page limit) |
+| The copy of the project travels as a file beside the page (`game/source-*.json`), not inside it | The page stays tiny; inside, it grew with every room towards the 16 MB limit |
 | Doors, plots and spots never move (`tests/clubhouse/spots.json`, checked); a new activity takes a new one; the clubhouse can grow in any direction, doors anywhere | Moving a door once shuffled two others; nothing the owner knows should move |
 | Everything outside the clubhouse belongs to somebody else (Clyde, Chooter) | The world's rule (the owner, 2026-10-01) |
 
@@ -59,7 +60,6 @@ Things that are fine today but will need work as the game grows. Add any new lim
 remove one once it's fixed. (The full write-up: the project's `review/architecture-corners-2026-10-01.md`.)
 - **Saves:** all rooms share the browser's about 5 MB. The pause menu warns when it's nearly full,
   but nothing makes room by itself; a room that saves a lot (pictures) should keep them small.
-- **The page carries its own source** (about 1.7 MB, growing per room) against a 16 MB page limit. (Planned.)
 - **The outside is built whole.** It has levels now, but a town walkable as one space will need it
   to load in pieces as you walk, like rooms. (When the town starts growing.)
 - **Every new way of playing adds to `mansion.js`** (arcade, instruments, levers, painting).
