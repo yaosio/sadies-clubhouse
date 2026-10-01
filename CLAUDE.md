@@ -1,6 +1,7 @@
 # Sadie's Clubhouse
 
-A lost 90s shareware activity center: Sadie's mansion, with a room per activity. Sadie is the
+A lost 90s shareware activity center: Sadie's mansion and the world round it, with activities behind
+doors in the mansion and in buildings outside. Sadie is the
 owner's late cat, and she's in every activity (not always in the same way). The activities so far
 are Sadie's Dropper World (a cozy physics toy), TypeFitter Deluxe 3.1 (text that never fits),
 Brickbuster '96 (Breakout in the wall of its room, whose ball escapes into the house) and the Music
@@ -8,7 +9,7 @@ Room (instruments to play where they stand, which Sadie walks across now and the
 Space Adventure (a spaceship trip with Sadie, who talks the whole way); beside the house is the
 Hedge Maze (made as you walk, letting you out into the backyard where Sadie naps); outside the
 front gate, along a lane with plots for more buildings, is Clyde's House (the Good Morning Machine, and the Weather Machine beside it), and across the path
-Chooter's Paint Shop (paint the room itself). Everything outside the clubhouse belongs to somebody else.
+Chooter's Paint Shop (paint the room itself). Everything outside the gate belongs to somebody else; inside the fence is Sadie's.
 
 ## The owner
 - Doesn't code, installs nothing, and doesn't know GitHub. Claude does all building, testing,
@@ -29,13 +30,14 @@ changing:
   (who they are and why they do things comes first) and `ART_STYLE.md` before changing how
   anything looks.
 - **How anything looks:** also `docs/clubhouse/ART_STYLE.md` (the approved misremembered-90s look).
-- **The mansion, the page shell, the toolbox, the build or the checks:** the page in `docs/clubhouse/`
+- **The mansion, the outside, the page shell, the toolbox, the build or the checks:** the page in `docs/clubhouse/`
   that `ARCHITECTURE.md` points to for it is enough.
 - **Undoing or changing a big choice:** `docs/clubhouse/DECISIONS.md` first, and update it.
 
 **The architect step:** before building a feature, say in the first reply (in plain words) which
 shared systems it touches, whether another room would want the same thing (then it goes in the
-toolbox, the building kit or the mansion, not the room), and whether it uses up a spot or hits one
+toolbox, the building kit or the mansion, not the room; and the other way round, nothing only one room
+needs goes in the shared files), and whether it uses up a spot or hits one
 of the known limits (`DECISIONS.md`). When a doc says "never X", ask whether a check could enforce it.
 
 **Sound:** everything that makes sound plays through the sound system, `src/shared/sound.js` (never

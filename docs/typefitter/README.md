@@ -25,8 +25,8 @@ The approved mock-up is `art/typefitter/mockup.html`.
 
 ## How it's built
 
-A small activity: no simulation, no saves (each visit starts on a fresh sentence). Only `main.js`
-and `text.js` touch the page; `love.js` and `says.js` are plain logic the tests run in Node.
+A small activity: no simulation, no saves (each visit starts on a fresh sentence). Only `main.js`,
+`text.js` and `scan.js` (its own little canvas) touch the page; `love.js` and `says.js` are plain logic the tests run in Node.
 
 | File | What it does |
 |---|---|
@@ -62,7 +62,7 @@ and `text.js` touch the page; `love.js` and `says.js` are plain logic the tests 
 
 ## Sadie in TypeFitter
 
-Not the Dropper World Sadie: none of the feelings, offers or activities above. Here she's the
+Not the Dropper World Sadie: none of the feelings, offers or activities in `docs/dropper-world/CHARACTERS.md`. Here she's the
 program author's cat, a flat scanned picture who loves text and knows everything about fonts, all
 of it wrong ("Italics are typed on a keyboard tilted exactly 12 degrees"). She reacts only to the
 last change, with no memory: her TEXT LOVE meter looks like opinions but is a rigged dice roll. When

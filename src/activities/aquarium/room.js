@@ -51,7 +51,7 @@ export async function buildRoom(m) {
   const door = doorway(scene, { pos: [0, 0, -RD], yaw: 0, w: 1.5, h: 2.45, leaves: [leaf], hinge: 1 });
   cyl(0.3, 0.42, 0.3, 8, psx(null, { tint: 0xfff08a, unlit: 0.85 }), [0, RH - 0.15, 0]);
 
-  // on the left wall: a life ring from Sadie's boat, and a porthole (the ocean's coming)
+  // on the left wall: a life ring from Sadie's boat, and a porthole
   const ring = tex(48, 48, g => {
     for (let y = 0; y < 48; y++) for (let x = 0; x < 48; x++) {
       const d = Math.hypot(x - 23.5, y - 23.5), a = Math.atan2(y - 23.5, x - 23.5);

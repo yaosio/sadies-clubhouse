@@ -16,16 +16,17 @@ sounds. The owner has misophonia: nothing droning, constant or repetitive.
   stored sounds, so it costs nothing to keep) through a soft echo; `theme.js` hands the notes over
   a moment ahead, and fades. **It never plays over other music, by itself:** the sound system
   (`src/shared/sound.js`, below) hears when any other music is actually playing (Space
-  Adventure's song and radio, Brickbuster's arcade music, and whatever a new room plays), and the
+  Adventure's song and radio, Brickbuster's arcade music, the Hedge Maze's music box, and whatever a
+  new room plays), and the
   theme fades out (about two seconds), staying away until that music has been quiet for 6 seconds,
   then fades back in (about four), carrying on, or with a new piece after a long quiet. No room has
   to do anything about it. A place can also ask for quiet with `hush` (`true`, or a function), and
   the theme then fades quicker (about one second): the Music Room does, since its instruments are
-  sounds, not music, and Space Adventure does from the moment you step into the cockpit (its song
-  starts a moment later, and has quiet stretches the theme mustn't slip into). It stops when an activity on a
+  sounds, not music, and Space Adventure does from the moment you step into the cockpit, for the whole trip, and while
+  its radio's on (its song has quiet stretches the theme mustn't slip into). It stops when an activity on a
   computer starts (the mansion leaves the page).
 
-- **The sound kit** (`src/shared/retro.js`): what the rooms' sounds are made with (plain numbers: 8-bit 11 kHz samples, `rng`, `hz`, `blank`, `ring`, `ping`, `resonance`, and two endings, the gentle `finish` and Brickbuster's `crunch`; the aquarium, Brickbuster, the Music Room and Clyde's house all use it).
+- **The sound kit** (`src/shared/retro.js`): what the rooms' sounds are made with (plain numbers: 8-bit 11 kHz samples, `rng`, `hz`, `blank`, `ring`, `ping`, `resonance`, and two endings, the gentle `finish` and Brickbuster's `crunch`; the rooms share it).
 - **The sound system** (`src/shared/sound.js`): every sound in
   the game is played through it, on one audio engine for the whole page. A room gets a handle with
   `soundsFor(owner)` (its place's name, `room:<id>`) and plays by name, `handle.play(key, make,
@@ -38,10 +39,12 @@ sounds. The owner has misophonia: nothing droning, constant or repetitive.
   twice running (within 10 s: a room with only one meow still meows later), nothing but music
   behind the pause menu (the mansion says when it's up: `paused()`, so no room needs pause code for
   its sounds), `dist` fading it with distance (`nearness`), never more than 14 sounds at once
-  (more are dropped). A room's music is only heard while you're in that room (the mansion tells it
+  (more are dropped). A room's music is only heard while you're in that room (a line made with `{ everywhere: true }` is heard everywhere: the main theme's) (the mansion tells it
   where you are, `youAreIn`), and any music playing (a meter on every music line) makes the main
   theme fade out (`otherMusic()`). When the mansion puts a room away it stops everything that room
-  started (`closeSounds`), whatever the room forgot, and every sound when it leaves the page (`closeSounds()`). So a new room just plays through its handle
+  started (`closeSounds`), whatever the room forgot, and every sound when it leaves the page (`closeSounds()`). Sounds that
+  belong to a building's house rather than its room (they carry on while the room's put away) use an
+  owner of their own, `house:<name>` (Clyde's weather machine). So a new room just plays through its handle
   (music on a music line) and keeps every rule for free. The clubhouse's headless test fails if
   anything else makes an AudioContext or plays straight to the speakers, and its browser test
   visits every room and fails if any of its music is still heard after you've left, or anything

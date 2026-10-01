@@ -3,8 +3,8 @@
 The clubhouse's third activity (`src/activities/brickbuster/`), and the first that lives in the
 mansion itself instead of on a computer: a Breakout machine built into the far wall of a tall arcade
 room, two storeys of glass. Its ball is a ball of yarn, its paddle is a chunky plastic character
-with a face, and Sadie sits on a box beside it watching the ball. It's being built in steps (the
-owner's plan, 2026-09-29):
+with a face, and Sadie sits on a box beside it watching the ball. It was built in five steps (the
+owner's plan, 2026-09-29), all done:
 
 1. **The room and the game (built).** The tall room, the case, the paddle and its faces, the
    controls, the cracks and the 90s sounds. Every knocked-out brick falls down inside the glass,
@@ -23,7 +23,7 @@ owner's plan, 2026-09-29):
    side has Sadie's OUT OF ORDER sign (cardboard, crooked, taped on, wobbly marker, a paw print).
    Inside, the glass is gone but for a jagged edge, there's glitter all over the floor, the marquee
    says OUT OF ORDER, the case doesn't offer to play, and the paddle lies on the heap looking sad,
-   sighing now and then. Broken for good: only the test version's pause menu can fix it (the
+   sighing now and then. Broken for good: only the pause menu's start-over (BRICKBUSTER '96, or EVERYTHING) fixes it (the
    glass, the bricks, the paddle, the ball back in its case, Sadie back on her box, the sign off
    the door).
 3. **Out in the hall (built).** The yarn ball bounces out of the door onto the landing and round
@@ -40,7 +40,7 @@ owner's plan, 2026-09-29):
    then: a soft pat of her paw on some whacks, a little "mrrp" chirp as she pounces, a happy trill
    for a mighty whack, and once in a while a small meow. Never two close together, never more than
    five a minute, never the same one twice running, and all of them softer than the smallest crack.
-   You only hear her in the hall, fading the further off she is (silent past about 15 m).
+   You only hear her in the hall, fading the further off she is (silent past about 18 m).
 
 5. **Arcade music (built, 2026-09-30).** While you play the machine, bouncy 1996 arcade music plays
    (a square-wave tune over a triangle bass), written as it plays so it never comes round the same,
@@ -106,7 +106,7 @@ ball hanging where it was. The ball starts on the paddle and is sent off by itse
 - **Loose in the hall**: bounces keep 72% of their speed (85% off walls), it rolls to a stop.
   Sadie trots after it (leaps at 4 m/s) keeping 1.6 m off while it's going, and goes for it once
   it's slower than 1.2 m/s on something: leaps up to 2.2 m (6.5 m/s), a swat after a 0.25 s crouch,
-  sending it 5 to 8 m/s and 2.5 to 7.5 m/s up (on the landing 5 to 7.5); from below, 30% of the
+  sending it 5 to 8 m/s and 2.5 to 5 m/s up (on the landing 5 to 7.5); from below, 30% of the
   time a mighty one (10.5 to 11.5 m/s up, out towards the landing). The tests expect about 9
   whacks a minute, never more than a minute apart, a third or so of its time on the landing, it
   never outside the hall or through the landing, and Sadie never through the landing or its

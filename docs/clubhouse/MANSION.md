@@ -39,12 +39,12 @@ the doorways open in front of you, get drawn.
   (`await m.breathe()`, in the kit): if it's been busy more than 6 ms, the game draws a picture
   before it carries on, so building a room never holds the game up for long (the checks fail a
   bit longer than 200 ms). What it made is noted, and warmed onto the
-  graphics card straight away. A room with `putAway()` that's three doors or more from you for 20
+  graphics card straight away. A room that's three doors or more from you for 20
   seconds (or the ones you were near longest ago, once more than 16 are built) is put away: it
   stops its sounds, its own `putAway()` (if it has one) takes back what it put elsewhere, everything it made that no other place uses goes back to the graphics
   card, and it's built again from its save as you come back. Every room can be put away (not while
-  it says it's `busy()`). A building outside the gate keeps its house: the mansion hands it back
-  to the room as `house` when it's built again, and keeps its `update` going meanwhile. A new room
+  it says it's `busy()`). A building outside keeps its house: the mansion hands it back
+  to the room as `house` when it's built again, and keeps the house's `update` going meanwhile (`OUTSIDE.md`). A new room
   must be able to be put away, and must look the same built again from its save.
 - **Starting quickly.** Everything the page needs before the first picture is asked for at once:
   the build lists the clubhouse's and the mansion's files (and three.js) at the top of the page
@@ -63,11 +63,7 @@ the doorways open in front of you, get drawn.
   mansion and an activity's own page are tried again the same way, and then the page says it
   couldn't load rather than staying blank. So the game can't be opened as a file on its own any more:
   it's served (the game page, and `tools/serve.mjs` for the checks and tools).
-- **Far-off buildings.** A building outside the gate further than 90 m from you (or from the door
-  you're looking out of) is drawn as a plain block instead: its house hands the mansion a `group`
-  with everything in it, its `body` (what the block's sized to) and `farTint` (its colour). None
-  is that far yet; it's for a long lane of houses. (Fog, to hide the far end, is parked: the PS1
-  material has none, and adding it would change the approved look.) `tools/clubhouse/speed.mjs`
+- **Far-off buildings** are drawn as plain blocks (`OUTSIDE.md`). `tools/clubhouse/speed.mjs`
   prints how quick it all is.
 - A door opens only when you walk up to it facing it (one at a time), and
 closes behind you (the one you just came through waits till you're out of its swing). Both sides of a doorway show the same real door: it swings into the place
@@ -123,11 +119,5 @@ further in (`swing`), so it's hinged on opposite sides as seen from each side.
 - **The test version's label** goes where an activity's `page.html` (or the mansion's
   `mansion.html`) says `<!--@badge-->` (at the end of the page if none does).
 
-- **Growing the outside.** The clubhouse is meant to sit on a hill in the middle of a town, one
-  space you walk round, with bridges, sewers and paths going over and under each other. Walking on
-  more than one level works in the hall and outside (`floor(x, z, y)`: you stand on whichever level
-  is nearest your feet), and a sewer or a cave can be a place of its own behind a doorway. Outside,
-  a building can add somewhere to walk (`surface`) and what's solid has a height (`block(..., y0,
-  y1)`), so a path can go under a bridge; plots and spots have a height (`y`), and the outside grows
-  to take in every plot. Still to come: the outside is built whole, so a big town will need it to
-  load in pieces as you walk, like rooms. Don't build anything new that assumes the outside is flat.
+- **The outside** (the grounds, the lane, its plots and the buildings on them, walking on more than
+  one level, growing into a town) has its own page: `OUTSIDE.md`.

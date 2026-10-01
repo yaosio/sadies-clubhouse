@@ -88,7 +88,7 @@ the world, never at a height or a time.
 - **He can hear it all from next door.** (`heard`: every thud, squish and topple, and Sadie
   scraping the barn along, winds him up. It sounds like SO much fun. It rings in his ears, so it
   only winds him up so fast: a few minutes of just Sadie and the mole at the very least, about
-  4 in a normal game.) Most of the way there, he can't help peeking in over the wall nearer Sadie
+  5 in a normal game.) Most of the way there, he can't help peeking in over the wall nearer Sadie
   now and then ("?!"), and you can tap him. Once he can't stand it any longer, he bursts in with a
   leap and a bark and runs to say hello. Only listening, nothing random, so nothing before he
   arrives changes.

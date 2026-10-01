@@ -1,6 +1,6 @@
 # The Hedge Maze
 
-A block of clipped hedge in the grounds beside Sadie's clubhouse, on the left as you walk up
+A block of clipped hedge in the grounds beside Sadie's clubhouse, on the right as you walk up
 (`src/activities/hedge-maze/`). The owner asked for it on 2026-10-01: not on a plot along the lane
 and not in place of any house, just next to the clubhouse, with a little path to it off the path up
 to the front door. It's in the grounds' first spot (`grounds` 0: `GROUNDS` in
