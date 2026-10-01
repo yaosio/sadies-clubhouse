@@ -94,7 +94,8 @@ activity is checked again, so something moves into it only once a second activit
   outside's scene, facing the gate), which the mansion joins to the room's own `doors.door`. Its
   place's `update` runs every frame wherever you are, so it animates the outside too. It can also
   put things to use in the outside's `uses` (Clyde's weather levers) and set the outside's
-  `light` (the weather: the mansion reads it every frame). Nothing on the
+  `light` (the weather: the mansion reads it every frame); one that does says `weather: true` on
+  its card, so it's built before the first picture wherever you start. Nothing on the
   landing changes (the hall skips cards with a `lot`).
 - **A building in the grounds** (the Hedge Maze) is the same, but beside the house rather than on
   the lane: its card has `grounds` instead of `lot`, which spot in the grounds is its (`GROUNDS` in
@@ -136,9 +137,11 @@ activity is checked again, so something moves into it only once a second activit
   other side, turned round. So there are no loading screens, a place can be any size (bigger inside
   than out), and changing one place never touches another. Only the place you're in, and through
   the doorways open in front of you, get drawn.
-  - **Building rooms as they're needed.** Only the garden, the hall and any building outside (seen
-    from the lane or the garden) are built before the mansion opens (and the room you're coming back
-    to). Each other room is built afterwards, one at a time, nearest door first: while you stand
+  - **Building rooms as they're needed.** Only the garden, the hall, the buildings outside you can
+    see from the gate as you start (in front of you there: the Hedge Maze) and any building whose
+    card says `weather` (it changes how all of outside looks: Clyde's House) are built before the
+    mansion opens (and the room you're coming back to). The buildings behind you at the gate are
+    built straight after the first picture, first in line. Each other room is built afterwards, one at a time, nearest door first: while you stand
     still (or read the letter, or pause), when you're within 7 m of its door, or when you walk up to
     its door, which stays shut until the room's ready. A room takes a breath between its big parts
     (`await m.breathe()`, in the kit): if it's been busy more than 6 ms, the game draws a picture
@@ -151,6 +154,14 @@ activity is checked again, so something moves into it only once a second activit
     it says it's `busy()`). A building outside the gate keeps its house: the mansion hands it back
     to the room as `house` when it's built again, and keeps its `update` going meanwhile. A new room
     must be able to be put away, and must look the same built again from its save.
+  - **Starting quickly.** Everything the page needs before the first picture is asked for at once:
+    the build lists the clubhouse's and the mansion's files (and three.js) at the top of the page
+    (`modulepreload`), the clubhouse asks for the buildings outside's files alongside the mansion's,
+    the page asks for the mansion's lettering straight away, and the clubhouse starts without waiting
+    for the copy of the project at the end of the page (it's big). Left alone, a browser finds each
+    file only once the one before it has come, a wait for each in a row (that, and building every
+    house outside before the first picture, had made starting about twice as slow). How long it
+    takes: `tools/clubhouse/startup.mjs`.
   - **Each room's code is a file of its own.** The build splits the game into files beside the
     page (`game/`): the clubhouse, the mansion, each room or activity (whatever its card's `room` or
     `start` imports), and the parts several share (three.js). A room's file is fetched the first time
@@ -284,6 +295,7 @@ any), and it gets a line in the list of activities in the main `README.md`. Noth
 | `tests/shared/browser.mjs` | What every room's browser checks start with: the phone and the desktop side by side (`bothDevices`), the page's errors collected, and the moves every check makes (`M`, the mansion's hook for the checks; `up`, `walk`, `rest`, `use`, `modeIs`, `shot`). `walk` and `rest` count in the game's own time (`window.__mansion.played()`), not the clock's: on a slower computer, like GitHub's, the game runs fewer frames and falls behind the clock, and a walk timed by the clock stops short of a door. A check that waits for something to happen in the game should use them, or wait for the thing itself. A change here runs every room's browser checks again. |
 | `tools/clubhouse/shots.mjs` | Pictures of the mansion from its main spots (the gate, the front door from both sides, the hall, the stairs, the landing, an activity's door and room), as a desktop and a phone, from the built page: `dist/shots/clubhouse/`. |
 | `tools/clubhouse/speed.mjs` | How quick the mansion is, from the built page: how long the first picture took, how long each place took to build (and its longest bit), what's on the graphics card, each frame's work standing in each place, and three rounds of putting every room away and building it again (the numbers must come back the same). It draws with a pretend graphics chip, so it shows what the checks can't: anything that makes the browser wait for the graphics card, like reading a pixel back from a drawn canvas (that held the game up for half a second per room until it was fixed; read pixels only from a canvas made with `willReadFrequently`). |
+| `tools/clubhouse/startup.mjs` | How long the game takes to start, from the built page: from asking for the page to the mansion's first picture (the middle of a few runs), with every file held up as a real connection would (`--delay <ms>`, 100 by default) and when each came, so files fetched one after another show up. `--delay 0` for the building alone, `--phone`, `--no-font`. |
 | `tools/clubhouse/spot.mjs` | A picture of the mansion from anywhere: `node tools/clubhouse/spot.mjs <name> <place> <x> <z> <y> <lookX> <lookY> <lookZ>` stands there and looks at that point (`dist/shots/clubhouse/spot-<name>.png`), for checking how one thing looks. |
 | `tools/build.mjs` | `npm run build`: the page, `dist/index.html`, with the source embedded (everything but `art/`), and the game in files beside it in `dist/game/` (the clubhouse, then each room or activity's own, fetched when needed; each name has a fingerprint of what's in it, so a browser never mixes old and new). `dist/game-files.json` says which file each room's code went into, for the checks. Squeezed small (three.js is big); the readable source is what's embedded. `--preview` makes the test version (says "test version", with the time and commit, in the corner and the tab title); `--readable` leaves it unsqueezed, so a profile shows the game's own function names (`tools/dropper-world/profile.mjs` builds it that way). |
 | `tools/check.mjs` | `npm run check`: each activity's headless tests, a build, then the page in headless Chromium: the mansion's checks (unless exactly this page already passed them), then each activity's browser checks, each playing the phone and the desktop side by side. It prints how long each stage took. Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`): for its tests, its folder, its tests, `src/shared/` and `package.json`; for its browser checks, those plus its tools (`tools/<name>/`), the clubhouse's shell (files directly in `src/`, not the mansion, unless its card has a `room`: then the mansion too), `tools/build.mjs` and `tools/check.mjs`. So the check at merge is quick. Every hash is worked out once, before anything's checked, so a file changed while the checks run is never noted as passed; a check that gets stuck counts as failed and the rest still run. `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything regardless. `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its files are exactly what that page was built from, since it only goes live after passing. An activity's `browser.mjs` can export `prepare()` for anything its checks need made first (Dropper World's full board): it's started at the very beginning and runs alongside the headless tests. It's finished before the mansion's browser checks start, since they time how quick each room builds and a busy computer makes those times jumpy. The browser checks run one after another: side by side on one computer, each game runs slower (the hidden browser draws on the processor) and checks that let the game run for a moment fail. `--only a,b` checks just those activities (`clubhouse`: the mansion's own), and `--plan` prints which still need checking. |

@@ -68,9 +68,10 @@ export async function open(cards, enter) {
   // graphics card, and it's built again from its save as you come near. So the house can have any
   // number of rooms without a longer wait to open, or more memory held for rooms you're nowhere near.
   const opened = performance.now();
-  try { await Promise.race([document.fonts.load('8px Silkscreen'), new Promise(ok => setTimeout(ok, 1500))]); } catch {}
   const load = src => src ? loadImage(src) : null;
-  const [awake, asleep, boxes, doorPics] = await Promise.all([load(P.sadie), load(P.sadieBlink),
+  // (the lettering, and the pictures, at the same time)
+  const font = Promise.race([document.fonts.load('8px Silkscreen'), new Promise(ok => setTimeout(ok, 1500))]).catch(() => {});
+  const [, awake, asleep, boxes, doorPics] = await Promise.all([font, load(P.sadie), load(P.sadieBlink),
     Promise.all(cards.map(c => load(c.box?.front))), Promise.all(cards.map(c => load(c.door)))]);
   const T = drawTextures(awake, asleep);
   const shared = new Set(made());   // (the textures every place uses: never put away with a room)
@@ -301,7 +302,14 @@ export async function open(cards, enter) {
   let back = null;
   try { back = sessionStorage.getItem(BACK); sessionStorage.removeItem(BACK); } catch {}
   const backSlot = slots.find(r => r.card.id === back);
-  for (const r of slots) if (outdoors(r.card)) await build(r);
+  // (and the buildings outside you can see from the gate as you start, and any that changes how all
+  // of outside looks: `weather`. The ones behind you are built straight after the first picture,
+  // before you've had time to turn round)
+  const start = outside.spots.start, ahead = r => {
+    const at = Number.isInteger(r.card.lot) ? outside.lots[r.card.lot] : outside.grounds[r.card.grounds];
+    return r.card.weather || (!backSlot && (at.x - start.x) * -Math.sin(start.yaw) + (at.z - start.z) * -Math.cos(start.yaw) > 0);
+  };
+  for (const r of slots) if (outdoors(r.card) && ahead(r)) await build(r);
   if (backSlot) await build(backSlot);
   const backRoom = backSlot?.place;
   relink();
@@ -870,7 +878,7 @@ export async function open(cards, enter) {
     // the rooms built so far, whether they're all built, building one now (and waiting for that), and
     // putting one away now (as if you'd been far from it long enough)
     built: () => slots.filter(r => r.place).map(r => r.name),
-    settled: () => slots.every(r => r.place || !r.portals.length) && !slots.some(r => r.building),
+    settled: () => slots.every(r => r.place || !(r.portals.length || outdoors(r.card))) && !slots.some(r => r.building),
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
@@ -905,6 +913,7 @@ export async function open(cards, enter) {
 
   resize();
   raf = requestAnimationFrame(frame);
+  for (const r of slots) if (outdoors(r.card)) build(r);   // (the rest of the buildings outside, first in the queue)
 }
 
 // Sadie's letter: handwriting in hard pixels, big and bold enough to read easily.

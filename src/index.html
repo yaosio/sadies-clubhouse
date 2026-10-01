@@ -16,10 +16,16 @@
 <style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- the mansion's lettering, asked for straight away (the same address as src/clubhouse/mansion.html's,
+     so it's already here when the mansion puts it in) -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Patrick+Hand&display=swap">
+<!-- the game files needed to open the mansion, all asked for at once (tools/build.mjs fills this in) -->
+<!--@preload-->
 </head>
 <body>
-<!-- the clubhouse (src/main.js, in game/) puts the activity here -->
-<script type="module">
+<!-- the clubhouse (src/main.js, in game/) puts the activity here. It starts as soon as its files
+     are here (`async`), not once the whole page has come: the copy of the project at the end is big -->
+<script type="module" async>
 /*@script*/
 </script>
 <!--@source-->

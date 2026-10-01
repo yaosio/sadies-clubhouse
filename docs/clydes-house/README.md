@@ -129,7 +129,7 @@ it stays when the room inside is put away.
 
 | File | What it does |
 |---|---|
-| `card.js` | Its card: `lot` 0 (not a `slot`: it's not behind a door on the landing), `room` (loads `room.js`), `keeps`. |
+| `card.js` | Its card: `lot` 0 (not a `slot`: it's not behind a door on the landing), `weather` (its Weather Machine changes all of outside, so it's built before the mansion's first picture even though it's behind you at the gate), `room` (loads `room.js`), `keeps`. |
 | `room.js` | The room (9.2 x 8.4 m, 5.6 m tall: a workshop with the chalkboard, PLAN V47, the bookshelf, sticky notes and MY FIRST CLIENT, a photo of Sadie) and the machine: every part, the timeline that plays a run one step after another, the gaps, Sadie, Clyde, the speech bubble. Builds the house outside too (`house.js`). Hands the mansion its place, with a `play` on the machine (`key`, every key; `touch`, every press as a line into the room) and `house` (its front door, so the mansion joins it to the outside). `window.__clydesHouse` for the checks (`state()`, and `speed(k)` to run it faster). |
 | `house.js` | The house from outside, built into the outside's scene on its plot: walls, the storeys, the turret, the chimney's puffs, the path, mailbox, sign, bushes, and Clyde by the door (waves when you're near). Tells the outside what's solid. |
 | `machine.js` | The machine's rules, with no screen (the tests run them): the steps, the gaps, the junk, the rounds, swapping, where a run stops, what happens when it works, what's saved. |
