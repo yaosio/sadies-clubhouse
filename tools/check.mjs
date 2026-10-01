@@ -10,6 +10,11 @@
 //   npm run check -- --retest      run everything even if it already passed on this exact code
 //   npm run check -- --live <file> the live game page, saved: an activity whose code is exactly
 //                                  what that page was built from counts as having passed its tests
+//   npm run check -- --only a,b    just those activities ('clubhouse': the mansion's own checks)
+//   npm run check -- --plan        just print which activities still need checking (for GitHub)
+//
+// On GitHub (.github/workflows/check.yml) every pull request runs this too, each activity that needs
+// it on a computer of its own, all at once, remembering what passed between runs.
 //
 // Each activity is checked on its own, so a change to one never means retesting the others:
 //   - its headless tests (tests/<activity>/run.mjs) depend only on its own folder
@@ -32,7 +37,8 @@
 // Where the time goes is printed after each stage. Anything an activity's browser checks need made
 // first (Dropper World's full board) is made in the background while the headless tests run.
 //
-// Needs Playwright with Chromium (already on Claude's cloud machines; not a project dependency).
+// Needs Playwright's Chromium (already on Claude's cloud machines; `npm install` brings Playwright
+// itself, and GitHub fetches the browser).
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
@@ -43,6 +49,9 @@ import { serve } from './serve.mjs';
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
 const quick = args.includes('--quick'), preview = args.includes('--preview'), retest = args.includes('--retest');
+const valueOf = flag => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
+// --only a,b: just those activities ('clubhouse' for the mansion), as GitHub does, one per computer
+const only = valueOf('--only')?.split(','), wanted = a => !only || only.includes(a);
 const outDir = join(root, 'dist/check');
 
 let failed = 0;
@@ -71,7 +80,7 @@ function hashOf(paths) {
   paths.forEach(add);
   return h.digest('hex').slice(0, 12);
 }
-const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
+const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')) && wanted(d));
 // what an activity's tests depend on, and what its browser checks depend on besides
 // (the mansion's own headless tests: its music's, and that every sound in the game goes through the
 // sound director, so they depend on all of src/)
@@ -115,6 +124,16 @@ const testHash = Object.fromEntries([...ACTIVITIES, 'clubhouse'].map(a => [a, ha
 const browserHashes = Object.fromEntries(ACTIVITIES.map(a => [a, hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode]));
 const browserHash = a => browserHashes[a];
 const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs']) + '-' + mode;
+// --plan: just say which of them still need checking (on GitHub, so only those get a computer):
+// those whose tests or browser checks haven't passed on exactly this code
+if (args.includes('--plan')) {
+  const need = a => a === 'clubhouse'
+    ? !existsSync(note('tests', a, testHash[a])) || !existsSync(note('browser', a, clubHash))
+    : (existsSync(join(root, 'tests', a, 'run.mjs')) && !existsSync(note('tests', a, testHash[a])))
+      || (existsSync(join(root, 'tests', a, 'browser.mjs')) && !existsSync(note('browser', a, browserHash(a))));
+  console.log(JSON.stringify([...ACTIVITIES, 'clubhouse'].filter(a => wanted(a) && (retest || need(a)))));
+  process.exit(0);
+}
 const toCheck = ACTIVITIES.filter(a => existsSync(join(root, 'tests', a, 'browser.mjs')) && (retest || !existsSync(note('browser', a, browserHash(a)))));
 const suites = {}, prepared = {};
 for (const a of toCheck) {
@@ -127,9 +146,9 @@ check('code checker (npm run lint)', run('code checker', 'npx', ['eslint', '.'])
 
 // ---------- 1. each activity's headless tests (unless they passed on this exact code already) ----------
 if (!quick) {
-  const liveAt = args.indexOf('--live'), liveFile = liveAt >= 0 ? args[liveAt + 1] : null;
+  const liveFile = valueOf('--live');
   for (const a of [...ACTIVITIES, 'clubhouse']) {
-    if (!existsSync(join(root, 'tests', a, 'run.mjs'))) continue;
+    if (!existsSync(join(root, 'tests', a, 'run.mjs')) || !wanted(a)) continue;
     const hash = testHash[a];
     if (liveFile && !existsSync(note('tests', a, hash)) && !retest) {
       const why = sameAsLive(liveFile, testPaths(a));
@@ -165,40 +184,37 @@ mkdirSync(outDir, { recursive: true });
 // game files, and now and then forgets its saved storage on a reload, which real players never see)
 const server = await serve();
 const page = `http://127.0.0.1:${server.address().port}/`;
-const browser = await chromium.launch();
 
-// the mansion: it has every activity's door, so any change to anything in the page runs it again
-// (only exactly the same page, already passed, skips it)
-console.log('\n== the clubhouse in a browser');
-if (existsSync(note('browser', 'clubhouse', clubHash)) && !retest) console.log('already passed on exactly this page, not running it again');
-else {
-  const t = Date.now(), dir = join(outDir, 'clubhouse'), before = failed;
+const browser = await chromium.launch();
+async function browserChecks(name, hash, suite, extra = {}) {
+  console.log(`\n== ${name} in a browser`);
+  const t = Date.now(), dir = join(outDir, name), before = failed;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
   // (a check that gets stuck counts as failed, and the rest still run)
-  try {
-    const { default: checks } = await import(join(root, 'tests/clubhouse/browser.mjs'));
-    await checks({ browser, page, check: (name, ok, detail) => check(`clubhouse: ${name}`, ok, detail), run, hashOf, root, outDir: dir }); }
-  catch (e) { check('clubhouse: the checks ran to the end', false, e.message.split('\n')[0]); }
-  if (failed === before) passed('browser', 'clubhouse', clubHash);
+  try { await (await suite).default({ browser, page, check: (n, ok, detail) => check(`${name}: ${n}`, ok, detail), run, hashOf, root, outDir: dir, ...extra }); }
+  catch (e) { check(`${name}: the checks ran to the end`, false, e.message.split('\n')[0]); }
+  if (failed === before) passed('browser', name, hash);
   took(t);
 }
 
+// The mansion first. It has every activity's door, so any change to anything in the page runs it
+// again (only exactly the same page, already passed, skips it). It times how long each room takes
+// to build, so anything still being made in the background (Dropper World's full board) is finished
+// first: a busy computer makes those times jumpy (a room once took 241 ms against a 200 ms limit
+// only because the board was being made alongside).
+await Promise.all(Object.values(prepared));
+if (!wanted('clubhouse')) { /* not asked for (--only) */ }
+else if (existsSync(note('browser', 'clubhouse', clubHash)) && !retest) console.log('\n== the clubhouse in a browser\nalready passed on exactly this page, not running it again');
+else await browserChecks('clubhouse', clubHash, import(join(root, 'tests/clubhouse/browser.mjs')));
+
+// Then each activity's, one after another. (Side by side on one computer was tried: the hidden
+// browser draws every page on the processor, so with several at once each game runs slower, and
+// checks that let the game run for a moment then fail. GitHub runs them side by side instead, each
+// activity on a computer of its own.)
 for (const a of ACTIVITIES) {
   if (!existsSync(join(root, 'tests', a, 'browser.mjs'))) continue;
-  if (!toCheck.includes(a)) {
-    console.log(`\n== ${a} in a browser\nalready passed on exactly this code, not running it again`);
-    continue;
-  }
-  console.log(`\n== ${a} in a browser`);
-  const t = Date.now(), dir = join(outDir, a);
-  rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
-  const before = failed;
-  try {
-    await suites[a].default({ browser, page, check: (name, ok, detail) => check(`${a}: ${name}`, ok, detail), run, hashOf, root, outDir: dir,
-      prepared: await prepared[a] });
-  } catch (e) { check(`${a}: the checks ran to the end`, false, e.message.split('\n')[0]); }
-  if (failed === before) passed('browser', a, browserHash(a));
-  took(t);
+  if (toCheck.includes(a)) await browserChecks(a, browserHash(a), suites[a], { prepared: await prepared[a] });
+  else console.log(`\n== ${a} in a browser\nalready passed on exactly this code, not running it again`);
 }
 await browser.close();
 server.close();

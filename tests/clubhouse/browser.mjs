@@ -13,6 +13,7 @@
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
+import { walk as walkFor } from '../shared/browser.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 
@@ -32,7 +33,7 @@ export default async function ({ browser, page, check, outDir }) {
     const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
     const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
     const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
-    const walk = async ms => { await p.keyboard.down('KeyW'); await p.waitForTimeout(ms); await p.keyboard.up('KeyW'); await p.waitForTimeout(100); };
+    const walk = ms => walkFor(p, ms);
 
     await p.goto(page);
     const opened = await up();
@@ -172,7 +173,7 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(350);
     const rebuilt = await p.waitForFunction(() => window.__mansion.looking() === 'room:aquarium' && window.__mansion.built().includes('room:aquarium'), null, { timeout: 5000 }).then(() => true, () => false);
     await shot('4c-built-again');
-    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt);
+    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:aquarium') }));
     const k2 = (await M('speed')).kept;
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
     // Every room keeps the sound rules (src/shared/sound.js): none of its music is heard once you've
