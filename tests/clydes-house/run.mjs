@@ -3,7 +3,7 @@
 // sound (sounds/). Run in Node, seeded, in well under a second.
 //
 //   node tests/clydes-house/run.mjs
-import { makeMachine, newRound, missing, partIn, swap, run, won, works, saveOf, STEPS, GAPS, JUNK, NAMES, ROUNDS, OPTIONS, MOST } from '../../src/activities/clydes-house/machine.js';
+import { makeMachine, missing, partIn, swap, run, won, works, saveOf, STEPS, GAPS, JUNK, NAMES, ROUNDS, OPTIONS, MOST } from '../../src/activities/clydes-house/machine.js';
 import * as L from '../../src/activities/clydes-house/lines.js';
 import { wrap, LINE } from '../../src/activities/clydes-house/art.js';
 import { RATE } from '../../src/activities/clydes-house/sounds/synth.js';

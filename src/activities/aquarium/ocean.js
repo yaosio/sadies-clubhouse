@@ -14,7 +14,7 @@
 // Everything in the sea is in sea coordinates (chart.js), inside `sea`, a group the room puts where
 // this trip's boat lines up with the tank. Heights in the room's terms: the surface is SURFACE.
 import { Scene, Color, Mesh, Group, PlaneGeometry, DoubleSide, BackSide, SphereGeometry } from 'three';
-import { SPOTS, START, REEF_R, SEA_R, DECK, loom, reefOpen, sailable, findHere, MT } from './chart.js';
+import { SPOTS, START, REEF_R, SEA_R, loom, reefOpen, sailable, findHere, MT } from './chart.js';
 import { T0 } from './tank.js';
 import { px, dot, oval, findPics } from './pictures.js';
 
@@ -27,7 +27,7 @@ export function buildOcean(m, copyOf) {
   const scene = new Scene(); scene.background = new Color(UNDERWATER);
   const faces = [];   // (flat things that turn to face you: turned here, not by the mansion, since the sea moves about)
   const sea = new Group(); scene.add(sea);
-  const { add, box, plane, cyl, ball, cone } = kit(sea);
+  const { plane, cyl } = kit(sea);
   const solid = (tint, o = {}) => psx(null, { tint, ...o });
   const pics = findPics(tex, C);
 
@@ -274,7 +274,7 @@ export function buildOcean(m, copyOf) {
   // ---------- keeping it all up to date ----------
   let found = [], openedAt = -1e9, note = null, noteUntil = 0;
   // put everything as it should be for what you've found (at the start of a trip, and as you find things)
-  function show(list, t = 0) {
+  function show(list) {
     found = list.slice();
     for (const s of SPOTS) {
       const got = found.includes(s.id);
@@ -293,14 +293,13 @@ export function buildOcean(m, copyOf) {
   function take(id, t) {
     const wasOpen = reefOpen(found);
     if (!wasOpen && reefOpen([...found, id])) openedAt = t;   // (the fifth: the reef sinks, over a few seconds)
-    show([...found, id], t);
+    show([...found, id]);
     const s = SPOTS.find(q => q.id === id);
     say(`GOT ${s.name}!`, t, 3.5);
   }
   function say(text, t, secs) { note = text; noteUntil = t + secs; }
 
   function sign(t) {
-    const left = 5 - found.filter(id => id !== 'mountain').length;
     if (note && t < noteUntil) return [note, false];
     if (found.includes('mountain')) return ['ALL 6 FOUND!', false];
     if (reefOpen(found)) return ['GO TO THE MOUNTAIN!', true];

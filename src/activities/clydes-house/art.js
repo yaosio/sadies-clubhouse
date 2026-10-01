@@ -130,7 +130,7 @@ export function drawArt({ tex, words, C }) {
   A.window = tex(16, 20, g => { rect(g, K.edge, 0, 0, 16, 20); rect(g, '#fff4e4', 1, 1, 14, 18); rect(g, '#60c8f8', 2, 2, 12, 16); dith(g, '#60c8f8', '#fff08a', 2, 10, 12, 8, 0.4); rect(g, '#fff4e4', 7, 2, 2, 16); rect(g, '#fff4e4', 2, 9, 12, 2); rect(g, C.pink, 1, 17, 14, 2); });
   const board = (w, h, lines, bg = '#fff4e4') => tex(w, h, g => {
     rect(g, K.edge, 0, 0, w, h); rect(g, bg, 1, 1, w - 2, h - 2); rect(g, K.body, 1, 1, w - 2, 2); rect(g, K.body, 1, h - 3, w - 2, 2);
-    const n = lines.length, lh = lines.map(l => (l[1] || 1) * 5 + 2), tot = lh.reduce((a, b) => a + b, 0) - 2;
+    const lh = lines.map(l => (l[1] || 1) * 5 + 2), tot = lh.reduce((a, b) => a + b, 0) - 2;
     let y = Math.round((h - tot) / 2);
     lines.forEach(([text, s = 1, col = C.ink], i) => { words(g, text, w / 2, y, s, col, { align: 'center' }); y += lh[i]; });
   });

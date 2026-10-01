@@ -14,8 +14,8 @@
 //
 // The mansion calls buildRoom(m) with its building kit, and with the outside and this activity's
 // plot on it (its card has a `lot`), so the house outside is built here too (house.js).
-import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, BoxGeometry, CylinderGeometry, SphereGeometry, TorusGeometry, ConeGeometry, DoubleSide } from 'three';
-import { drawArt, K } from './art.js';
+import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, BoxGeometry, SphereGeometry, TorusGeometry, ConeGeometry, DoubleSide } from 'three';
+import { drawArt } from './art.js';
 import { buildHouse, DW, DH } from './house.js';
 import { makeMachine, saveOf, missing, partIn, swap, run, won, GAPS } from './machine.js';
 import * as L from './lines.js';
@@ -363,8 +363,7 @@ export async function buildRoom(m) {
     if (r.lit) j.material.uniforms.map.value = r.lit(k) ? A.lit : A.junk[react.part];
     if (r.sadie) naps = !r.sadie(k);
   }
-  let puffT = 0;
-  function puffAt(t, u, v, z = MZ + 0.15) { const p = t === A.heart ? heart : puff; p.material.uniforms.map.value = t; p.position.set(u, v, z); p.userData.t = 0; puffT = 0; }
+  function puffAt(t, u, v, z = MZ + 0.15) { const p = t === A.heart ? heart : puff; p.material.uniforms.map.value = t; p.position.set(u, v, z); p.userData.t = 0; }
 
   function afterWin(what) {
     step(0.7, k => { sadie.position.set(lerp(BOWL[0] + 0.45, BASKET[0], k), 0.12 * k, MZ + lerp(BOWL[1] + 0.12, BASKET[1], k)); sadie.scale.x = -1; });

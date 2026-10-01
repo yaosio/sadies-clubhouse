@@ -39,6 +39,7 @@ export function buildOutside(T, cards = []) {
   const taken = new Set(cards.filter(c => Number.isInteger(c.lot)).map(c => c.lot));
   const free = LOTS.find((_, i) => !taken.has(i));
 
+  // eslint-disable-next-line no-unused-vars -- (kept for the buildings going up along the lane)
   const stucco = (w, h) => psx(T.stucco, { rx: w / 1.5, ry: h / 1.5 });
   // A wall's own picture with its windows painted in: `base` tiled (one tile every `tile` metres) over
   // w x h metres, and each window { t, u, y, w, h } (u: its middle across, 0-1, wrapping round; y:

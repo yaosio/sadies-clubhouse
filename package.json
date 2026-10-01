@@ -8,10 +8,14 @@
     "build": "node tools/build.mjs",
     "check": "node tools/check.mjs",
     "test": "node tests/run.mjs",
-    "unpack": "node tools/unpack.mjs"
+    "unpack": "node tools/unpack.mjs",
+    "lint": "eslint ."
   },
   "devDependencies": {
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "globals": "^17.0.0"
   },
   "dependencies": {
     "three": "0.186.1"
