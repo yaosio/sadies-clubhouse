@@ -72,7 +72,7 @@ SHH, she goes and sits beside one instead, silently, offended, then goes back to
 | File | What it does |
 |---|---|
 | `card.js` | Its card: no page and no `start()`, just `room` (loads `room.js`), `door`, `slot` 3, `keeps`. |
-| `room.js` | The room (12 x 10 m, 4.6 m tall), every instrument, Sadie drawn where `sadie.js` has her, the notes floating up off whatever's played, the chimes, the dial and the sign. Hands the mansion its place: a `play` on each instrument (`view` with `down`, looking down on it; `key` and `touch`, see `docs/clubhouse/ARCHITECTURE.md`) and an `act` on the dial and the sign. `window.__musicRoom` for the checks (`sadieNow` sends her off). |
+| `room.js` | The room (12 x 10 m, 4.6 m tall), every instrument, Sadie drawn where `sadie.js` has her, the notes floating up off whatever's played, the chimes, the dial and the sign. Hands the mansion its place: a `play` on each instrument (`view` with `down`, looking down on it; `key` and `touch`, see `docs/clubhouse/ROOMS.md`) and an `act` on the dial and the sign. `window.__musicRoom` for the checks (`sadieNow` sends her off). |
 | `art.js` | Its pictures, drawn when it opens (from the mock-up), and the ones drawn again as things change: the lit keys, the synth's screen, the tape deck's buttons and reels, the dial, the sign. |
 | `layout.js` | Which computer key plays what, and which key is where on the keyboards' picture (for presses). |
 | `sadie.js` | Sadie, with no screen (the tests run it): when she goes, where, her steps and notes, napping, sulking, hopping off. `FAVOURITES` and `TIMING` are her numbers. |

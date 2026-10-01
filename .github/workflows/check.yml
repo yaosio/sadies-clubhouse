@@ -1,8 +1,10 @@
-# The game's checks on GitHub, on every pull request and on main: `npm run check` (docs/clubhouse/ARCHITECTURE.md),
+# The game's checks on GitHub, on every pull request and on main: `npm run check` (docs/clubhouse/CHECKS.md),
 # split up so each activity (and the mansion) gets a computer of its own, all at the same time.
 #
-#   plan      which activities still need checking: an activity that already passed on exactly
-#             its code (remembered between runs) is skipped, as on Claude's own machine
+#   plan      the docs every change reads are short (tools/docs.mjs, on every pull request, even
+#             one that only changes docs), and which activities still need checking: an
+#             activity that already passed on exactly its code (remembered between runs) is
+#             skipped, as on Claude's own machine
 #   check     one computer per activity that needs it: `npm run check -- --only <activity>`
 #   remember  saves what passed for next time, and is the one tick (or cross) for the whole lot
 name: check
@@ -33,6 +35,7 @@ jobs:
           path: dist/*-passed-*
           key: passed-${{ github.sha }}
           restore-keys: passed-
+      - run: node tools/docs.mjs
       - id: plan
         run: echo "todo=$(node tools/check.mjs --plan)" >> "$GITHUB_OUTPUT"
 
