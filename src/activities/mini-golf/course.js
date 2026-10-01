@@ -15,7 +15,7 @@ export const S = 0.075;    // metres per plan unit
 export const HS = 0.32;    // metres per height unit
 export const DT = 1 / 120; // one step of the ball (s)
 export const R = 1.0;      // the ball's radius (plan units)
-export const PIN_R = 1.6;  // a pin's (plan units)
+export const PIN_R = 3;    // a pin's (plan units: big, so they're easy to hit)
 export const VMIN = 10, VMAX = 125;   // how fast a putt sends the ball, softest to hardest (units a second)
 const G = 7 / S;           // gravity on a rolling ball, in plan units (5/7 of 9.8 m/s²)
 const H2U = HS / S;        // a height unit, in plan units
@@ -295,9 +295,15 @@ function enterTunnel(pl, ev) {
 
 // A whole shot from where the ball is: putt, and step until it's done. Hands back everything that
 // happened, and the ball's path (every few steps).
-export function playShot(pl, [angle, power, clock]) {
+// A recorded shot, [angle, power, clock], hit now: the course's clock set to the shot's first, so
+// whatever moves is just where it was when the shot was recorded (or it goes another way). The
+// game hits Sadie's trick shot with this too, so it goes exactly as it does in the checks.
+export function hit(pl, [angle, power, clock]) {
   if (clock !== undefined) pl.clock = clock;
-  const events = [...putt(pl, angle, power)], path = [[pl.ball.x, pl.ball.y]];
+  return putt(pl, angle, power);
+}
+export function playShot(pl, shot) {
+  const events = [...hit(pl, shot)], path = [[pl.ball.x, pl.ball.y]];
   let n = 0;
   while (pl.ball.moving && !pl.sunk) {
     for (const e of step(pl)) events.push({ ...e, t: pl.shotTime });

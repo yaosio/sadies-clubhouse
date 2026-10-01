@@ -2,22 +2,25 @@
 
 Three holes of mini golf out in the backyard behind Sadie's clubhouse (`src/activities/mini-golf/`).
 The owner asked for it on 2026-10-01, and designed most of its rules. It's in the grounds' second
-spot (`grounds` 1: `GROUNDS` in `src/clubhouse/outside.js`), the backyard, which was made bigger for
-it (the back fence moved from 30 m to 44 m behind the gate).
+spot (`grounds` 1: `GROUNDS` in `src/clubhouse/outside.js`), the backyard. The holes are close to the
+house with their tees by it (along the backyard's path and the patio), so you walk out the back and
+play them facing the back fence (the owner's ask, after a first go that put them at the far end of
+a bigger backyard, far apart).
 
 **The holes**, on painted plywood plinths with low pink walls, all hills and drops:
-1. **The Doughnut** (par 4), at the back on the left: a raised tee, a chute down into a round bowl
+1. **The Doughnut** (par 4), on the far left: a raised tee, a chute down into a round bowl
    with the hole in the middle and a banked rim round it, where a garden gnome rolls laps the other
    way and knocks the ball down towards the hole.
-2. **The Bridge** (par 4), at the back in the middle: a wooden bridge up to a high terrace at the
+2. **The Bridge** (par 4), left of the bird bath: a wooden bridge up to a high terrace at the
    far end, over the hole, and a sprinkler that sweeps round and pushes the ball along.
-3. **Sadie's Tail** (par 5), by Sadie's bench: a lower lawn, two ramps up to a raised green, a cat
+3. **Sadie's Tail** (par 5), right of the patio, backing onto Sadie's bench: a lower lawn, two ramps up to a raised green, a cat
    flap tunnel through the bank between them, and Sadie's very long tail hanging off her bench and
    sweeping across the right-hand ramp, batting the ball up it.
 
 **Playing**: walk up to a tee and press E (PLAY on a phone). The view drops in behind the ball.
 Aim with A and D (or the arrows) and hold Space to pull back; let go to putt. Or drag back from the
-ball (mouse or finger) like a slingshot and let go. How hard is Sadie's tail, bottom left, puffing
+ball (mouse or finger) like a slingshot and let go. The dots show where the ball will really go for
+the first stretch (round the slopes, off the walls), further the harder you pull. How hard is Sadie's tail, bottom left, puffing
 up the harder you pull. The club is something silly: a fish, a spoon, a stuffed sock. A big hit
 goes BONK. Esc (STEP BACK on a phone) walks away.
 
@@ -32,6 +35,10 @@ one). You only see the ball, never how she aimed or how hard. Pull it off yourse
 TRICK SHOT!!! and a fanfare, and the score board remembers.
 
 ## Design pillars (these win over any feature idea)
+
+- **Easy to play, hard to master.** The owner found the first version far too hard (they couldn't
+  knock down all three pins on hole 2), so: big pins (a ball within 30 cm of one blasts it), a small
+  grab ring, gentle hills, and the aim dots that follow the slopes. The trick shot stays hard.
 
 - **The pins are round and past the hole, never just in front of it** (the owner's complaint about
   the first layouts): a hole where knocking the pins over is trivial and the hole's an afterthought
@@ -58,7 +65,8 @@ TRICK SHOT!!! and a fanfare, and the score board remembers.
 - `holes/`: one data file per hole: its shape (circles and rectangles), its hills (bumps, bowls,
   rims, slopes), tee, hole, how far the tentacles reach, what moves, the pins, the recorded shots
   (`normal`: one pin a shot, then in; `trick`: all three in one), and where it is in the backyard
-  (`at`, `flip`: hole 3 is mirrored so the tail's on the bench side). A new hole is a new file.
+  (`at`, `flipX`, `flipZ`: every hole is turned end to end so its tee's nearest the house, and
+  hole 3 is also mirrored so the tail's on the bench side). A new hole is a new file.
 - `tools/mini-golf/design.mjs`: works out a hole's trick shot and pins (from the shots), then the
   way round. It searches a fixed grid of aims, strengths and clocks, so it always finishes. Run it
   after changing a hole's shape or hills, and paste what it prints into the hole's file.
@@ -67,7 +75,10 @@ TRICK SHOT!!! and a fanfare, and the score board remembers.
   once and kept (`house`: the mansion hands it back when the room's built again); the room itself has
   no doors and is just a name. Each tee is a `play` in the outside's `uses`: the view follows the
   ball, the controls are its `key` and `touch`, and `over` steps you back once Sadie's replay is
-  done. The pause menu stops and restarts a hole without starting it over. The best scores are saved
+  done. Sadie's replay hits her shot with `hit()`, the same as the checks (it sets the course's
+  clock to the shot's, so the gnome, sprinkler and tail are where they were when it was recorded:
+  the first version waited a moment first, so on hole 1 the gnome had moved and she missed a pin).
+  The pause menu stops and restarts a hole without starting it over. The best scores are saved
   under `sadies-clubhouse.mini-golf.best`.
 
 Checks: `tests/mini-golf/run.mjs` (every recorded route and trick shot, the pin rules, the
@@ -76,5 +87,5 @@ backyard as a phone and a desktop).
 
 ## Parked ideas
 
-- More holes (a fourth spot is free at the back on the right).
+- More holes (there's room further back in the backyard).
 - A full 18, a scorecard you can print, a windmill.

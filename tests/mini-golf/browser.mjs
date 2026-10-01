@@ -4,9 +4,9 @@
 //
 // It walks up to each tee and plays: a putt of its own (holding Space on the desktop; dragging back
 // on the phone), the pause menu (the hole carries on after it), stepping back (the hole starts
-// over), then Sadie's trick shot on every hole (all three pins in one, and in), and on the first hole
-// the recorded way round, shot by shot, to the end: the score saved, and Sadie's replay watched to
-// the end, which steps you back. Screenshots in dist/check/mini-golf/. Any error on the page fails.
+// over), then Sadie's trick shot on every hole (all three pins in one, and in), with her replay of it
+// after the hole watched to the end (all three pins and in again, and you're stepped back), and on
+// the first hole the recorded way round, shot by shot: the score saved. Screenshots in dist/check/mini-golf/. Any error on the page fails.
 import { bothDevices } from '../shared/browser.mjs';
 import { HOLES } from '../../src/activities/mini-golf/holes/index.js';
 
@@ -23,10 +23,10 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the mini golf is built in the backyard`, await p.waitForFunction(() => window.__golf, null, { timeout: 10000 }).then(() => true, () => false));
 
     // the backyard, bigger now, with the three holes in it
-    await M('put', 'outside', { x: -2, z: 24, yaw: Math.PI - 0.5, pitch: -0.2 });
+    await M('put', 'outside', { x: 0, z: 11.6, yaw: Math.PI + 0.55, pitch: -0.25 });
     await p.waitForTimeout(500);
     await shot('1-backyard');
-    await M('put', 'outside', { x: 1.5, z: 13.5, yaw: Math.atan2(-7.8, -3.5), pitch: -0.3 });
+    await M('put', 'outside', { x: 2.5, z: 12, yaw: Math.atan2(-7.3, -6), pitch: -0.3 });
     await p.waitForTimeout(400);
     await shot('2-tail-hole');
 
@@ -77,8 +77,15 @@ export default async function ({ browser, page, check, outDir }) {
       h = await hole(i);
       check(`${device}: hole ${i + 1}: the trick shot BLASTS all three pins, and goes in`, sunk && h.strokes === 1 && h.pins.every(p => !p), JSON.stringify(h));
       if (i === 0) await shot('5-trick-shot');
-      if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape');
-      await modeIs('play'); await p.waitForTimeout(200);
+      // then Sadie shows hers (the ball only): just what the checks replay, all three pins and in.
+      // Once it's done you're stepped back, and the hole's as it was
+      const replay = await waitFor(i, 'h.replay', 8000);
+      if (i === 0) { await p.waitForTimeout(2500); await shot('7-sadies-replay'); }
+      const back = await p.waitForFunction(() => window.__mansion.mode() === 'play', null, { timeout: 40000 }).then(() => true, () => false);
+      h = await hole(i);
+      check(`${device}: hole ${i + 1}: ...then Sadie's replay of it knocks all three pins and goes in, just as it should`, replay && h.sadie && h.sadie.blasts === 3 && h.sadie.sunk, JSON.stringify(h.sadie));
+      check(`${device}: hole ${i + 1}: ...and once it's done you step back, and the hole's as it was`, back && h.phase === 'idle' && h.strokes === 0, JSON.stringify(h));
+      await p.waitForTimeout(200);
     }
     const best = await p.evaluate(k => JSON.parse(localStorage.getItem(k) || 'null'), KEY);
     check(`${device}: ...and the best scores are kept (holes in one, and the trick shot)`, best && HOLES.every(h => best.holes[h.id] === 1) && best.trick, JSON.stringify(best));
@@ -93,19 +100,14 @@ export default async function ({ browser, page, check, outDir }) {
     }
     h = await hole(0);
     check(`${device}: the first hole's way round: a pin a shot, then in`, h.sunk && h.strokes === HOLES[0].shots.normal.length, JSON.stringify(h));
-    // then Sadie shows her trick shot (the ball only), and once it's done you're stepped back
-    const replay = await waitFor(0, 'h.replay', 8000);
-    await p.waitForTimeout(2500);
-    await shot('7-sadies-replay');
-    check(`${device}: ...then Sadie shows off her trick shot`, replay);
-    const back = await p.waitForFunction(() => window.__mansion.mode() === 'play', null, { timeout: 30000 }).then(() => true, () => false);
-    h = await hole(0);
-    check(`${device}: ...and when it's done you step back, and the hole's as it was`, back && h.phase === 'idle' && h.strokes === 0, JSON.stringify(h));
+    // (stepping back straight away, without watching Sadie)
+    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape');
+    await modeIs('play'); await p.waitForTimeout(300);
     const best2 = await p.evaluate(k => JSON.parse(localStorage.getItem(k) || 'null'), KEY);
     check(`${device}: ...the hole in one still the best score kept`, best2?.holes?.doughnut === 1, JSON.stringify(best2));
 
     // the score board by the patio
-    await M('put', 'outside', { x: -6.5, z: 12.6, yaw: Math.PI, pitch: 0.15 });
+    await M('put', 'outside', { x: -2.2, z: 13.8, yaw: Math.PI, pitch: 0.15 });
     await p.waitForTimeout(2500);
     await shot('8-score-board');
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));

@@ -10,13 +10,16 @@ const ST = 1.25;   // the green's squares (plan units)
 
 // where a spot on a hole's plan is in the backyard
 export function placer(hole) {
-  const at = hole.at, f = at.flip ? -1 : 1, [lo] = heightRange(hole);
+  const at = hole.at, f = at.flipX ? -1 : 1, fz = at.flipZ ? -1 : 1, [lo] = heightRange(hole);
   const lift = 0.1 + Math.max(0, -lo * HS);
   return {
-    f, lift,
-    x: u => at.x + f * u * S, z: v => at.z + v * S, y: h => lift + h * HS,
+    f, fz, lift,
+    x: u => at.x + f * u * S, z: v => at.z + fz * v * S, y: h => lift + h * HS,
     // the ground at a spot, in the backyard
-    at: (u, v, up = 0) => [at.x + f * u * S, lift + height(hole, u, v) * HS + up, at.z + v * S],
+    at: (u, v, up = 0) => [at.x + f * u * S, lift + height(hole, u, v) * HS + up, at.z + fz * v * S],
+    // a way in the plan (radians) as a direction in the backyard, and back again
+    dir: a => [f * Math.cos(a), fz * Math.sin(a)],
+    angle: (dx, dz) => Math.atan2(fz * dz, f * dx),
   };
 }
 
@@ -32,8 +35,8 @@ export function buildHole(m, hole, A, n) {
   const nx = Math.ceil(100 / ST), ny = Math.ceil(140 / ST);
   const on = (i, j) => i >= 0 && j >= 0 && i < nx && j < ny && [[0, 0], [1, 0], [0, 1], [1, 1]].every(([a, b]) => edge(hole, (i + a) * ST, (j + b) * ST) <= 0);
   const turf = [[], []], turfUv = [[], []], walls = [], wallUv = [], base = [], baseUv = [];
-  // (flipped left to right, every triangle's corners go round the other way: swapped back)
-  const tri = (out, uv, a, b, c) => { for (const p of P.f < 0 ? [a, c, b] : [a, b, c]) { out.push(p[0], p[1], p[2]); uv.push(p[3], p[4]); } };
+  // (flipped one way, every triangle's corners go round the other way: swapped back)
+  const tri = (out, uv, a, b, c) => { for (const p of P.f * P.fz < 0 ? [a, c, b] : [a, b, c]) { out.push(p[0], p[1], p[2]); uv.push(p[3], p[4]); } };
   const top = (u, v) => { const p = P.at(u, v); return [...p, p[0] / 1.2, p[2] / 1.2]; };
   function side(u0, v0, u1, v1) {
     const a = P.at(u0, v0), b = P.at(u1, v1), len = Math.hypot(b[0] - a[0], b[2] - a[2]);
@@ -69,13 +72,13 @@ export function buildHole(m, hole, A, n) {
   const tn = hole.tunnel;
   if (tn) {
     const x0 = P.x(26), x1 = P.x(62), z0 = P.z(50), z1 = P.z(92), top3 = P.y(height(hole, 44, 49));
-    const bank = box(Math.abs(x1 - x0), top3, z1 - z0, mat.plinth, [(x0 + x1) / 2, top3 / 2, (z0 + z1) / 2]);
+    const bank = box(Math.abs(x1 - x0), top3, Math.abs(z1 - z0), mat.plinth, [(x0 + x1) / 2, top3 / 2, (z0 + z1) / 2]);
     bank.material = mat.plinth;
-    const lid = new Mesh(keep(new PlaneGeometry(Math.abs(x1 - x0), z1 - z0)), mat.grass); lid.rotation.x = -Math.PI / 2; lid.position.set((x0 + x1) / 2, top3 + 0.005, (z0 + z1) / 2); g.add(lid);
+    const lid = new Mesh(keep(new PlaneGeometry(Math.abs(x1 - x0), Math.abs(z1 - z0))), mat.grass); lid.rotation.x = -Math.PI / 2; lid.position.set((x0 + x1) / 2, top3 + 0.005, (z0 + z1) / 2); g.add(lid);
     const [mx, my, mz] = P.at(tn.mouth[0], tn.mouth[1] + 1.5);
-    box(0.5, 0.36, 0.06, mat.ink, [mx, my + 0.16, P.z(92) + 0.02]);
-    box(0.42, 0.3, 0.07, mat.dark, [mx, my + 0.15, P.z(92) + 0.025]);
-    box(0.42, 0.14, 0.08, mat.flap, [mx, my + 0.24, P.z(92) + 0.03]);
+    box(0.5, 0.36, 0.06, mat.ink, [mx, my + 0.16, P.z(92) + P.fz * 0.02]);
+    box(0.42, 0.3, 0.07, mat.dark, [mx, my + 0.15, P.z(92) + P.fz * 0.025]);
+    box(0.42, 0.14, 0.08, mat.flap, [mx, my + 0.24, P.z(92) + P.fz * 0.03]);
     const out = new Mesh(keep(new CircleGeometry(0.2, 10)), mat.dark); out.rotation.x = -Math.PI / 2;
     out.position.set(...P.at(tn.out[0], tn.out[1] - 1, 0.012)); g.add(out);
   }
@@ -85,8 +88,10 @@ export function buildHole(m, hole, A, n) {
   if (br) {
     const xm = P.x((br.x0 + br.x1) / 2), w = (br.x1 - br.x0) * S;
     const a = [P.z(br.yLow), P.y(br.hLow)], b = [P.z(br.yHigh), P.y(br.hHigh)];
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]), tilt = Math.atan2(b[1] - a[1], a[0] - b[0]);
-    const deck = new Group(); deck.position.set(xm, (a[1] + b[1]) / 2, (a[0] + b[0]) / 2); deck.rotation.x = tilt; g.add(deck);
+    // (along its length from the high end to the low, tipped down that way; turned round if the hole is)
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]), tilt = Math.atan2(b[1] - a[1], Math.abs(a[0] - b[0]));
+    const deck = new Group(); deck.position.set(xm, (a[1] + b[1]) / 2, (a[0] + b[0]) / 2); deck.rotation.order = 'YXZ';
+    deck.rotation.set(tilt, a[0] < b[0] ? Math.PI : 0, 0); g.add(deck);
     const plank = (ww, hh, dd, mt, x, y) => { const o = new Mesh(keep(new BoxGeometry(ww, hh, dd)), mt); o.position.set(x, y, 0); deck.add(o); };
     plank(w, 0.05, len, mat.wood, 0, -0.025);
     for (const s of [-1, 1]) { plank(0.05, 0.05, len, mat.wood, s * (w / 2 - 0.03), 0.22); plank(0.04, 0.04, len, mat.ink, s * (w / 2 - 0.03), 0.1); }
@@ -133,6 +138,7 @@ export function buildHole(m, hole, A, n) {
     const part = (geo, mt, y, x = 0) => { const q = new Mesh(geo, mt); q.position.set(x, y, 0); o.add(q); };
     part(pinGeo.body, mat.white, 0.1); part(pinGeo.head, mat.white, 0.24); part(pinGeo.band, mat.red, 0.16);
     part(pinGeo.ear, mat.ink, 0.295, -0.025); part(pinGeo.ear, mat.ink, 0.295, 0.025);
+    o.scale.setScalar(1.7);   // (chunky: easy to hit)
     o.position.set(...P.at(...p)); o.userData.home = o.position.clone(); g.add(o);
     return o;
   });

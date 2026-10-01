@@ -3,7 +3,7 @@
 //
 //   node tests/mini-golf/run.mjs
 import { HOLES } from '../../src/activities/mini-golf/holes/index.js';
-import { newPlay, playShot, playRoute, edge, inside, height, pinsLeft, R, VMAX } from '../../src/activities/mini-golf/course.js';
+import { newPlay, playShot, playRoute, hit, step, edge, inside, height, pinsLeft, R, VMAX } from '../../src/activities/mini-golf/course.js';
 import { ALL } from '../../src/activities/mini-golf/sounds.js';
 import { scoreName, withScore, KEY } from '../../src/activities/mini-golf/room.js';
 import card from '../../src/activities/mini-golf/card.js';
@@ -31,6 +31,13 @@ for (const hole of HOLES) {
   check(`${h}: the trick shot blasts all three pins in one go`, blasts(first).length === 3 && blasts(first).some(e => e.trick) && !grabbed(first));
   check(`${h}: ...and goes in: a hole in one`, trick.pl.sunk && trick.pl.strokes === 1);
   check(`${h}: ...off at least one wall on the way (it's a trick shot)`, first.events.some(e => e.type === 'wall'));
+  // Sadie shows it after the hole the way the game does: the course runs on a while first, then
+  // she hits it (with hit(), which puts the clock back to the shot's). It must go just the same.
+  const rp = newPlay(hole); rp.clock = hole.shots.trick[0][2] - 1.2;
+  for (let k = 0; k < 150; k++) step(rp);
+  const seen = [...hit(rp, hole.shots.trick[0])];
+  for (let k = 0; k < 120 * 31 && rp.ball.moving && !rp.sunk; k++) seen.push(...step(rp));
+  check(`${h}: ...and Sadie's replay of it after the hole goes just the same (all three pins, and in)`, seen.filter(e => e.type === 'blast').length === 3 && rp.sunk);
 
   // the pins: spread round the hole (the owner's rules), clear of the tentacles
   const p = hole.pins, zones = p.map(q => hole.zone(...q));
@@ -97,8 +104,11 @@ check('...and only the best one is kept', b1.holes.doughnut === 5 && b2.holes.do
 check('the card puts it in the backyard, and START OVER can erase its scores', card.grounds === 1 && GROUNDS[1] && card.keeps.some(k => KEY.startsWith(k)) && card.room);
 // (each hole fits in the backyard: inside the fence, behind the house)
 for (const hole of HOLES) {
-  const f = hole.at.flip ? -1 : 1, xs = [hole.at.x, hole.at.x + f * 100 * 0.075], zs = [hole.at.z, hole.at.z + 140 * 0.075];
-  check(`${hole.id}: fits in the backyard`, Math.min(...xs) > -28.5 && Math.max(...xs) < 28.5 && Math.min(...zs) > 10.5 && Math.max(...zs) < 43.5, `x ${xs.map(v => v.toFixed(1))}, z ${zs.map(v => v.toFixed(1))}`);
+  const f = hole.at.flipX ? -1 : 1, fz = hole.at.flipZ ? -1 : 1, xs = [hole.at.x, hole.at.x + f * 100 * 0.075], zs = [hole.at.z, hole.at.z + fz * 140 * 0.075];
+  check(`${hole.id}: fits in the backyard`, Math.min(...xs) > -28.5 && Math.max(...xs) < 28.5 && Math.min(...zs) > 10.5 && Math.max(...zs) < 29.5, `x ${xs.map(v => v.toFixed(1))}, z ${zs.map(v => v.toFixed(1))}`);
+  // (its tee's at the end nearest the house, so you play it facing away from the house)
+  const teeZ = hole.at.z + fz * hole.tee[1] * 0.075, cupZ = hole.at.z + fz * hole.cup[1] * 0.075;
+  check(`${hole.id}: its tee is on the house's side`, teeZ < cupZ && teeZ < 15, `tee at z ${teeZ.toFixed(1)}, hole at ${cupZ.toFixed(1)}`);
 }
 
 console.log(failed ? `\n${failed} FAILED` : '\nall passed');

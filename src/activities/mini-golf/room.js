@@ -17,14 +17,15 @@ import { HOLES } from './holes/index.js';
 import { buildHole } from './build.js';
 import { drawArt } from './art.js';
 import { makeSounds } from './sounds.js';
-import { newPlay, putt, step, pinsLeft, ballHeight, moverAt, edge, height, DT, S, R } from './course.js';
+import { newPlay, putt, hit, step, pinsLeft, ballHeight, moverAt, edge, height, DT, S, R } from './course.js';
 import { soundsFor } from '../../shared/sound.js';
 import { store } from '../../shared/storage.js';
 
 export const KEY = 'sadies-clubhouse.mini-golf.best';
-const BOARD = { x: -6.5, z: 14.4 };   // the score board, by the patio
+const BOARD = { x: -2.2, z: 16 };     // the score board, at the back of the patio
 const PULL = 1.2;                     // metres of pull back (dragging) for the hardest putt
 const CHARGE = 1.3;                   // seconds of holding Space for the hardest putt
+const WAIT = 1.2;                     // seconds Sadie waits before her trick shot
 
 export async function buildRoom(m) {
   const house = m.house || await buildCourse(m);
@@ -90,7 +91,7 @@ async function buildCourse(m) {
       x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z);
     }
     outside.block(x0, x1, z0, z1);
-    games.push(makeGame(i, hole, parts, z1));
+    games.push(makeGame(i, hole, parts, parts.P.fz > 0 ? z1 : z0));
     await m.breathe?.();
   }
 
@@ -108,11 +109,11 @@ async function buildCourse(m) {
     const world = (u, v, up = 0) => new Vector3(...P.at(u, v, up));
     const ballAt = pl => { const b = pl.ball; return new Vector3(P.x(b.x), P.y(ballHeight(pl)) + R * S, P.z(b.y)); };
     // which way you're aiming, in the plan (from the view's yaw: forward is (-sin, -cos))
-    const planAngle = yaw => Math.atan2(-Math.cos(yaw), P.f * -Math.sin(yaw));
-    const yawOf = a => Math.atan2(-P.f * Math.cos(a), -Math.sin(a));
+    const planAngle = yaw => P.angle(-Math.sin(yaw), -Math.cos(yaw));
+    const yawOf = a => { const [dx, dz] = P.dir(a); return Math.atan2(-dx, -dz); };
     const tee = world(...hole.tee);
     // where you stand to play it: behind the tee, off the green
-    const stand = { x: tee.x, z: back + 0.6, yaw: 0, pitch: 0 };
+    const stand = { x: tee.x, z: back + P.fz * 0.6, yaw: P.fz > 0 ? 0 : Math.PI, pitch: 0 };
 
     // the view: drops in behind the ball, looking the way you aim (eased, so it never jumps)
     const view = { center: tee.clone(), normal: new Vector3(0, 0, 1), w: 2.4, h: 1.7, down: 0.5 };
@@ -123,7 +124,7 @@ async function buildCourse(m) {
       if (g.phase === 'done' || g.phase === 'replay' || g.phase === 'ended') {
         // looking down over the whole hole, from the tee's end
         want.center.copy(world(50, 70)); want.center.y = P.lift + 0.3;
-        want.normal.set(0, 0, 1); Object.assign(want, { w: 6.5, h: 6.5, down: 0.95 });
+        want.normal.set(0, 0, P.fz); Object.assign(want, { w: 6.5, h: 6.5, down: 0.95 });
       } else {
         const bp = g.phase === 'fly' ? ball.position : ballAt(pl);
         const fw = new Vector3(-Math.sin(g.yaw), 0, -Math.cos(g.yaw));
@@ -203,6 +204,7 @@ async function buildCourse(m) {
       reset();
       g.phase = 'aim'; play.over = false;
       g.yaw = yawOf(-Math.PI / 2);   // (up the hole, away from the tee)
+      g.rpSeen = null;
       aimView(true);
       hud.message(`HOLE ${i + 1}: ${hole.name.toUpperCase()}`, 'KNOCK DOWN THE 3 PINS, THEN SINK IT', 3);
     }
@@ -228,8 +230,10 @@ async function buildCourse(m) {
       const [a, power, clock] = hole.shots.trick[0];
       for (const p of pins) { p.position.copy(p.userData.home); p.rotation.set(0, 0, 0); p.visible = true; }
       g.pinFly = pins.map(() => null);
-      g.rp = fresh(clock); g.rpT = 0; g.rpShot = [a, power]; g.phase = 'replay';
-      sadie.position.copy(tee).add(new Vector3(P.f * -0.35, 0.02, 0.05)); sadie.visible = true;
+      // (her shot's clock is when it was recorded: the gnome, the sprinkler and her tail must be just
+      // where they were then, or it goes another way. So the course's clock is set to it as she putts.)
+      g.rp = fresh(clock - WAIT); g.rpT = 0; g.rpShot = [a, power, clock]; g.phase = 'replay'; g.rpSeen = { blasts: 0, sunk: false };
+      sadie.position.copy(tee).add(new Vector3(P.f * -0.35, 0.02, P.fz * 0.05)); sadie.visible = true;
       hud.message("SADIE'S TRICK SHOT", 'WATCH CLOSELY...', 2.5);
     }
     // (all done: the mansion steps you back, and the hole's started over once it has: stop())
@@ -249,9 +253,10 @@ async function buildCourse(m) {
       else if (e.type === 'pull') s.pull(near);
       else if (e.type === 'blast') {
         s.blast(e.pin, near);
+        if (pl === g.rp) g.rpSeen.blasts++;
         // BLASTED off the course, the way the ball was going
         const k = Math.min(1, 60 / Math.hypot(e.vx, e.vy)) * 0.9;
-        g.pinFly[e.pin] = { t: 0, v: new Vector3(P.f * e.vx * S * k * 1.6, 3.2, e.vy * S * k * 1.6), spin: (e.pin % 2 ? 1 : -1) * 12 };
+        g.pinFly[e.pin] = { t: 0, v: new Vector3(P.f * e.vx * S * k * 1.6, 3.2, P.fz * e.vy * S * k * 1.6), spin: (e.pin % 2 ? 1 : -1) * 12 };
         if (pl === g.pl) {
           if (e.trick && !g.tricked) {
             g.tricked = true; s.award();
@@ -266,6 +271,7 @@ async function buildCourse(m) {
         if (pl === g.pl) hud.message('GRABBED!', `BACK TO THE TEE. +1 STROKE (${pinsLeft(pl)} PIN${pinsLeft(pl) === 1 ? '' : 'S'} STILL UP)`, 2.5);
       } else if (e.type === 'sunk') {
         s.sunk(near);
+        if (pl === g.rp) g.rpSeen.sunk = true;
         if (pl === g.pl) {
           const strokes = pl.strokes;
           g.phase = 'done'; g.sunkAt = 0;
@@ -288,7 +294,7 @@ async function buildCourse(m) {
           g.acc -= DT;
           if (g.phase === 'replay') {
             g.rpT += DT;
-            if (g.rpT > 1.2 && !g.rp.ball.moving && !g.rp.sunk && !g.rp.strokes) for (const e of putt(g.rp, g.rpShot[0], g.rpShot[1])) happened(e, g.rp);
+            if (g.rpT > WAIT && !g.rp.ball.moving && !g.rp.sunk && !g.rp.strokes) for (const e of hit(g.rp, g.rpShot)) happened(e, g.rp);
             for (const e of step(g.rp)) happened(e, g.rp);
             if ((g.rp.sunk || (g.rp.strokes && !g.rp.ball.moving)) && !g.rpEnd) g.rpEnd = g.rpT;
             if (g.rpEnd && g.rpT > g.rpEnd + 2) { g.rpEnd = 0; finish(); }
@@ -328,9 +334,9 @@ async function buildCourse(m) {
         if (mv.mv.kind === 'gnome') {
           mv.o.position.set(...P.at(at.x, at.y)); mv.o.position.y += Math.abs(Math.sin(pl.clock * 6)) * 0.03;
           const sg = Math.sign(mv.mv.speed);   // (facing the way he's going)
-          mv.o.rotation.y = Math.atan2(P.f * -Math.sin(at.a) * sg, Math.cos(at.a) * sg);
+          mv.o.rotation.y = Math.atan2(P.f * -Math.sin(at.a) * sg, P.fz * Math.cos(at.a) * sg);
         } else if (mv.mv.kind === 'sprinkler') {
-          mv.o.rotation.y = Math.atan2(P.f * at.dx, at.dy);
+          mv.o.rotation.y = Math.atan2(P.f * at.dx, P.fz * at.dy);
           mv.drops.forEach((q, n) => {
             const s = (pl.clock * 1.2 + n / mv.drops.length) % 1, u = at.x + at.dx * mv.mv.len * s, v = at.y + at.dy * mv.mv.len * s;
             q.position.set(P.x(u), P.y(Math.max(height(hole, at.x, at.y), height(hole, u, v))) + 0.08 + Math.sin(Math.PI * s) * 0.3, P.z(v));
@@ -375,16 +381,23 @@ async function buildCourse(m) {
         club.position.x += Math.cos(g.yaw) * 0.13; club.position.z -= Math.sin(g.yaw) * 0.13;
         club.rotation.set(0, g.yaw, -0.35);
       }
-      // the aim: a line of dots up the green, longer the harder you pull
+      // the aim: dots along where the ball will really go (round the slopes, off the walls) for the
+      // first stretch of the shot, a bit further the harder you pull (worked out with the engine itself)
       const aiming = g.active && g.phase === 'aim';
-      const a = planAngle(g.yaw), b = g.pl.ball;
-      dots.forEach((q, n) => {
-        q.visible = aiming && n < 4 + Math.round(g.power * 10);
-        if (!q.visible) return;
-        const k = (n + 1) * (2.2 + g.power * 1.6), u = b.x + Math.cos(a) * k, v = b.y + Math.sin(a) * k;
-        if (edge(hole, u, v) > -0.5) { q.visible = false; return; }
-        q.position.set(P.x(u), P.y(b.deck ? ballHeight(g.pl) : height(hole, u, v)) + 0.012, P.z(v));
-      });
+      let dotsUp = 0;
+      if (aiming) {
+        const c = newPlay(hole), b = g.pl.ball;
+        Object.assign(c.ball, { x: b.x, y: b.y, deck: b.deck }); c.pins = g.pl.pins.slice(); c.clock = g.pl.clock;
+        putt(c, planAngle(g.yaw), Math.max(0.02, g.power));
+        const far = 14 + g.power * 26, gap = far / dots.length;
+        let went = 0, next = gap, lx = b.x, ly = b.y;
+        for (let k = 0; k < 900 && c.ball.moving && !c.sunk && dotsUp < dots.length && went < far; k++) {
+          if (step(c).some(e => e.type === 'grab' || e.type === 'tunnel')) break;
+          went += Math.hypot(c.ball.x - lx, c.ball.y - ly); lx = c.ball.x; ly = c.ball.y;
+          if (went >= next) { next += gap; dots[dotsUp++].position.set(P.x(lx), P.y(ballHeight(c)) + 0.012, P.z(ly)); }
+        }
+      }
+      dots.forEach((q, n) => { q.visible = n < dotsUp; });
       if (g.active || g.phase === 'replay') aimView(false);
       if (g.active) hud.update(g);
     }
@@ -467,7 +480,7 @@ async function buildCourse(m) {
   // for the checks (tests/mini-golf/browser.mjs)
   window.__golf = {
     holes: () => games.map(g => ({ id: g.hole.id, phase: g.phase, active: g.active, strokes: g.pl.strokes, pins: g.pl.pins.slice(), sunk: g.pl.sunk,
-      ball: { x: g.pl.ball.x, y: g.pl.ball.y, moving: g.pl.ball.moving }, replay: !!g.rp, over: g.play.over })),
+      ball: { x: g.pl.ball.x, y: g.pl.ball.y, moving: g.pl.ball.moving }, replay: !!g.rp, over: g.play.over, sadie: g.rpSeen || null })),
     // where to stand to play a hole
     stand: i => games[i].stand,
     // putt now: which way (radians, in the plan), how hard, and the course's clock as it's hit (as
@@ -475,7 +488,7 @@ async function buildCourse(m) {
     shoot(i, angle, power, clock) {
       const g = games[i]; if (g.phase !== 'aim') return false;
       if (clock !== undefined) g.pl.clock = clock;
-      g.yaw = Math.atan2(-g.parts.P.f * Math.cos(angle), -Math.sin(angle)); g.power = power; g.shoot(angle); return true;
+      const [dx, dz] = g.parts.P.dir(angle); g.yaw = Math.atan2(-dx, -dz); g.power = power; g.shoot(angle); return true;
     },
     best: () => readBest(),
     hud: () => hud.state(),

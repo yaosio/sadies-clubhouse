@@ -11,8 +11,8 @@
 export default {
   id: 'doughnut', name: 'The Doughnut', par: 4,
   shape: [['circle', 50, 60, 41], ['rrect', 40, 92, 60, 133, 6]],
-  height: [['bowl', 50, 60, 27, -2.6], ['rim', 50, 60, 28, 39, 2.2], ['slopeY', 96, 118, 0, 2.2]],
-  tee: [50, 125], cup: [50, 60], reach: 11,
+  height: [['bowl', 50, 60, 27, -1.8], ['rim', 50, 60, 28, 39, 1.6], ['slopeY', 96, 118, 0, 1.6]],
+  tee: [50, 125], cup: [50, 60], reach: 7,
   movers: [{ kind: 'gnome', cx: 50, cy: 60, r: 35, a0: 0, speed: -0.35, size: 2.6, push: 25 }],
   // the parts of the hole a pin can stand in (each pin in a different one; null: nowhere for a
   // pin, like the chute in front of the hole, or down in the bowl)
@@ -21,9 +21,10 @@ export default {
     if (y < 40) return 'back';
     return x < 50 ? 'left' : 'right';
   },
-  pins: [[41.9, 89.7], [38.9, 31.5], [81.3, 54.7]],
-  shots: { normal: [[5.6025, 0.45, 0], [3.2463, 0.12, 0], [0.0262, 0.55, 0]], trick: [[0.6807, 0.9, 2.5]] },
-  // where it is in the backyard: the plan's corner (x, z, metres), and whether it's flipped left to right
-  at: { x: -17, z: 31 },
+  pins: [[45.4, 89.1], [37.3, 32.3], [83.2, 60.9]],
+  shots: { normal: [[4.4506, 0.35, 0], [2.9845, 0.12, 0], [0, 0.5, 0]], trick: [[1.0472, 0.95, 2.5]] },
+  // where it is in the backyard: the plan's corner (x, z, metres), and whether it's flipped left to
+  // right (flipX) or end to end (flipZ: every hole is, so its tee's at the end nearest the house)
+  at: { x: -20.475, z: 24.1, flipZ: true },
   club: 'fish',
 };

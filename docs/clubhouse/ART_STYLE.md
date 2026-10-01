@@ -59,8 +59,7 @@ https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so
   flower beds, a flagstone patio, a bird bath, trees, a fence round the grounds, and a bench in a
   patch of sun where Sadie naps, Zs drifting up. Beside the house on the left is the Hedge Maze's
   hedge block (`docs/hedge-maze/`), with an arch and a garden gate at each end.
-  The backyard's lawn runs on a long way back now, to the mini golf (`docs/mini-golf/`): three
-  holes on swimming-pool-blue painted plywood with low pink walls, mown stripes, a pink dashed ring
+  Round the patio is the mini golf (`docs/mini-golf/`): three holes on swimming-pool-blue painted plywood with low pink walls, mown stripes, a pink dashed ring
   round each hole (green when it's friendly), purple tentacles, and a green chalkboard of best scores
   by the patio.
 - **You start outside**, at the gate. The first time only, Sadie's letter invites you: she's

@@ -7,8 +7,8 @@
 export default {
   id: 'tail', name: "Sadie's Tail", par: 5,
   shape: [['rrect', 8, 92, 84, 134, 8], ['rect', 10, 44, 26, 96], ['rect', 62, 44, 80, 96], ['rrect', 8, 8, 84, 50, 8]],
-  height: [['slopeY', 50, 92, 3.2, 0], ['bump', 46, 30, 11, -1.2], ['bump', 30, 116, 8, 0.5], ['bump', 62, 124, 8, -0.4]],
-  tee: [16, 126], cup: [46, 30], reach: 10,
+  height: [['slopeY', 50, 92, 2.3, 0], ['bump', 46, 30, 11, -0.8], ['bump', 30, 116, 8, 0.35], ['bump', 62, 124, 8, -0.3]],
+  tee: [16, 126], cup: [46, 30], reach: 7,
   // the cat flap: its mouth in the lawn's top wall (w: half its width; dir: the lawn's on its +y
   // side), and where it comes out on the top green
   tunnel: { mouth: [44, 92], w: 3, dir: 1, out: [44, 46] },
@@ -21,8 +21,8 @@ export default {
     if (y < 92) return 'ramps';
     return null;
   },
-  pins: [[19.3, 88.9], [15.7, 43.7], [33.7, 14.6]],
-  shots: { normal: [[5.0527, 0.24, 0], [4.4506, 0.5, 0], [2.9583, 0.6, 0]], trick: [[4.1364, 0.95, 0]] },
-  at: { x: 13.275, z: 11.825, flip: true },
+  pins: [[20.5, 90.2], [13.1, 42.5], [27.9, 15.1]],
+  shots: { normal: [[5.0789, 0.24, 0], [4.4768, 0.45, 0], [2.618, 0.65, 0]], trick: [[4.0841, 0.95, 0]] },
+  at: { x: 13.275, z: 23.675, flipX: true, flipZ: true },
   club: 'sock',
 };
