@@ -742,16 +742,20 @@ export async function open(cards, enter) {
     ...cards.filter(c => c.keeps).map(c => [c.name.toUpperCase(), c.name.toUpperCase(), () => forget(c.keeps)]),
   ];
   let undoing = null;
-  function ask(show, yes = 'YES, ERASE IT') {
-    $('#resets').hidden = !!show; $('#sure').hidden = !show; $('#sureYes').textContent = yes;
-    if (!show) undoing = null;
+  // the question shows where it was asked, in place of that section's buttons, so it can't be missed
+  function ask(show, yes = 'YES, ERASE IT', from = $('#resets')) {
+    $('#resets').hidden = $('#backups').hidden = false;
+    if (show) { from.after($('#sure')); from.hidden = true; }
+    $('#sure').hidden = !show; $('#sureYes').textContent = yes;
+    if (show) { $('#sure').scrollIntoView({ block: 'nearest' }); $('#sureNo').focus(); }
+    else undoing = null;
   }
   for (const [name, what, undo] of resets) {
     const b = document.createElement('button'); b.textContent = name;
     on(b, 'click', () => {
       undoing = undo;
       $('#sureAsk').innerHTML = `START ${what.replace(/&/g, '&amp;').replace(/</g, '&lt;')} OVER?<br>IT'S ERASED FOR GOOD.`;
-      ask(true); $('#sureNo').focus();
+      ask(true);
     });
     $('#resets').appendChild(b);
   }
@@ -797,7 +801,7 @@ export async function open(cards, enter) {
     if (!ok) { showSaves("THAT'S NOT A CLUBHOUSE BACKUP."); return; }
     undoing = () => { const why = loadBackup(text, ALL); if (why) { ask(false); showSaves(why + '.'); return false; } };
     $('#sureAsk').innerHTML = "PUT THIS BACKUP BACK?<br>WHAT'S SAVED NOW IS REPLACED.";
-    ask(true, 'YES, LOAD IT'); $('#sure').scrollIntoView({ block: 'nearest' }); $('#sureNo').focus();
+    showSaves(); ask(true, 'YES, LOAD IT', $('#backups'));
   });
 
   // ---------- the loop ----------

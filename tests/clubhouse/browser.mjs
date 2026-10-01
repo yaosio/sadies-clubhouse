@@ -291,7 +291,10 @@ export default async function ({ browser, page, check, outDir }) {
     await p.evaluate(() => { localStorage.setItem('mansion.music', '"off"'); localStorage.setItem('sadies-clubhouse.aquarium.extra', '1'); });
     await p.setInputFiles('#backupFile', { name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(file) });
     await p.waitForSelector('#sure', { state: 'visible', timeout: 5000 }).catch(() => {});   // (the file's read first)
-    check(`${device}: ...LOAD A BACKUP asks first`, await p.isVisible('#sure') && (await p.textContent('#sureYes')) === 'YES, LOAD IT', `${await p.isVisible('#sure')} ${await p.textContent('#sureYes')} ${await p.textContent('#saveNote')} ${await M('mode')}`);
+    await shot('8b-load-backup');
+    // (right where you asked, in place of the backup buttons, not down under START OVER)
+    const asked = await p.evaluate(() => document.querySelector('#saves #sure') !== null && document.querySelector('#backups').hidden && !document.querySelector('#resets').hidden);
+    check(`${device}: ...LOAD A BACKUP asks first, right there under YOUR SAVES`, asked && await p.isVisible('#sure') && (await p.textContent('#sureYes')) === 'YES, LOAD IT', `${await p.isVisible('#sure')} ${await p.textContent('#sureYes')} ${await p.textContent('#saveNote')} ${await M('mode')}`);
     await p.click('#sureYes');
     await up();
     const loaded = await p.evaluate(() => [localStorage.getItem('mansion.music'), localStorage.getItem('sadies-clubhouse.aquarium.extra')]);
