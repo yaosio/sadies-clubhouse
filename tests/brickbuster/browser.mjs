@@ -75,6 +75,9 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('3-cracked');
     check(`${device}: missing cracks the bottom of the glass, with a crack sound`, s.cracks.bottom === before + 1 && /^crack/.test(s.lastSound || ''), `cracks ${s.cracks.bottom}, last sound ${s.lastSound}`);
     check(`${device}: ...and the paddle winces`, s.face === 'wince', s.face);
+    // (back on the paddle: left to itself, the ball is sent off again and, with nobody moving the
+    // paddle, misses again before a slow computer has stepped back, and breaks the glass)
+    await p.evaluate(() => window.__brickbuster.catchBall());
 
     // stepping back: the game stops where it was
     if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape');
@@ -125,7 +128,9 @@ export default async function ({ browser, page, check, outDir }) {
     if (!opts.hasTouch) await p.keyboard.up('KeyW');
     check(`${device}: your view follows the yarn ball round the room, and you can't walk off`, watched > 4 && off < 0.6 && walked < 0.05, `${watched} looks, at most ${off.toFixed(2)} off it, walked ${walked.toFixed(2)} m`);
     check(`${device}: ...and it lets you go once the ball's out`, !(await B()).watched);
-    await p.waitForTimeout(1500);
+    // (Sadie gone after it and the door shut behind her, or as long as that could take)
+    await p.waitForFunction(() => { const s = window.__brickbuster.state(); return !s.sadie && s.sign && !s.doorHeld; }, null, { timeout: 15000 }).catch(() => {});
+    await p.waitForTimeout(300);
     s = await B();
     await shot('6-left-broken');
     check(`${device}: every brick lands on the heap, and the paddle's lying there sad`, s.bricks === 0 && s.pile === 80 && /sad|sigh/.test(s.face), `${s.pile} on the heap, face ${s.face}`);
