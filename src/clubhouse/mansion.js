@@ -33,7 +33,7 @@ import { buildOutside } from './outside.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
-import { store } from '../shared/storage.js';
+import { store, saveBox, saveRoom, backup, loadBackup } from '../shared/storage.js';
 import { makeTheme } from './music/theme.js';
 import { setVolume, youAreIn, closeSounds, paused as soundsPaused, soundState, LEVELS, BUSES } from '../shared/sound.js';
 import P from './pictures.js';
@@ -121,7 +121,8 @@ export async function open(cards, enter) {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
         w = await code.buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
           doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null,
-          ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null, skyMat, snapshot, house: r.house, ears, paused: () => mode === 'menu' });
+          ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null, skyMat, snapshot, house: r.house, ears, paused: () => mode === 'menu',
+          saves: saveBox(c.id) });
       }
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
@@ -714,7 +715,7 @@ export async function open(cards, enter) {
   }
   function pause() {
     if (mode === 'arcade') arcade.u.play.stop();
-    mode = 'menu'; held.clear(); $('#menu').hidden = false; showTarget();
+    mode = 'menu'; held.clear(); $('#menu').hidden = false; showTarget(); showSaves();
     if (document.pointerLockElement) document.exitPointerLock();
   }
   function resume() {
@@ -741,24 +742,67 @@ export async function open(cards, enter) {
     ...cards.filter(c => c.keeps).map(c => [c.name.toUpperCase(), c.name.toUpperCase(), () => forget(c.keeps)]),
   ];
   let undoing = null;
-  function ask(show) {
-    $('#resets').hidden = !!show; $('#sure').hidden = !show;
-    if (!show) undoing = null;
+  // the question shows where it was asked, in place of that section's buttons, so it can't be missed
+  function ask(show, yes = 'YES, ERASE IT', from = $('#resets')) {
+    $('#resets').hidden = $('#backups').hidden = false;
+    if (show) { from.after($('#sure')); from.hidden = true; }
+    $('#sure').hidden = !show; $('#sureYes').textContent = yes;
+    if (show) { $('#sure').scrollIntoView({ block: 'nearest' }); $('#sureNo').focus(); }
+    else undoing = null;
   }
   for (const [name, what, undo] of resets) {
     const b = document.createElement('button'); b.textContent = name;
     on(b, 'click', () => {
       undoing = undo;
       $('#sureAsk').innerHTML = `START ${what.replace(/&/g, '&amp;').replace(/</g, '&lt;')} OVER?<br>IT'S ERASED FOR GOOD.`;
-      ask(true); $('#sureNo').focus();
+      ask(true);
     });
     $('#resets').appendChild(b);
   }
-  on($('#sureYes'), 'click', () => { if (undoing) { undoing(); location.reload(); } });
+  on($('#sureYes'), 'click', () => { if (undoing && undoing() !== false) location.reload(); });
   on($('#sureNo'), 'click', () => ask(false));
   function forget(prefixes) {
     try { for (const k of Object.keys(localStorage)) if (prefixes.some(p => k.startsWith(p))) localStorage.removeItem(k); } catch {}
   }
+
+  // Your saves (src/shared/storage.js): how much room they take, a warning when they're nearly
+  // full (past that, a save quietly fails), and a backup: one file with every save in the
+  // clubhouse, to keep anywhere and put back later, on any browser.
+  const ALL = ['mansion.', ...cards.flatMap(c => c.keeps || [])];
+  function showSaves(say) {
+    const r = saveRoom(), trouble = r.failed ? "A SAVE DIDN'T FIT!" : r.nearlyFull ? 'YOUR SAVES ARE NEARLY FULL!' : '';
+    $('#saveNote').classList.toggle('full', !!trouble);
+    $('#saveNote').innerHTML = say || (trouble ? `${trouble}<br>SAVE A BACKUP, THEN START SOMETHING OVER.`
+      : `SAVES: ${r.used < 1e5 ? Math.max(1, Math.round(r.used / 1e3)) + ' KB' : (r.used / 1e6).toFixed(1) + ' MB'} OF ABOUT ${r.of / 1e6} MB`);
+  }
+  const backupName = () => `sadies-clubhouse-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  on($('#saveBackup'), 'click', async () => {
+    const text = backup(ALL), name = backupName();
+    // on the game page, the page asks first (claude.ai's own way to hand you a file); anywhere else, a plain download
+    let files = null;
+    try { files = await window.claude?.use?.('downloads'); } catch {}
+    if (files) {
+      try { await files.save({ filename: name, data: text }); showSaves('BACKUP SAVED!'); }
+      catch (e) { showSaves(e?.code === 'declined' ? 'NO BACKUP SAVED.' : "COULDN'T SAVE A BACKUP HERE."); }
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    showSaves('BACKUP SAVED!');
+  });
+  on($('#loadBackup'), 'click', () => { $('#backupFile').value = ''; $('#backupFile').click(); });
+  on($('#backupFile'), 'change', async () => {
+    const f = $('#backupFile').files[0];
+    if (!f) return;
+    const text = await f.text().catch(() => '');
+    let ok = false;
+    try { ok = JSON.parse(text)?.format?.startsWith('sadies-clubhouse-backup'); } catch {}
+    if (!ok) { showSaves("THAT'S NOT A CLUBHOUSE BACKUP."); return; }
+    undoing = () => { const why = loadBackup(text, ALL); if (why) { ask(false); showSaves(why + '.'); return false; } };
+    $('#sureAsk').innerHTML = "PUT THIS BACKUP BACK?<br>WHAT'S SAVED NOW IS REPLACED.";
+    showSaves(); ask(true, 'YES, LOAD IT', $('#backups'));
+  });
 
   // ---------- the loop ----------
   let raf = 0, last = performance.now(), frames = 0, played = 0, blinkAt = 3, blinkOff = 0, hintGone = false, watching = false;

@@ -67,11 +67,16 @@
 #mansion #menu #volumes button{font-size:10px;padding:6px 10px;background:#8ad8ff;box-shadow:0 3px 0 #2a6a9a}
 #mansion #menu .how{margin:0;font-size:10px;line-height:1.7;color:#e8dcff}
 #mansion #dev{display:grid;gap:8px;justify-items:center;width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
+#mansion #saves{display:grid;gap:8px;justify-items:center;width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
+#mansion #menu #saves button{font-size:10px;padding:6px 10px;background:#b8f08a;box-shadow:0 3px 0 #4a8a2a}
+#mansion #saves .row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+#mansion #saveNote{margin:0;font-size:10px;line-height:1.7;color:#e8dcff}
+#mansion #saveNote.full{color:#ffd23a}
 #mansion #resets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 #mansion #menu #resets button{font-size:10px;padding:6px 10px;background:#ff8ec8}
 /* "are you sure?" before anything is erased */
 #mansion #sure{display:grid;gap:8px;justify-items:center}
-#mansion #sure p{margin:0;font-size:11px;line-height:1.6;color:#fff}
+#mansion #sure p{margin:0;font-size:11px;line-height:1.6;color:#ffd23a}
 #mansion #sure .row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 #mansion #menu #sure button{font-size:10px;padding:6px 10px}
 #mansion #menu #sure #sureYes{background:#ff5a5a;box-shadow:0 3px 0 #8a1a2a}

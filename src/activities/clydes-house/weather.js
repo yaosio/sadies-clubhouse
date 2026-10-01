@@ -5,7 +5,7 @@
 // One weather at a time: pulling a lever brings its weather (and puts every other lever back up);
 // pulling it again clears the sky. It's saved, so the weather's still there after a reload.
 
-export const KEY = 'sadies-clubhouse.clydes-house.weather';
+export const NAME = 'weather', KEY = 'sadies-clubhouse.clydes-house.' + NAME;   // (its name in the room's saves, and its whole key)
 export const KINDS = ['rain', 'snow', 'sun', 'cats'];
 export const NAMES = { rain: 'RAIN', snow: 'SNOW', sun: '2ND SUN', cats: 'CATS' };
 

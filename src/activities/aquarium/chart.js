@@ -53,7 +53,7 @@ export function loom(d) {
 }
 
 // What's saved (in the browser): which finds you have, and where you left the boat.
-export const SAVE = 'sadies-clubhouse.aquarium.ocean';
+export const SAVE = 'ocean';
 export function readSave(v) {
   const found = Array.isArray(v?.found) ? SPOTS.map(s => s.id).filter(id => v.found.includes(id)) : [];
   const b = v?.boat, ok = b && [b.x, b.z, b.yaw].every(Number.isFinite) && Math.hypot(b.x, b.z) <= SEA_R;

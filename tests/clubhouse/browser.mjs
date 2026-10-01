@@ -281,6 +281,30 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: a start-over button asks first`, await p.isVisible('#sureYes') && !(await p.isVisible('#resets')));
     await p.click('#sureNo');
     check(`${device}: ...and NO keeps it`, await p.isVisible('#resets') && !(await p.isVisible('#sure')) && await p.evaluate(() => localStorage.getItem('mansion.invited') !== null));
+    // your saves: how much room they take, SAVE A BACKUP (a file with every save) and LOAD A BACKUP
+    // (only once you say yes: every save goes back as it was in the file)
+    check(`${device}: the pause menu says how much the saves take`, /SAVES: [\d.]+ [KM]B OF/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
+    const download = await Promise.all([p.waitForEvent('download', { timeout: 8000 }), p.click('#saveBackup')]).then(([d]) => d.path(), () => null);
+    const file = download ? readFileSync(download, 'utf8') : '{}', made = JSON.parse(file);
+    const savedNow = await p.evaluate(() => Object.keys(localStorage).length);
+    check(`${device}: ...SAVE A BACKUP gives a file with every save in it`, made.format && Object.keys(made.saves || {}).length === savedNow && made.saves['mansion.invited'], `${Object.keys(made.saves || {}).length} of ${savedNow} saves`);
+    await p.evaluate(() => { localStorage.setItem('mansion.music', '"off"'); localStorage.setItem('sadies-clubhouse.aquarium.extra', '1'); });
+    await p.setInputFiles('#backupFile', { name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(file) });
+    await p.waitForSelector('#sure', { state: 'visible', timeout: 5000 }).catch(() => {});   // (the file's read first)
+    await shot('8b-load-backup');
+    // (right where you asked, in place of the backup buttons, not down under START OVER)
+    const asked = await p.evaluate(() => document.querySelector('#saves #sure') !== null && document.querySelector('#backups').hidden && !document.querySelector('#resets').hidden);
+    check(`${device}: ...LOAD A BACKUP asks first, right there under YOUR SAVES`, asked && await p.isVisible('#sure') && (await p.textContent('#sureYes')) === 'YES, LOAD IT', `${await p.isVisible('#sure')} ${await p.textContent('#sureYes')} ${await p.textContent('#saveNote')} ${await M('mode')}`);
+    await p.click('#sureYes');
+    await up();
+    const loaded = await p.evaluate(() => [localStorage.getItem('mansion.music'), localStorage.getItem('sadies-clubhouse.aquarium.extra')]);
+    check(`${device}: ...and puts every save back as it was`, loaded[0] === '"on"' && loaded[1] === null, JSON.stringify(loaded));
+    // nearly full: the pause menu says so
+    await p.evaluate(() => localStorage.setItem('sadies-clubhouse.aquarium.junk', 'x'.repeat(4.2e6)));
+    if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
+    await p.waitForTimeout(200);
+    check(`${device}: ...and warns when the saves are nearly full`, /NEARLY FULL/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
+    await p.evaluate(() => localStorage.removeItem('sadies-clubhouse.aquarium.junk'));
     await p.click('#resume');
     check(`${device}: RESUME carries on`, await M('mode') === 'play');
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');

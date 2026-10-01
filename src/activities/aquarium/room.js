@@ -19,7 +19,6 @@ import { buildOcean, SURFACE } from './ocean.js';
 import { makeSounds, LIST } from './sounds/index.js';
 import { seaPacing } from './sounds/sea.js';
 import { soundsFor } from '../../shared/sound.js';
-import { store } from '../../shared/storage.js';
 import { px, dot, oval, fishPics, scubaSadie, findPics } from './pictures.js';
 
 export async function buildRoom(m) {
@@ -215,8 +214,8 @@ export async function buildRoom(m) {
   await m.breathe?.();
   const ocean = buildOcean(m, floorBits);
   await m.breathe?.();
-  let saved = readSave(store.get(SAVE, null));
-  const save = () => store.set(SAVE, saved);
+  let saved = readSave(m.saves.get(SAVE, null));
+  const save = () => m.saves.set(SAVE, saved);
   showFinds();
   const sounds = makeSounds(soundsFor('room:' + card.id)), pacing = seaPacing();
   const roomLight = { sun: 0.2, bulb: 0.8, lamp: [0, RH - 0.4, 1.5] }, seaLight = { sun: 0.75, bulb: 0, lamp: [0, -1000, 0] };

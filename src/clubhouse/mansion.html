@@ -26,6 +26,12 @@
       <button id="resume">RESUME</button>
       <div class="row" id="volumes"><button id="vol-music">MUSIC: ON</button><button id="vol-sounds">SOUNDS: ON</button><button id="vol-voices">VOICES: ON</button></div>
       <p class="how" id="how"></p>
+      <div id="saves">
+        <h3>YOUR SAVES</h3>
+        <div class="row" id="backups"><button id="saveBackup">SAVE A BACKUP</button><button id="loadBackup">LOAD A BACKUP</button></div>
+        <input type="file" id="backupFile" accept=".json,application/json" hidden>
+        <p id="saveNote"></p>
+      </div>
       <div id="dev">
         <h3>START OVER</h3>
         <div id="resets"></div>

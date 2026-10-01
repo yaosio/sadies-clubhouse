@@ -14,11 +14,10 @@
 // Built into the outside's scene with the house, so it stays when the room inside is put away, and
 // it's the same after a reload (the weather is saved).
 import { Mesh, Group, Color, Vector3, BufferGeometry, BufferAttribute, PlaneGeometry, ConeGeometry, CylinderGeometry, SphereGeometry, DoubleSide } from 'three';
-import { KEY, KINDS, NAMES, LOOK, pull as next, loaded } from './weather.js';
+import { NAME, KINDS, NAMES, LOOK, pull as next, loaded } from './weather.js';
 import { drawWeatherArt, KNOB } from './weather-art.js';
 import { makeSounds } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';
-import { store } from '../../shared/storage.js';
 
 const EASE = 1 / 3;          // the weather takes about three seconds to change
 const SNOW_SETTLES = 40;     // seconds for the snow to lie (it melts in a quarter of that)
@@ -115,7 +114,7 @@ export function buildWeather(m, group) {
   for (const [k, t] of Object.entries(A.says)) says[k] = on(t, t.image.width * 0.03, 0.36, -0.22, 1.0, 0.05);
 
   // ---------- how it's going ----------
-  let now = loaded(store.get(KEY)), sounds = null, speed = 1, clock = 0, saying = null, sayUntil = 0, meowAt = 0, puffT = 9;
+  let now = loaded(m.saves.get(NAME)), sounds = null, speed = 1, clock = 0, saying = null, sayUntil = 0, meowAt = 0, puffT = 9;
   const amount = Object.fromEntries(KINDS.map(k => [k, k === now ? 1 : 0]));
   let settled = now === 'snow' ? 1 : 0, catT = 0;
   const seenAt = new Vector3(0, 0, -12);   // (where outside was last seen from: the front garden to begin with)
@@ -129,7 +128,7 @@ export function buildWeather(m, group) {
 
   function pull(k) {
     now = next(now, k);
-    store.set(KEY, now);
+    m.saves.set(NAME, now);
     labels(); A.forecast(now);
     puffT = 0;
     // (its own handle: the machine stays outside when the room's put away)

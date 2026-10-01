@@ -57,7 +57,7 @@ every card against these rules and says plainly what's wrong.
 | **Building kit** | `mansion.js` hands it to `buildRoom` | Uses its tools (materials, shapes, words, `breathe`) | Anything added to the kit reaches every room, with no room edited |
 | **Building and putting away** | `mansion.js` | Can be built again from its save; optional `putAway()` and `busy()` | Built near you, a bite at a time; put away when far off; its file fetched only when needed |
 | **Sound** | `src/shared/sound.js` | `soundsFor('room:<id>')`, plays by name; music on `line('music')` | Volumes, the kind-to-the-ears rules, the main theme making way, quiet behind the pause menu, stopped when put away |
-| **Saves** | `src/shared/storage.js` | Keys start `sadies-clubhouse.<id>.`, listed in the card's `keeps` | Start-over buttons in the pause menu; never throws |
+| **Saves** | `src/shared/storage.js` | Saves with its kit's box `saves` (`get`, `set`), listed in the card's `keeps` | Start-over buttons, backups and a nearly-full warning in the pause menu; an unreadable save put aside, never wiped; never throws |
 | **Pause** | `mansion.js` | Can ask `paused()` | Sounds held; controls stopped |
 | **Weather** | Clyde's House | Nothing (outside's `light`) | Rain, snow and the rest round wherever outside is seen from |
 

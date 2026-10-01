@@ -17,7 +17,7 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
 - **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House, Chooter's Paint Shop, the Hedge Maze) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
   it opens, handing it the building kit (its textures `T`, the palette `C`, `psx`, `keep`, `tex`,
-  `words`, `picture`, `loadImage`, `breathe` (a pause between big parts), the shapes `kit`, `wallGeometry`, `doorway`, the card and its
+  `words`, `picture`, `loadImage`, `breathe` (a pause between big parts), `saves` (its save box, below), the shapes `kit`, `wallGeometry`, `doorway`, the card and its
   door's leaf), so the game still never imports the clubhouse (it imports `three` itself). It hands
   back a place like any room (`name`, `scene`, `floor`, `doors`, `faces`, `uses`, `light`, `spots`,
   `update(t, dt)`, `hush` if the main theme should stay out of it altogether (see below; music of its own usually doesn't need it), and `putAway()` if it has anything to take back when the mansion puts it away (anything it put in other places, a save to write, something on the page; its sounds are stopped for it);
@@ -95,10 +95,18 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   activity takes the next free slot (the Music Room 3). A card's `doorstep: 'dirt'` puts the mole's dirt pile by its
   door (Dropper World).
 
-- **Saves** belong to each activity: its keys start with its own name (Dropper World's is
-  `sadies-dropper-world.save`; a few older settings keys start with `jellystack.`). A new activity
-  uses `sadies-clubhouse.<id>.` for its keys, and lists what its keys start with in its card's
-  `keeps` (the pause menu's start-over buttons use it). The
-  mansion's own keys start with `mansion.`. The mansion's checks put every room away and build it
-  again three times over, and fail if any save changed. Never rename a key that's already in use: everyone's
-  saves would be lost.
+- **Saves** go through the save director (`src/shared/storage.js`), the one thing that touches the
+  browser's storage. A room saves with its kit's box, `m.saves`: `get(name, fallback)`,
+  `set(name, value)`, `remove(name)`, each kept as `sadies-clubhouse.<id>.<name>` (a room never
+  touches storage itself; the room checker fails it). An activity on a computer uses
+  `saveBox('<id>')` from the toolbox (Dropper World's older keys, `sadies-dropper-world.save` and
+  a few starting `jellystack.`, use `store`). Its card's `keeps` lists what its keys start with
+  (the pause menu's start-over buttons and backups use it). The mansion's own keys start with `mansion.`.
+  A save that can't be read is **put aside, never wiped**: `get` keeps it as `<its key>.unreadable`
+  and hands back the fallback, and an activity that can't make sense of an old save calls
+  `putAside(name)` before starting fresh. When a save's shape changes, read the old one and turn it
+  into the new (never throw away someone's progress). The pause menu's YOUR SAVES says how full the
+  browser's room for saves (about 5 MB for everything) is, warns when it's nearly full or a save
+  didn't fit, and saves or loads a backup file of every save (loading asks first, and is all or
+  nothing). The mansion's checks put every room away and build it again three times over, and fail
+  if any save changed. Never rename a key that's already in use: everyone's saves would be lost.

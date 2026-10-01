@@ -14,10 +14,9 @@ import { makeChatter } from './sounds/sadie.js';
 import { makeArcade } from './music/player.js';
 import { soundsFor } from '../../shared/sound.js';
 import { makeLoose, release, stepLoose, R as LR } from './loose.js';
-import { store } from '../../shared/storage.js';
 import posterPic from './poster.js';
 
-const KEY = 'sadies-clubhouse.brickbuster.game';
+const KEY = 'game';
 const RW = 5, RD = 6.5, RH = 11;     // the room: half its width and depth, and its height
 const FY = 1.4, CZ = RD - 0.6;       // the glass's bottom edge above the floor, and the case's back
 const Z = { play: 0.25, glass: 0.55 };   // in the case: where the game is, and the glass (towards you)
@@ -120,7 +119,7 @@ export async function buildRoom(m) {
     g.fillStyle = '#707070'; g.fillRect(0, 5, 8, 1); g.fillRect(7, 0, 1, 6); g.fillStyle = '#f0f0f0'; g.fillRect(1, 1, 2, 1);
   });
   const rowMats = ROW_COLS.map(c => psx(bevelTex, { tint: c, unlit: 0.45 }));
-  const game = load(makeGame(Math.floor(Math.random() * 1e6) + 1), store.get(KEY, null));
+  const game = load(makeGame(Math.floor(Math.random() * 1e6) + 1), m.saves.get(KEY, null));
   const brickGeo = keep(new BoxGeometry(0.36, 0.22, 0.3));
   const bricks = game.bricks.map(k => part(new Mesh(brickGeo, rowMats[k.row]), [k.x + k.w / 2 - W / 2, k.y + k.h / 2, Z.play]));
   const at = (x, y) => [x - W / 2, y];
@@ -232,7 +231,7 @@ export async function buildRoom(m) {
   // its sounds, through the clubhouse's sound system (stopped by the mansion when the room's put away)
   const sfx = soundsFor('room:' + card.id);
   let sound = null, music = null, showing = 'calm', lastTock = 0;
-  const keep_ = () => { store.set(KEY, save(game)); dirty = false; };
+  const keep_ = () => { m.saves.set(KEY, save(game)); dirty = false; };
   const leaving = new AbortController();
   addEventListener('pagehide', () => { if (dirty) keep_(); }, { signal: leaving.signal });
   function feel(name, secs) { mood = { name, until: now + secs }; }

@@ -25,7 +25,6 @@ import { cockpitPics, spacePics, landPics, roomPics } from './pictures.js';
 import { makeTalk } from './talk.js';
 import { makeMusic } from './music/player.js';
 import { tripSong, radioSong } from './music/song.js';
-import { store } from '../../shared/storage.js';
 import { soundsFor, nearness } from '../../shared/sound.js';
 
 export async function buildRoom(m) {
@@ -57,7 +56,7 @@ export async function buildRoom(m) {
     if (z < -RD + P - 0.01 || z > DASH.z0 - P) return null;
     return Math.abs(x) < RW - P - (z > 0.4 - P ? 0.5 : 0) ? 0 : null;
   };
-  let saved = readSave(store.get(SAVE, null)), stage = null, trip = null, warp = 1, afterAt = null, radioOn = true, wasPaused = false;
+  let saved = readSave(m.saves.get(SAVE, null)), stage = null, trip = null, warp = 1, afterAt = null, radioOn = true, wasPaused = false;
 
   // what's showing: the cockpit (with space out of the windows) or Sadie's space room
   function show(what) {
@@ -131,7 +130,7 @@ export async function buildRoom(m) {
     talk.black(t < T.back ? smooth(T.leap + 0.15, T.black, t) : 1 - smooth(T.back, T.end, t));
     if (t >= T.black && !trip.blacked) {
       trip.blacked = true;
-      saved.done = true; store.set(SAVE, saved);
+      saved.done = true; m.saves.set(SAVE, saved);
       song.stop(0.2); talk.say(null);
       show('hangout');
       place.watch = { x: CUSHION.x, y: 0.9, z: CUSHION.z, at: { x: 0, z: -RD + 1.0, y: 0, snap: true } };

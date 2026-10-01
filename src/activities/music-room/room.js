@@ -20,9 +20,7 @@ import { TUBES, REST } from './sounds/chimes.js';
 import { makeSadie, stepSadie, goNow, TIMING } from './sadie.js';
 import { makeTape, saveTape, press, heard, sadieTake, stepTape } from './tape.js';
 import { keyboardNote, noteAt, pawNote, barOf, WHITE_KEYS, DRUM_KEYS, SADIE_DRUMS, VOICE_KEYS, VOICES, TAPE_KEYS, TAPE_BUTTONS, VOLUMES, KEYS_PIC } from './layout.js';
-import { store } from '../../shared/storage.js';
 
-const KEY = 'sadies-clubhouse.music-room.';
 const RW = 6, RD = 5, H = 4.6;                    // the room: half its width and depth, and its height
 const PX = -2.2, PZ = -4.65;                       // the toy piano (its body's middle)
 const TX = -0.2, TZ = -4.6;                        // the tape deck's table
@@ -181,11 +179,11 @@ export async function buildRoom(m) {
   }
 
   // ---------- sound, and what's kept ----------
-  const welcomeSaved = store.get(KEY + 'sign', true) !== false;
-  let welcome = welcomeSaved, volumeAt = VOLUMES.findIndex(v => v[0] === store.get(KEY + 'volume', 'MEDIUM'));
+  const welcomeSaved = m.saves.get('sign', true) !== false;
+  let welcome = welcomeSaved, volumeAt = VOLUMES.findIndex(v => v[0] === m.saves.get('volume', 'MEDIUM'));
   if (volumeAt < 0) volumeAt = 1;
-  const tape = makeTape(store.get(KEY + 'tape', null));
-  const keepTape = () => store.set(KEY + 'tape', saveTape(tape));
+  const tape = makeTape(m.saves.get('tape', null));
+  const keepTape = () => m.saves.set('tape', saveTape(tape));
   let sound = null, now = 0, playing = null, voice = 'CAT', lcd = 'CAT', lcdUntil = 0;
   const sounds = () => (sound ||= makeSounds(soundsFor('room:' + card.id), VOLUMES[volumeAt][1]));
   A.drawSign(welcome); A.drawDial(VOLUMES[volumeAt][1] / 0.8, VOLUMES[volumeAt][0]); A.drawDeck(tape.state, tape.which);
@@ -341,13 +339,13 @@ export async function buildRoom(m) {
   const dialUse = {
     pos: DIAL, reach: 3.6, act() {
       volumeAt = (volumeAt + 1) % VOLUMES.length; const [name, v] = VOLUMES[volumeAt];
-      store.set(KEY + 'volume', name); A.drawDial(v / 0.8, name); sounds().setVolume(v);
+      m.saves.set('volume', name); A.drawDial(v / 0.8, name); sounds().setVolume(v);
       if (v) soon(0.05, () => sound_({ inst: 'piano', n: 72, loud: 0.6 }, false));   // (a note, so you hear how loud)
     },
     get label() { return 'TURN THE VOLUME (' + VOLUMES[volumeAt][0] + ')'; }, button: 'TURN',
   };
   const signUse = {
-    pos: SIGN, reach: 2.6, act() { welcome = !welcome; store.set(KEY + 'sign', welcome); A.drawSign(welcome); },
+    pos: SIGN, reach: 2.6, act() { welcome = !welcome; m.saves.set('sign', welcome); A.drawSign(welcome); },
     get label() { return welcome ? 'TURN THE SIGN (SADIE WELCOME)' : 'TURN THE SIGN (SHH, SADIE NAPPING)'; }, button: 'TURN',
   };
 
