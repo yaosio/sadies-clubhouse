@@ -56,7 +56,7 @@ pause menu) gives you the first trip again.
 
 Its music goes through a music line of the clubhouse's sound system (`src/shared/sound.js`), so the clubhouse's main theme makes way for the trip's song and the radio by itself. The room also asks for quiet (its place's `hush`) from the moment you step into the cockpit, through the whole trip (the song lands at touchdown, and the quiet after it is the ship's, not the theme's), and in the space room while the radio's on, so the theme never plays over the start or sneaks back before the radio; with the radio turned off it comes back; the pause menu's MUSIC button (ON, SOFT, OFF) turns them down too, and they're only heard in the room. Pausing stops the song where it is (and starts it again from there) and quiets the radio.
 
-The mansion changes it needed (`docs/clubhouse/ARCHITECTURE.md`): a place's `watch` can say `at`
+The mansion changes it needed (`docs/clubhouse/ROOMS.md`): a place's `watch` can say `at`
 (where you're put while watching), the kit has `paused()`, and the thumb stick hides while you're
 made to watch something.
 
@@ -69,7 +69,7 @@ the cockpit through it, walking in and being strapped in, Sadie talking, the mus
 swap, landing, the black, the space room with the radio, the button, and the door afterwards).
 `tools/space-adventure/trip.mjs [phone|desktop] [times...]` takes pictures along the trip.
 
-**Put away when you're far off.** The mansion puts Space Adventure away when you've been three doors or more from it for a while (see the clubhouse's `ARCHITECTURE.md`): `putAway()` closes its music for good and takes Sadie's talk box and the black off the page. It's built again from its save (whether you've been on the trip) as you come back.
+**Put away when you're far off.** The mansion puts Space Adventure away when you've been three doors or more from it for a while (see the clubhouse's `MANSION.md`): `putAway()` closes its music for good and takes Sadie's talk box and the black off the page. It's built again from its save (whether you've been on the trip) as you come back.
 
 ## Parked ideas
 

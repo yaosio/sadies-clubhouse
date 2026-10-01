@@ -85,7 +85,7 @@ the shop's), and they stop paint going through them.
 **The mansion's part (`brush`):** a place with a `brush(id, ray, 'down' | 'move' | 'up')` is painted
 as you walk about: the mansion hands it every press as a line out into the place, every frame while
 it's held (so walking while you hold it paints a stroke), and shows the switch, the YOU'RE HOLDING
-box and the dot (`brushLook()`: `{ color, tool, icon, paint, verb, drags, picks }`). See `docs/clubhouse/ARCHITECTURE.md`.
+box and the dot (`brushLook()`: `{ color, tool, icon, paint, verb, drags, picks }`). See `docs/clubhouse/ROOMS.md`.
 
 **Put away when you're far off.** `putAway()` saves the paint. The shop outside stays.
 

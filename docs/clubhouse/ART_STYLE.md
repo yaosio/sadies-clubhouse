@@ -24,7 +24,7 @@ mid-90s multimedia and late-90s shine are mashed together into programs that nev
 
 ## Sadie's mansion (built)
 The clubhouse is Sadie's mansion, and each activity has its own room. The owner okayed the look.
-Built in `src/clubhouse/` (how it works: `docs/clubhouse/ARCHITECTURE.md`). The approved mock-up:
+Built in `src/clubhouse/` (how it works: `docs/clubhouse/MANSION.md`). The approved mock-up:
 `art/mansion/` (`mockup.js` is the 3D scene, `page.js` the page around it; `node
 art/mansion/build.mjs && node art/mansion/shots.mjs` builds it and takes the pictures), published at
 https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so far:

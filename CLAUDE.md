@@ -20,15 +20,23 @@ Chooter's Paint Shop (paint the room itself). Everything outside the clubhouse b
   and what to look for.
 
 ## Before changing anything
-Read `README.md` (the clubhouse and its activities) and `docs/clubhouse/ARCHITECTURE.md` (how
-they fit together). Then only the docs of what you're changing:
+Read `README.md` (the clubhouse and its activities) and `docs/clubhouse/ARCHITECTURE.md` (the short
+overview: how they fit together, and which page to read for what). Then only the docs of what you're
+changing:
 - **An activity:** its `docs/<activity>/README.md` first: what it is and its design pillars, which
   win over any feature idea. It lists its other pages; in Dropper World always read
   `ARCHITECTURE.md` and `TUNING.md`, plus `CHARACTERS.md` before changing how a character behaves
   (who they are and why they do things comes first) and `ART_STYLE.md` before changing how
   anything looks.
 - **How anything looks:** also `docs/clubhouse/ART_STYLE.md` (the approved misremembered-90s look).
-- **The mansion, the page shell, the toolbox, the build or the checks:** `docs/clubhouse/` is enough.
+- **The mansion, the page shell, the toolbox, the build or the checks:** the page in `docs/clubhouse/`
+  that `ARCHITECTURE.md` points to for it is enough.
+- **Undoing or changing a big choice:** `docs/clubhouse/DECISIONS.md` first, and update it.
+
+**The architect step:** before building a feature, say in the first reply (in plain words) which
+shared systems it touches, whether another room would want the same thing (then it goes in the
+toolbox, the building kit or the mansion, not the room), and whether it uses up a spot or hits one
+of the known limits (`DECISIONS.md`). When a doc says "never X", ask whether a check could enforce it.
 
 **Sound:** everything that makes sound plays through the sound system, `src/shared/sound.js` (never
 its own AudioContext; a check fails otherwise). A room gets `soundsFor('room:<id>')` and plays sounds
@@ -46,7 +54,9 @@ spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spo
 ## Making a change
 1. `npm install` (esbuild, the bundler, three.js, for the mansion, ESLint and Playwright, at the exact
    versions `package-lock.json` locks), then edit only the modules
-   involved. Keep the docs true: a change to an activity updates its own docs folder.
+   involved. Keep the docs true: a change to an activity updates its own docs folder. Keep
+   `ARCHITECTURE.md` short: a room's special cases go in its own docs, a system's details in its
+   reference page (`tools/docs.mjs`, part of the check, limits the size of the docs every change reads).
 2. Each activity lives in `src/activities/<name>/` and never imports from another activity or the
    clubhouse; only from its own folder and `src/shared/` (the toolbox, kept small: a change there
    retests every activity). In Dropper World, `core/` never touches the DOM or imports from
