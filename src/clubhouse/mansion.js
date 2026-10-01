@@ -25,7 +25,7 @@
 import {
   WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace, Box3, Mesh, BoxGeometry,
 } from 'three';
-import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack } from './look.js';
+import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack, skyMat } from './look.js';
 import { buildOutside } from './outside.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
@@ -76,9 +76,13 @@ export async function open(cards, enter) {
   const took = Math.round(performance.now() - t0);
   const speed = { places: { 'outside and hall': took }, bits: { 'outside and hall': took }, first: 0 };
   // a room per card: `place` once it's built
-  const slots = cards.map((c, i) => ({ card: c, i, name: 'room:' + c.id, place: null, building: null, far: 0 }));
+  // (its doors: one on the landing, or a building's outside, which it hands over when it's first built;
+  // `key`: which of the room's own doors each one leads to)
+  const slots = cards.map((c, i) => ({ card: c, i, name: 'room:' + c.id, place: null, building: null, far: 0, portals: [] }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
-  for (const r of slots) if (hall.doors[r.card.id]) portals.push(r.portal = { a: hall.doors[r.card.id], wa: hall, b: null, wb: null, open: 0, slot: r });
+  for (const r of slots) if (hall.doors[r.card.id]) { const p = { a: hall.doors[r.card.id], wa: hall, b: null, wb: null, open: 0, slot: r, key: 'door' }; portals.push(p); r.portals.push(p); }
+  // a building of its own outside: on a plot along the lane (`lot`) or in the grounds round the house (`grounds`)
+  const outdoors = c => !!c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds));
   // each doorway seen from its own side (only those whose rooms are built): where it is, and where it leads
   let sides = [], places = [];
   function relink() {
@@ -112,16 +116,23 @@ export async function open(cards, enter) {
       else {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
         w = await code.buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
-          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, house: r.house, ears, paused: () => mode === 'menu' });
+          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null,
+          ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null, skyMat, snapshot, house: r.house, ears, paused: () => mode === 'menu' });
       }
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
       r.mine = made().filter(x => !before.has(x));   // everything it made (to hand back if it's put away)
-      // a house of its own outside the gate (its card has a `lot`): its front door leads straight in
-      if (w.house && !r.portal) { outside.doors[c.id] = w.house.door; portals.push(r.portal = { a: w.house.door, wa: outside, open: 0, slot: r }); }
+      // a building of its own outside (its card has a `lot` or `grounds`): its front door leads
+      // straight in (and any other door it has, `doors`, to the room's door of that name)
+      if (w.house && !r.portals.length) for (const [key, d] of Object.entries(w.house.doors || { door: w.house.door })) {
+        outside.doors[key === 'door' ? c.id : c.id + '.' + key] = d;
+        const p = { a: d, wa: outside, open: 0, slot: r, key }; portals.push(p); r.portals.push(p);
+      }
       r.house = w.house;   // (kept when the room's put away: it's part of the outside)
-      r.portal.b = w.doors.door; r.portal.wb = w; r.portal.open = 0;
-      w.doors.door.swing = -1;   // every door swings into the place further in
+      for (const p of r.portals) {
+        p.b = w.doors[p.key]; p.wb = w; p.open = 0;
+        p.b.swing = -1;   // every door swings into the place further in
+      }
       r.place = w; r.building = null; r.far = 0;
       relink();
       warm(w);
@@ -138,7 +149,7 @@ export async function open(cards, enter) {
     const w = r.place;
     if (!w || w === me.world || r.building || w.holding || w.busy?.()) return false;
     w.putAway?.(); closeSounds(r.name);   // (everything it started stops, whatever it forgot)
-    r.portal.b = r.portal.wb = null; r.portal.open = 0; r.portal.a.setOpen(0);
+    for (const p of r.portals) { p.b = p.wb = null; p.open = 0; p.a.setOpen(0); if (lastThrough === p) lastThrough = null; }
     const mine = new Set(r.mine);
     for (const sc of w.scenes || [w.scene]) things(sc, mine);
     r.place = null; relink();
@@ -147,7 +158,6 @@ export async function open(cards, enter) {
     const gone = [...mine].filter(x => !inUse.has(x));
     for (const x of gone) x.dispose();
     handedBack(gone); r.mine = null;
-    if (lastThrough === r.portal) lastThrough = null;
     return true;
   }
   // every shape, material and picture in a scene
@@ -169,7 +179,7 @@ export async function open(cards, enter) {
       const w = todo.shift();
       for (const p of portals) for (const [x, y] of [[p.wa, p.wb], [p.wb, p.wa]]) if (x === w && y && !d.has(y)) { d.set(y, d.get(w) + 1); todo.push(y); }
     }
-    return r => (r.place ? d.get(r.place) : (d.get(r.portal?.wa) ?? 98) + 1) ?? 99;
+    return r => (r.place ? d.get(r.place) : Math.min(98, ...r.portals.map(p => d.get(p.wa) ?? 98)) + 1) ?? 99;
   }
   // every frame: build the nearest room not built yet (while you're still, or as you come up to its
   // door), and put away rooms three doors off for a while (or the ones you were near longest ago,
@@ -179,14 +189,14 @@ export async function open(cards, enter) {
   function tend(dt, doorFor) {
     const away = doorsAway();
     let next = null, best = 1e9;
-    for (const r of slots) if (!r.place && !r.building && r.portal && again(r)) {
+    for (const r of slots) if (!r.place && !r.building && r.portals.length && again(r)) {
       const n = away(r); if (n > 2) continue;
-      const dd = r.portal.wa === me.world ? Math.hypot(me.x - r.portal.a.pos.x, me.z - r.portal.a.pos.z) : 99;
+      const dd = Math.min(99, ...r.portals.filter(p => p.wa === me.world).map(p => Math.hypot(me.x - p.a.pos.x, me.z - p.a.pos.z)));
       const score = n * 100 + dd;
       if (doorFor === r || (!onlyDoors && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
     }
     // (a building outside the gate that didn't build at the start has no door yet: tried again too)
-    next ||= slots.find(r => !r.place && !r.building && !r.portal && Number.isInteger(r.card.lot) && r.card.room && again(r));
+    next ||= slots.find(r => !r.place && !r.building && !r.portals.length && outdoors(r.card) && again(r));
     if (next && !slots.some(r => r.building)) build(next);
     const built = slots.filter(r => r.place);
     for (const r of built) r.far = away(r) >= FAR_DOORS ? r.far + dt : 0;
@@ -223,6 +233,24 @@ export async function open(cards, enter) {
       }
       g.visible = !far; if (r.standIn) r.standIn.visible = far;
     }
+  }
+  // A picture of something in a place, taken once (not every frame): `obj` on its own (nothing else in
+  // its place shows; the rest is see-through), from `from` looking at `at`, `fov` degrees tall, w x h
+  // pixels, lit as `place` is. A place that can't see the real thing shows the picture instead, so
+  // it's never out of date: the hedge maze's view of the clubhouse over its hedges.
+  function snapshot(obj, place, { from, at, fov = 40, w = 256, h = 256 }) {
+    const target = keep(new WebGLRenderTarget(w, h, { minFilter: NearestFilter, magFilter: NearestFilter }));
+    const c = new PerspectiveCamera(fov, w / h, 0.5, 400); c.position.set(...from); c.lookAt(...at); c.updateMatrixWorld();
+    const was = res.clone(), alpha = renderer.getClearAlpha(), hid = [];
+    obj.parent?.updateMatrixWorld(true);
+    // (only it: everything else in its place hidden for a moment)
+    for (const o of obj.parent?.children || []) if (o !== obj && o.visible) { o.visible = false; hid.push(o); }
+    const bg = place.scene.background; place.scene.background = null;
+    res.set(w, h); light(place.light); renderer.setClearAlpha(0);
+    renderer.setRenderTarget(target); renderer.clear(); renderer.render(place.scene, c); renderer.setRenderTarget(null);
+    renderer.setClearAlpha(alpha); res.copy(was); place.scene.background = bg;
+    for (const o of hid) o.visible = true;
+    return target.texture;
   }
   // (what a room just built needs on the graphics card goes there now, not the first time you see it)
   function warm(w) {
@@ -270,7 +298,7 @@ export async function open(cards, enter) {
   let back = null;
   try { back = sessionStorage.getItem(BACK); sessionStorage.removeItem(BACK); } catch {}
   const backSlot = slots.find(r => r.card.id === back);
-  for (const r of slots) if (Number.isInteger(r.card.lot) && r.card.room) await build(r);
+  for (const r of slots) if (outdoors(r.card)) await build(r);
   if (backSlot) await build(backSlot);
   const backRoom = backSlot?.place;
   relink();
@@ -359,8 +387,8 @@ export async function open(cards, enter) {
   // the room behind a door you're walking up to that isn't built yet (same test as doorAhead's)
   function unbuiltAhead() {
     const fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw);
-    for (const r of slots) if (!r.place && r.portal?.wa === me.world) {
-      const d = r.portal.a;
+    for (const r of slots) for (const p of r.portals) if (!r.place && p.wa === me.world) {
+      const d = p.a;
       if (Math.abs(me.y - d.pos.y) > 1.5) continue;
       const [lx, lz] = d.local(me.x, me.z);
       if (lz < -0.6 || lz > 3.4 || Math.abs(lx) > 2.4) continue;
@@ -761,8 +789,8 @@ export async function open(cards, enter) {
     holdOpen(name, door) { const w = places.find(p => p.name === name); if (w) w.holding = door ? w.doors[door] : null; },
     // every place, built or not (a room not built yet is built when a check goes there)
     places: () => ['outside', 'hall', ...slots.map(r => r.name)],
-    // the rooms that are buildings outside the gate (their card has a `lot`)
-    outsideRooms: () => slots.filter(r => Number.isInteger(r.card.lot)).map(r => r.name),
+    // the rooms that are buildings outside (their card has a `lot` or `grounds`)
+    outsideRooms: () => slots.filter(r => outdoors(r.card)).map(r => r.name),
     // stand at one of a place's spots (or at {x, z, yaw, y}), and look straight ahead
     put(name, spot) {
       const w = places.find(p => p.name === name);
@@ -772,7 +800,7 @@ export async function open(cards, enter) {
     // the rooms built so far, whether they're all built, building one now (and waiting for that), and
     // putting one away now (as if you'd been far from it long enough)
     built: () => slots.filter(r => r.place).map(r => r.name),
-    settled: () => slots.every(r => r.place || !r.portal) && !slots.some(r => r.building),
+    settled: () => slots.every(r => r.place || !r.portals.length) && !slots.some(r => r.building),
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },

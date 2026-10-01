@@ -54,6 +54,11 @@ https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so
   crooked butter-yellow cottage with terracotta tiles (`docs/clydes-house/`), with Clyde's Weather
   Machine beside it, which changes the weather outside (dithered cloud domes, pixel rain and snow). The next free plot
   has a NEW HOUSE COMING SOON!! stake.
+- **The backyard**, behind the house, looks finished too (the owner asked, 2026-10-01): windows all
+  round, a teal back door with a lion-sized cat flap (STAFF ONLY (CATS); it doesn't open), lamps,
+  flower beds, a flagstone patio, a bird bath, trees, a fence round the grounds, and a bench in a
+  patch of sun where Sadie naps, Zs drifting up. Beside the house on the left is the Hedge Maze's
+  hedge block (`docs/hedge-maze/`), with an arch and a garden gate at each end.
 - **You start outside**, at the gate. The first time only, Sadie's letter invites you: she's
   decided to share her clubhouse with all her friends. The pause menu can start the whole game
   over, or single things (the invitation, the broken Breakout, and so on).

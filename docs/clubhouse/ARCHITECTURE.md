@@ -33,7 +33,7 @@ activity is checked again, so something moves into it only once a second activit
   with the sign painted over; without one it gets a plain door with its name), and `keeps` if it
   saves anything (the start of its storage keys, for the pause menu's start-over buttons).
   None of an activity's code runs until `start()` is called (the build keeps it waiting), so its modules can look up its page's elements as they load.
-- **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House) has no page, styles or `start()`: its card
+- **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House, the Hedge Maze) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
   it opens, handing it the building kit (its textures `T`, the palette `C`, `psx`, `keep`, `tex`,
   `words`, `picture`, `loadImage`, `breathe` (a pause between big parts), the shapes `kit`, `wallGeometry`, `doorway`, the card and its
@@ -84,6 +84,17 @@ activity is checked again, so something moves into it only once a second activit
   put things to use in the outside's `uses` (Clyde's weather levers) and set the outside's
   `light` (the weather: the mansion reads it every frame). Nothing on the
   landing changes (the hall skips cards with a `lot`).
+- **A building in the grounds** (the Hedge Maze) is the same, but beside the house rather than on
+  the lane: its card has `grounds` instead of `lot`, which spot in the grounds is its (`GROUNDS` in
+  `outside.js`, each with its middle `x`, `z` and its room, `w` across and `d` deep; 0 is beside the
+  house on the left, from the front garden to the backyard). Its kit has `ground` (that spot) instead
+  of `lot`, `skyMat` (the outside's sky, for a room that's out of doors) and `snapshot(obj, place,
+  { from, at, fov, w, h })`, which takes a picture of one thing in a place, once, with everything
+  else see-through (the outside's `house` is the house itself, in a group of its own, so the maze
+  can show it over its hedges and it's never out of date). A building can have more
+  than one way in: its `house` can hand back `doors` (`{ door, back }`), each joined to the room's
+  own door of that name (the outside's names for them: its card's id, and `<id>.back`). A doorway can
+  move (`moveTo(pos, yaw)`): the maze's door to the backyard is always wherever its end is.
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
   one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3, the aquarium 4, Space Adventure 5), so a new activity never
   shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
@@ -102,7 +113,7 @@ activity is checked again, so something moves into it only once a second activit
 - **The mansion** (`src/clubhouse/`, loaded only when the page opens on it) is Sadie's clubhouse
   in crappy late-90s 3D, made with three.js (the one library, bundled into the page). It's made of
   separate **places**, each its own scene with its own floor and light: `outside.js` (the garden,
-  the house's shell, and the lane outside the gate with its plots), `hall.js` (the entrance hall: the bottom of the cat tree) and `room.js`
+  the house's shell, the backyard behind it, and the lane outside the gate with its plots), `hall.js` (the entrance hall: the bottom of the cat tree) and `room.js`
   (an activity's room, one per card). Places are joined only by **doorways** (`build.js`): a hole
   in a wall, two leaves that swing open, and a shallow box behind the hole whose inside shows the
   other place. Each frame, every open doorway in front of you (the nearest three: two doors on the landing can
@@ -113,8 +124,8 @@ activity is checked again, so something moves into it only once a second activit
   other side, turned round. So there are no loading screens, a place can be any size (bigger inside
   than out), and changing one place never touches another. Only the place you're in, and through
   the doorways open in front of you, get drawn.
-  - **Building rooms as they're needed.** Only the garden, the hall and any building outside the
-    gate (seen from the lane) are built before the mansion opens (and the room you're coming back
+  - **Building rooms as they're needed.** Only the garden, the hall and any building outside (seen
+    from the lane or the garden) are built before the mansion opens (and the room you're coming back
     to). Each other room is built afterwards, one at a time, nearest door first: while you stand
     still (or read the letter, or pause), when you're within 7 m of its door, or when you walk up to
     its door, which stays shut until the room's ready. A room takes a breath between its big parts
