@@ -1,9 +1,11 @@
 // The clubhouse's headless checks: the main theme (src/clubhouse/music/), composed in Node from
-// seeds, so every run is the same. A few seconds.
+// seeds, so every run is the same; the sound rules; and the room checker (every activity's card,
+// tests/clubhouse/cards.mjs). A few seconds.
 //
 //   node tests/clubhouse/run.mjs
 import { makeComposer, MODES, RANGE, LONGEST } from '../../src/clubhouse/music/compose.js';
 import { SHAPES, RELEASE } from '../../src/clubhouse/music/voices.js';
+import { checkCards } from './cards.mjs';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -122,6 +124,9 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check('closing every sound (the mansion leaving the page) leaves none behind', !Object.keys(soundState().owners).length);
   performance.now = real;
 }
+
+// ---------- the room checker: every activity's card (tests/clubhouse/cards.mjs) ----------
+await checkCards(check);
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);

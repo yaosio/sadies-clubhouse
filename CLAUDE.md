@@ -79,19 +79,16 @@ spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spo
 
 ## Publishing
 - GitHub `main` is the source of truth. The game page is https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
-- Only publish a build of `main` (`npm run check`, no `--preview`), to that same URL.
-  Before publishing, make sure `grep -c '<div id="testBadge"' dist/index.html` is 0 (that's the test
-  version's label; the bare word also appears in the embedded source of the build tool).
-  If main's code is exactly what already passed on the branch, the check skips those tests by
-  itself, so this is quick.
+- Only publish a build of `main`, to that same URL, once GitHub's check on main's latest commit is
+  green (the run the merge started; it's the real build, not the test version, and on code the pull
+  request already passed it takes a minute). Don't run the checks again here: build it
+  (`npm run build`, no `--preview`) and make sure `grep -c '<div id="testBadge"' dist/index.html` is 0
+  (that's the test version's label; the bare word also appears in the embedded source of the build tool).
 - The page comes with its game files (`dist/game/`): publish `dist/index.html` with every file in
   `dist/game/` passed in `files` as `game/<name>`, and `null` for the page's older `game/` files
   that this build doesn't have (list them first), so they don't pile up.
-- Read the live page first. If its embedded source differs from `main` (unpack it with
-  `tools/unpack.mjs` and compare), stop and ask. Then pass
-  the saved copy of it to the check (`npm run check -- --live <file>`): an activity whose code is
-  exactly what's already live (say, only docs or art changed) skips its tests even in a fresh
-  session.
+- Read the live page first. If its embedded source differs from `main` as it was before the merge
+  (unpack it with `tools/unpack.mjs` and compare), stop and ask.
 - The test page is https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX : the working branch, built
   with `--preview`, published after every pushed change without asking. It's never the source of
   truth and can be overwritten any time. Publish it from a copy outside `dist/` (the scratchpad: the page

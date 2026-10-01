@@ -2,7 +2,9 @@
 
 The full contract between the mansion and an activity: its card, the building kit the mansion
 hands a room, the place a room hands back, and the ways of playing. The short overview is
-`ARCHITECTURE.md`; read this page when you're making or changing an activity's room or card.
+`ARCHITECTURE.md`; read this page when you're making or changing an activity's room or card. The
+room checker (`tests/clubhouse/cards.mjs`) checks every card against what this page says: a field
+it doesn't know, a place that doesn't exist or is taken, or saves that aren't the card's own.
 
 - **An activity** is a folder in `src/activities/` with a `card.js`: its `id` (the folder name),
   `name`, `page` (its HTML, from `page.html`), `styles` (its CSS, from `styles.css`), `start()`,

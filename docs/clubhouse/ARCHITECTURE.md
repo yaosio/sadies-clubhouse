@@ -40,7 +40,8 @@ art/                            mock-ups, and the scripts that draw pictures
 ## Two kinds of activity
 
 Every activity has a `card.js`: its `id`, `name`, where its door is, its colour, and `keeps` (what its
-saves start with). Full details: `ROOMS.md`.
+saves start with). Full details: `ROOMS.md`. The room checker (`tests/clubhouse/cards.mjs`) checks
+every card against these rules and says plainly what's wrong.
 
 - **On a computer** (Dropper World, TypeFitter): you lean into the computer in its room, the mansion
   leaves the page and the activity's own page comes in. ESC BACK reloads into the mansion. These
