@@ -14,7 +14,7 @@ import { bothDevices } from '../shared/browser.mjs';
 const ROOM = 'room:paint-shop';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, p, errors, shot, M, up, walk, use }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, p, errors, shot, M, up, walk, rest, use }) => {
     const S = () => p.evaluate(() => window.__paintShop.state());
     const until = (fn, arg, ms = 8000) => p.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
     // stand at (x, z) in the shop looking at a point, and let it draw from there
@@ -95,8 +95,8 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: Sadie comes in (mrrp) and leaves paw prints in the paint`, printed && s.heard.includes('mrrp'), `${s.painted.floor} pixels of prints`);
     await shot('6-paw-prints');
 
-    // kept after a reload
-    await p.waitForTimeout(1800);
+    // kept after a reload (the shop keeps the paint 1.5 s of play after the last stroke)
+    await rest(1800);
     const kept = (await S()).painted;
     await p.reload();
     await up(); await M('build', ROOM); await M('put', ROOM, 'middle'); await p.waitForTimeout(300);

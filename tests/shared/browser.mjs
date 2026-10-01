@@ -26,6 +26,7 @@ export async function openDevice(browser, opts) {
 //   M(fn, ...args): the mansion's hook for the checks (window.__mansion)
 //   up(): wait for the mansion to open and every room to be built (false if it doesn't)
 //   walk(ms, key): hold a key down (W: forward) for that long in the game (see walk below)
+//   rest(ms): let that long go by in the game (see rest below)
 //   use(): E on a desktop, the button on a phone
 //   modeIs(mode): wait for the mansion to be in that mode ('play', 'arcade'...; false if it isn't)
 export function bothDevices(browser, outDir, fn) {
@@ -37,6 +38,7 @@ export function bothDevices(browser, outDir, fn) {
       M: (f, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [f, a]),
       up: () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false),
       walk: (ms, key) => walk(p, ms, key),
+      rest: ms => rest(p, ms),
       use: () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE'),
       modeIs: m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false),
     };
@@ -44,14 +46,21 @@ export function bothDevices(browser, outDir, fn) {
   }));
 }
 
-// Hold a key down (W: forward) for `ms` of the game's own time, not the clock's: on a busy computer
-// (GitHub's, say) frames come slower and each moves you less, so a walk timed by the clock could
-// stop short of a door. The mansion counts the time it's played (window.__mansion.played()).
-export async function walk(p, ms, key = 'KeyW') {
+// Let `ms` of the game's own time go by, not the clock's: on a busy computer (GitHub's, say) frames
+// come slower and the game falls behind the clock, so a wait timed by the clock can end before what
+// it waited for has happened in the game. The mansion counts the time it's played
+// (window.__mansion.played()); without the mansion on the page, it's the clock.
+export async function rest(p, ms) {
   const t0 = await p.evaluate(() => window.__mansion?.played());
+  if (t0 === undefined) return p.waitForTimeout(ms);
+  await p.waitForFunction(([t0, s]) => !window.__mansion || window.__mansion.played() - t0 >= s, [t0, ms / 1000], { polling: 'raf', timeout: ms * 8 + 5000 }).catch(() => {});
+}
+
+// Hold a key down (W: forward) for `ms` of the game's own time (so a slow computer doesn't stop
+// short of a door)
+export async function walk(p, ms, key = 'KeyW') {
   await p.keyboard.down(key);
-  if (t0 === undefined) await p.waitForTimeout(ms);
-  else await p.waitForFunction(([t0, s]) => !window.__mansion || window.__mansion.played() - t0 >= s, [t0, ms / 1000], { polling: 'raf', timeout: ms * 8 + 5000 }).catch(() => {});
+  await rest(p, ms);
   await p.keyboard.up(key);
   await p.waitForTimeout(100);
 }
