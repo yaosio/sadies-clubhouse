@@ -25,7 +25,7 @@ export async function openDevice(browser, opts) {
 //   shot(name): a screenshot, dist/check/<room>/<device>-<name>.png
 //   M(fn, ...args): the mansion's hook for the checks (window.__mansion)
 //   up(): wait for the mansion to open and every room to be built (false if it doesn't)
-//   walk(ms, key): hold a key down (W: forward) that long
+//   walk(ms, key): hold a key down (W: forward) for that long in the game (see walk below)
 //   use(): E on a desktop, the button on a phone
 //   modeIs(mode): wait for the mansion to be in that mode ('play', 'arcade'...; false if it isn't)
 export function bothDevices(browser, outDir, fn) {
@@ -36,10 +36,22 @@ export function bothDevices(browser, outDir, fn) {
       shot: name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) }),
       M: (f, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [f, a]),
       up: () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false),
-      walk: async (ms, key = 'KeyW') => { await p.keyboard.down(key); await p.waitForTimeout(ms); await p.keyboard.up(key); await p.waitForTimeout(100); },
+      walk: (ms, key) => walk(p, ms, key),
       use: () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE'),
       modeIs: m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false),
     };
     try { await fn(kit); } finally { await ctx.close().catch(() => {}); }
   }));
+}
+
+// Hold a key down (W: forward) for `ms` of the game's own time, not the clock's: on a busy computer
+// (GitHub's, say) frames come slower and each moves you less, so a walk timed by the clock could
+// stop short of a door. The mansion counts the time it's played (window.__mansion.played()).
+export async function walk(p, ms, key = 'KeyW') {
+  const t0 = await p.evaluate(() => window.__mansion?.played());
+  await p.keyboard.down(key);
+  if (t0 === undefined) await p.waitForTimeout(ms);
+  else await p.waitForFunction(([t0, s]) => !window.__mansion || window.__mansion.played() - t0 >= s, [t0, ms / 1000], { polling: 'raf', timeout: ms * 8 + 5000 }).catch(() => {});
+  await p.keyboard.up(key);
+  await p.waitForTimeout(100);
 }

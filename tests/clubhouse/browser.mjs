@@ -13,6 +13,7 @@
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
+import { walk as walkFor } from '../shared/browser.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 
@@ -32,7 +33,7 @@ export default async function ({ browser, page, check, outDir }) {
     const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
     const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
     const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
-    const walk = async ms => { await p.keyboard.down('KeyW'); await p.waitForTimeout(ms); await p.keyboard.up('KeyW'); await p.waitForTimeout(100); };
+    const walk = ms => walkFor(p, ms);
 
     await p.goto(page);
     const opened = await up();

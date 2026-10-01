@@ -730,10 +730,10 @@ export async function open(cards, enter) {
   }
 
   // ---------- the loop ----------
-  let raf = 0, last = performance.now(), frames = 0, blinkAt = 3, blinkOff = 0, hintGone = false, watching = false;
+  let raf = 0, last = performance.now(), frames = 0, played = 0, blinkAt = 3, blinkOff = 0, hintGone = false, watching = false;
   const born = performance.now();
   function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = now / 1000;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; played += dt; const t = now / 1000;
     resize();
     if (mode === 'play' && me.world.watch) {
       // something in this place everyone has to watch (Brickbuster's yarn ball getting out): your
@@ -825,6 +825,7 @@ export async function open(cards, enter) {
   const later = (name, then) => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => w ? then() : false) : false; };
   window.__mansion = {
     frames: () => frames,
+    played: () => played,   // (seconds the game has run: slower than the clock when frames are slow)
     mode: () => mode,
     where: () => ({ place: me.world.name, x: me.x, y: me.y, z: me.z, yaw: me.yaw }),
     target: () => target?.label || null,
