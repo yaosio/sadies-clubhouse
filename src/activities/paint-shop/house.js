@@ -18,10 +18,14 @@ export function buildHouse(m, A) {
   const wall = (w, h) => psx(A.wall, { rx: w / 3.2, ry: h / 2.4, unlit: 0.35 });
 
   // ---------- the shop: four walls, a flat roof, a parapet with the sign on it ----------
-  const front = add(new Mesh(wallGeometry(W, H, DW, DH), psx(A.wall, { rx: 1 / 3.2, ry: 1 / 2.4, unlit: 0.35 })), [hx, 0, hz]);
-  plane(D, H, wall(D, H), [hx - W / 2, H / 2, hz - D / 2], [0, -Math.PI / 2, 0]);
-  plane(D, H, wall(D, H), [hx + W / 2, H / 2, hz - D / 2], [0, Math.PI / 2, 0]);
-  plane(W, H, wall(W, H), [hx, H / 2, hz - D], [0, Math.PI, 0]);
+  // (each wall runs on down into the ground, and a post stands at each corner: the PS1 wobble opens
+  // hairline cracks along the edges, and through them you'd see the night)
+  const O = 0.12, WH = H + O;
+  const front = add(new Mesh(wallGeometry(W, WH, DW, DH + O), psx(A.wall, { rx: 1 / 3.2, ry: 1 / 2.4, unlit: 0.35 })), [hx, -O, hz]);
+  plane(D, WH, wall(D, H), [hx - W / 2, (H - O) / 2, hz - D / 2], [0, -Math.PI / 2, 0]);
+  plane(D, WH, wall(D, H), [hx + W / 2, (H - O) / 2, hz - D / 2], [0, Math.PI / 2, 0]);
+  plane(W, WH, wall(W, H), [hx, (H - O) / 2, hz - D], [0, Math.PI, 0]);
+  for (const [x, z] of [[-1, 0], [1, 0], [-1, -1], [1, -1]]) box(0.16, H + 0.1, 0.16, psx(null, { tint: 0xffd23a, unlit: 0.35 }), [hx + x * W / 2, (H + 0.1) / 2 - 0.05, hz + z * D]);
   const roof = box(W + 0.3, 0.25, D + 0.3, psx(null, { tint: 0xe8dcff }), [hx, H + 0.12, hz - D / 2]);
   box(W + 0.3, 0.9, 0.2, psx(null, { tint: 0xff8ec8, unlit: 0.3 }), [hx, H + 0.55, hz + 0.05]);
   plane(3.8, 0.87, psx(A.sign, { unlit: 0.5 }), [hx + 0.4, H + 0.55, hz + 0.17], null, 1);
