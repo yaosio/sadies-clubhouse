@@ -3,13 +3,7 @@
 // changes), the cloud cover and the snow on the ground, the falling cats, and what Sadie wears on
 // the gatepost (an umbrella, a heap of snow, sunglasses) and says.
 import { NAMES, FORECAST, SADIE } from './weather.js';
-
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-const rect = (g, c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-function dith(g, a, b, x, y, w, h, amt) {
-  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) rect(g, BAYER[((y + j) % 4) * 4 + ((x + i) % 4)] / 16 < amt ? b : a, x + i, y + j, 1, 1);
-}
-function disc(g, c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) rect(g, c, cx + x, cy + y); }
+import { rect, dith, disc } from './art.js';
 
 // the machine's own colours: mint enamel, brass, and Clyde's terracotta
 export const W = { mint: '#6ee0c0', mint2: '#3aa88a', mint3: '#1e6a58', brass: '#ffd23a', brass2: '#c89018', edge: '#5a2414', body: '#d97757' };

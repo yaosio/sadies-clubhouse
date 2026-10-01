@@ -11,27 +11,12 @@
 // reacts, a jingle each time, kept after a reload). On a phone the parts are swapped
 // by tapping, and a swipe moves along the machine. Screenshots in dist/check/clydes-house/. Any
 // error on the page is a failure.
-import { join } from 'node:path';
+import { bothDevices } from '../shared/browser.mjs';
 import { ROUNDS } from '../../src/activities/clydes-house/machine.js';
 
 export default async function ({ browser, page, check, outDir }) {
-  const DEVICES = [
-    ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
-    ['desktop', { viewport: { width: 1280, height: 800 } }],
-  ];
-  await Promise.all(DEVICES.map(async ([device, opts]) => {
-    const ctx = await browser.newContext(opts);
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
-    const p = await ctx.newPage(), errors = [];
-    p.on('pageerror', e => errors.push(e.message));
-    p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-    const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
-    const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs }) => {
     const S = () => p.evaluate(() => window.__clydesHouse.state());
-    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false);
-    const walk = async ms => { await p.keyboard.down('KeyW'); await p.waitForTimeout(ms); await p.keyboard.up('KeyW'); await p.waitForTimeout(100); };
-    const use = () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE');
-    const modeIs = m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false);
     const until = (fn, arg, ms = 30000) => p.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
     const ready = () => until(() => { const s = window.__clydesHouse.state(); return s.phase === 'ready' && !s.lines; });
     // a finger (or the mouse) pressing the screen at (fx, fy) of the way across and down, and moving by dx pixels
@@ -166,5 +151,5 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the weather's kept after a reload`, w.now === 'cats' && w.levers.cats > 0.9 && w.clouds > 0.9, JSON.stringify(w));
     check(`${device}: no errors on the page`, !errors.length, errors[0]);
     await ctx.close();
-  }));
+  });
 }

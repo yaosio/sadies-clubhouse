@@ -2,7 +2,7 @@
 // plain numbers), all through the room's volume dial. Also the theremin's voice, which can't be a
 // sample: it plays for as long as you hold it, sliding wherever your hand goes.
 // (If the browser has no sound at all, it quietly does nothing, but still counts, for the checks.)
-import { RATE } from './retro.js';
+import { RATE } from '../../../shared/retro.js';
 
 // `h`: the room's handle (src/shared/sound.js): the clubhouse's sound system plays everything, with
 // its rules (no buzzing, a cap on how many at once). The instruments are sounds, not music (the

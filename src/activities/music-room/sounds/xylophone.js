@@ -1,6 +1,6 @@
 // The xylophone, its bars shaped like fish: a warm wooden tok with a ring, gone in under a second.
 // Eight bars, a scale from C an octave above middle C.
-import { blank, ring, finish, hz } from './retro.js';
+import { blank, ring, finish, hz } from '../../../shared/retro.js';
 
 export const BARS = [72, 74, 76, 77, 79, 81, 83, 84];
 

@@ -11,23 +11,11 @@
 // trip comes up where the boat was left. Screenshots in dist/check/aquarium/. Any error on the page
 // is a failure.
 import { join } from 'node:path';
+import { bothDevices } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  const DEVICES = [
-    ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
-    ['desktop', { viewport: { width: 1280, height: 800 } }],
-  ];
-  await Promise.all(DEVICES.map(async ([device, opts]) => {
-    const ctx = await browser.newContext(opts);
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
-    const p = await ctx.newPage(), errors = [];
-    p.on('pageerror', e => errors.push(e.message));
-    p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-    const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
-    const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs }) => {
     const A = () => p.evaluate(() => window.__aquarium.state());
-    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false);
-    const walk = async (ms, key = 'KeyW') => { await p.keyboard.down(key); await p.waitForTimeout(ms); await p.keyboard.up(key); await p.waitForTimeout(100); };
     const until = (fn, ms) => p.waitForFunction(fn, null, { timeout: ms }).then(() => true, () => false);
 
     await p.goto(page);
@@ -148,5 +136,5 @@ export default async function ({ browser, page, check, outDir }) {
 
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
-  }));
+  });
 }

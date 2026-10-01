@@ -23,10 +23,10 @@ import { buildLand } from './land.js';
 import { buildHangout, RADIO, BUTTON, CUSHION } from './hangout.js';
 import { cockpitPics, spacePics, landPics, roomPics } from './pictures.js';
 import { makeTalk } from './talk.js';
-import { makeMusic, nearness } from './music/player.js';
+import { makeMusic } from './music/player.js';
 import { tripSong, radioSong } from './music/song.js';
 import { store } from '../../shared/storage.js';
-import { soundsFor } from '../../shared/sound.js';
+import { soundsFor, nearness } from '../../shared/sound.js';
 
 export async function buildRoom(m) {
   const { T: TX, C, psx, keep, tex, words, doorway, card, leaf } = m;

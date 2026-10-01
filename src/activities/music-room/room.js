@@ -12,7 +12,7 @@ import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, CylinderGeometry, Ci
 import { drawArt } from './art.js';
 import { makeSounds, LOUD } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';
-import { hz } from './sounds/retro.js';
+import { hz } from '../../shared/retro.js';
 import { BARS } from './sounds/xylophone.js';
 import { WHITE } from './sounds/piano.js';
 import { DEMO } from './sounds/synth.js';
@@ -424,7 +424,6 @@ export async function buildRoom(m) {
     // (the mansion puts the room away when you're far off, never with something still to happen in
     // it; it's built again from its save as you come back)
     busy: () => later.length > 0 || !!playing,
-    putAway() { sound?.close(); },
     spots: {
       door: { x: 0, z: RD - 1.2, yaw: 0, pitch: 0, y: 0 },
       piano: { x: PX, z: PZ + 2.3, yaw: 0, pitch: -0.35, y: 0 },

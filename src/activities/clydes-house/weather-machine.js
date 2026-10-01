@@ -118,6 +118,7 @@ export function buildWeather(m, group) {
   let now = loaded(store.get(KEY)), sounds = null, speed = 1, clock = 0, saying = null, sayUntil = 0, meowAt = 0, puffT = 9;
   const amount = Object.fromEntries(KINDS.map(k => [k, k === now ? 1 : 0]));
   let settled = now === 'snow' ? 1 : 0, catT = 0;
+  const seenAt = new Vector3(0, 0, -12);   // (where outside was last seen from: the front garden to begin with)
   const lastClouds = new Color(LOOK[now].clouds ?? 0x5e5c80);
   A.forecast(now);
 
@@ -154,11 +155,13 @@ export function buildWeather(m, group) {
     // the snow on the ground: settles slowly, melts faster
     settled = now === 'snow' ? Math.min(1, settled + dt / SNOW_SETTLES) : Math.max(0, settled - dt * 4 / SNOW_SETTLES);
     lying.visible = settled > 0.01; lying.material.uniforms.uFade.value = 1 - settled * 0.75;
-    // what falls, round you (or round the front garden, when you're looking out from inside)
-    const c = ears && ears.place === outside ? ears : { x: 0, z: -12 };
-    rain.fall(dt, c, amount.rain, t);
-    snow.fall(dt, c, amount.snow, t, 0.5);
-    catsFall(dt, c);
+    // what falls, round where outside is seen from (you, out there, or the door you're looking out
+    // of: the hall's or Clyde's). Rain and snow aren't worked out at all while nobody can see outside.
+    const from = ears?.outside;
+    if (from) seenAt.set(from.x, 0, from.z);
+    rain.fall(dt, seenAt, from ? amount.rain : 0, t);
+    snow.fall(dt, seenAt, from ? amount.snow : 0, t, 0.5);
+    catsFall(dt, seenAt);
     // the machine: its levers, the dish and the cups, the puff
     for (const k of KINDS) { const L = levers[k]; L.at += ((k === now ? 1 : 0) - L.at) * Math.min(1, dt * 12); L.g.rotation.x = 0.25 + L.at * 1.9; }
     dish.rotation.y = t * 0.3;
@@ -170,8 +173,8 @@ export function buildWeather(m, group) {
     for (const [k, o] of Object.entries(wear)) o.visible = amount[k] > 0.5;
     if (meowAt && clock > meowAt) {
       meowAt = 0; saying = now; sayUntil = clock + 4 / speed;
-      const near = ears && ears.place === outside && Math.hypot(ears.x - sadie.position.x, ears.z - sadie.position.z) < 30;
-      if (near) (now === 'rain' ? sounds?.mew : sounds?.mrrp)?.();
+      // (heard only out there, fading with how far off she is)
+      if (ears?.place === outside) (now === 'rain' ? sounds?.mew : sounds?.mrrp)?.({ dist: Math.hypot(ears.x - sadie.position.x, ears.z - sadie.position.z), near: 8, far: 30 });
     }
     if (saying && clock > sayUntil) saying = null;
     for (const [k, o] of Object.entries(says)) o.visible = saying === k;
@@ -190,7 +193,7 @@ export function buildWeather(m, group) {
     let seed = 11;
     const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     const drops = Array.from({ length: n }, () => ({ x: (r() - 0.5) * FIELD, y: r() * TOP, z: (r() - 0.5) * FIELD, r: r(), v: 1 }));
-    const hw = w / 2, QUAD = [[-1, 0], [1, 0], [1, 1], [-1, 0], [1, 1], [-1, 1]];
+    const hw = w / 2, QUAD = [-1, 0, 1, 0, 1, 1, -1, 0, 1, 1, -1, 1];
     return {
       drops, mesh: o, count: 0,
       fall(dt, c, amt, t, sway = 0) {
@@ -206,7 +209,8 @@ export function buildWeather(m, group) {
           while (d.x - c.x > FIELD / 2) d.x -= FIELD; while (d.x - c.x < -FIELD / 2) d.x += FIELD;
           while (d.z - c.z > FIELD / 2) d.z -= FIELD; while (d.z - c.z < -FIELD / 2) d.z += FIELD;
           let j = i * 36;
-          for (const across of [0, 1]) for (const [u, v] of QUAD) {
+          for (let q = 0; q < 12; q++) {   // (two quads crossed: along x, then along z)
+            const u = QUAD[q % 6 * 2], v = QUAD[q % 6 * 2 + 1], across = q >= 6;
             pos[j++] = d.x + (across ? 0 : u * hw); pos[j++] = d.y + v * h; pos[j++] = d.z + (across ? u * hw : 0);
           }
         }

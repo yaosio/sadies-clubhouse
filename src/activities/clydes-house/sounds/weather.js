@@ -2,8 +2,8 @@
 // all while it rains or snows (no hiss, no patter, no dripping: those go on and on). The lever's
 // clunk is the machine's own (machine.js). Plain numbers, no browser: 8-bit, 11 kHz.
 import { blank, pluck, tone, finish } from './synth.js';
+import { hz } from '../../../shared/retro.js';
 
-const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
 // a few soft music-box notes, one after another
 function notes(list, gap, len = 1.3, gain = 0.2, rate = 4.5) {
   const a = blank(len);

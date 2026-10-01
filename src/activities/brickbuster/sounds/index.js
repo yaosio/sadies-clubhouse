@@ -2,7 +2,7 @@
 // made in their own files (the glass, the machine, the poster, Sadie), with the kit in retro.js;
 // the clubhouse's sound system (src/shared/sound.js) plays them, through the room's handle. A new
 // sound goes in the file it belongs with (or a new file), and gets a line here.
-import { RATE } from './retro.js';
+import { RATE } from '../../../shared/retro.js';
 import { crack, shatter, tink } from './glass.js';
 import { boing, blip, tock } from './machine.js';
 import { mute } from './quiet.js';

@@ -35,8 +35,14 @@ export function makeMusic(h, volume = 0.4) {
 
   // a track: a song's notes, played from a moment you say, and (for the radio) round and round
   function track(notes, { loop = 0 } = {}) {
-    let gain = null;
-    if (ctx) { gain = ctx.createGain(); gain.gain.value = 1; gain.connect(out); }
+    // its output, and its send into the echo beside it: both fade together when it stops (so no
+    // note already handed over carries on in the echo)
+    let gain = null, wet = null;
+    const fresh = v => {
+      gain = ctx.createGain(); gain.gain.value = v; gain.connect(out);
+      wet = ctx.createGain(); wet.gain.value = v; wet.connect(echoIn);
+    };
+    if (ctx) fresh(1);
     let next = 0, lap = 0, playing = false, start = 0;
     const tr = {
       played: 0,
@@ -46,21 +52,24 @@ export function makeMusic(h, volume = 0.4) {
         if (loop) { lap = Math.floor(from / loop); from -= lap * loop; }
         while (next < notes.length && notes[next].t < from) next++;
         start = (ctx ? ctx.currentTime : 0) - from;
-        if (gain) { gain.gain.cancelScheduledValues(ctx.currentTime); gain.gain.setValueAtTime(tr.level ?? 1, ctx.currentTime); }
+        if (gain) for (const g of [gain, wet]) { g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setValueAtTime(tr.level ?? 1, ctx.currentTime); }
       },
       // stop, fading out over `secs`
       stop(secs = 0.3) {
         if (!playing) return;
         playing = false;
         if (gain) {
-          const g = gain; g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setValueAtTime(g.gain.value, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + secs);
-          // (a fresh gain for next time, so notes already handed over fade with the old one)
-          gain = ctx.createGain(); gain.gain.value = 0; gain.connect(out);
+          const old = [gain, wet];
+          for (const g of old) { g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setValueAtTime(g.gain.value, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + secs); }
+          // (fresh ones for next time, so notes already handed over fade with the old ones, which
+          // are let go once they're quiet)
+          fresh(0);
+          setTimeout(() => { for (const g of old) try { g.disconnect(); } catch {} }, secs * 1000 + 1500);
         }
       },
       get playing() { return playing; },
       level: 1,
-      setLevel(v) { tr.level = v; if (gain && playing) gain.gain.setTargetAtTime(v, ctx.currentTime, 0.1); },
+      setLevel(v) { tr.level = v; if (gain && playing) for (const g of [gain, wet]) g.gain.setTargetAtTime(v, ctx.currentTime, 0.1); },
       // hand the browser the notes coming up in the next moment; call it every frame
       tick() {
         if (!playing) return;
@@ -79,7 +88,7 @@ export function makeMusic(h, volume = 0.4) {
           try {
             const src = ctx.createBufferSource(), g = ctx.createGain();
             src.buffer = buffer(e); g.gain.value = e.vol ?? 0.5; src.connect(g); g.connect(gain);
-            if (ECHO[e.kind]) { const s = ctx.createGain(); s.gain.value = ECHO[e.kind] * (e.vol ?? 0.5); src.connect(s); s.connect(echoIn); }
+            if (ECHO[e.kind]) { const s = ctx.createGain(); s.gain.value = ECHO[e.kind] * (e.vol ?? 0.5); src.connect(s); s.connect(wet); }
             src.start(start + at);
           } catch {}
         }
@@ -97,10 +106,4 @@ export function makeMusic(h, volume = 0.4) {
     close: () => h.close(),
   };
   return music;
-}
-
-// How loud something is from `d` metres away: all of it up to `near`, fading to nothing at `far`.
-export function nearness(d, near = 2, far = 14) {
-  const k = Math.min(1, Math.max(0, (far - d) / (far - near)));
-  return k * k;
 }

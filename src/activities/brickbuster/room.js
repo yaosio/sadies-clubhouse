@@ -397,6 +397,7 @@ export async function buildRoom(m) {
       if (dirty) keep_();
       leaving.abort(); sfx.close();
       if (hallBall) { hall.scene.remove(hallBall, hallCat); hall.faces.splice(hall.faces.indexOf(hallCat), 1); }
+      if (hall.napping) hall.napping.visible = true;   // (back in her box in the sunbeam till the room's built again)
     },
     watch: null,     // what your view follows (the yarn ball, while it's getting out)
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },

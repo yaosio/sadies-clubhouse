@@ -2,7 +2,7 @@
 // sounds themselves are made in their own files (the finds, the sea), with the kit in retro.js;
 // the clubhouse's sound system (src/shared/sound.js) plays them, through the room's handle. A new sound goes in the file it belongs with (or a new file), and gets a line
 // here and in LIST (the test version's sound tester plays through LIST).
-import { RATE } from './retro.js';
+import { RATE } from '../../../shared/retro.js';
 import { FIND_SOUNDS, reef } from './finds.js';
 import { wave, sail } from './sea.js';
 

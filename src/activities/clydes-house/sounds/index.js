@@ -17,6 +17,6 @@ export const ALL = { chime, ...machine, ...sadie, ...clyde, ...weather };
 // Sadie's and Clyde's are voices (the pause menu's VOICES volume); the rest are sounds.
 const VOICES = new Set([...Object.keys(sadie), ...Object.keys(clyde)]);
 export function makeSounds(h, volume = 0.45) {
-  for (const [k, make] of Object.entries(ALL)) h[k] = () => h.play(k, make, { loud: volume, rate: RATE, hold: 4, gap: 0.1, bus: VOICES.has(k) ? 'voices' : 'sounds' });
+  for (const [k, make] of Object.entries(ALL)) h[k] = (o = {}) => h.play(k, make, { loud: volume, rate: RATE, hold: 4, gap: 0.1, bus: VOICES.has(k) ? 'voices' : 'sounds', ...o });   // (o: `dist`, `near`, `far`)
   return h;
 }

@@ -10,12 +10,15 @@
 //
 // The rules, for everything:
 //   - the same sound can't play again within `gap` seconds (0.08 unless it says; mashing never buzzes)
-//   - a voice (bus 'voices': Sadie, Clyde) never says the same thing twice running
+//   - a voice (bus 'voices': Sadie, Clyde) never says the same thing twice running (within
+//     VOICE_GAP seconds: after a good while it's not "again", and a room with one meow still meows)
 //   - `dist` (metres from you) fades it: all of it up to `near`, nothing past `far`
 //   - never more than MAX sounds at once (anything more is dropped, not queued)
 //   - a room's music is only heard while you're in that room (the mansion says where you are)
 //   - any music playing (heard on its meter) makes the main theme fade out (otherMusic())
 //   - a room put away (or left for good) stops everything it started: closeSounds(owner)
+//   - while the pause menu is up (the mansion says: paused()), nothing new plays but music (which
+//     its own room stops or carries on as it likes), so a room needs no pause code for its sounds
 // Browsers only allow sound once something's been pressed: it wakes on the first press or key, and
 // rests while the page is out of sight. With no sound at all in the browser, it quietly does nothing,
 // but still counts what it would have played (for the checks).
@@ -25,8 +28,9 @@ export const BUSES = ['music', 'sounds', 'voices'];
 const MAX = 14;           // sounds playing at once, at most
 const HOLD = 6;           // seconds the theme stays away after other music was last heard (its rests)
 const HEARD = 0.004;      // how loud (RMS) counts as music playing
+const VOICE_GAP = 10;     // seconds before a voice may say the same thing again
 
-let ctx = null, bus = null, here = null, heardAt = -1e9, live = 0;
+let ctx = null, bus = null, here = null, heardAt = -1e9, live = 0, still = false;
 const handles = new Set(), levels = { music: 1, sounds: 1, voices: 1 };
 
 function engine() {
@@ -76,8 +80,12 @@ export function otherMusic() {
   return now - heardAt < HOLD;
 }
 
-// Everything a room started stops (it's been put away).
-export function closeSounds(owner) { for (const h of [...handles]) if (h.owner === owner) h.close(); }
+// The pause menu is up (or down again): while it is, only music plays.
+export function paused(on) { still = !!on; }
+
+// Everything a room started stops (it's been put away). With no owner: everything (the mansion's
+// leaving the page).
+export function closeSounds(owner) { for (const h of [...handles]) if (owner === undefined || h.owner === owner) h.close(); }
 
 // What's going on (for the checks): the engine, how many sounds are playing, and per owner its
 // sounds playing, its lines, and its music lines that can be heard where you are.
@@ -88,25 +96,25 @@ export function soundState() {
     o.sounds += h.sources.size; o.lines += h.lines.length;
     for (const l of h.lines) if (l.bus === 'music' && (l.everywhere || h.owner === here)) o.music++;
   }
-  return { engine: ctx ? ctx.state : 'none', playing: live, here, levels: { ...levels }, owners };
+  return { engine: ctx ? ctx.state : 'none', playing: live, here, paused: still, levels: { ...levels }, owners };
 }
 
 export function soundsFor(owner) {
   const made = new Map(), lastAt = new Map();
-  let lastVoice = null;
+  let lastVoice = null, lastVoiceAt = -1e9;
   const h = {
     owner, sources: new Set(), lines: [], closed: false,
     played: 0, last: null, log: [],   // (how many, the last, and the last 200: for the checks)
     // play a sound by name. `make()` makes its samples (plain numbers, at `rate`, each held `hold`
     // times over: the 8-bit crunch), the first time only. Returns whether it played.
     play(key, make, { loud = 1, bus: b = 'sounds', rate = 11025, hold = 1, gap = 0.08, dist, near, far } = {}) {
-      if (h.closed) return false;
+      if (h.closed || (still && b !== 'music')) return false;
       const now = performance.now() / 1000;
       if (now - (lastAt.get(key) ?? -1e9) < gap) return false;
-      if (b === 'voices' && key === lastVoice) return false;
+      if (b === 'voices' && key === lastVoice && now - lastVoiceAt < VOICE_GAP) return false;
       if (dist !== undefined) loud *= nearness(dist, near, far);
       if (loud < 0.005) return false;
-      lastAt.set(key, now); if (b === 'voices') lastVoice = key;
+      lastAt.set(key, now); if (b === 'voices') { lastVoice = key; lastVoiceAt = now; }
       h.played++; h.last = key; h.log.push(key); if (h.log.length > 200) h.log.shift();
       if (!engine() || ctx.state !== 'running' || live >= MAX) return true;
       try {

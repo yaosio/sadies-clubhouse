@@ -3,7 +3,7 @@
 // A few seconds.
 //
 //   node tests/music-room/run.mjs
-import { RATE } from '../../src/activities/music-room/sounds/retro.js';
+import { RATE } from '../../src/shared/retro.js';
 import { toyPiano, WHITE, BLACK, OUT_OF_TUNE } from '../../src/activities/music-room/sounds/piano.js';
 import { bar, BARS } from '../../src/activities/music-room/sounds/xylophone.js';
 import { drum, DRUMS } from '../../src/activities/music-room/sounds/drums.js';

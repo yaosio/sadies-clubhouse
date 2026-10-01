@@ -32,7 +32,7 @@ import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
 import { store } from '../shared/storage.js';
 import { makeTheme } from './music/theme.js';
-import { setVolume, youAreIn, closeSounds, soundState, LEVELS, BUSES } from '../shared/sound.js';
+import { setVolume, youAreIn, closeSounds, paused as soundsPaused, soundState, LEVELS, BUSES } from '../shared/sound.js';
 import P from './pictures.js';
 import page from './mansion.html';
 import styles from './mansion.css';
@@ -112,8 +112,7 @@ export async function open(cards, enter) {
       else {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
         w = await code.buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
-          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, house: r.house, ears: () => ({ place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch }),
-          paused: () => mode === 'menu' });
+          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, house: r.house, ears, paused: () => mode === 'menu' });
       }
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
@@ -133,12 +132,12 @@ export async function open(cards, enter) {
       return null;
     }));
   }
-  // Putting a room away (only one that says it can: a room that reaches into other places, or keeps
-  // something going, stays). What it made goes back to the graphics card, unless another place uses it.
+  // Putting a room away (any room but the one you're in, or one that says it's `busy()` or is holding
+  // its door open): its own `putAway()`, if it has one, takes back what it put in other places. What it made goes back to the graphics card, unless another place uses it.
   function putAway(r) {
     const w = r.place;
-    if (!w || !w.putAway || w === me.world || r.building || w.holding || w.busy?.()) return false;
-    w.putAway(); closeSounds(r.name);   // (everything it started stops, whatever it forgot)
+    if (!w || w === me.world || r.building || w.holding || w.busy?.()) return false;
+    w.putAway?.(); closeSounds(r.name);   // (everything it started stops, whatever it forgot)
     r.portal.b = r.portal.wb = null; r.portal.open = 0; r.portal.a.setOpen(0);
     const mine = new Set(r.mine);
     for (const sc of w.scenes || [w.scene]) things(sc, mine);
@@ -176,7 +175,7 @@ export async function open(cards, enter) {
   // door), and put away rooms three doors off for a while (or the ones you were near longest ago,
   // once there are more than MAX)
   const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7, BITE = 6, TRIES = 6;
-  let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks, seeing a door wait for its room)
+  let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks: a room's built only as you walk up to its door, and never put away by itself)
   function tend(dt, doorFor) {
     const away = doorsAway();
     let next = null, best = 1e9;
@@ -191,7 +190,7 @@ export async function open(cards, enter) {
     if (next && !slots.some(r => r.building)) build(next);
     const built = slots.filter(r => r.place);
     for (const r of built) r.far = away(r) >= FAR_DOORS ? r.far + dt : 0;
-    for (const r of built) if (r.far > FAR_SECS) putAway(r);
+    if (!onlyDoors) for (const r of built) if (r.far > FAR_SECS) putAway(r);
     if (built.length > MAX) {
       const spare = built.filter(r => r.place && away(r) >= 2).sort((a, b) => b.far - a.far);
       for (const r of spare.slice(0, built.length - MAX)) putAway(r);
@@ -201,9 +200,16 @@ export async function open(cards, enter) {
   // you're looking out of) is drawn as a plain block its size instead (made the first time it's
   // needed): with a long lane of houses, only the near ones are drawn in full.
   let FAR_HOUSE = 90;
-  function farHouses() {
+  // Where outside is seen from: you, out there, or the open door you're looking out of (null: it
+  // can't be seen). Worked out once a frame, before the places update (`ears().outside`).
+  let seenFrom = null;
+  function outsideSeenFrom() {
     let from = me.world === outside ? me : null;
     if (!from) for (const s of sides) if (s.w === me.world && s.tw === outside && s.p.open > 0.02) from = s.to.pos;
+    return from;
+  }
+  function farHouses() {
+    const from = seenFrom;
     for (const r of slots) {
       const g = r.house?.group; if (!g) continue;
       const far = !!from && Math.hypot(from.x - r.house.door.pos.x, from.z - r.house.door.pos.z) > FAR_HOUSE;
@@ -254,6 +260,12 @@ export async function open(cards, enter) {
     draw();
   }
 
+  // you (declared before any room's built: its kit's `ears()` and `paused()` read them), and where
+  // your ears are: your eye, where you're looking, and where outside is seen from (`outside`)
+  const me = { world: outside, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, eye: 0, bob: 0 };
+  let mode = 'play';           // 'letter', 'play', 'menu', 'going' (into an activity), 'arcade' (playing a game in its room) or 'gliding' (stepping up to one or back)
+  function ears() { return { place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch, outside: seenFrom }; }
+
   // you start at the gate, or (coming back from an activity) at its computer: that room's built first
   let back = null;
   try { back = sessionStorage.getItem(BACK); sessionStorage.removeItem(BACK); } catch {}
@@ -264,7 +276,6 @@ export async function open(cards, enter) {
   relink();
 
   // ---------- you ----------
-  const me = { world: outside, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, eye: 0, bob: 0 };
   function place(world, spot) {
     me.world = world; me.x = spot.x; me.z = spot.z; me.yaw = spot.yaw; me.pitch = spot.pitch || 0;
     me.y = me.eye = spot.y ?? world.floor(spot.x, spot.z, 0) ?? 0;
@@ -397,7 +408,6 @@ export async function open(cards, enter) {
   }
 
   // ---------- controls ----------
-  let mode = 'play';           // 'letter', 'play', 'menu', 'going' (into an activity), 'arcade' (playing a game in its room) or 'gliding' (stepping up to one or back)
   const held = new Set();
   const stick = { id: null, x0: 0, y0: 0, x: 0, y: 0 }, drag = { id: null, x: 0, y: 0 };
   let locked = false, moved = false;
@@ -420,7 +430,7 @@ export async function open(cards, enter) {
     if (mode !== 'play') return;
     const k = KEYS[e.code];
     if (k) { e.preventDefault(); held.add(k); return; }
-    if (e.code === 'KeyE' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (target) use(target); }
+    if (e.code === 'KeyE' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (target && !e.repeat) use(target); }   // (holding it down uses it once)
   });
   on(window, 'keyup', e => { const k = KEYS[e.code]; if (k) held.delete(k); if (mode === 'arcade') arcade.u.play.key?.(e.code, false); });
   on(window, 'blur', () => held.clear());
@@ -706,15 +716,17 @@ export async function open(cards, enter) {
       p.open += ((want ? 1 : 0) - p.open) * Math.min(1, dt * 5);
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }
+    seenFrom = outsideSeenFrom();
+    soundsPaused(mode === 'menu');   // (nothing new sounds behind the pause menu but music)
     for (const w of places) w.update(t, dt);
     // the main theme: it makes way for any other music by itself (the sound system hears it), and
-    // for a place that asks for quiet (its `hush`: the Music Room)
+    // for a place that asks for quiet (its `hush`: the Music Room, Space Adventure's cockpit and radio)
     youAreIn(me.world.name);   // (a room's music is only heard in it)
     const hush = me.world.hush;
     theme.tick(typeof hush === 'function' ? !!hush() : !!hush);
     farHouses();
     // (a house outside the gate whose room is put away: the house still moves, like the rest of outside)
-    for (const r of slots) if (r.house && !r.place) r.house.update(t, dt, { place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch });
+    for (const r of slots) if (r.house && !r.place) r.house.update(t, dt, ears());
     // Sadie on the gatepost blinks now and then
     if (t > blinkAt) { outside.sadie.material.uniforms.map.value = T.nap; blinkOff = t + 0.15; blinkAt = t + 2.5 + Math.random() * 3; }
     if (blinkOff && t > blinkOff) { outside.sadie.material.uniforms.map.value = T.sadie; blinkOff = 0; }
@@ -727,7 +739,7 @@ export async function open(cards, enter) {
   }
 
   function close() {
-    cancelAnimationFrame(raf); off.abort(); theme.close(); for (const r of slots) closeSounds(r.name);
+    cancelAnimationFrame(raf); off.abort(); theme.close(); closeSounds();   // (every sound, a house's own too)
     if (document.pointerLockElement) document.exitPointerLock();
     for (const t of throughs) t.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();
@@ -749,6 +761,8 @@ export async function open(cards, enter) {
     holdOpen(name, door) { const w = places.find(p => p.name === name); if (w) w.holding = door ? w.doors[door] : null; },
     // every place, built or not (a room not built yet is built when a check goes there)
     places: () => ['outside', 'hall', ...slots.map(r => r.name)],
+    // the rooms that are buildings outside the gate (their card has a `lot`)
+    outsideRooms: () => slots.filter(r => Number.isInteger(r.card.lot)).map(r => r.name),
     // stand at one of a place's spots (or at {x, z, yaw, y}), and look straight ahead
     put(name, spot) {
       const w = places.find(p => p.name === name);

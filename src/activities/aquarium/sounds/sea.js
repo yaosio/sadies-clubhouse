@@ -3,7 +3,7 @@
 // rustles once when you turn hard. `seaPacing` decides when, with its rules in numbers the tests
 // read: never two sounds closer than GAP seconds, waves only every WAVE_MIN to WAVE_MAX seconds,
 // never the same one twice running.
-import { RATE, rng, blank, finish } from './retro.js';
+import { RATE, rng, blank, finish } from '../../../shared/retro.js';
 
 export const GAP = 8, WAVE_MIN = 40, WAVE_MAX = 80, SAIL_REST = 20;
 export const WAVES = 3;

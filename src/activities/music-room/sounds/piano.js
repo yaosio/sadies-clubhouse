@@ -2,7 +2,7 @@
 // a hollow ring under it, that dies away by itself. Ten white keys and seven black ones, middle C up
 // to E an octave and a bit above. The third white key is out of tune (Sadie's favourite): a bit
 // sharp, and it wobbles.
-import { blank, ring, finish, hz } from './retro.js';
+import { blank, ring, finish, hz } from '../../../shared/retro.js';
 
 // the notes, left to right: white keys, then the black keys between them (and which white key each
 // sits after)

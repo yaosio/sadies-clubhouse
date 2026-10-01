@@ -104,7 +104,8 @@ export default async function ({ browser, page, check, outDir }) {
     // the mansion opens before the rooms are built (all but a building outside the gate, which you can
     // see from the lane); the rest are built one at a time while you stand about
     const sp = await M('speed');
-    check(`${device}: the mansion opens without waiting for the rooms`, sp.atFirst.every(n => n === 'room:clydes-house'), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
+    const outsideRooms = await M('outsideRooms');
+    check(`${device}: the mansion opens without waiting for the rooms`, sp.atFirst.every(n => outsideRooms.includes(n)), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
     const settled = await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 20000 }).then(() => true, () => false);
     const sp2 = await M('speed'), slow = Object.entries(sp2.places).filter(([, ms]) => ms > SLOW);
     check(`${device}: ...and the rooms are built while you stand about`, settled, (await M('built')).join(', '));
@@ -169,11 +170,10 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: a room can be put away, handing its things back`, away && !(await M('built')).includes('room:aquarium') && k1 < k0, `${k0} things kept, then ${k1}`);
     await M('faceDoor', 'hall', 'aquarium', 1.3);
     await walk(350);
-    await p.waitForTimeout(800);
+    const rebuilt = await p.waitForFunction(() => window.__mansion.looking() === 'room:aquarium' && window.__mansion.built().includes('room:aquarium'), null, { timeout: 5000 }).then(() => true, () => false);
     await shot('4c-built-again');
-    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, await M('looking') === 'room:aquarium' && (await M('built')).includes('room:aquarium'));
+    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt);
     const k2 = (await M('speed')).kept;
-    await M('onlyDoors', false);
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
     // Every room keeps the sound rules (src/shared/sound.js): none of its music is heard once you've
     // left it, and once it's put away nothing it started is left (no sounds, no lines).
@@ -186,18 +186,33 @@ export default async function ({ browser, page, check, outDir }) {
       if (!(await M('putAway', n))) leftOver.push(`${n} wouldn't be put away`);
       else if ((await M('sound')).owners[n]) leftOver.push(`${n} left sounds behind`);
     }
+    // (and nothing it had waiting to go off later starts up again once it's put away)
+    await p.waitForTimeout(2000);
+    const owners = (await M('sound')).owners;
+    for (const n of (await M('places')).filter(n => n.startsWith('room:'))) if (owners[n] && !(await M('built')).includes(n)) leftOver.push(`${n} made sounds after it was put away`);
     check(`${device}: every room keeps the sound rules: its music isn't heard once you've left, and it leaves nothing playing when put away`, !leftOver.length, leftOver.join(', '));
     // every room can be put away and built again, twice over, with nothing piling up (and no copies
     // of anything it puts on the screen)
     const all = (await M('places')).filter(n => n.startsWith('room:'));
-    const refused = [], kept = [];
+    // (and nothing on the page, and none of its saves, changes: built again from its save, it's the
+    // same room; each rebuild is as quick as the first build)
+    const saves = () => p.evaluate(() => JSON.stringify(Object.keys(localStorage).filter(k => !k.startsWith('mansion.')).sort().map(k => [k, localStorage.getItem(k)])));
+    for (const n of all) await M('build', n);   // (the ones put away just now)
+    const saved0 = await saves();
+    const refused = [], kept = [], onPage = [];
     for (let round = 0; round < 3; round++) {
       for (const n of all) { if (!(await M('putAway', n))) refused.push(n); await M('build', n); }
       kept.push((await M('speed')).kept);
+      onPage.push(await p.evaluate(() => document.querySelectorAll('*').length));
     }
+    const saved1 = await saves(), sp3 = await M('speed');
+    await M('onlyDoors', false);
     // (the first time round, a room outside the gate keeps its house's pictures from its first build)
     check(`${device}: ...every room can be put away and built again, over and over`, !refused.length && kept[1] === kept[0] && kept[2] === kept[0], `${[...new Set(refused)].join(', ') || 'all of them'}; things kept each time round: ${kept.join(', ')}`);
-    check(`${device}: ...and leaves no copies behind on the screen`, await p.evaluate(() => document.querySelectorAll('#saTalk').length) === 1);
+    check(`${device}: ...and leaves no copies behind on the page`, onPage[1] === onPage[0] && onPage[2] === onPage[0], `things on the page each time round: ${onPage.join(', ')}`);
+    check(`${device}: ...and every room's save is just as it was`, saved1 === saved0, saved1 === saved0 ? '' : `before ${saved0.slice(0, 300)} after ${saved1.slice(0, 300)}`);
+    const slowAgain = all.filter(n => sp3.places[n] > SLOW || sp3.bits[n] > BIT);
+    check(`${device}: ...and each is as quick to build again (under ${SLOW} ms, no bit over ${BIT} ms)`, !slowAgain.length, all.map(n => `${n.replace('room:', '')} ${sp3.places[n]}/${sp3.bits[n]}`).join(', '));
 
     // through Dropper World's door into its room
     // (from 1.3 m out: further than that is off the landing, except in front of the first door)
@@ -284,10 +299,11 @@ export default async function ({ browser, page, check, outDir }) {
   await p.goto(page);
   await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 });
   const failed = await M('build', 'room:aquarium');
-  await p.waitForFunction(() => window.__mansion.built().length >= 5, null, { timeout: 20000 }).catch(() => {});
+  const rooms = (await M('places')).filter(n => n.startsWith('room:')).length;
+  await p.waitForFunction(n => window.__mansion.built().length >= n, rooms - 1, { timeout: 20000 }).catch(() => {});
   const others = (await M('built')).filter(n => n !== 'room:aquarium').length;
-  check('a room whose file won\'t load keeps its door shut, and the other rooms still build', !failed && !(await M('built')).includes('room:aquarium') && others >= 5 && asked > 0,
-    `aquarium built: ${failed}, ${others} other rooms built`);
+  check('a room whose file won\'t load keeps its door shut, and the other rooms still build', !failed && !(await M('built')).includes('room:aquarium') && others >= rooms - 1 && asked > 0,
+    `aquarium built: ${failed}, ${others} of ${rooms - 1} other rooms built`);
   cut = false;
   check('...and it\'s built once its file comes', await M('build', 'room:aquarium') && (await M('built')).includes('room:aquarium'));
   check('...with no errors on the page', !errors.length, errors.slice(0, 3).join(' | '));
