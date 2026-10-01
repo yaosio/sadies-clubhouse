@@ -6,8 +6,9 @@ the path from Clyde's House (`lot` 1). The owner asked for a Kid Pix-style paint
 clubhouse belongs to somebody else (the owner's rule), so the shop is Chooter's: the black
 lab/pitbull mix from Dropper World.
 
-**Chooter** sits by his counter, tail wagging nonstop, covered in splotches of whatever paint you
-last dipped in (every colour at once for RAINBOW). When the dynamite goes off, or Sadie comes in,
+**Chooter** sits by his counter, tail wagging nonstop, wearing a painter's cap and holding a
+paintbrush in his mouth, both in whatever paint you last dipped in (stripes for RAINBOW): so you can
+see your colour on him. (He used to be splotched in it, but red splotches looked like blood.) When the dynamite goes off, or Sadie comes in,
 he jumps about (it's the best thing ever). He makes no sound. Drawn in his Dropper World colours:
 black coat, white blaze, floppy ears, pink tongue, blue collar, gold tag.
 
@@ -15,12 +16,12 @@ black coat, white blaze, floppy ears, pink tongue, blue collar, gold tag.
 while you're in the room) she comes in through her cat flap in the back wall, says mrrp, walks across
 the open floor, sits a moment and goes back out, leaving 16 paw prints in the paint she stepped in
 (yours, or a random bright one if you're holding white or the rainbow). And there's a plaster Sadie
-on a plinth to paint (SADIE. PAINT ME).
+on a plinth to paint (SADIE).
 
 **The shop from outside:** mint walls splattered in every colour, a pink and yellow striped awning,
 the sign (CHOOTER'S PAINT SHOP), two windows full of paint cans, a blue door with an OPEN sign, a
-sandwich board (TODAY: PAINT THE WALLS / ALSO THE FLOOR & CAT?), and a giant paint can (1 TON)
-tipping off the roof, pouring pink down the front into a puddle.
+sandwich board (TODAY: PAINT THE WALLS / ALSO FLOOR AND CAT?), and a giant paint can (1 TON)
+up on a stand in the middle of the roof, high above the sign, tipping forward and pouring pink onto it.
 
 ## Design pillars (these win over any feature idea)
 
@@ -48,9 +49,12 @@ Walk out of the gate and across the path from Clyde's House, and in through the 
   flies off in little bits, BOOM, and it's bare again).
 - **Painting:** with the mouse locked (click first), hold the button and it paints where the dot in
   the middle of the view points, and keeps painting as you walk and look about. On a phone (or with
-  the mouse free), the PAINT button switches pressing from looking around to painting wherever you
-  press; the thumb stick still walks. The dot and the button are edged in your paint, and the dot
-  says what you're holding (BRUSH: RED).
+  the mouse free), the LOOK | PAINT switch (bottom right) says what pressing does: look around, or
+  paint wherever you press; the thumb stick still walks. Picking up a tool or dipping in a pot flips
+  it to PAINT, so your next press paints. The YOU'RE HOLDING box (top left) always shows the tool (its
+  picture from the pegboard), the paint (none for a stamp or the dynamite), and in a line how to use
+  it right now; it blinks gold when you pick something up. The switch, the dot and the mouse pointer
+  are in your paint.
 - **The plunger** (a TNT box by the door): push it once and it asks (SURE? PUSH AGAIN, for four
   seconds); again and every painted thing in the room blows up, one after another, back to bare.
 
@@ -80,19 +84,20 @@ the shop's), and they stop paint going through them.
 
 **The mansion's part (`brush`):** a place with a `brush(id, ray, 'down' | 'move' | 'up')` is painted
 as you walk about: the mansion hands it every press as a line out into the place, every frame while
-it's held (so walking while you hold it paints a stroke), and shows the PAINT button and the dot
-(`brushLook()`: `{ color, label }`). See `docs/clubhouse/ARCHITECTURE.md`.
+it's held (so walking while you hold it paints a stroke), and shows the switch, the YOU'RE HOLDING
+box and the dot (`brushLook()`: `{ color, tool, icon, paint, verb, drags, picks }`). See `docs/clubhouse/ARCHITECTURE.md`.
 
 **Put away when you're far off.** `putAway()` saves the paint. The shop outside stays.
 
 Checks: `tests/paint-shop/run.mjs` (the brush, the roller's square, the spray's dots, the bucket
-staying in its patch and on its side, stamps the right way up, keeping and getting back any paint
+staying in its patch and on its side, a box taking paint on every side, stamps the right way up, keeping and getting back any paint
 exactly, the worst case fitting in the browser, the pots and tools, every sound soft and short, no
 sound for painting) and `tests/paint-shop/browser.mjs` (in through the door, dipping and taking with E
-or USE, the PAINT switch and a silent stroke, a stamp, the bucket, the dynamite, Sadie's prints, kept
+or USE, the YOU'RE HOLDING box and the switch going to PAINT on its own, LOOK and back, a silent stroke, a stamp, the bucket, the dynamite, Sadie's prints, kept
 after a reload, the plunger asking then blowing up everything). Pictures: `node tools/paint-shop/shots.mjs
 [desktop|phone]` (after a build) saves the shop, inside, and a round of painting in
-`dist/shots/paint-shop/`.
+`dist/shots/paint-shop/`; `node tools/paint-shop/details.mjs` saves close-ups of the little things (the
+signs, Chooter's cap, the easel's back, a crate painted on every side, the room's corners).
 
 ## Parked ideas
 

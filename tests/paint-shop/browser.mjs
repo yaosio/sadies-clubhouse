@@ -3,8 +3,8 @@
 // run whenever the mansion changes too.
 //
 // It walks out along the lane to the shop and in through its door, dips the brush in a pot on the
-// counter and takes a tool off the pegboard (E, or the USE button on a phone), turns on the PAINT
-// switch and paints a wall with a finger or the mouse (silently), stamps a stamp, fills the
+// counter and takes a tool off the pegboard (E, or the USE button on a phone), sees the YOU'RE HOLDING
+// box name them and the switch go to PAINT, flips it to LOOK and back, and paints a wall with a finger or the mouse (silently), stamps a stamp, fills the
 // floor with the bucket, blows the floor's paint off with the dynamite, watches Sadie come in and
 // leave paw prints, pushes the plunger twice (the first time it asks) and sees the whole room go back
 // to bare, and checks the paint is kept after a reload. Screenshots in dist/check/paint-shop/. Any
@@ -58,12 +58,18 @@ export default async function ({ browser, page, check, outDir }) {
     await use(); await p.waitForTimeout(150);
     s = await S();
     check(`${device}: ...taking it, you hold it (tok)`, s.holding.tool === 'spray' && s.heard.includes('tok'));
+    const box = await p.textContent('#mansion #holding');
+    check(`${device}: the YOU'RE HOLDING box says the spray can, in yellow, and how to paint`,
+      await p.isVisible('#mansion #holding') && /SPRAY CAN/.test(box) && /YELLOW/.test(box) && /ANYTHING TO SPRAY/.test(box), box);
+    check(`${device}: ...and picking it up switched to painting`, await M('painting'));
 
-    // painting the right wall (nothing on it): the PAINT switch, then a stroke (no sound at all)
+    // painting the right wall (nothing on it): the LOOK | PAINT switch, then a stroke (no sound at all)
     await face(1, 2.5, 5, 1.8, 2.5);
-    check(`${device}: there's a PAINT switch`, await p.isVisible('#mansion #paint'));
+    check(`${device}: there's a LOOK | PAINT switch`, await p.isVisible('#mansion #paint'));
     await p.click('#mansion #paint');
-    check(`${device}: ...which turns painting on`, await M('painting'));
+    check(`${device}: ...LOOK stops painting, and says how to start again`, !await M('painting') && /THEN (TAP|CLICK) ANYTHING/.test(await p.textContent('#mansion #holding p')));
+    await p.click('#mansion #paint');
+    check(`${device}: ...and PAINT turns it back on`, await M('painting'));
     await p.evaluate(() => window.__paintShop.hold('brush', 1));
     const played = (await S()).played;
     await drag(0.15, 0.45, 0.85, 0.42, 14);

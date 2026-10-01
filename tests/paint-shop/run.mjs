@@ -9,6 +9,8 @@ import { POTS, TOOLS, START } from '../../src/activities/paint-shop/tools.js';
 import { RATE } from '../../src/activities/paint-shop/sounds/synth.js';
 import { ALL } from '../../src/activities/paint-shop/sounds/index.js';
 import card from '../../src/activities/paint-shop/card.js';
+import { makeSurfaces, boxGeometry } from '../../src/activities/paint-shop/surfaces.js';
+import { Scene, Mesh, Vector3, MeshBasicMaterial } from 'three';
 
 let failed = 0;
 function check(name, ok, detail) {
@@ -114,6 +116,20 @@ for (const [name, make] of Object.entries(ALL)) {
     a.slice(-5).every(v => Math.abs(v) < 0.02) && Math.abs(a[0]) < 0.05, `peak ${peak.toFixed(2)}, ${(a.length / RATE).toFixed(2)} s`);
 }
 check('no sound for painting (brush, roller, spray): only one-off blips', !Object.keys(ALL).some(k => /brush|roll|spray|stroke|hiss/.test(k)));
+
+// a box takes paint on every side: a press on each side finds that side (it once found only the first)
+{
+  const S = makeSurfaces({ psx: () => new MeshBasicMaterial(), keep: t => t }), scene = new Scene();
+  const b = boxGeometry(1, 1, 1, 10), s = S.surface('box', b.w, b.h, 10, () => [255, 255, 255], { cells: b.cells });
+  const box = new Mesh(b.geometry); scene.add(box); S.paintOn(s, box);
+  scene.updateMatrixWorld();
+  const parts = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(d => {
+    const h = S.hit(scene, { origin: new Vector3(...d).multiplyScalar(3), dir: new Vector3(...d).negate() });
+    if (h) S.tools.dab(h, 0.3, 2);
+    return h?.part;
+  });
+  check('a box takes paint on all six sides, each on its own', new Set(parts).size === 6 && painted(s.L) > 6 * 4, `sides ${parts.join(' ')}`);
+}
 
 console.log(failed ? `\n${failed} FAILED` : '\nall passed');
 process.exit(failed ? 1 : 0);

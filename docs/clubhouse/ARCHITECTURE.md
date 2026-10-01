@@ -74,12 +74,15 @@ activity is checked again, so something moves into it only once a second activit
 - **A place you paint** (Chooter's Paint Shop) has a `brush(id, ray, 'down' | 'move' | 'up')`: you
   walk about as normal, and pressing paints the place itself. With the mouse locked, holding its
   button presses where the dot in the middle of the view is (`#aim`, shown only then); on a phone or
-  with the mouse free, the PAINT button (`#paint`) switches pressing from looking around to painting
-  where you press (the thumb stick still walks; it switches back when you leave or pause). The place
+  with the mouse free, the LOOK | PAINT switch (`#paint`) says whether pressing looks around or paints
+  where you press (the thumb stick still walks; it goes back to LOOK when you leave or pause, and to
+  PAINT when you pick something up). The YOU'RE HOLDING box (`#holding`) shows what you're holding
+  and how to use it right now. The place
   gets each press as a line out into it (`origin`, `dir`) when it goes down, every frame while it's
   held (so walking or turning while you hold it paints a stroke), and when it lets go, and says what
-  you're holding with `brushLook()` (`{ color, label }`: the dot's and the button's edge, and the words
-  under the dot). What it does with the line is its own business (the shop's `surfaces.js`).
+  you're holding with `brushLook()`: `{ color` (the switch, dot and pointer), `tool` (its name),
+  `icon` (a little picture), `paint` (its name, or none), `verb` (PAINT, STAMP...), `drags` (whether
+  dragging paints a line), `picks }` (a count that goes up each time something's picked up). What it does with the line is its own business (the shop's `surfaces.js`).
 - **A building outside the gate** (Clyde's House, Chooter's Paint Shop) is a game that lives in its room whose card has
   `lot` instead of `slot`: which plot along the lane outside the front gate is its (`LOTS` in
   `outside.js`: 0 is left of the path as you go out, 1 across from it, then further along each way;
