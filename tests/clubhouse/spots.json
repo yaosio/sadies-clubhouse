@@ -1,0 +1,45 @@
+{
+  "slot": [
+    {"wall":10,"landing":1},
+    {"wall":11,"landing":1},
+    {"wall":9,"landing":1},
+    {"wall":12,"landing":1},
+    {"wall":13,"landing":1},
+    {"wall":7,"landing":1},
+    {"wall":8,"landing":1},
+    {"wall":14,"landing":1},
+    {"wall":6,"landing":1},
+    {"wall":15,"landing":1},
+    {"wall":5,"landing":1},
+    {"wall":0,"landing":1},
+    {"wall":4,"landing":1},
+    {"wall":1,"landing":1},
+    {"wall":3,"landing":1},
+    {"wall":2,"landing":1},
+    {"wall":10,"landing":2},
+    {"wall":11,"landing":2},
+    {"wall":9,"landing":2},
+    {"wall":12,"landing":2},
+    {"wall":13,"landing":2},
+    {"wall":7,"landing":2},
+    {"wall":8,"landing":2},
+    {"wall":14,"landing":2},
+    {"wall":6,"landing":2},
+    {"wall":15,"landing":2},
+    {"wall":5,"landing":2},
+    {"wall":0,"landing":2},
+    {"wall":4,"landing":2},
+    {"wall":1,"landing":2},
+    {"wall":3,"landing":2},
+    {"wall":2,"landing":2}
+  ],
+  "lot": [
+    {"x":-10,"y":0,"z":-37},
+    {"x":10,"y":0,"z":-37},
+    {"x":-24,"y":0,"z":-37},
+    {"x":24,"y":0,"z":-37}
+  ],
+  "grounds": [
+    {"x":-20,"y":0,"z":4,"w":8,"d":10}
+  ]
+}

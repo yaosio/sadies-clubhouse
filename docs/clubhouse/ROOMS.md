@@ -68,9 +68,11 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   `lot` instead of `slot`: which plot along the lane outside the front gate is its (`LOTS` in
   `outside.js`: 0 is left of the path as you go out, 1 across from it, then further along each way;
   the next free one has a COMING SOON stake). The kit handed to its `buildRoom` also has `outside`
-  (the outside place: its `scene` and `faces` to add to, and `block(x0, x1, z0, z1)` and
-  `blockRound(x, z, r)` for what's solid) and `lot` (its plot: `x`, `z`, the middle of the front
-  door's threshold; the house faces the gate). It builds the house into the outside's scene
+  (the outside place: its `scene` and `faces` to add to, `block(x0, x1, z0, z1, y0, y1)` and
+  `blockRound(x, z, r, y0, y1)` for what's solid (from the ground up unless it says), and
+  `surface((x, z) => height or null)` for somewhere more to walk on, a bridge or a balcony; each hands
+  back how to take it away) and `lot` (its plot: `x`, `z`, the middle of the front door's threshold,
+  and `y`, its ground's height; the house faces the gate). It builds the house into the outside's scene
   itself, and hands back, with its place, `house` (`door`: its front door, a `doorway` in the
   outside's scene, facing the gate), which the mansion joins to the room's own `doors.door`. Its
   place's `update` runs every frame wherever you are, so it animates the outside too. It can also
@@ -89,10 +91,14 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   than one way in: its `house` can hand back `doors` (`{ door, back }`), each joined to the room's
   own door of that name (the outside's names for them: its card's id, and `<id>.back`). A doorway can
   move (`moveTo(pos, yaw)`): the maze's door to the backyard is always wherever its end is.
-- **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
-  one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3, the aquarium 4, Space Adventure 5), so a new activity never
-  shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
-  activity takes the next free slot (the Music Room 3). A card's `doorstep: 'dirt'` puts the mole's dirt pile by its
+- **Doors never move.** Each card says which door on the landings is its (`slot`, its place in
+  `SLOTS`: 0 is the first one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music
+  Room 3, the aquarium 4, Space Adventure 5; 6 is the next, still on the first landing), so a new
+  activity never shuffles the others (folder order used to decide, and adding Brickbuster moved two
+  doors). A new activity takes the next free slot. Every door, plot and spot is written down in
+  `tests/clubhouse/spots.json`, and the room checker fails if one moves; a new one goes on the end of
+  its list, there and in the code. Doors don't have to be in sensible places: a new kind of spot
+  (halfway up the scratching post, on the ceiling, in another room) is welcome, as a new list. A card's `doorstep: 'dirt'` puts the mole's dirt pile by its
   door (Dropper World).
 
 - **Saves** go through the save director (`src/shared/storage.js`), the one thing that touches the

@@ -16,12 +16,19 @@ import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeome
 import { psx, keep, skyMat, tex } from './look.js';
 import { kit, wallGeometry, doorway } from './build.js';
 
-// the plots along the lane outside the gate: where each house's front door is (they face the gate)
-export const LOTS = [{ x: -10, z: -37 }, { x: 10, z: -37 }, { x: -24, z: -37 }, { x: 24, z: -37 }];
+// The plots along the lane outside the gate: where each house's front door is (they face the gate),
+// and how high its ground is (y). Never moved or reordered (tests/clubhouse/spots.json): a new one
+// only ever goes on the end, and the outside grows to take it in.
+export const LOTS = [{ x: -10, y: 0, z: -37 }, { x: 10, y: 0, z: -37 }, { x: -24, y: 0, z: -37 }, { x: 24, y: 0, z: -37 }];
 // spots in the grounds round the house, for buildings that aren't on the lane (a card's `grounds`):
-// the middle of each, and how much room there is (w across, d deep). They never move either.
+// the middle of each, its ground's height, and how much room there is (w across, d deep). They never move either.
 // 0: beside the house on the left, from the front garden to the backyard (the hedge maze)
-export const GROUNDS = [{ x: -20, z: 4, w: 8, d: 10 }];
+export const GROUNDS = [{ x: -20, y: 0, z: 4, w: 8, d: 10 }];
+// how far the outside goes: round every plot and spot, with room to walk up to it
+const EDGE = {
+  x: Math.max(30, ...LOTS.map(l => Math.abs(l.x) + 6), ...GROUNDS.map(g => Math.abs(g.x) + g.w / 2 + 6)),
+  z0: Math.min(-50, ...LOTS.map(l => l.z - 13)), z1: 32,
+};
 
 export function buildOutside(T, cards = []) {
   const scene = new Scene(); scene.background = new Color(0x1a1a80);
@@ -199,8 +206,13 @@ export function buildOutside(T, cards = []) {
     plane(2.2, 0.8, psx(T.lotSign, { unlit: 0.3, side: DoubleSide }), [free.x, 1.3, free.z - 0.93], [0, 0, 0], 1);
   }
 
-  // where you can walk: the garden, round everything in it (you're 0.35 m round), and out along the lane
-  const P = 0.35;
+  // Where you can walk: the ground (the garden, out along the lane, and the front steps), round
+  // everything solid on it (you're 0.35 m round), plus anything a building adds to walk on (a bridge,
+  // a walkway over the lane...). Like the hall, it can have more than one level: wherever you are,
+  // you're on the one nearest your feet, and a step up or down is at most half a metre. What's solid
+  // only gets in the way at its own height (y0 to y1), so you can walk under a bridge, or over a
+  // tunnel. The rest of what's here is all at ground level for now.
+  const P = 0.35, TALL = 1.6;
   const RECTS = [[-9, 9, 0, 10], [13, 19, 3, 9], [-7.3, -5.7, -9.8, -8.2], [-8.2, -2.6, 10, 11], [2.6, 8.2, 10, 11], [-1.2, 1.2, 10, 11.1],
     [4.3, 6.7, 17.5, 18.15], [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
     ...HEDGES.map(([x, z, len]) => [x - 0.5, x + 0.5, z - len / 2, z + len / 2]),
@@ -208,20 +220,36 @@ export function buildOutside(T, cards = []) {
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
   if (free) RECTS.push([free.x - 1, free.x + 1, free.z - 1.1, free.z - 0.9]);
   const CIRCLES = [[-9, 0.4, 1.6], [9, 0.4, 1.6], [-2, -2.6, 0.3], [2, -2.6, 0.3], [-4, 19, 0.65], ...[...TREES, ...YARD_TREES].map(([x, z, s]) => [x, z, 0.4 * s])];
-  function floor(x, z) {
-    if (Math.abs(x) > 30 || z < -50 || z > 32) return null;
-    for (const [x0, x1, z0, z1] of RECTS) if (x > x0 - P && x < x1 + P && z > z0 - P && z < z1 + P) return null;
-    for (const [cx, cz, r] of CIRCLES) if (Math.hypot(x - cx, z - cz) < r + P) return null;
+  const SURFACES = [];
+  const keepIn = (list, it) => { list.push(it); return () => { const i = list.indexOf(it); if (i >= 0) list.splice(i, 1); }; };   // more to walk on: each (x, z) => its height there, or null
+  function ground(x, z) {
+    if (Math.abs(x) > EDGE.x || z < EDGE.z0 || z > EDGE.z1) return null;
     let h = 0;
     for (const s of STEPS) if (Math.abs(x) < s.w / 2 && Math.abs(z - s.z) < s.d / 2) h = Math.max(h, s.top);
     return h;
   }
+  // (something solid from y0 to y1 is in the way of someone standing at h)
+  const inTheWay = (y0 = -Infinity, y1 = Infinity, h) => y0 < h + TALL && y1 > h + 0.05;
+  function clear(x, z, h) {
+    for (const [x0, x1, z0, z1, y0, y1] of RECTS) if (x > x0 - P && x < x1 + P && z > z0 - P && z < z1 + P && inTheWay(y0, y1, h)) return false;
+    for (const [cx, cz, r, y0, y1] of CIRCLES) if (Math.hypot(x - cx, z - cz) < r + P && inTheWay(y0, y1, h)) return false;
+    return true;
+  }
+  function floor(x, z, y = 0) {
+    let best = null;
+    for (const h of [ground(x, z), ...SURFACES.map(s => s(x, z))])
+      if (h !== null && Math.abs(h - y) <= 0.5 && clear(x, z, h) && (best === null || Math.abs(h - y) < Math.abs(best - y))) best = h;
+    return best;
+  }
 
   return {
     name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs], sadie, napper, uses: [], lots: LOTS, grounds: GROUNDS, house,
-    // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r)
-    block(x0, x1, z0, z1) { RECTS.push([x0, x1, z0, z1]); },
-    blockRound(x, z, r) { CIRCLES.push([x, z, r]); },
+    // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r);
+    // from y0 up to y1 (from the ground up, if it doesn't say). Each hands back how to take it away.
+    block(x0, x1, z0, z1, y0, y1) { return keepIn(RECTS, [x0, x1, z0, z1, y0, y1]); },
+    blockRound(x, z, r, y0, y1) { return keepIn(CIRCLES, [x, z, r, y0, y1]); },
+    // somewhere more to walk on: (x, z) => its height there, or null where it isn't
+    surface(at) { return keepIn(SURFACES, at); },
     light: { sun: 0.5, bulb: 0, lamp: [0, 20, -40] },
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
     update(t) {

@@ -90,12 +90,13 @@ further in (`swing`), so it's hinged on opposite sides as seen from each side.
   and sky materials, and every texture, drawn
   on little canvases when it opens. `pictures.js` (Sadie's sprite; drawn by
   `art/clubhouse/pictures.py`, never edited by hand) is still where her picture comes from.
-- The hall: sixteen flat walls, three storeys. The first landing has a door per activity, each at
-  its card's `slot` starting where the stairs come out (`SLOTS`: six, all taken now that Space
-  Adventure has the sixth); the second landing is still being built. The next activity's door needs
-  the second landing finished (or a building outside the gate instead). Walking: the floor under you is worked out per place (`floor(x, z,
-  y)`: the ground, each tread, the bridge, the landing); a step is at most half a metre, so the
-  railings and the landing's edge hold you in by themselves.
+- The hall: sixteen flat walls, three storeys, the spiral stairs going round twice to two landings.
+  Every wall on both landings can have a door: a card's `slot` is its place in `SLOTS` (the first
+  six by the first landing's stairs, taken; then the rest of the first landing; then the second
+  landing). The next three free ones are boarded up with SOON on them, the rest are plain wall. Above
+  the second landing the top's still being built. Walking: the floor under you is worked out per
+  place (`floor(x, z, y)`: the ground, each tread, the bridges, the landings); a step is at most half
+  a metre, so the railings and the landings' edges hold you in by themselves.
 - It only resizes the drawing when the screen's size really changes, and draws again at once.
 - No flicker: things painted on a floor (the path, rugs, the sunbeam) skip the depth test and
   are drawn straight after their floor (`onFloor`, floor `renderOrder` -2, them -1); things on
@@ -124,8 +125,9 @@ further in (`swing`), so it's hinged on opposite sides as seen from each side.
 
 - **Growing the outside.** The clubhouse is meant to sit on a hill in the middle of a town, one
   space you walk round, with bridges, sewers and paths going over and under each other. Walking on
-  more than one level already works in the hall (its `floor(x, z, y)` knows your height), and a
-  sewer or a cave can be a place of its own behind a doorway. What would hold it back is in
-  `outside.js`: its ground is one layer (`floor(x, z)` ignores height), what's solid there has no
-  height, the ground is a fixed box, and plots and spots have no height. Don't build anything new
-  that assumes the outside is flat or one layer.
+  more than one level works in the hall and outside (`floor(x, z, y)`: you stand on whichever level
+  is nearest your feet), and a sewer or a cave can be a place of its own behind a doorway. Outside,
+  a building can add somewhere to walk (`surface`) and what's solid has a height (`block(..., y0,
+  y1)`), so a path can go under a bridge; plots and spots have a height (`y`), and the outside grows
+  to take in every plot. Still to come: the outside is built whole, so a big town will need it to
+  load in pieces as you walk, like rooms. Don't build anything new that assumes the outside is flat.

@@ -1,8 +1,9 @@
 // The entrance hall: the bottom of the cat tree. A tall hall with sixteen flat walls (round enough,
-// in 1996), a giant scratching post up the middle and a spiral staircase round it. Each floor is a
-// ring of doors: the first landing has a door per activity (each card's `slot`, 0 where the stairs
-// come out; a card without one takes the next free door, so a new activity never moves the others)
-// and boarded-up ones for the next; the second landing is still being built.
+// in 1996), a giant scratching post up the middle and a spiral staircase round it, up to two
+// landings. Each landing is a ring of doors: a door per activity (each card's `slot`: `SLOTS` lists
+// them in order, the first landing's then the second's, each starting where the stairs come out; a
+// card without one takes the next free door, so a new activity never moves the others) and
+// boarded-up ones for the next. Above the second landing, the top is still being built.
 //
 // It doesn't match the outside's size, on purpose: the front door just leads here.
 import { Mesh, Group, Scene, Color, Vector3, BoxGeometry, PlaneGeometry, CylinderGeometry, SphereGeometry, TorusGeometry,
@@ -13,16 +14,23 @@ import { kit, wallGeometry, doorway } from './build.js';
 export const R = 8, N = 16, L1 = 4.6, L2 = 9.2, TOP = 13.6;
 const A = R * Math.cos(Math.PI / N), FW = 2 * R * Math.sin(Math.PI / N);   // a wall's distance from the middle, and its width
 const faceAngle = k => k * 2 * Math.PI / N;                                  // wall k faces the middle from this way round
-const STEPS = 22, RISE = L1 / STEPS, TURN = 0.29, TH0 = -2.1, UPPER = 4;    // the staircase (and the first few steps of the next flight)
-const THTOP = TH0 + (STEPS - 1) * TURN;
+const STEPS = 22, RISE = L1 / STEPS, TURN = 0.29, TH0 = -2.1;              // the staircase: two flights of it, one turn and a bit each
+const THTOP = TH0 + (STEPS - 1) * TURN, THTOP2 = TH0 + (2 * STEPS - 1) * TURN; // where each flight comes out onto its landing
 const IN = R - 2.3;                                                          // the landing's inner edge
-// which walls on the first landing get doors, in order: starting where the stairs come out
-export const SLOTS = [10, 11, 9, 12, 13, 7];
+// The doors on the landings, in order (a card's `slot`): the wall each is in, and which landing. The
+// first six were the first ones (by the stairs), then the rest of the first landing's walls, then the
+// second landing's, all sixteen. Never moved or reordered (tests/clubhouse/spots.json): a new one
+// only ever goes on the end.
+export const SLOTS = [10, 11, 9, 12, 13, 7, 8, 14, 6, 15, 5, 0, 4, 1, 3, 2].map(wall => ({ wall, landing: 1 }))
+  .concat([10, 11, 9, 12, 13, 7, 8, 14, 6, 15, 5, 0, 4, 1, 3, 2].map(wall => ({ wall, landing: 2 })));
+const SOON = 3;   // how many of the free doors are boarded up, waiting (the next ones in order; the rest is plain wall)
+const LEVEL = { 1: L1, 2: L2 };
 
 export function buildHall(T, cards, doorPictures = []) {
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { add, box, plane, cyl, cone } = kit(scene);
   const at = (r, th) => [Math.sin(th) * r, Math.cos(th) * r];
+  const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 
   // ---------- the walls: three storeys of sixteen, some with a hole for a door ----------
   const doors = {}, activityDoors = [];
@@ -42,22 +50,28 @@ export function buildHall(T, cards, doorPictures = []) {
     return plane(w, h, mat, [x - c * across, y, z + s * across], [0, th + Math.PI, 0], 2);
   }
   const FRONT = 8;
+  // which card's door is in wall k on a landing, if any (and whether it's one of the next few free spots)
+  const soon = SLOTS.map((_, s) => s).filter(s => bySlot[s] === undefined).slice(0, SOON);
+  const doorAt = (k, landing) => { const s = SLOTS.findIndex(o => o.wall === k && o.landing === landing); return { s, card: cards[bySlot[s]], ci: bySlot[s], soon: soon.includes(s) }; };
   for (let k = 0; k < N; k++) {
     wall(k, 0, L1, wallpaper, k === FRONT ? [2.0, 3.0] : null);
-    const slot = SLOTS.indexOf(k), ci = bySlot[slot], card = cards[ci];
-    wall(k, L1, L2 - L1, wallpaper, card ? [1.5, 2.45] : null);
-    wall(k, L2, TOP - L2, brick);
+    wall(k, L1, L2 - L1, wallpaper, doorAt(k, 1).card ? [1.5, 2.45] : null);
+    wall(k, L2, 3.4, wallpaper, doorAt(k, 2).card ? [1.5, 2.45] : null);
+    wall(k, L2 + 3.4, TOP - L2 - 3.4, brick);
     // the wainscot and its gold rail, round the ground floor (in two pieces either side of the front door)
     const pieces = k === FRONT ? [[-(FW / 2 + 1.0) / 2, FW / 2 - 1.0], [(FW / 2 + 1.0) / 2, FW / 2 - 1.0]] : [[0, FW]];
     for (const [c, w] of pieces) { onWall(k, w, 1.1, psx(T.wainscot, { rx: w / 0.9, ry: 1, decal: true }), 0.55, c, 0.04); onWall(k, w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), 1.12, c, 0.08); }
-    if (card) {
-      const th = faceAngle(k), [x, z] = at(A, th);
-      const pic = doorPictures[ci], tex = pic ? picture(pic) : doorTexture(card);
-      const d = doorway(scene, { pos: [x, L1, z], yaw: th + Math.PI, w: 1.5, h: 2.45, leaves: [{ front: tex, back: pic ? doorBack(pic) : tex }], hinge: -1 });
-      doors[card.id] = d; activityDoors.push(d);
-      onWall(k, 0.36, 0.36, psx(T.catdoor, { decal: true }), L1 + 0.18, 1.05);   // a cat door by every door
-    } else if (slot >= 0) {
-      onWall(k, 1.5, 2.45, psx(T.boarded, { decal: true, unlit: 0.1 }), L1 + 1.22);
+    for (const landing of [1, 2]) {
+      const { card, ci, soon } = doorAt(k, landing), y = LEVEL[landing];
+      if (card) {
+        const th = faceAngle(k), [x, z] = at(A, th);
+        const pic = doorPictures[ci], tex = pic ? picture(pic) : doorTexture(card);
+        const d = doorway(scene, { pos: [x, y, z], yaw: th + Math.PI, w: 1.5, h: 2.45, leaves: [{ front: tex, back: pic ? doorBack(pic) : tex }], hinge: -1 });
+        doors[card.id] = d; activityDoors.push(d);
+        onWall(k, 0.36, 0.36, psx(T.catdoor, { decal: true }), y + 0.18, 1.05);   // a cat door by every door
+      } else if (soon) {
+        onWall(k, 1.5, 2.45, psx(T.boarded, { decal: true, unlit: 0.1 }), y + 1.22);
+      }
     }
   }
   const [fx, fz] = at(A, faceAngle(FRONT));
@@ -76,47 +90,51 @@ export function buildHall(T, cards, doorPictures = []) {
   cyl(1.1, 1.1, TOP, 14, psx(T.rope, { rx: 5, ry: TOP / 0.5 }), [0, TOP / 2, 0]);
   cyl(1.16, 1.16, 1.5, 14, psx(T.clawed, { rx: 5, ry: 3 }), [0, 0.75, 0]);
   const carpet = psx(T.carpet, { rx: 3, ry: 3 });
-  for (const [y, th] of [[7.2, 2.4], [11.2, -0.8]]) { const [x, z] = at(1.9, th); cyl(1.0, 1.0, 0.16, 12, carpet, [x, y, z]); }
+  for (const [y, th] of [[7.2, -1.74], [11.2, -0.8]]) { const [x, z] = at(1.9, th); cyl(1.0, 1.0, 0.16, 12, carpet, [x, y, z]); }
 
-  // ---------- the spiral staircase, and the start of the next flight (then just a ladder) ----------
+  // ---------- the spiral staircase: a flight to each landing, then just a ladder to the top ----------
   const tread = psx(T.carpet, { rx: 2, ry: 1 }), wood = psx(T.wood, { rx: 2 }), brown = psx(null, { tint: 0x7a4a2a });
-  const railPts = [];
   const treadGeo = keep(new BoxGeometry(1.95, 0.14, 0.62, 2, 1, 1));
-  for (let i = 0; i < STEPS + UPPER; i++) {
-    const th = TH0 + i * TURN, y = (i + 1) * RISE, [x, z] = at(2.1, th);
-    add(new Mesh(treadGeo, i < STEPS + UPPER - 1 ? tread : wood), [x, y - 0.07, z], [0, th + Math.PI / 2, 0]);
-    // the handrail stops a step short of the top, so it doesn't stand across the way onto the bridge
-    if (i < STEPS - 1) { const [px, pz] = at(3.0, th); cyl(0.03, 0.03, 0.9, 4, brown, [px, y + 0.45, pz]); railPts.push(new Vector3(px, y + 0.92, pz)); }
+  for (const [from, to] of [[0, STEPS], [STEPS, 2 * STEPS]]) {
+    const railPts = [];
+    for (let i = from; i < to; i++) {
+      const th = TH0 + i * TURN, y = (i + 1) * RISE, [x, z] = at(2.1, th);
+      add(new Mesh(treadGeo, tread), [x, y - 0.07, z], [0, th + Math.PI / 2, 0]);
+      // the handrail stops a step short of the top, so it doesn't stand across the way onto the
+      // bridge (and the second's starts a step up, so it doesn't stand across the way off the first's)
+      if (i < to - 1 && i > from || (!from && !i)) { const [px, pz] = at(3.0, th); cyl(0.03, 0.03, 0.9, 4, brown, [px, y + 0.45, pz]); railPts.push(new Vector3(px, y + 0.92, pz)); }
+    }
+    add(new Mesh(keep(new TubeGeometry(new CatmullRomCurve3(railPts), 40, 0.045, 4)), psx(null, { tint: 0xffd23a })));
   }
-  add(new Mesh(keep(new TubeGeometry(new CatmullRomCurve3(railPts), 40, 0.045, 4)), psx(null, { tint: 0xffd23a })));
-  { const th = TH0 + (STEPS + UPPER) * TURN, [x, z] = at(2.1, th), y0 = (STEPS + UPPER) * RISE;
-    for (const s of [-0.35, 0.35]) { const o = at(s, th + Math.PI / 2); cyl(0.04, 0.04, L2 - y0 + 0.8, 4, wood, [x + o[0], (y0 + L2 + 0.8) / 2, z + o[1]]); }
-    for (let y = y0 + 0.3; y < L2 + 0.6; y += 0.4) box(0.7, 0.05, 0.05, wood, [x, y, z], [0, th + Math.PI / 2, 0]); }
+  { const th = THTOP2 + TURN, [x, z] = at(2.1, th), y0 = L2;
+    for (const s of [-0.35, 0.35]) { const o = at(s, th + Math.PI / 2); cyl(0.04, 0.04, TOP - y0, 4, wood, [x + o[0], (y0 + TOP) / 2, z + o[1]]); }
+    for (let y = y0 + 0.3; y < TOP; y += 0.4) box(0.7, 0.05, 0.05, wood, [x, y, z], [0, th + Math.PI / 2, 0]); }
 
-  // ---------- the first landing: a carpeted ring round the walls, a bridge from the stairs, a railing ----------
-  floorAt(new RingGeometry(IN, R, 48, 1), L1, psx(T.carpet, { rx: 10, ry: 10 }));
-  floorAt(new RingGeometry(IN, R, 48, 1), L1 - 0.18, psx(T.wood, { rx: 12, ry: 12 }), true);
-  cyl(IN, IN, 0.18, 48, psx(T.wood, { rx: 20 }), [0, L1 - 0.09, 0], null, true);
+  // ---------- the landings: a carpeted ring round the walls, a bridge from the stairs, a railing ----------
   const gap = 0.12;
-  const rail = new Mesh(keep(new CylinderGeometry(IN, IN, 1, 48, 1, true, THTOP + gap, 2 * Math.PI - 2 * gap)), psx(T.rail, { rx: 2 * Math.PI * IN / 0.5, ry: 1, side: DoubleSide }));
-  rail.position.y = L1 + 0.5; scene.add(rail);
-  { const mid = at((3.05 + IN) / 2, THTOP), len = IN - 3.0;
-    box(1.3, 0.14, len, tread, [mid[0], L1 - 0.07, mid[1]], [0, THTOP, 0]);
-    for (const s of [-0.62, 0.62]) { const o = at(s, THTOP + Math.PI / 2); plane(len, 1, psx(T.rail, { rx: 5, side: DoubleSide }), [mid[0] + o[0], L1 + 0.5, mid[1] + o[1]], [0, THTOP + Math.PI / 2, 0], 1); } }
+  for (const [y, top] of [[L1, THTOP], [L2, THTOP2]]) {
+    floorAt(new RingGeometry(IN, R, 48, 1), y, psx(T.carpet, { rx: 10, ry: 10 }));
+    floorAt(new RingGeometry(IN, R, 48, 1), y - 0.18, psx(T.wood, { rx: 12, ry: 12 }), true);
+    cyl(IN, IN, 0.18, 48, psx(T.wood, { rx: 20 }), [0, y - 0.09, 0], null, true);
+    const rail = new Mesh(keep(new CylinderGeometry(IN, IN, 1, 48, 1, true, top + gap, 2 * Math.PI - 2 * gap)), psx(T.rail, { rx: 2 * Math.PI * IN / 0.5, ry: 1, side: DoubleSide }));
+    rail.position.y = y + 0.5; scene.add(rail);
+    const mid = at((3.05 + IN) / 2, top), len = IN - 3.0;
+    box(1.3, 0.14, len, tread, [mid[0], y - 0.07, mid[1]], [0, top, 0]);
+    for (const s of [-0.62, 0.62]) { const o = at(s, top + Math.PI / 2); plane(len, 1, psx(T.rail, { rx: 5, side: DoubleSide }), [mid[0] + o[0], y + 0.5, mid[1] + o[1]], [0, top + Math.PI / 2, 0], 1); }
+  }
   // a dirt pile by the door of an activity that asks for one (Dropper World: a mole came up through
   // the floorboards; it gets everywhere)
   cards.forEach((c, i) => {
     if (c.doorstep !== 'dirt') return;
-    const [x, z] = at(A - 0.9, faceAngle(SLOTS[bySlot.indexOf(i)]) - 0.14); cone(0.42, 0.3, 7, psx(T.bark, { tint: 0xc08050, rx: 2 }), [x, L1 + 0.15, z]);
+    const o = SLOTS[bySlot.indexOf(i)], [x, z] = at(A - 0.9, faceAngle(o.wall) - 0.14); cone(0.42, 0.3, 7, psx(T.bark, { tint: 0xc08050, rx: 2 }), [x, LEVEL[o.landing] + 0.15, z]);
   });
 
-  // ---------- the second landing, half built: planks with gaps, scaffolding, tape and a sign ----------
-  const plank = psx(T.wood, { rx: 1, ry: 3 });
-  for (let k = 0; k < 18; k++) { const th = k * 0.35 - 0.3; if (k % 5 === 3) continue; const [x, z] = at(R - 1.1, th); box(0.5, 0.1, 2.2, plank, [x, L2, z], [0, th, 0]); }
-  const scaf = psx(T.scaffold);
-  for (let k = 0; k < 8; k++) { const [x, z] = at(R - 2.3, k * Math.PI / 4 + 0.2); cyl(0.05, 0.05, TOP - L2, 4, scaf, [x, (L2 + TOP) / 2, z]); }
-  const tape = new Mesh(keep(new CylinderGeometry(R - 2.3, R - 2.3, 0.2, 32, 1, true)), psx(T.hazard, { rx: 60, ry: 1, unlit: 0.3, side: DoubleSide })); tape.position.y = L2 + 1; scene.add(tape);
-  { const [x, z] = at(R - 2.35, 0.2); plane(3.2, 1.05, psx(T.soonSign, { unlit: 0.4, side: DoubleSide }), [x, L2 + 1.9, z], [0, 0.2 + Math.PI, 0], 1); }
+  // ---------- above the second landing, the top's still being built: scaffolding, tape and a sign ----------
+  const scaf = psx(T.scaffold), up = L2 + 3.4;
+  for (let k = 0; k < 8; k++) { const th = k * Math.PI / 4 + 0.2; if (Math.abs(wrap(th - THTOP2)) < 0.3) continue;   // (not in the way off the stairs)
+    const [x, z] = at(IN - 0.12, th); cyl(0.05, 0.05, TOP - L2 - 1, 4, scaf, [x, (L2 + 1 + TOP) / 2, z]); }
+  const tape = new Mesh(keep(new CylinderGeometry(IN - 0.12, IN - 0.12, 0.2, 32, 1, true)), psx(T.hazard, { rx: 60, ry: 1, unlit: 0.3, side: DoubleSide })); tape.position.y = up; scene.add(tape);
+  { const [x, z] = at(IN - 0.15, 0.2); plane(3.2, 1.05, psx(T.soonSign, { unlit: 0.4, side: DoubleSide }), [x, up + 0.9, z], [0, 0.2 + Math.PI, 0], 1); }
 
   // ---------- the ground floor, round the walls ----------
   // tall windows, one throwing a sunbeam across the floor
@@ -175,16 +193,17 @@ export function buildHall(T, cards, doorPictures = []) {
   // the ground (clear of the stairs), the treads, the bridge and the landing. A step up or down is
   // at most half a metre, so the railings and the landing's edge hold you in by themselves.
   const P = 0.35;
-  const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
   const polyR = (x, z) => { let m = 0; for (let k = 0; k < N; k++) { const th = faceAngle(k); m = Math.max(m, x * Math.sin(th) + z * Math.cos(th)); } return m; };
   function heights(x, z) {
     const r = Math.hypot(x, z), th = Math.atan2(x, z), pr = polyR(x, z), out = [];
     const foot = r >= 1.45 && wrap(th - TH0) < -TURN / 2 && wrap(th - TH0) > -1.4;   // the floor where the stairs start
     if (pr < A - P && (r > 3.05 || foot) && !BLOCKS.some(([bx, bz, br]) => Math.hypot(x - bx, z - bz) < br + P)) out.push(0);
-    if (r >= 1.45 && r <= 3.05) for (let i = 0; i < STEPS + UPPER; i++) if (Math.abs(wrap(th - (TH0 + i * TURN))) <= TURN / 2 + 0.01) out.push((i + 1) * RISE);
-    const along = x * Math.sin(THTOP) + z * Math.cos(THTOP), across = x * Math.cos(THTOP) - z * Math.sin(THTOP);
-    if (along > 2.9 && along < IN + 0.3 && Math.abs(across) < 0.5) out.push(L1);
-    if (pr < A - P && r > IN + 0.3) out.push(L1);
+    if (r >= 1.45 && r <= 3.05) for (let i = 0; i < 2 * STEPS; i++) if (Math.abs(wrap(th - (TH0 + i * TURN))) <= TURN / 2 + 0.01) out.push((i + 1) * RISE);
+    for (const [y, top] of [[L1, THTOP], [L2, THTOP2]]) {
+      const along = x * Math.sin(top) + z * Math.cos(top), across = x * Math.cos(top) - z * Math.sin(top);
+      if (along > 2.9 && along < IN + 0.3 && Math.abs(across) < 0.5) out.push(y);
+      if (pr < A - P && r > IN + 0.3) out.push(y);
+    }
     return out;
   }
   function floor(x, z, y) {
@@ -202,12 +221,13 @@ export function buildHall(T, cards, doorPictures = []) {
     // and thickness, the railing on it), the second landing's height (nothing goes above it), the
     // spiral stairs' treads, and the furniture on the ground floor
     shape: { wall: A, post: 1.16, landing: { inner: IN, y: L1, thick: 0.18, rail: 1.0 }, top: L2,
-      stairs: { r0: 1.45, r1: 3.05, th0: TH0, turn: TURN, rise: RISE, treads: STEPS + UPPER },
+      stairs: { r0: 1.45, r1: 3.05, th0: TH0, turn: TURN, rise: RISE, treads: 2 * STEPS },
       blocks: BLOCKS.map(([x, z, r]) => ({ x, z, r, h: 1.0 })) },
     light: { sun: 0.15, bulb: 0.75, lamp: [CH.x, CH.y - 0.4, CH.z] },
     spots: {
       start: { ...inFront(doors.front, 1.2), pitch: 0.25, y: 0 },
       landing: { x: at(IN + 0.8, THTOP + 0.25)[0], z: at(IN + 0.8, THTOP + 0.25)[1], y: L1, yaw: THTOP + Math.PI / 2 + 0.3, pitch: -0.05 },
+      landing2: { x: at(IN + 0.8, THTOP2 + 0.25)[0], z: at(IN + 0.8, THTOP2 + 0.25)[1], y: L2, yaw: THTOP2 + Math.PI / 2 + 0.3, pitch: -0.05 },
       stairs: { x: at(2.2, TH0 - 0.5)[0], z: at(2.2, TH0 - 0.5)[1], y: 0, yaw: TH0 - Math.PI / 2, pitch: 0 },
     },
     update(t) { toy.rotation.z = Math.sin(t * 1.4) * 0.18; },

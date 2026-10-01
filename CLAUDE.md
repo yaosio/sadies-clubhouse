@@ -46,7 +46,7 @@ rules (no buzzing, no voice twice running, distance fade, a cap) apply, and it a
 put away, with nothing more to do. The owner has misophonia: nothing droning, constant or repetitive.
 
 Don't start a parked idea (each activity's README lists them) unless asked. Never move a room: a
-new activity's door takes the next free spot on the landing (its card's `slot`), and anything by a
+new activity's door takes the next free spot on the landings (its card's `slot`), and anything by a
 door (like the dirt pile by Dropper World's) stays with it. A building outside the gate takes the
 next free plot along the lane instead (its card's `lot`), and one in the grounds round the house a
 spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spots never move either.
