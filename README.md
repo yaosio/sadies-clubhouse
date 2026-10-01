@@ -18,7 +18,7 @@ The owner doesn't code and installs nothing. Claude does all the building (how: 
 |---|---|---|
 | **Sadie's Dropper World** | A cozy physics toy: a mole in a propeller beanie drops squishy jelly pieces, Sadie climbs the pile for her hay, and friends turn up. | `docs/dropper-world/` |
 | **TypeFitter Deluxe 3.1** | A 1993 text-fitting program where the text can never fit its box, on purpose, and you win anyway. | `docs/typefitter/` |
-| **Brickbuster '96** | Breakout built into the wall of a tall room (no computer): every miss, and every hit on the top, cracks the glass, until it breaks and Sadie's ball of yarn escapes into the house. Being built in steps. | `docs/brickbuster/` |
+| **Brickbuster '96** | Breakout built into the wall of a tall room (no computer): every miss, and every hit on the top, cracks the glass, until it breaks and Sadie's ball of yarn escapes into the house. | `docs/brickbuster/` |
 | **The Music Room** | A room full of instruments you play right where they stand (a toy piano, drums, a fish xylophone, a synth, a theremin, a tape deck), and Sadie, who now and then walks across one. | `docs/music-room/` |
 | **The aquarium** | A room with a big fish tank where Sadie swims in a diving suit. Don't tap on the glass (you can, though): it takes you out into a whole ocean, in a little sailboat, to find six things for the cabinet, with a mountain looming over it all that turns out to be tiny. | `docs/aquarium/` |
 | **Space Adventure** | A room that's a spaceship's cockpit: walk in and you're strapped in for Sadie's slow, philosophical trip down to a planet (sad synthwave, a landing by the sea), which she finds disappointing. Afterwards it's her space room, with a radio and a button to go again. | `docs/space-adventure/` |

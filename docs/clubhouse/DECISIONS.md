@@ -16,7 +16,7 @@ changed, saying when and why).
 | Each room's code is its own file, fetched when first needed | The page doesn't grow with the number of rooms (16 MB page limit) |
 | The copy of the project travels as a file beside the page (`game/source-*.json`), not inside it | The page stays tiny; inside, it grew with every room towards the 16 MB limit |
 | Doors, plots and spots never move (`tests/clubhouse/spots.json`, checked); a new activity takes a new one; the clubhouse can grow in any direction, doors anywhere | Moving a door once shuffled two others; nothing the owner knows should move |
-| Everything outside the clubhouse belongs to somebody else (Clyde, Chooter) | The world's rule (the owner, 2026-10-01) |
+| Everything outside the gate belongs to somebody else (Clyde, Chooter); inside the fence is Sadie's | The world's rule (the owner, 2026-10-01) |
 
 ## Sound
 | Decision | Why |
@@ -57,10 +57,27 @@ changed, saying when and why).
 
 ## Known limits (go through these in every review)
 Things that are fine today but will need work as the game grows. Add any new limit a feature hits;
-remove one once it's fixed. (The full write-up: the project's `review/architecture-corners-2026-10-01.md`.)
+remove one once it's fixed. Each review also asks of every shared file (the mansion, the outside,
+the toolbox): is there anything here only one room uses, or that grows with every new kind of room?
+A limit that's written down still needs a plan for when it gets fixed, not just a line here.
 - **Saves:** all rooms share the browser's about 5 MB. The pause menu warns when it's nearly full,
   but nothing makes room by itself; a room that saves a lot (pictures) should keep them small.
 - **The outside is built whole.** It has levels now, but a town walkable as one space will need it
   to load in pieces as you walk, like rooms. (When the town starts growing.)
-- **Every new way of playing adds to `mansion.js`** (arcade, instruments, levers, painting).
+- **Every new kind of control is written into `mansion.js`** (and its buttons into `mansion.html`):
+  playing a game in its room, instruments, painting. An activity that reuses one (`play`, `act`,
+  `brush`) doesn't touch it, but a new one (an outdoor game, say) does. Next step: give each kind
+  of control its own file any room can use.
+- **Every building outside is built at the start** (only its room is ever put away; the house lives
+  all game), so starting gets slower with each one. A town needs houses built and put away by
+  distance.
+- **Putting away is counted in doors.** Every building outside is one door from the outside, so in
+  a big town none would ever count as far: it needs distance in metres there.
+- **The outside's scenery is a fixed size** (the lane, fences, grass, hills); only the walkable
+  edge grows with the plots. A plot past about 30 m either side needs it to grow.
+- **One outside, shared by every building.** A place's settings (`hush`, `brush`, `watch`, `light`)
+  are one each for the whole outside, so two outdoor activities would fight over them, and two
+  `weather` cards would both set the light. Music a room plays isn't heard outside (only an
+  `everywhere` line is, and that's heard everywhere). The every-room checks visit rooms, not
+  houses or things to use outside.
 - **The every-room check gets longer with every room**; split it across computers when it's slow.

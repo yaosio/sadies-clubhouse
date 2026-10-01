@@ -7,12 +7,15 @@ room checker (`tests/clubhouse/cards.mjs`) checks every card against what this p
 it doesn't know, a place that doesn't exist or is taken, or saves that aren't the card's own.
 
 - **An activity** is a folder in `src/activities/` with a `card.js`: its `id` (the folder name),
-  `name`, `page` (its HTML, from `page.html`), `styles` (its CSS, from `styles.css`), `start()`,
-  which loads the rest of it, and for the mansion `box` (`front`, a picture: on its computer's
-  screen and its poster; `side`, a colour: its room's walls), `door` (a picture: its door on the
-  landing, from `door.js`, drawn by `art/clubhouse/pictures.py`; the back of the door is the same
-  with the sign painted over; without one it gets a plain door with its name), and `keeps` if it
-  saves anything (the start of its storage keys, for the pause menu's start-over buttons).
+  `name`, where it is (one of `slot`: a door on the landings; `lot`: a plot on the lane; `grounds`: a
+  spot in the grounds), `keeps` if it saves anything (the start of its save keys, for the pause
+  menu's start-over buttons and backups), and either `room` (a game that lives in its room, below)
+  or `page` (its HTML, from `page.html`), `styles` (its CSS, from `styles.css`) and `start()`, which
+  loads the rest of it (an activity on a computer). For a door on the landings: `door` (a picture,
+  from `door.js`, drawn by `art/clubhouse/pictures.py`; the back of the door is the same with the
+  sign painted over; without one it gets a plain door with its name), `box` (`front`, a picture: on
+  its computer's screen and its poster; `side`, a colour: the plain computer room's walls, and the
+  plain door's) and `doorstep` (below). A building outside can say `weather` (`OUTSIDE.md`).
   None of an activity's code runs until `start()` is called (the build keeps it waiting), so its modules can look up its page's elements as they load.
 - **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House, Chooter's Paint Shop, the Hedge Maze) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
@@ -64,33 +67,9 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   you're holding with `brushLook()`: `{ color` (the switch, dot and pointer), `tool` (its name),
   `icon` (a little picture), `paint` (its name, or none), `verb` (PAINT, STAMP...), `drags` (whether
   dragging paints a line), `picks }` (a count that goes up each time something's picked up). What it does with the line is its own business (the shop's `surfaces.js`).
-- **A building outside the gate** (Clyde's House, Chooter's Paint Shop) is a game that lives in its room whose card has
-  `lot` instead of `slot`: which plot along the lane outside the front gate is its (`LOTS` in
-  `outside.js`: 0 is left of the path as you go out, 1 across from it, then further along each way;
-  the next free one has a COMING SOON stake). The kit handed to its `buildRoom` also has `outside`
-  (the outside place: its `scene` and `faces` to add to, `block(x0, x1, z0, z1, y0, y1)` and
-  `blockRound(x, z, r, y0, y1)` for what's solid (from the ground up unless it says), and
-  `surface((x, z) => height or null)` for somewhere more to walk on, a bridge or a balcony; each hands
-  back how to take it away) and `lot` (its plot: `x`, `z`, the middle of the front door's threshold,
-  and `y`, its ground's height; the house faces the gate). It builds the house into the outside's scene
-  itself, and hands back, with its place, `house` (`door`: its front door, a `doorway` in the
-  outside's scene, facing the gate), which the mansion joins to the room's own `doors.door`. Its
-  place's `update` runs every frame wherever you are, so it animates the outside too. It can also
-  put things to use in the outside's `uses` (Clyde's weather levers) and set the outside's
-  `light` (the weather: the mansion reads it every frame); one that does says `weather: true` on
-  its card, so it's built before the first picture wherever you start. Nothing on the
-  landing changes (the hall skips cards with a `lot`).
-- **A building in the grounds** (the Hedge Maze) is the same, but beside the house rather than on
-  the lane: its card has `grounds` instead of `lot`, which spot in the grounds is its (`GROUNDS` in
-  `outside.js`, each with its middle `x`, `z` and its room, `w` across and `d` deep; 0 is beside the
-  house on the left, from the front garden to the backyard). Its kit has `ground` (that spot) instead
-  of `lot`, `skyMat` (the outside's sky, for a room that's out of doors) and `snapshot(obj, place,
-  { from, at, fov, w, h })`, which takes a picture of one thing in a place, once, with everything
-  else see-through (the outside's `house` is the house itself, in a group of its own, so the maze
-  can show it over its hedges and it's never out of date). A building can have more
-  than one way in: its `house` can hand back `doors` (`{ door, back }`), each joined to the room's
-  own door of that name (the outside's names for them: its card's id, and `<id>.back`). A doorway can
-  move (`moveTo(pos, yaw)`): the maze's door to the backyard is always wherever its end is.
+- **A building outside** (Clyde's House and Chooter's Paint Shop on the lane, the Hedge Maze in the
+  grounds) is a game that lives in its room whose card has `lot` or `grounds` instead of `slot`.
+  Its kit has the outside to build its house into, and it hands back a `house` too: `OUTSIDE.md`.
 - **Doors never move.** Each card says which door on the landings is its (`slot`, its place in
   `SLOTS`: 0 is the first one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music
   Room 3, the aquarium 4, Space Adventure 5; 6 is the next, still on the first landing), so a new

@@ -1,5 +1,5 @@
-// Chooter's Paint Shop's card for the clubhouse. It isn't behind a door on the landing (they're all
-// taken): it's Chooter's shop (everything outside the gate belongs to somebody else), on a plot along the lane outside the front gate (`lot` 1, across
+// Chooter's Paint Shop's card for the clubhouse. It isn't behind a door in the clubhouse:
+// it's Chooter's shop (everything outside the gate belongs to somebody else), on a plot along the lane outside the front gate (`lot` 1, across
 // the path from Clyde's House; plots never move). Like Clyde's House it has no page and no start(),
 // just `room`, whose module builds the shop outside and the room inside, where you paint the room.
 export default {

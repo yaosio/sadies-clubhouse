@@ -3,8 +3,8 @@
 The first building outside Sadie's front gate (`src/activities/clydes-house/`). The owner asked
 Claude on 2026-09-30 to build a house of its own just outside the gate, with a little path to it,
 and gave no other direction: its own character, its own house, and at least one activity inside
-that's interesting and fun, not generic. More buildings will follow along the lane, so the house
-sits on the first of its plots (`lot` 0).
+that's interesting and fun, not generic. It sits on the first plot
+along the lane (`lot` 0); Chooter's Paint Shop is across the path on `lot` 1, and more plots wait for more buildings.
 The character was first called Claude; the owner renamed it Clyde (same little spark, same house).
 
 **Clyde** is a little terracotta spark with eight stubby rays, big eyes and little legs, drawn like

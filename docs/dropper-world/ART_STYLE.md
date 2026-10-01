@@ -45,6 +45,7 @@ outlined clouds; rolling far and near hills; a bright grass strip with tufts ove
 speckled with pebbles and candy sprinkles (a nod to the candy bedrock).
 
 ## The interface: a DOS game that built its own
+(The mock-up's plan. Some of it was dropped: what was built is in the next section.)
 No gray Windows look. It's a DOS program that had no Windows to copy, so it invented its own and
 tried way too hard:
 - **Panels:** candy purple with a faint woven texture, raised and sunken edges in lavender and

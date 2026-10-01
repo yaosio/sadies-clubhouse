@@ -1,7 +1,7 @@
 // Sadie's mansion: the clubhouse you walk around. You start at the front gate (the first time, Sadie's
 // letter invites you in), walk through the front door into the entrance hall (the bottom of the cat
-// tree), up the stairs to the landing where every activity has its door, and into its room, where
-// you play it at the computer.
+// tree), up the stairs to the landings where the activities have their doors, and into a room; or
+// out along the lane, or round the house, to a building of its own.
 //
 // Every place (outside, the hall, each activity's room) is its own separate scene, joined only by
 // doorways. There are no loading screens: an open doorway shows the place on its other side (drawn
@@ -11,7 +11,7 @@
 //
 // Controls are a normal game's: WASD or the arrows and the mouse (click to look around), a thumb
 // stick and dragging on a phone. E (or the button on a phone) uses what you're looking at. Esc or the
-// pause button pauses; in the test version the pause menu can also start things over.
+// pause button pauses; the pause menu can also start things over, and save or load a backup.
 //
 // Starting an activity takes the whole mansion out of the page before the activity goes in. When
 // you come back (the page reloads), you're standing at that activity's computer.
@@ -61,8 +61,8 @@ export async function open(cards, enter) {
   const theme = makeTheme();
 
   // ---------- the places, and the doorways between them ----------
-  // Only the garden and the hall (and any building outside the gate, which you can see from the lane)
-  // are built before the mansion opens. Each room is built later, one at a time: while you stand
+  // Only the garden and the hall (and the buildings outside you can see from the gate, below) are
+  // built before the mansion opens; the rest of the buildings outside straight after. Each room is built later, one at a time: while you stand
   // still, or as you walk up to its door (which stays shut until it's ready). A room that's far away
   // (three doors or more, for a while) is put away again, if it can be: its things go back to the
   // graphics card, and it's built again from its save as you come near. So the house can have any

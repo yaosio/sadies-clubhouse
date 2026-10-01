@@ -160,7 +160,7 @@ At 60% he starts peeking in (his head, from behind whichever wall is nearer Sadi
 every 22 s at first and every 8 s near the end; you can tap him while
 his head is in. At 100% he bursts in over that
 wall with a leap and a bark. With the mole building, `node tools/dropper-world/arrival.mjs` gives a first peek at
-about 2:50–3:05 and an arrival at about 4:10–4:40 (between 160 and 175 pieces). A slow device whose
+about 3:15–3:50 and an arrival at about 4:50–5:20 (between 165 and 185 pieces). A slow device whose
 mole gets tired drops fewer pieces, so he takes longer. Once met, he stays met (saved in the
 browser), even after clearing the tower; Start over sends him back next door, from quiet.
 - Trots 2.2 blocks/s, runs 4.2 when he has somewhere to be, 6.5 with the zoomies.
@@ -248,7 +248,7 @@ For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
   falling where it would appear.
 - Build a tall pile: 110 pieces within 1 block of the mole, one every 0.6 s, run at 8× (about 70 s
   of game time, roughly 9 s to watch), then 4 more seconds to settle before going back to the
-  chosen speed. Makes a mound about 17–19 blocks tall.
+  chosen speed. Makes a mound about 21–22 blocks tall.
 - Put her on top: Sadie moves to the highest point. If her barn is now far below, she'll soon go
   back for it, as she normally would.
 - Peek in: Chooter is wound up just enough to start peeking in (the rest still takes the noise).
@@ -262,7 +262,7 @@ For us, not players. Speed runs 1, 2, 4 or 8 simulation steps per normal step.
 Saved in the browser once a minute, and when the page is hidden or closed (those are the saves
 that matter; the timed one only covers a crash, losing at most a minute). Not more often: a full
 board's save takes a slow phone about 30 ms, a small hitch. Saved under the key
-`sadies-dropper-world.save` (a name no other game on a shared site like itch.io will use). Each
+`sadies-dropper-world.save` (a name nothing else in the clubhouse uses). A save it can't read is put aside (`sadies-dropper-world.save.unreadable`), never wiped, and it starts fresh; the pause menu's SAVE A BACKUP keeps a copy of it with everything else. Each
 browser and device keeps its own game. Piece positions are kept to 1/100 px; a 50-piece board is
 about 24 KB. The bedrock keeps the board to about 400 pieces however tall the tower
 gets (about 200 KB), far under the browser's ~5 MB limit.
@@ -275,52 +275,52 @@ Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save,
 (keeps the dev sheet's physics settings). Both need a second tap within 3 s.
 
 ## What the tests expect (`tests/dropper-world/run.mjs`)
-Each numbered section runs in its own process (several at once, about 50 s in all on Claude's cloud machine), starting
+Each numbered section runs in its own process (several at once, about 60 s in all on Claude's cloud machine), starting
 from a fresh game with its own seeded random numbers, so results repeat exactly and no section can
 change another's numbers. When a change moves a number, update it here and say why in the commit.
-- 150-piece mixed pile: no broken numbers, deepest overlap about 0.6 px, about 140 asleep.
+- 150-piece mixed pile: no broken numbers, deepest overlap about 0.75 px, about 148 asleep.
 - Ball dropped from 6 blocks: bounces to 3.37, 2.13, 1.52 blocks.
-- 70 pieces on one spot: a mound peaking around 10.7 blocks (the check wants 8–17).
+- 70 pieces on one spot: a mound peaking around 12 blocks (the check wants 8–17).
 (When the mole started digging up the hay and flinging it, instead of hay just appearing, most of
 these moved a little: the first few seconds of every game are now the mole throwing hay, so every
 piece after that falls at a different moment, and the random numbers come out in a different
 order. Nothing about how things behave changed apart from the hay.)
 - Two minutes of play, nobody steering the mole: Sadie never rises faster than about 4 blocks per
   second, never stays buried, the mole has flung out the first 3 bundles after about 4.1 s, every
-  bundle bounces (21 bounces for 7 bundles), floating hay never sinks below where it floated up to,
-  there are never more than 3 about and never one short for more than about 4.3 s (the check allows
+  bundle bounces (18 bounces for 7 bundles), floating hay never sinks below where it floated up to,
+  there are never more than 3 about and never one short for more than about 4.2 s (the check allows
   20), the mole aims each one 10–18 blocks from the last, each floats up out of her reach, she eats
-  4 bundles (the check wants at least 4), and her longest wait between snacks is about 30 s (the
+  4 bundles (the check wants at least 4), and her longest wait between snacks is about 33 s (the
   check allows up to 40). Time spent fetching her barn doesn't count as waiting.
-- 110 pieces on one spot (peak about 14.6 blocks): 15 become fossils, all buried at least 8
+- 110 pieces on one spot (peak about 17.4 blocks): 20 become fossils, all buried at least 8
   blocks, and a boulder landing on top wakes none of them.
-- The mole burying the barn on its own: the pile gets about 0.9 blocks over its roof before Sadie,
+- The mole burying the barn on its own: the pile gets about 2.8 blocks over its roof before Sadie,
   having climbed well above it, goes to fetch it (the check wants at least half a block: either
-  reason sends her), once (about 14 s), and it ends up about 5.7 blocks higher with nothing near it
+  reason sends her), once (about 26 s), and it ends up about 7.1 blocks higher with nothing near it
   higher than its roof, inside the walls, with no piece sunk into it more than about 0.2 px.
-- Chooter arriving: on a fresh board with the mole building, he first peeks in at about 3:30, over
-  the wall nearer Sadie, and can be tapped then; he bursts in at about 4:44 (the check wants
+- Chooter arriving: on a fresh board with the mole building, he first peeks in at about 3:15, over
+  the wall nearer Sadie, and can be tapped then; he bursts in at about 4:41 (the check wants
   between 3 and 7 minutes, with at least 30 s of peeking first). How wound up he is comes back
   from a save. A downpour of 300 pieces for a minute only gets him 40% of the way (at most 1/150 a
   second, so never under 2.5 minutes).
-- Chooter: on a pile the mole grew for 90 s, over 4 minutes he greets her (about 15 s, leaping in
-  over the wall), has 3 bouts of zoomies knocking about 44 pieces, brings back 6 of the 6 balls
+- Chooter: on a pile the mole grew for 90 s, over 4 minutes he greets her (about 2 s, leaping in
+  over the wall), has 3 bouts of zoomies knocking about 30 pieces, brings back 8 of the 8 balls
   thrown for him, moves into the barn and comes back out, and never gets stuck in the pile or
   leaves the board.
 - Debug tools: raining 100 pieces drops them all in about 8 s with no piece sunk into another more
-  than about 1 px; "Build a tall pile" peaks around 20.3 blocks and goes back to normal speed; "Put
-  her on top" puts Sadie about 18.6 blocks up, standing; the Sadie and Chooter buttons each start
+  than about 1 px; "Build a tall pile" peaks around 21.6 blocks and goes back to normal speed; "Put
+  her on top" puts Sadie about 21.3 blocks up, standing; the Sadie and Chooter buttons each start
   what they say; clearing the tower stops any rain.
-- Saving: a game saved after 70 s of play (38 pieces, 21 still moving, Chooter met) comes back the
+- Saving: a game saved after 70 s of play (36 pieces, 15 still moving, Chooter met) comes back the
   same after a JSON round trip, then plays on for 20 s with Sadie never stuck in the pile and no
-  piece sunk into another more than about 0.37 px (the check allows 2.5); hay still flying, and hay in the
+  piece sunk into another more than about 1.5 px (the check allows 2.5); hay still flying, and hay in the
   mole's paws, come back too; a save from another
   version is refused; Clear tower keeps Chooter; Start over forgets him.
 - Teasing: on a pile the mole grew for 90 s, over 4 minutes, Chooter snatches Sadie's hay once
-  (after about 94 s), she runs after it (all 20 s) and this time doesn't catch him, so he
+  (after about 143 s), she runs after it (all 20 s) and this time doesn't catch him, so he
   drops it at 20 s (it can also end with her catching him), nobody turns back and forth more than
-  about twice a second (8 turns in 20 s), there are never more than 3 bundles about and never
-  one short for more than about 5.4 s, and he never gets stuck in the pile.
+  about twice a second (9 turns in 20 s), there are never more than 3 bundles about and never
+  one short for more than about 6.7 s, and he never gets stuck in the pile.
 - Cornered: Chooter carrying the hay near the right wall with Sadie 2.5 blocks behind on a flat
   board. Neither jitters (he turns once, she turns twice), and she gets the hay in about 1.3 s.
   (This guards against them flipping back and forth forever, with her never getting it.)
@@ -329,18 +329,18 @@ order. Nothing about how things behave changed apart from the hay.)
   up), nobody has more than 4 feeling bars, every feeling bar is between 0 and 1, and reading
   thoughts never uses a random number (so tapping a character can't change what happens next).
 - The mole: 3 minutes of a fresh game. Every piece lands either within 1.5 blocks of whoever it's
-  burying (23 on Sadie; Chooter hasn't burst in yet) or on the barn (78), none anywhere else,
+  burying (18 on Sadie; Chooter hasn't burst in yet) or on the barn (84), none anywhere else,
   and whenever Sadie is at least half impatient the mole is burying someone. Never two pieces
   closer than 1.5 s. Then a pretend struggling game (the simulation taking 80% of each second): the
-  gaps between pieces (or the quiet stretch before its nap) stretch to about 3.8 s, it's napping
+  gaps between pieces (or the quiet stretch before its nap) stretch to about 5.8 s, it's napping
   after 8 s and drops nothing while it naps, and 12 s after the game calms down it's back to work.
 - Bedrock: a fresh board has none. Raining 700 pieces over the whole board (the slowest section,
-  about 50 s: a messy heap makes every step work hard): nothing melts until there are more
-  than 400 (the first melt comes at 403), then about 367 melt into bedrock (2–39 blocks up),
-  leaving about 396 pieces (from about 469 at the most, since pieces rain in faster than deep ones
+  about 60 s: a messy heap makes every step work hard): nothing melts until there are more
+  than 400 (the first melt comes at 402), then about 369 melt into bedrock (2–46 blocks up),
+  leaving about 394 pieces (from about 497 at the most, since pieces rain in faster than deep ones
   become fossils). Where the bedrock rises it's always at least 12 blocks under the pile, every
   piece that melts ends up completely inside the rock (so nothing that rested on it is left
   hanging), no piece is left inside it, nothing that can move sinks into it, and the mole mentions
   it. A box sliding fast into the side of a 5-block step in the bedrock stops against it (it
   tumbles up to about 3.7 blocks high, never on top). It comes back exactly from a save (about
-  208 KB), and a save from before bedrock loads with flat ground.
+  206 KB), and a save from before bedrock loads with flat ground.

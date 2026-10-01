@@ -86,7 +86,7 @@ The clubhouse's main theme fades out as you come in (its place's `hush` is alway
 
 Saves (`sadies-clubhouse.music-room.`): `tape` (both tapes, and which is in), `sign`, `volume`.
 
-**Put away when you're far off.** The mansion puts the room away when you've been three doors or more from it for a while, but never with a tune or anything else still to happen in it (`busy()`). `putAway()` closes its sounds; the tape and the settings are already saved, so it's the same when built again.
+**Put away when you're far off.** The mansion puts the room away when you've been three doors or more from it for a while, but never with a tune or anything else still to happen in it (`busy()`). It needs no `putAway()`: the mansion stops its sounds, and the tape and the settings are already saved, so it's the same when built again.
 
 ## Parked ideas
 

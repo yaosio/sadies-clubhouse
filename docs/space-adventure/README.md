@@ -1,7 +1,7 @@
 # Space Adventure
 
 The clubhouse's sixth activity (`src/activities/space-adventure/`), behind the sixth door on the
-landing (the last one on the first floor). Like the aquarium it lives in the mansion itself, not on a
+first landing. Like the aquarium it lives in the mansion itself, not on a
 computer. The owner described it on 2026-09-30:
 
 - **The door opens straight onto a spaceship's cockpit.** Out of the windscreen there are stars and a
@@ -42,7 +42,7 @@ pause menu) gives you the first trip again.
 
 | File | What it does |
 |---|---|
-| `card.js` | Its card: `room`, `door`, `slot: 5`, and `keeps` (`sadies-clubhouse.space-adventure.trip`: whether you've been). |
+| `card.js` | Its card: `room`, `door`, `slot: 5`, and `keeps` (`sadies-clubhouse.space-adventure.`, for starting over). It saves through the kit's `m.saves` as `trip`: whether you've been. |
 | `trip.js` | The trip in numbers, with no screen (the tests read it): when everything happens (`T`), what Sadie says and when (`LINES`), how big the planet looks (`planetSize`), the glow and the clouds (`entry`: fully white at the swap), the way down through the clouds to the beach (`shipAt`), where Sadie is (`sadieAt`), and the land's shape (`heightAt`: the beach at 0, 0, the sea on your left, hills, mountains far ahead). |
 | `room.js` | Puts it together as one place: one scene holding the cockpit, space, the land and the space room, showing only what you should see. Walking in past `LOCK_Z` sets the place's `watch` (with `at`, the seat), which the mansion uses to put you in the seat and keep your eyes ahead. Runs the trip's clock (stopped while paused), swaps space for the land at `T.swap`, and at the black saves the trip, shows the space room and puts you by the door. The button and the radio are its `uses`. `window.__space` for the checks (its state, `warp` to run the clock faster, `jump` to a moment). |
 | `cockpit.js` | The SADIE-1's cockpit: purple panelled walls, the windscreen (just holes: what's outside is drawn behind everything), the dashboard (screens, a radar, blinking lights), the control stick, the pilot's seat, side consoles, a SPACE CADET poster, Sadie's food bowl, and `weather`: a box round the cockpit drawn in dots, orange while the air glows, white in the clouds. |

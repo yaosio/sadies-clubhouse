@@ -1,7 +1,6 @@
 # Art style: the misremembered 90s
 
-The look every part of Sadie's Clubhouse shares. Each activity's own look is in its own docs
-(`docs/dropper-world/ART_STYLE.md`, `docs/typefitter/README.md`).
+The look every part of Sadie's Clubhouse shares. Each activity's own look is in its own docs folder.
 
 ## The idea
 Everything here is lost software: 90s shareware that was never finished but always promised a full
@@ -15,15 +14,17 @@ mid-90s multimedia and late-90s shine are mashed together into programs that nev
 - **Impossible for the 90s ("strangely well made"):** smooth squishy physics with many pieces,
   shading that's too careful and soft for the era, expressive characters, glossy highlights,
   sparkles and lens flare, crisp on any screen.
-- **Each activity is a DOS program that invented its own look** (no gray Windows look, no title
+- **An activity on a computer is a DOS program that invented its own look** (no gray Windows look, no title
   bars or close boxes), in the candy-purple frame that started in Dropper World
   (`docs/dropper-world/ART_STYLE.md`). TypeFitter has its own copy of that look: moving it into
-  the toolbox would mean retesting every activity, so it waits until the frame next changes in both.
+  the toolbox would mean retesting every activity, so it waits until the frame next changes in both. One that lives in its room or building is part of
+  the 3D world instead, with no frame.
 - **The never-finished feeling** comes from the promises: "CHAPTER 2 COMING SOON 1996!", locked
   tools, save only in the full version. **No prices and no order buttons** (the owner said no).
 
 ## Sadie's mansion (built)
-The clubhouse is Sadie's mansion, and each activity has its own room. The owner okayed the look.
+The clubhouse is Sadie's mansion and the world round it: activities behind doors in the mansion, and
+buildings in her grounds and along the lane outside the gate. The owner okayed the look.
 Built in `src/clubhouse/` (how it works: `docs/clubhouse/MANSION.md`). The approved mock-up:
 `art/mansion/` (`mockup.js` is the 3D scene, `page.js` the page around it; `node
 art/mansion/build.mjs && node art/mansion/shots.mjs` builds it and takes the pictures), published at
@@ -41,33 +42,31 @@ https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF. What the owner has decided so
   is always being built) and out (branches: wings and side towers, for grouping rooms). Adding
   rooms never changes what's already built.
 - **Rooms can be any size**, and bigger inside than the house could hold. Some games live in the
-  world rather than on their own screen, like Brickbuster '96 (being built: `docs/brickbuster/`), a
+  world rather than on their own screen, like Brickbuster '96 (`docs/brickbuster/`), a
   Breakout whose ball of yarn escapes into the mansion and breaks the game (then Sadie puts up an
   OUT OF ORDER sign).
 - **No loading screens or obvious transitions** unless they fit: a door just opens onto its room.
   It has to stay smooth. The inside doesn't have to match the outside (the owner's call): the front
   door leads to a separate place, so either can change without the other.
-- **Resetting:** the pause menu (in the real game too) can start over everything or one thing at
-  a time (the invitation, an activity's saves), always asking "are you sure?" first.
 - **Outside the gate, a lane** runs along the fence, with plots either side of the path for
   buildings of their own (the owner plans more). The first is Clyde's House, The Overthinkery: a
   crooked butter-yellow cottage with terracotta tiles (`docs/clydes-house/`), with Clyde's Weather
   Machine beside it, which changes the weather outside (dithered cloud domes, pixel rain and snow). Across
   the path is Chooter's Paint Shop (`docs/paint-shop/`): mint walls splattered in every colour, a
   striped awning, a giant paint can tipping off the roof. Everything outside the gate belongs to
-  somebody else (the owner's rule): Sadie's things are in the mansion. The next free plot
+  somebody else (the owner's rule): Sadie's things are in the mansion and her grounds. The next free plot
   has a NEW HOUSE COMING SOON!! stake.
 - **The backyard**, behind the house, looks finished too (the owner asked, 2026-10-01): windows all
   round, a teal back door with a lion-sized cat flap (STAFF ONLY (CATS); it doesn't open), lamps,
   flower beds, a flagstone patio, a bird bath, trees, a fence round the grounds, and a bench in a
-  patch of sun where Sadie naps, Zs drifting up. Beside the house on the left is the Hedge Maze's
+  patch of sun where Sadie naps, Zs drifting up. Beside the house (on your right as you walk up from the gate) is the Hedge Maze's
   hedge block (`docs/hedge-maze/`), with an arch and a garden gate at each end.
 - **You start outside**, at the gate. The first time only, Sadie's letter invites you: she's
   decided to share her clubhouse with all her friends. The pause menu can start the whole game
-  over, or single things (the invitation, the broken Breakout, and so on).
+  over, or single things (the invitation, the broken Breakout, and so on), always asking "are you
+  sure?" first.
 - **Normal game controls** (WASD and mouse, a thumb stick on phones) and no big chunky frame: just
-  a pause button and a small hint at a computer. Each activity keeps its own 90s frame: they're
-  programs on a computer, in their rooms.
+  a pause button and a small hint at a computer. An activity on a computer keeps its own 90s frame.
 - **The look:** a real, recognizable mansion a cat has clearly taken over. The cat is in the details:
   turrets that lean out like ears, a cat weathervane, fish-scale slates, porch pillars wrapped in
   scratching rope, a cat flap in the front door, a FRIENDS ONLY mat, fish-bone and paw-print damask,
