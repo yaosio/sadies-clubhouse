@@ -95,7 +95,9 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: Sadie comes in (mrrp) and leaves paw prints in the paint`, printed && s.heard.includes('mrrp'), `${s.painted.floor} pixels of prints`);
     await shot('6-paw-prints');
 
-    // kept after a reload (the shop keeps the paint 1.5 s of play after the last stroke)
+    // kept after a reload (the shop keeps the paint 1.5 s of play after the last stroke: once Sadie's
+    // gone, as she can still be leaving prints)
+    await until(() => !window.__paintShop.state().sadie.on, null, 30000);
     await rest(1800);
     const kept = (await S()).painted;
     await p.reload();
