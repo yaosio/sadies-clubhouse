@@ -1,4 +1,5 @@
-// Close-up pictures of Chooter's Paint Shop's little things (npm run build first): the sandwich board
+// Close-up pictures of Chooter's Paint Shop's little things (npm run build first): the shop's front
+// with the giant paint can on the roof, the sandwich board
 // from the front and the back, the door's OPEN sign, Chooter in his cap, Sadie's plaque, the TNT box,
 // the easel from behind, the crate and plinth painted on every side with the bucket, and the room's
 // top and bottom corners, inside and out (no night showing through). As a desktop.
@@ -48,6 +49,7 @@ await look('outside', bx + 0.6, bz + 1.6, 0, bx, 0.45, bz); await shot('board-fr
 await look('outside', bx - 0.5, bz - 1.6, 0, bx, 0.45, bz); await shot('board-back');
 await look('outside', bx + 1.8, bz, 0, bx, 0.45, bz); await shot('board-side');
 await look('outside', hx, hz + 1.4, 0, hx, 1.1, hz); await shot('door');
+await look('outside', hx, hz + 12, 0, hx, 3, hz); await shot('outside-front');
 await look('outside', hx - 5, hz + 3, 0, hx - 3.2, 1.2, hz); await shot('outside-front-corner');
 await look('outside', hx + 6, hz - 7, 0, hx + 3.2, 1.2, hz - 5); await shot('outside-back-corner');
 

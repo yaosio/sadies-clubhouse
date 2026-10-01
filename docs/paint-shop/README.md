@@ -21,7 +21,7 @@ on a plinth to paint (SADIE).
 **The shop from outside:** mint walls splattered in every colour, a pink and yellow striped awning,
 the sign (CHOOTER'S PAINT SHOP), two windows full of paint cans, a blue door with an OPEN sign, a
 sandwich board (TODAY: PAINT THE WALLS / ALSO FLOOR AND CAT?), and a giant paint can (1 TON)
-tipping off the roof, pouring pink down the front into a puddle.
+up on a stand in the middle of the roof, high above the sign, tipping forward and pouring pink onto it.
 
 ## Design pillars (these win over any feature idea)
 

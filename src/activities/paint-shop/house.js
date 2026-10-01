@@ -1,7 +1,7 @@
 // Chooter's Paint Shop from outside, on its plot along the lane: a mint shop splattered in every colour
 // (its customers paint the outside too), a pink and yellow awning, its sign, two windows full of paint
 // cans, a sandwich board on the path (TODAY: PAINT THE WALLS / ALSO FLOOR AND CAT?), and a giant
-// paint can tipping off the roof, pouring pink down the front.
+// paint can up on the roof, tipping over, pouring pink onto the sign.
 //
 // Built into the outside's own scene, in a group of its own (the mansion hands the room this place
 // and the plot); the front door is a doorway into the room, like every door in the mansion.
@@ -12,7 +12,7 @@ export const DW = 1.3, DH = 2.4;   // the front door
 export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
   const scene = new Group(); outside.scene.add(scene);
-  const { add, box, plane, cyl } = kit(scene);
+  const { add, box, plane } = kit(scene);
   const hx = lot.x, hz = lot.z, W = 6.4, D = 5, H = 3.6;
   // (it faces the gate, away from the sun, so it's lit a little from within: never drab)
   const wall = (w, h) => psx(A.wall, { rx: w / 3.2, ry: h / 2.4, unlit: 0.35 });
@@ -36,13 +36,15 @@ export function buildHouse(m, A) {
   // the awning over the door and windows, sloping out
   plane(W - 0.4, 1.1, psx(A.awning, { rx: (W - 0.4) / 1.4, unlit: 0.35, side: DoubleSide }), [hx, DH + 0.42, hz + 0.45], [-0.75, 0, 0], 2);
 
-  // ---------- the giant paint can on the roof, tipping over, pouring pink down the front ----------
-  const can = new Group(); can.position.set(hx - 2.1, H + 0.75, hz - 0.5); can.rotation.set(0.85, 0, 0.15); scene.add(can);
+  // ---------- the giant paint can on the roof: in the middle, up on a stand above the sign, tipping
+  // to one side, pouring pink onto the top of the sign ----------
+  box(1.4, 1.5, 1.4, psx(null, { tint: 0x9a6a3a, unlit: 0.3 }), [hx, H + 1.0, hz - 1.4]);   // its stand
+  const can = new Group(); can.position.set(hx, H + 2.7, hz - 1.4); can.rotation.set(0.2, 0, -0.45); scene.add(can);
   const tin = psx(null, { tint: 0xd8d8e8, unlit: 0.3 });
-  const body = new Mesh(keep(new CylinderGeometry(0.62, 0.62, 1.1, 10, 1)), [psx(A.canLabel, { rx: 3, unlit: 0.35 }), psx(null, { tint: 0xff8ec8, unlit: 0.4 }), tin]);
+  const body = new Mesh(keep(new CylinderGeometry(1.0, 1.0, 1.8, 12, 1)), [psx(A.canLabel, { rx: 2, unlit: 0.35 }), psx(null, { tint: 0xff8ec8, unlit: 0.4 }), tin]);
+  body.rotation.y = -Math.PI / 2;   // (one of its two labels to the lane)
   can.add(body);
-  plane(0.42, H + 0.35, psx(A.pour, { unlit: 0.45 }), [hx - 2.1, (H + 0.35) / 2, hz + 0.1], null, 2);
-  cyl(0.55, 0.6, 0.03, 10, psx(null, { tint: 0xff8ec8, unlit: 0.4 }), [hx - 2.1, 0.015, hz + 0.45]);   // the puddle
+  plane(0.42, 1.6, psx(A.pour, { unlit: 0.45 }), [hx + 1.15, H + 1.8, hz - 0.08], null, 2);   // (from its rim down to the top of the sign)
 
   // ---------- the path from the lane, and the sandwich board ----------
   plane(1.3, 4.8, psx(T.path, { rx: 1, ry: 3, onFloor: true }), [hx, 0, hz + 2.4 + 0.02], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
@@ -65,6 +67,6 @@ export function buildHouse(m, A) {
     // from far off it's drawn as a plain block: the shop itself, in the colour of its walls
     body: [front, roof], farTint: 0x9af0d0,
     // every frame: the can on the roof wobbles a little, as if it's about to go
-    update(t) { can.rotation.z = 0.15 + Math.sin(t * 0.8) * 0.03; },
+    update(t) { can.rotation.z = -0.45 + Math.sin(t * 0.8) * 0.03; },
   };
 }
