@@ -1,0 +1,116 @@
+# The game's checks on GitHub, on every pull request and on main: `npm run check` (docs/clubhouse/ARCHITECTURE.md),
+# split up so each activity (and the mansion) gets a computer of its own, all at the same time.
+#
+#   plan      which activities still need checking: an activity that already passed on exactly
+#             its code (remembered between runs) is skipped, as on Claude's own machine
+#   check     one computer per activity that needs it: `npm run check -- --only <activity>`
+#   remember  saves what passed for next time, and is the one tick (or cross) for the whole lot
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# a newer push to the same pull request stops the older run
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      todo: ${{ steps.plan.outputs.todo }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/cache/restore@v4
+        with:
+          path: dist/*-passed-*
+          key: passed-${{ github.sha }}
+          restore-keys: passed-
+      - id: plan
+        run: echo "todo=$(node tools/check.mjs --plan)" >> "$GITHUB_OUTPUT"
+
+  check:
+    needs: plan
+    if: needs.plan.outputs.todo != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        activity: ${{ fromJSON(needs.plan.outputs.todo) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # the hidden browser the checks play the game in (the version package-lock.json names)
+      - id: pw
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: browser
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ steps.pw.outputs.version }}
+      - if: steps.browser.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps --only-shell chromium
+      - if: steps.browser.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+      - uses: actions/cache/restore@v4
+        with:
+          path: dist/*-passed-*
+          key: passed-${{ github.sha }}
+          restore-keys: passed-
+      # Dropper World's full board (remade only when its game changes)
+      - if: matrix.activity == 'dropper-world'
+        uses: actions/cache@v4
+        with:
+          path: dist/fullboard-*.json
+          key: fullboard-${{ hashFiles('src/activities/dropper-world/core/**', 'src/activities/dropper-world/config.js', 'tools/dropper-world/fullboard.mjs') }}
+      - run: npm run check -- --only ${{ matrix.activity }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: passed-${{ matrix.activity }}
+          path: dist/*-passed-${{ matrix.activity }}-*
+          if-no-files-found: ignore
+          retention-days: 1
+      # the screenshots, to look at when something failed
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.activity }}
+          path: dist/check/
+          retention-days: 7
+
+  remember:
+    needs: [plan, check]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache/restore@v4
+        with:
+          path: dist/*-passed-*
+          key: passed-${{ github.sha }}
+          restore-keys: passed-
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: passed-*
+          path: dist
+          merge-multiple: true
+      - uses: actions/cache/save@v4
+        with:
+          path: dist/*-passed-*
+          key: passed-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: every activity passed
+        run: |
+          echo "plan: ${{ needs.plan.result }}, checks: ${{ needs.check.result }}"
+          [ "${{ needs.plan.result }}" = success ] && { [ "${{ needs.check.result }}" = success ] || [ "${{ needs.check.result }}" = skipped ]; }

@@ -44,7 +44,8 @@ next free plot along the lane instead (its card's `lot`), and one in the grounds
 spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spots never move either.
 
 ## Making a change
-1. `npm install` (esbuild, the bundler, and three.js, for the mansion), then edit only the modules
+1. `npm install` (esbuild, the bundler, three.js, for the mansion, ESLint and Playwright, at the exact
+   versions `package-lock.json` locks), then edit only the modules
    involved. Keep the docs true: a change to an activity updates its own docs folder.
 2. Each activity lives in `src/activities/<name>/` and never imports from another activity or the
    clubhouse; only from its own folder and `src/shared/` (the toolbox, kept small: a change there
@@ -56,7 +57,9 @@ spot of its own (its card's `grounds`, `GROUNDS` in `outside.js`); plots and spo
    minute). Each activity's checks (and the mansion's) are skipped anyway if they already passed on exactly its code; the check prints how long each stage took. If a change is meant to move
    a test's numbers, explain why in plain words and update that activity's tuning notes (`docs/dropper-world/TUNING.md`).
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to
-   the working branch. Never commit `dist/`, `node_modules/` or `package-lock.json`.
+   the working branch. Never commit `dist/` or `node_modules/`; do commit `package-lock.json` (it locks
+   every tool's exact version). GitHub then runs the same checks on the pull request, each activity on
+   its own computer at once (`.github/workflows/check.yml`); its tick must be green before a merge.
 5. Publish that build to the test page (below) and give the owner the link, so they can try it.
    Build it again after committing (`npm run build -- --preview`): its label names the commit it
    was built at, and a build from before the commit shows the previous one, which confuses the owner.
