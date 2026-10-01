@@ -50,17 +50,19 @@ export function bothDevices(browser, outDir, fn) {
 // come slower and the game falls behind the clock, so a wait timed by the clock can end before what
 // it waited for has happened in the game. The mansion counts the time it's played
 // (window.__mansion.played()); without the mansion on the page, it's the clock.
-export async function rest(p, ms) {
-  const t0 = await p.evaluate(() => window.__mansion?.played());
+export async function rest(p, ms, from) {
+  const t0 = from ?? await p.evaluate(() => window.__mansion?.played());
   if (t0 === undefined) return p.waitForTimeout(ms);
   await p.waitForFunction(([t0, s]) => !window.__mansion || window.__mansion.played() - t0 >= s, [t0, ms / 1000], { polling: 'raf', timeout: ms * 8 + 5000 }).catch(() => {});
 }
 
 // Hold a key down (W: forward) for `ms` of the game's own time (so a slow computer doesn't stop
-// short of a door)
+// short of a door). (Timed from just before the key goes down, as the clock did: from after would
+// walk on a little further, through a door it should stop at.)
 export async function walk(p, ms, key = 'KeyW') {
+  const t0 = await p.evaluate(() => window.__mansion?.played());
   await p.keyboard.down(key);
-  await rest(p, ms);
+  await rest(p, ms, t0);
   await p.keyboard.up(key);
   await p.waitForTimeout(100);
 }

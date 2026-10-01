@@ -173,7 +173,7 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(350);
     const rebuilt = await p.waitForFunction(() => window.__mansion.looking() === 'room:aquarium' && window.__mansion.built().includes('room:aquarium'), null, { timeout: 5000 }).then(() => true, () => false);
     await shot('4c-built-again');
-    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt);
+    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:aquarium') }));
     const k2 = (await M('speed')).kept;
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
     // Every room keeps the sound rules (src/shared/sound.js): none of its music is heard once you've
