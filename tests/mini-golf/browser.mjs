@@ -41,18 +41,26 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('3-tee');
     check(`${device}: ...with Sadie's tail and the strokes on the screen`, (await G('hud')).shown);
 
-    // a putt of your own: hold Space and let go (the desktop), or drag back from the ball (the phone)
+    // a putt of your own: hold Space and let go (the desktop), or drag back from the ball (the phone),
+    // with assist mode on (its button on the screen): the dots show the ball's whole way
+    await p.click('#golfHud [data-k="assist"]');
+    check(`${device}: the ASSIST button turns assist mode on`, await G('assist') === true);
+    let dotsShown = 0;
     if (opts.hasTouch) {
       const box = await p.locator('#mansion #view').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height * 0.55;
       await p.mouse.move(cx, cy); await p.mouse.down();
       for (let k = 1; k <= 6; k++) { await p.mouse.move(cx, cy + k * 25); await p.waitForTimeout(30); }
       await shot('4-pulling-back');
+      dotsShown = await G('dots', 0);
       await p.mouse.up();
     } else {
       await p.keyboard.down('Space'); await p.waitForTimeout(500);
       await shot('4-pulling-back');
+      dotsShown = await G('dots', 0);
       await p.keyboard.up('Space');
     }
+    check(`${device}: ...and with it on, the aim dots show the whole way (not just the start)`, dotsShown > 14, `${dotsShown} dots`);
+    await G('assist', false);
     let h = await hole(0);
     check(`${device}: pulling back and letting go putts the ball`, h.strokes === 1 && (h.ball.moving || h.phase !== 'aim'), JSON.stringify(h));
     await waitFor(0, "h.phase === 'aim' || h.phase === 'done'");

@@ -172,7 +172,7 @@ export function buildHole(m, hole, A, n) {
   const ball = new Mesh(keep(new SphereGeometry(R * S, 10, 8)), mat.white); g.add(ball);
   const club = new Mesh(keep(new PlaneGeometry(0.34, 0.17)), psx(A.club(hole.club), { side: DoubleSide })); club.visible = false; g.add(club);
   const dotGeo = keep(new PlaneGeometry(0.05, 0.05)), dotMat = psx(null, { tint: 0xffffff, unlit: 0.8, side: DoubleSide });
-  const dots = [...Array(14)].map(() => { const q = new Mesh(dotGeo, dotMat); q.rotation.x = -Math.PI / 2; q.visible = false; g.add(q); return q; });
+  const dots = [...Array(70)].map(() => { const q = new Mesh(dotGeo, dotMat); q.rotation.x = -Math.PI / 2; q.visible = false; g.add(q); return q; });
   // a ball flying back to the tee (grabbed), and a ball rising out of the tunnel: just the ball
   return { g, P, ball, club, dots, pins, tentacles, ringMat, ringMesh, movers, cup: [cx, cy, cz], tee: [tx, ty, tz] };
 }
