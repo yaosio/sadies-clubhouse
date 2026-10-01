@@ -179,7 +179,9 @@ export async function open(cards, enter) {
       const w = todo.shift();
       for (const p of portals) for (const [x, y] of [[p.wa, p.wb], [p.wb, p.wa]]) if (x === w && y && !d.has(y)) { d.set(y, d.get(w) + 1); todo.push(y); }
     }
-    return r => (r.place ? d.get(r.place) : Math.min(98, ...r.portals.map(p => d.get(p.wa) ?? 98)) + 1) ?? 99;
+    // (a building with no doors at all, like the mini golf out in the backyard, is part of outside:
+    // never far, so never put away just for being far)
+    return r => r.place && !r.portals.length ? 1 : (r.place ? d.get(r.place) : Math.min(98, ...r.portals.map(p => d.get(p.wa) ?? 98)) + 1) ?? 99;
   }
   // every frame: build the nearest room not built yet (while you're still, or as you come up to its
   // door), and put away rooms three doors off for a while (or the ones you were near longest ago,

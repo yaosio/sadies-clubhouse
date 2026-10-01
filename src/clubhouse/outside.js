@@ -10,8 +10,9 @@
 // hands it this place), and the next free plot has a COMING SOON stake. Plots never move either.
 //
 // Behind the house, the backyard: the back of the house finished off (windows, a back door that's
-// strictly for cats, flower beds), a patio, a bench in the sun where Sadie naps, and a fence round
-// it all. You get there round either side of the house (or through the hedge maze).
+// strictly for cats, flower beds), a patio, a bench in the sun where Sadie naps, a big lawn out to
+// the back fence (room for the mini golf), and a fence round it all. You get there round either
+// side of the house (or through the hedge maze).
 import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
 import { psx, keep, skyMat, tex } from './look.js';
 import { kit, wallGeometry, doorway } from './build.js';
@@ -21,7 +22,8 @@ export const LOTS = [{ x: -10, z: -37 }, { x: 10, z: -37 }, { x: -24, z: -37 }, 
 // spots in the grounds round the house, for buildings that aren't on the lane (a card's `grounds`):
 // the middle of each, and how much room there is (w across, d deep). They never move either.
 // 0: beside the house on the left, from the front garden to the backyard (the hedge maze)
-export const GROUNDS = [{ x: -20, z: 4, w: 8, d: 10 }];
+// 1: the backyard itself, behind the patio, out to the back fence (the mini golf)
+export const GROUNDS = [{ x: -20, z: 4, w: 8, d: 10 }, { x: 0, z: 27.5, w: 58, d: 33 }];
 
 export function buildOutside(T, cards = []) {
   const scene = new Scene(); scene.background = new Color(0x1a1a80);
@@ -185,8 +187,9 @@ export function buildOutside(T, cards = []) {
   napper.position.set(5.0, 0.53, 17.75); scene.add(napper);
   const zs = [0, 1].map(i => { const z = new Mesh(keep(new PlaneGeometry(0.4, 0.4)), psx(T.zzz, { unlit: 0.6 })); z.userData.phase = i / 2; scene.add(z); return z; });
   // the fence round the back and both sides of the grounds
-  plane(58, 1.5, psx(T.fence, { rx: 58 / 1.5, side: DoubleSide }), [0, 0.75, 30], [0, 0, 0], 1);
-  for (const s of [-1, 1]) plane(50, 1.5, psx(T.fence, { rx: 50 / 1.5, side: DoubleSide }), [s * 29, 0.75, 5], [0, Math.PI / 2, 0], 1);
+  // (the back fence was at 30; moved back to 44 to make room for the mini golf)
+  plane(58, 1.5, psx(T.fence, { rx: 58 / 1.5, side: DoubleSide }), [0, 0.75, 44], [0, 0, 0], 1);
+  for (const s of [-1, 1]) plane(64, 1.5, psx(T.fence, { rx: 64 / 1.5, side: DoubleSide }), [s * 29, 0.75, 12], [0, Math.PI / 2, 0], 1);
 
   // Sadie on the gatepost: she's expecting you (not that she'd show it)
   const sadie = new Mesh(keep(new PlaneGeometry(0.9, 0.73, 1, 1).translate(0, 0.365, 0)), psx(T.sadie, { unlit: 0.35 }));
@@ -201,14 +204,14 @@ export function buildOutside(T, cards = []) {
   // where you can walk: the garden, round everything in it (you're 0.35 m round), and out along the lane
   const P = 0.35;
   const RECTS = [[-9, 9, 0, 10], [13, 19, 3, 9], [-7.3, -5.7, -9.8, -8.2], [-8.2, -2.6, 10, 11], [2.6, 8.2, 10, 11], [-1.2, 1.2, 10, 11.1],
-    [4.3, 6.7, 17.5, 18.15], [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
+    [4.3, 6.7, 17.5, 18.15], [-29.05, 29.05, 43.95, 44.05], [-29.05, -28.95, -20, 44], [28.95, 29.05, -20, 44],
     ...HEDGES.map(([x, z, len]) => [x - 0.5, x + 0.5, z - len / 2, z + len / 2]),
     ...[-1, 1].map(s => [s * 2.6 - 0.45, s * 2.6 + 0.45, -20.45, -19.55]),
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
   if (free) RECTS.push([free.x - 1, free.x + 1, free.z - 1.1, free.z - 0.9]);
   const CIRCLES = [[-9, 0.4, 1.6], [9, 0.4, 1.6], [-2, -2.6, 0.3], [2, -2.6, 0.3], [-4, 19, 0.65], ...[...TREES, ...YARD_TREES].map(([x, z, s]) => [x, z, 0.4 * s])];
   function floor(x, z) {
-    if (Math.abs(x) > 30 || z < -50 || z > 32) return null;
+    if (Math.abs(x) > 30 || z < -50 || z > 46) return null;
     for (const [x0, x1, z0, z1] of RECTS) if (x > x0 - P && x < x1 + P && z > z0 - P && z < z1 + P) return null;
     for (const [cx, cz, r] of CIRCLES) if (Math.hypot(x - cx, z - cz) < r + P) return null;
     let h = 0;

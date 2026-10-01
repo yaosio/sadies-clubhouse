@@ -33,7 +33,7 @@ activity is checked again, so something moves into it only once a second activit
   with the sign painted over; without one it gets a plain door with its name), and `keeps` if it
   saves anything (the start of its storage keys, for the pause menu's start-over buttons).
   None of an activity's code runs until `start()` is called (the build keeps it waiting), so its modules can look up its page's elements as they load.
-- **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House, the Hedge Maze) has no page, styles or `start()`: its card
+- **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House, the Hedge Maze, the mini golf) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when
   it opens, handing it the building kit (its textures `T`, the palette `C`, `psx`, `keep`, `tex`,
   `words`, `picture`, `loadImage`, `breathe` (a pause between big parts), the shapes `kit`, `wallGeometry`, `doorway`, the card and its
@@ -95,6 +95,10 @@ activity is checked again, so something moves into it only once a second activit
   than one way in: its `house` can hand back `doors` (`{ door, back }`), each joined to the room's
   own door of that name (the outside's names for them: its card's id, and `<id>.back`). A doorway can
   move (`moveTo(pos, yaw)`): the maze's door to the backyard is always wherever its end is.
+  A building can also have no doors at all (the mini golf, `grounds` 1: the backyard): its
+  `house` hands back `doors: {}` and puts what you do into the outside's `uses`, and its room is
+  just a name. The mansion counts a built room with no doors as part of outside (one door away),
+  so it's never put away for being far, and keeps running its `update`.
 - **Doors never move.** Each card says which door on the landing is its (`slot`: 0 is the first
   one up the stairs; Brickbuster 0, Dropper World 1, TypeFitter 2, the Music Room 3, the aquarium 4, Space Adventure 5), so a new activity never
   shuffles the others (folder order used to decide, and adding Brickbuster moved two doors). A new
