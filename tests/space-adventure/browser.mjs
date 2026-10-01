@@ -49,7 +49,8 @@ export default async function ({ browser, page, check, outDir }) {
     await until(() => window.__space.state().line, 4000);
     s = await S();
     check(`${device}: Sadie hops up onto the dashboard and starts talking`, !!s.sadie && s.sadie[1] > 0.9 && s.line === "Oh, it's you. Sit down. We're leaving." && await p.isVisible('#saTalk'));
-    check(`${device}: the music starts`, s.played > 0);
+    // (its first notes come a moment after she starts talking: waited for, as a slow computer gets there later)
+    check(`${device}: the music starts`, s.played > 0 || await until(() => window.__space.state().played > 0, 3000));
     await p.waitForTimeout(1200);
     await shot('3-trip');
 
