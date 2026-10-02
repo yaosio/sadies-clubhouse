@@ -271,8 +271,8 @@ hay trail, the mole's spot and the piece it holds, the supply, Sadie and Chooter
 any trip home Sadie was on, the hay she was heading for, what the mole was doing (and how tired it
 was), a thrown ball, particles, and the debug
 speed and rain.
-Clear tower: fresh board, keeps Chooter and bests. Start over: forgets the save, bests and friends
-(keeps the dev sheet's physics settings). Both need a second tap within 3 s.
+Clear tower: fresh board, keeps Chooter and bests. Start over: forgets every save in its one list
+(`core/saves.js`): the board, bests, friends and the dev sheet's physics, as the pause menu's does. Both need a second tap within 3 s.
 
 ## What the tests expect (`tests/dropper-world/run.mjs`)
 Each numbered section runs in its own process (several at once, about 60 s in all on Claude's cloud machine), starting

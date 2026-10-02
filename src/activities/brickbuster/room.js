@@ -232,8 +232,7 @@ export async function buildRoom(m) {
   const sfx = soundsFor('room:' + card.id);
   let sound = null, music = null, showing = 'calm', lastTock = 0;
   const keep_ = () => { m.saves.set(KEY, save(game)); dirty = false; };
-  const leaving = new AbortController();
-  addEventListener('pagehide', () => { if (dirty) keep_(); }, { signal: leaving.signal });
+  const stopLeaving = m.saves.onLeave(() => { if (dirty) keep_(); });   // (saved as the page is hidden or closed)
   function feel(name, secs) { mood = { name, until: now + secs }; }
   const clunk = () => { if (sound && now - lastTock > 0.07) { lastTock = now; sound.tock(); } };
   const play = {
@@ -395,7 +394,7 @@ export async function buildRoom(m) {
     busy: () => active || (escape && escape !== 'gone') || (run && run !== 'gone') || !!doneAt || flights.length > 0 || falling.length > 0,
     putAway() {
       if (dirty) keep_();
-      leaving.abort(); sfx.close();
+      stopLeaving(); sfx.close();
       for (const out of outOfHall) out();
       giveSadieBack?.();   // (back in her box in the sunbeam till the room's built again)
     },

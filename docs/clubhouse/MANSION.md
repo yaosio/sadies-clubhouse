@@ -13,7 +13,8 @@ its places and doorways, building and putting rooms away, walking and controls, 
   activity keeps that corner free). Pressing it, or Escape when the activity didn't use the key for
   something itself (`preventDefault()`, like Dropper World closing its dev sheet), reloads the page
   into the clubhouse, so an activity never has to tidy up after itself (its timers, listeners and
-  loop just stop). It must save when the page goes away (`pagehide`), as Dropper World does.
+  loop just stop). It must save when the page goes away, through the save director's `onLeave(fn)`
+  (`src/shared/storage.js`), as Dropper World does.
 
 - **The mansion** (`src/clubhouse/`, loaded only when the page opens on it) is Sadie's clubhouse
 in crappy late-90s 3D, made with three.js (the one library, bundled into the page). It's made of

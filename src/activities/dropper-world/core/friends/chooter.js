@@ -35,6 +35,7 @@ import { drift, nudge } from '../mind/feelings.js';
 import { offers, offersFrom } from '../mind/offers.js';
 import { think, switchTo, done } from '../mind/think.js';
 import { mindsFrom } from '../mind/thoughts.js';
+import { SAVES } from '../saves.js';
 
 const TROT = 2.2 * U, RUN = 4.2 * U, ZOOM = 6.5 * U;
 const G = 1400, JUMP_MAX = 2.6 * U, ZOOM_JUMP_MAX = 3.2 * U; // he can leap up ledges this tall
@@ -63,7 +64,7 @@ export const PEEK_AT = 0.6;     // this wound up, he can't help peeking in at th
 // doing: greet | play | zoom | fetch | tease | home (see think.js); carrying: he has the ball in his
 // mouth; loot: the hay he's snatched
 export const chooter = {
-  met: !!store.get('sadie.chooter.met', false), movedIn: !!store.get('sadie.chooter.movedIn', false),
+  met: !!store.get(SAVES.met, false), movedIn: !!store.get(SAVES.movedIn, false),
   heard: 0, ringing: 0, peek: 0, peekPhase: 0, peekSide: 1, // before they meet: how wound up he is by all the noise, and how far his head is poking in
   place: 'out', doing: null, x: 0, y: 0, vx: 0, vy: 0, air: false, dir: 1, phase: 0, mood: 'happy', carrying: false, loot: null, hay: null,
   feel: freshFeelings(), windUp: 1 / 55, outFor: 95, restFor: 35,
@@ -88,7 +89,7 @@ export function resetChooter() {
 export function meetChooter() {
   const c = chooter;
   if (c.heard < PEEK_AT) c.peekSide = sadie.x < W / 2 ? -1 : 1; // never peeked (the dev sheet): the side nearer her
-  c.met = true; store.set('sadie.chooter.met', true); c.heard = 1; c.ringing = 0; c.peek = 0;
+  c.met = true; store.set(SAVES.met, true); c.heard = 1; c.ringing = 0; c.peek = 0;
   // he bursts in over the wall where he's been peeking, with a big leap onto the pile
   c.dir = -c.peekSide; c.x = c.peekSide > 0 ? W - 0.6 * U : 0.6 * U; c.y = groundAt(c.x, 1e9);
   Object.assign(c, { place: 'out', doing: null, carrying: false, loot: null, hay: null, vx: 0, vy: 0, air: false, stuckT: 0 });
@@ -172,7 +173,7 @@ const doorSide = () => Math.sign(chooter.x - barnX()) || 1;
 const doorSpot = sd => Math.min(W - 0.5 * U, Math.max(0.5 * U, barnX() + sd * (BARN_HALF + 0.45 * U)));
 function goIn(dig) {
   const c = chooter;
-  if (!c.movedIn) { c.movedIn = true; store.set('sadie.chooter.movedIn', true); emit('friendMovedIn', 'Chooter'); }
+  if (!c.movedIn) { c.movedIn = true; store.set(SAVES.movedIn, true); emit('friendMovedIn', 'Chooter'); }
   c.place = dig ? 'dig' : 'door'; c.doorIn = true; c.doorT = 0; c.doorX = c.x; c.air = false;
   c.dir = Math.sign(barnX() - c.x) || c.dir;
 }

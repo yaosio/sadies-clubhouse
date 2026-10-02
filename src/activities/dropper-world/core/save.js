@@ -9,8 +9,9 @@
 // rather than breaking, and the old save is put aside (sadies-dropper-world.save.unreadable), never
 // wiped. Bump SAVE_VERSION when the format changes, and teach restore() to read the old version:
 // a format change must never lose anyone's tower.
-import { U, W } from '../config.js';
-import { store, putAside } from '../../../shared/storage.js';
+import { U, W, tuning, DEFAULTS, physParams } from '../config.js';
+import { store, putAside, forget } from '../../../shared/storage.js';
+import { SAVES } from './saves.js';
 import { world } from './world.js';
 import { SHAPES } from './physics/pieceTypes.js';
 import { makePiece, aabb } from './physics/body.js';
@@ -25,10 +26,9 @@ import { chooter } from './friends/chooter.js';
 import { toy } from './toys.js';
 import { resetGame } from './game.js';
 
-export const SAVE_KEY = 'sadies-dropper-world.save'; // a name no other game on the same site will use
+export const SAVE_KEY = SAVES.board;
 export const SAVE_VERSION = 1;
 // everything else the game keeps in the browser that "Start over" forgets (dev settings stay)
-const PROGRESS_KEYS = ['jellystack.best', 'jellystack.climbBest', 'sadie.chooter.met', 'sadie.chooter.movedIn'];
 
 const r2 = v => Math.round(v * 100) / 100; // positions to 1/100 px: plenty, and keeps the save small
 const r4 = v => Math.round(v * 1e4) / 1e4;
@@ -125,9 +125,11 @@ export function loadGame() {
 }
 // A fresh board. Sadie keeps her friends and her bests.
 export function clearTower() { resetGame(); saveGame(); }
-// Forget everything: the board, bests, friends. (The dev sheet's physics settings stay.)
+// Forget everything: the board, bests, friends, and the dev sheet's physics (back to how they came),
+// as the pause menu's start-over does. (Its speed meter stays as it is till the page is next opened.)
 export function startOver() {
-  for (const k of [SAVE_KEY, ...PROGRESS_KEYS]) store.remove(k);
+  forget(Object.values(SAVES));
+  Object.assign(tuning.set, DEFAULTS); tuning.P = physParams(tuning.set);
   world.best = 0; world.climbBest = 0; chooter.met = false; chooter.movedIn = false; chooter.heard = chooter.ringing = 0;
   resetGame();
 }

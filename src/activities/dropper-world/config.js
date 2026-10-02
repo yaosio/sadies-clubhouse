@@ -1,5 +1,6 @@
 // World size and physics tuning. Tuning is ours to set (the dev panel), never the player's.
 import { store } from '../../shared/storage.js';
+import { SAVES } from './core/saves.js';
 
 export const U = 30;              // one block, in world pixels
 export const COLS = 48;
@@ -21,10 +22,10 @@ export function physParams(set) {
 }
 
 // Live tuning: `set` holds the dev panel values, `P` the solver numbers derived from them.
-const saved = store.get('jellystack.settings3', {});
+const saved = store.get(SAVES.tuning, {});
 export const tuning = { set: Object.assign({}, DEFAULTS, saved), P: null };
 tuning.P = physParams(tuning.set);
 export function applyTuning() {
   tuning.P = physParams(tuning.set);
-  store.set('jellystack.settings3', tuning.set);
+  store.set(SAVES.tuning, tuning.set);
 }

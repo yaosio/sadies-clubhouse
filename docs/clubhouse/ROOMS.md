@@ -98,10 +98,13 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   touches storage itself; the room checker fails it). An activity on a computer uses
   `saveBox('<id>')` from the toolbox (Dropper World's older keys, `sadies-dropper-world.save` and
   a few starting `jellystack.`, use `store`). Its card's `keeps` lists what its keys start with
-  (the pause menu's start-over buttons and backups use it). The mansion's own keys start with `mansion.`.
+  (the pause menu's start-over buttons and backups use it, and a start-over erases all of it). The mansion's own keys start with `mansion.`.
   A save that can't be read is **put aside, never wiped**: `get` keeps it as `<its key>.unreadable`
   and hands back the fallback, and an activity that can't make sense of an old save calls
-  `putAside(name)` before starting fresh. When a save's shape changes, read the old one and turn it
+  `putAside(name)` before starting fresh. Something kept to save later (a paint job, a game going)
+  is saved on the way out with the box's `onLeave(fn)` (it hands back how to stop: call that in
+  `putAway`), never the room's own `pagehide`: after a start-over or a backup's put back the page
+  reloads, and the director lets nobody save on the way out then, so nothing erased comes back. When a save's shape changes, read the old one and turn it
   into the new (never throw away someone's progress). The pause menu's YOUR SAVES says how full the
   browser's room for saves (about 5 MB for everything) is, warns when it's nearly full or a save
   didn't fit, and saves or loads a backup file of every save (loading asks first, and is all or

@@ -9,7 +9,7 @@ import { checkCards } from './cards.mjs';
 import * as WX from '../../src/clubhouse/weather/rules.js';
 import { strict, hallView, outsideView, realPlace } from '../../src/clubhouse/neighbours.js';
 import { ALL as SADIE_SAYS, RATE } from '../../src/clubhouse/weather/sounds.js';
-import { store, saveBox, saveRoom, backup, loadBackup } from '../../src/shared/storage.js';
+import { store, saveBox, saveRoom, backup, loadBackup, onLeave, forget, reloading } from '../../src/shared/storage.js';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -181,7 +181,22 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   store.set('sadies-clubhouse.aquarium.fill', 'x'.repeat(4.2e6));
   check('nearly full saves are noticed', saveRoom().nearlyFull && !saveRoom().failed);
   check('...and a save that doesn\'t fit fails and is noticed', !store.set('sadies-clubhouse.aquarium.more', 'x'.repeat(1e6)) && saveRoom().failed);
-  delete globalThis.localStorage;
+  data.delete('sadies-clubhouse.aquarium.fill');
+  // leaving the page: every room's save-on-the-way-out runs, until a start-over (last here: after
+  // it, nothing more is saved by this page)
+  const leave = {}; globalThis.addEventListener = (e, f) => { leave[e] = f; };
+  let left = 0;
+  const stop = onLeave(() => { left++; box.set('ocean', { found: ['late'] }); }); onLeave(() => left++);
+  leave.pagehide();
+  check('as the page is closed, every room saves on its way out', left === 2 && box.get('ocean').found[0] === 'late');
+  stop(); leave.pagehide();
+  check('...but not one that\'s stopped (a room put away)', left === 3);
+  onLeave(() => box.set('ocean', { found: ['too late'] }));
+  forget(['sadies-clubhouse.aquarium.']); reloading();
+  leave.pagehide(); box.set('again', 1);
+  check('a start-over erases its saves, and nothing saves them back as the page reloads', left === 3 && box.get('ocean', null) === null && box.get('again', null) === null
+    && store.get('mansion.music') === 'soft' && data.get('someone.else') === 'theirs');
+  delete globalThis.localStorage; delete globalThis.addEventListener;
 }
 
 // ---------- the weather (src/clubhouse/weather/): the world's, over everywhere out of doors ----------

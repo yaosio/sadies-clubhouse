@@ -18,6 +18,7 @@ import { toy, updateToy } from './toys.js';
 import { updateDebug, stopRain } from './debug.js';
 import { resetMole, updateMole } from './mole.js';
 import { resetBedrock, updateBedrock } from './bedrock.js';
+import { SAVES } from './saves.js';
 
 export const timing = { physMs: 0 }; // read by the performance overlay
 
@@ -48,7 +49,7 @@ export function update(dt) {
     if (p.maxY > world.topAll) world.topAll = p.maxY;
     if (p.rest > 0.5 && p.maxY > world.topSettled) world.topSettled = p.maxY;
   }
-  if (world.topSettled / U > world.best + 0.05) { world.best = world.topSettled / U; store.set('jellystack.best', +world.best.toFixed(2)); }
+  if (world.topSettled / U > world.best + 0.05) { world.best = world.topSettled / U; store.set(SAVES.best, +world.best.toFixed(2)); }
 
   computeSurface();
   updateHay(dt);
@@ -60,7 +61,7 @@ export function update(dt) {
   updateToy(dt);
   updateMood(dt);
   const standing = sadie.state !== 'climb' && Math.abs(sadie.y - groundAt(sadie.x, sadie.y)) < 0.1 * U;
-  if (standing && sadie.y / U > world.climbBest + 0.05) { world.climbBest = sadie.y / U; store.set('jellystack.climbBest', +world.climbBest.toFixed(2)); }
+  if (standing && sadie.y / U > world.climbBest + 0.05) { world.climbBest = sadie.y / U; store.set(SAVES.climbBest, +world.climbBest.toFixed(2)); }
   world.gameTime += dt;
   updateEffects(dt);
   updateMole(dt);
