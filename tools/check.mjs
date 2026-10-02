@@ -58,8 +58,8 @@ const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
 const quick = args.includes('--quick'), preview = args.includes('--preview'), retest = args.includes('--retest'), lint = !args.includes('--no-lint');
 const valueOf = flag => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
-// --only a,b: just those activities ('clubhouse' for the mansion), as GitHub does, one per computer
-const only = valueOf('--only')?.split(','), wanted = a => !only || only.includes(a);
+// --only a,b (or a+b): just those activities ('clubhouse' for the mansion), as GitHub does on each computer
+const only = valueOf('--only')?.split(/[,+]/), wanted = a => !only || only.includes(a);
 const outDir = join(root, 'dist/check');
 
 let failed = 0;
@@ -103,10 +103,26 @@ const pagePaths = a => [`tools/${a}`, `tests/saves/${a}`, ...TOOLS, ...(inMansio
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
-function passed(kind, a, hash) {
+// (a note says when it passed and how many seconds it took, for sharing out GitHub's computers)
+function passed(kind, a, hash, secs = 0) {
   for (const f of readdirSync(join(root, 'dist'))) if (f.startsWith(`${kind}-passed-${a}-`)) rmSync(join(root, 'dist', f));
-  writeFileSync(note(kind, a, hash), new Date().toISOString() + '\n');
+  writeFileSync(note(kind, a, hash), `${new Date().toISOString()} ${Math.round(secs)}\n`);
 }
+// how long an activity's checks took last time they passed (a minute if nothing says)
+function lastTook(a) {
+  const n = readdirSync(join(root, 'dist')).filter(f => f.startsWith(`tests-passed-${a}-`) || f.startsWith(`browser-passed-${a}-`))
+    .reduce((t, f) => t + (+readFileSync(join(root, 'dist', f), 'utf8').split(' ')[1] || 0), 0);
+  return n || 60;
+}
+// Each activity's checks should stay quick: one that grows past this (seconds, its browser checks
+// or its headless tests) is pointed out, so it's looked at before it slows every change down.
+const BUDGET = 180;
+const readIf = f => existsSync(f) ? readFileSync(f, 'utf8') : '';
+const overBudget = (what, secs) => {
+  if (secs <= BUDGET) return;
+  const say = `${what} took ${Math.round(secs)} s, over the ${BUDGET} s each activity's checks should stay under`;
+  console.log(process.env.CI ? `::warning title=slow checks::${say}` : `(slow: ${say})`);
+};
 mkdirSync(join(root, 'dist'), { recursive: true });
 
 // Are these files exactly what the saved live page was built from?
@@ -145,7 +161,22 @@ if (args.includes('--plan')) {
     ? !existsSync(note('tests', a, testHash[a])) || !existsSync(note('browser', a, clubHash))
     : (existsSync(join(root, 'tests', a, 'run.mjs')) && !existsSync(note('tests', a, testHash[a])))
       || (existsSync(join(root, 'tests', a, 'browser.mjs')) && !existsSync(note('browser', a, browserHash(a))));
-  console.log(JSON.stringify([...ACTIVITIES, 'clubhouse'].filter(a => wanted(a) && (retest || need(a)))));
+  const todo = [...ACTIVITIES, 'clubhouse'].filter(a => wanted(a) && (retest || need(a)));
+  // One computer each, up to COMPUTERS of them (GitHub runs about 20 at once, and each takes most of
+  // a minute to set up). Past that, they're shared out by how long each took last time, the longest
+  // first, each to the computer with least to do; the mansion and an activity that makes something
+  // first (its prepare(), kept between runs) always get one of their own.
+  const COMPUTERS = 16, alone = a => a === 'clubhouse' || /export (async )?function prepare/.test(readIf(join(root, 'tests', a, 'browser.mjs')));
+  let groups = todo.map(a => [a]);
+  if (todo.length > COMPUTERS) {
+    groups = todo.filter(alone).map(a => [a]);
+    const bins = Array.from({ length: Math.max(1, COMPUTERS - groups.length) }, () => ({ load: 0, list: [] }));
+    for (const a of todo.filter(a => !alone(a)).sort((x, y) => lastTook(y) - lastTook(x))) {
+      const b = bins.reduce((m, b) => b.load < m.load ? b : m); b.list.push(a); b.load += lastTook(a);
+    }
+    groups.push(...bins.filter(b => b.list.length).map(b => b.list));
+  }
+  console.log(JSON.stringify(groups.map(g => g.join('+'))));
   process.exit(0);
 }
 const toCheck = ACTIVITIES.filter(a => existsSync(join(root, 'tests', a, 'browser.mjs')) && (retest || !existsSync(note('browser', a, browserHash(a)))));
@@ -176,9 +207,10 @@ if (!quick) {
     if (existsSync(note('tests', a, hash)) && !retest) {
       console.log(`\n== ${a}: headless tests\nalready passed on exactly this code, not running them again`);
     } else {
-      const ok = run(`${a}: headless tests`, 'node', [`tests/${a}/run.mjs`]);
+      const t = Date.now(), ok = run(`${a}: headless tests`, 'node', [`tests/${a}/run.mjs`]), secs = (Date.now() - t) / 1000;
       check(`${a}: headless tests`, ok);
-      if (ok) passed('tests', a, hash);
+      if (ok) passed('tests', a, hash, secs);
+      overBudget(`${a}'s headless tests`, secs);
     }
   }
 }
@@ -247,7 +279,9 @@ async function browserChecks(name, hash, suite, extra = {}) {
     else if (card) await computerLooks({ browser: watched, page, card, check: roomCheck });
     if (name === 'clubhouse') await houseEars({ browser: watched, page, cards: Object.values(cards), check: roomCheck });
   } catch (e) { check(`${name}: it was listened to and looked at`, false, e.message.split('\n')[0]); }
-  if (failed === before) passed('browser', name, hash);
+  const secs = (Date.now() - t) / 1000;
+  if (failed === before) passed('browser', name, hash, secs);
+  overBudget(`${name}'s browser checks`, secs);
   took(t);
 }
 

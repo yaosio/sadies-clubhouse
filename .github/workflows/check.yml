@@ -7,8 +7,12 @@
 #             skipped, as on Claude's own machine. On main, after a merge, what the pull request's
 #             last green run passed counts too (main can't see what a pull request remembered), so
 #             code that was checked there isn't checked all over again before it can be published
-#   check     one computer per activity that needs it: `npm run check -- --only <activity>`
+#   check     one computer per activity that needs it: `npm run check -- --only <activity>` (past
+#             16 of them, small ones share: `--only a+b`, shared out by how long each took last time)
 #   remember  saves what passed for next time, and is the one tick (or cross) for the whole lot
+#
+# Once a week it also checks all of main again from scratch (`--retest`): a pass is otherwise
+# trusted until the code changes, even if the computers underneath have changed since.
 name: check
 
 on:
@@ -16,6 +20,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1'
 
 # (reading the pull request a merge came from, and its runs' notes of what passed)
 permissions:
@@ -25,7 +31,7 @@ permissions:
 
 # a newer push to the same pull request stops the older run
 concurrency:
-  group: check-${{ github.ref }}
+  group: check-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -66,7 +72,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
       - id: plan
-        run: echo "todo=$(node tools/check.mjs --plan)" >> "$GITHUB_OUTPUT"
+        run: echo "todo=$(node tools/check.mjs --plan ${{ github.event_name == 'schedule' && '--retest' || '' }})" >> "$GITHUB_OUTPUT"
 
   check:
     needs: plan
@@ -107,12 +113,17 @@ jobs:
         with:
           path: dist/prepared/${{ matrix.activity }}
           key: prepared-${{ matrix.activity }}-${{ hashFiles(format('src/activities/{0}/**', matrix.activity), format('tools/{0}/**', matrix.activity)) }}
-      - run: npm run check -- --only ${{ matrix.activity }} --no-lint
+      - run: npm run check -- --only ${{ matrix.activity }} --no-lint ${{ github.event_name == 'schedule' && '--retest' || '' }}
+      # (just its own activities' notes of what passed)
+      - if: always()
+        run: |
+          mkdir -p passed
+          for a in $(echo "${{ matrix.activity }}" | tr '+' ' '); do cp dist/*-passed-$a-* passed/ 2>/dev/null || true; done
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: passed-${{ matrix.activity }}
-          path: dist/*-passed-${{ matrix.activity }}-*
+          path: passed/
           if-no-files-found: ignore
           retention-days: 1
       # the screenshots, to look at when something failed
