@@ -14,10 +14,10 @@
 // graphics card, so "drawing to screen" costs look different from a real phone; the game's own
 // code (physics, the characters, preparing each drawing) is measured fairly.
 import { spawnSync } from 'node:child_process';
-import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from '../serve.mjs';
+import { chromium, quietFonts } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -41,15 +41,11 @@ for (const f of readdirSync(join(root, 'dist/game'))) {
   let cur = '?'; for (let i = 0; i < lines.length; i++) { const m = lines[i].match(/^\s*\/\/ (src\/\S+\.js)$/); if (m) cur = m[1].replace(/^src\/(activities\/dropper-world\/)?/, ''); of[i] = cur; }
 }
 
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
-
 const server = await serve();
 const browser = await chromium.launch();
 const ctx = await browser.newContext(desktop ? { viewport: { width: 1280, height: 800 } }
   : { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
-await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+await quietFonts(ctx);
 await ctx.addInitScript(([k, s]) => {
   if (!sessionStorage.getItem('profile.planted')) { localStorage.setItem(k, s); sessionStorage.setItem('profile.planted', '1'); }
   // time every animation frame from outside the game: when it started and how long its work took

@@ -2,23 +2,30 @@
 // tools/check.mjs (never on its own) with the built page, every time (it takes under a minute).
 //
 // It opens the page at the gate with Sadie's letter (the first time only), walks, goes in through the
-// front door (seeing the hall through it first), climbs the spiral stairs to the landing, walks through
-// Dropper World's door into its room, plays it at the computer (the mansion must leave the page
-// completely), comes back with ESC BACK to that computer with the tower saved, and comes back from an
-// address that went straight in. It checks the rooms are built after the mansion opens (and how quick
-// each is), and that a room put away is built again as you walk up to its door, with nothing piling
-// up. The main theme plays, fades out in the Music Room and comes back; the pause menu's MUSIC button
-// goes SOFT, OFF and ON. It pauses, and in the test version starts the letter over. A room's code is a file of its own:
-// when that file won't come, the room's door stays shut and it's fetched again later. Any error
-// on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
+// front door (seeing the hall through it first), climbs the spiral stairs to the landings, and checks
+// every door on them leads to its own room, and every activity on a computer plays there (the mansion
+// must leave the page completely) and comes back with ESC BACK, or from an address that went straight
+// in. It checks the rooms are built after the mansion opens (and how quick each is), and that a room
+// put away is built again as you walk up to its door, with nothing piling up. The main theme plays,
+// fades out in a room that keeps it out and comes back; the pause menu's MUSIC button goes SOFT, OFF
+// and ON. It pauses, each activity's START OVER erases only its own saves, and in the test version it
+// starts the letter over. A room's code is a file of its own: when that file won't come, the room's
+// door stays shut and it's fetched again later. It names no room: it picks them from the cards. Any
+// error on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { walk as walkFor, rest, until } from '../shared/browser.mjs';
-import { allKeeps } from './cards.mjs';
+import { allKeeps, allCards } from './cards.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 
 export default async function ({ browser, page, check, outDir }) {
+  // It names no room: it picks them from the cards, so renaming or adding one never breaks it.
+  // (`beside`, `first`: the first two doors up the stairs; `spare`: the last room on the landings that
+  // lives in its room, for putting away; `computers`: every activity played at a computer)
+  const cards = await allCards(), landed = cards.filter(c => Number.isInteger(c.slot)).sort((a, b) => a.slot - b.slot);
+  const [beside, first] = [landed[0], landed[1] || landed[0]], spare = landed.filter(c => c.room).at(-1), computers = landed.filter(c => c.start);
+  const saver = cards.find(c => c.keeps && c.room), junk = saver.keeps[0];
   const DEVICES = [
     ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
     ['desktop', { viewport: { width: 1280, height: 800 } }],
@@ -113,14 +120,15 @@ export default async function ({ browser, page, check, outDir }) {
     const settled = await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 20000 }).then(() => true, () => false);
     const sp2 = await M('speed'), slow = Object.entries(sp2.places).filter(([, ms]) => ms > SLOW);
     check(`${device}: ...and the rooms are built while you stand about`, settled, (await M('built')).join(', '));
-    // the main theme: playing (you've pressed something by now), fading out in the Music Room (it has
-    // music of its own) and back in once you've left it
+    // the main theme: playing (you've pressed something by now), fading out in a room that keeps it out
+    // (`hush: true`, the Music Room so far) and back in once you've left it
     const playing = () => p.waitForFunction(() => { const m = window.__mansion.music(); return m.playing && m.notes > 0 && m.level > 0.05; }, null, { timeout: 8000 }).then(() => true, () => false);
     check(`${device}: the main theme plays`, await playing(), JSON.stringify(await M('music')));
-    await M('faceDoor', 'room:music-room', 'door', 2);
+    const quiet = (await M('quiet'))[0];
+    if (quiet) await M('faceDoor', quiet, 'door', 2);
     const hushed = await p.waitForFunction(() => { const m = window.__mansion.music(); return !m.playing && m.level < 0.01; }, null, { timeout: 8000 }).then(() => true, () => false);
-    check(`${device}: ...and fades out in the Music Room`, hushed, JSON.stringify(await M('music')));
-    await M('faceDoor', 'hall', 'dropper-world', 1.3);
+    check(`${device}: ...and fades out in a room that keeps it out (${quiet})`, !!quiet && hushed, JSON.stringify(await M('music')));
+    await M('faceDoor', 'hall', first.id, 1.3);
     check(`${device}: ...and back in once you've left`, await playing(), JSON.stringify(await M('music')));
     // how quick each place is to build (a slow one makes a hiccup as you walk up to its door), and
     // how many kinds of drawing the graphics card has had to learn (each new kind: a hiccup the first
@@ -189,33 +197,33 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and round again to the second landing, and off the stairs onto it`, up2.y > 9.1 && r2 > 6, `at ${up2.y.toFixed(2)} m, ${r2.toFixed(1)} m from the middle`);
 
     // two doors open side by side on the landing both show what's through them (neither goes black)
-    await M('faceDoor', 'hall', 'dropper-world', 1.3);
-    await M('faceDoor', 'hall', 'dropper-world', 2.4);
+    await M('faceDoor', 'hall', first.id, 1.3);
+    await M('faceDoor', 'hall', first.id, 2.4);
     await M('turnTo', (await M('where')).yaw - 0.45);
-    await M('holdOpen', 'hall', 'dropper-world');
-    await M('holdOpen', 'room:brickbuster', 'door');
+    await M('holdOpen', 'hall', first.id);
+    await M('holdOpen', 'room:' + beside.id, 'door');
     await p.waitForTimeout(700);
     await shot('4b-two-doors');
     const both = await M('showing');
-    await M('holdOpen', 'hall', null); await M('holdOpen', 'room:brickbuster', null);
+    await M('holdOpen', 'hall', null); await M('holdOpen', 'room:' + beside.id, null);
     check(`${device}: two open doors side by side both show their rooms`, both >= 2, `${both} showing`);
 
     // a room far off can be put away (its things handed back), and walking up to its door builds it
     // again: the door opens once it's ready, and nothing piles up
     await M('onlyDoors', true);   // (or it's built again straight away, as you're standing still)
     const k0 = (await M('speed')).kept;
-    const away = await M('putAway', 'room:aquarium');
+    const away = await M('putAway', 'room:' + spare.id);
     const k1 = (await M('speed')).kept;
-    check(`${device}: a room can be put away, handing its things back`, away && !(await M('built')).includes('room:aquarium') && k1 < k0, `${k0} things kept, then ${k1}`);
-    await M('faceDoor', 'hall', 'aquarium', 1.3);
+    check(`${device}: a room can be put away, handing its things back`, away && !(await M('built')).includes('room:' + spare.id) && k1 < k0, `${k0} things kept, then ${k1}`);
+    await M('faceDoor', 'hall', spare.id, 1.3);
     await walk(350);
     // (built again and showing through its open door, or already walked through it: a shut door
     // can't be walked through, so being in the room means it opened. On a slow computer the walk
     // can carry you in before the check looks.)
-    const rebuilt = await until(p, () => window.__mansion.looking() === 'room:aquarium' || window.__mansion.where().place === 'room:aquarium', null, 5000)
-      && (await M('built')).includes('room:aquarium');
+    const rebuilt = await until(p, n => window.__mansion.looking() === n || window.__mansion.where().place === n, 'room:' + spare.id, 5000)
+      && (await M('built')).includes('room:' + spare.id);
     await shot('4c-built-again');
-    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:aquarium') }));
+    check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:' + spare.id) }));
     const k2 = (await M('speed')).kept;
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
     // Every room keeps the sound rules (src/shared/sound.js): none of its music is heard once you've
@@ -223,7 +231,7 @@ export default async function ({ browser, page, check, outDir }) {
     const leftOver = [];
     for (const n of (await M('places')).filter(n => n.startsWith('room:'))) {
       await M('build', n); await M('faceDoor', n, 'door', 2); await p.waitForTimeout(1200);
-      await M('faceDoor', 'hall', 'dropper-world', 1.3); await p.waitForTimeout(600);
+      await M('faceDoor', 'hall', first.id, 1.3); await p.waitForTimeout(600);
       const o = (await M('sound')).owners[n];
       if (o?.music) leftOver.push(`${n} music still heard`);
       if (!(await M('putAway', n))) leftOver.push(`${n} wouldn't be put away`);
@@ -282,44 +290,38 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the weather comes over every place out of doors (${outdoors.join(', ')}), and rain falls round you in each, and in one seen through its door`, outdoors.length >= 2 && !rained.length, rained.join(' | '));
     await M('weatherSpeed', 1);
 
-    // through Dropper World's door into its room
-    // (from 1.3 m out: further than that is off the landing, except in front of the first door)
-    await M('faceDoor', 'hall', 'dropper-world', 1.3);
-    await walk(1200);
+    // every door on the landings leads to its own room
+    const wrong = [];
+    for (const c of landed) {
+      await M('faceDoor', 'hall', c.id, 1.3); await walk(1200);
+      const at = (await M('where')).place;
+      if (at !== 'room:' + c.id) wrong.push(`${c.id}'s door took you to ${at}`);
+    }
+    check(`${device}: every door on the landings leads to its own room (${landed.length})`, !wrong.length, wrong.join(', '));
     await shot('5-room');
-    check(`${device}: Dropper World's door on the landing leads to its room`, (await M('where')).place === 'room:dropper-world');
 
-    // play it at the computer
-    await M('put', 'room:dropper-world', 'computer');
-    await p.waitForTimeout(300);
-    check(`${device}: at the computer, it offers to play`, /DROPPER WORLD/.test(await M('target') || ''), await M('target'));
-    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
-    const inside = await p.waitForFunction(() => !document.getElementById('mansion') && window.__jellyDebug && document.getElementById('app'), null, { timeout: 10000 }).then(() => true, () => false);
-    await p.waitForTimeout(3000);
-    await shot('6-played');
-    const left = await p.evaluate(() => ({ mansion: !!document.getElementById('mansion'), hook: !!window.__mansion, title: document.title, pieces: window.__jellyDebug?.().pieces }));
-    check(`${device}: using the computer starts Dropper World`, inside && left.pieces >= 0, `title ${JSON.stringify(left.title)}`);
-    check(`${device}: ...and the mansion is gone from the page`, !left.mansion && !left.hook);
-
-    // ESC BACK: back at that computer, tower saved
-    const count = left.pieces;
-    await p.click('#clubBack', { timeout: 3000 }).catch(() => {});
-    const home = await up();
-    await p.waitForTimeout(500);
+    // every activity on a computer: played there (the mansion leaves the page completely), ESC BACK
+    // comes back to that computer, and so does the Escape key when it came in straight by address
+    for (const c of computers) {
+      await M('build', 'room:' + c.id); await M('put', 'room:' + c.id, 'computer');
+      await p.waitForTimeout(300);
+      const offer = await M('target');
+      if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+      const inside = await p.waitForFunction(() => !document.getElementById('mansion') && !window.__mansion && document.querySelector('#clubBack[data-ready]'), null, { timeout: 10000 }).then(() => true, () => false);
+      await p.waitForTimeout(1500);
+      await shot('6-played-' + c.id);
+      check(`${device}: ${c.name}: at its computer, it offers to play, and using it starts it with the mansion gone from the page`, !!offer && inside, `offered ${JSON.stringify(offer)}, title ${JSON.stringify(await p.title())}`);
+      await p.click('#clubBack', { timeout: 3000 }).catch(() => {});
+      const home = await up();
+      await p.waitForTimeout(500);
+      check(`${device}: ${c.name}: ESC BACK comes back to the mansion, at its computer`, home && (await M('where')).place === 'room:' + c.id && await M('mode') === 'play');
+      await p.goto(page + '#' + c.id); await p.reload();   // (only the address's # changing doesn't load the page again)
+      await p.waitForFunction(() => document.querySelector('#clubBack[data-ready]'), null, { timeout: 8000 }).catch(() => {});
+      await p.keyboard.press('Escape');
+      const home2 = await up();
+      check(`${device}: ${c.name}: the Escape key comes back too, when it came in by address`, home2 && !(await p.evaluate(() => location.hash)));
+    }
     await shot('7-back');
-    check(`${device}: ESC BACK comes back to the mansion, at Dropper World's computer`, home && (await M('where')).place === 'room:dropper-world' && await M('mode') === 'play');
-    if (opts.hasTouch) await p.tap('#mansion #use').catch(() => {}); else await p.keyboard.press('KeyE');
-    await p.waitForFunction(() => window.__jellyDebug && document.getElementById('app'), null, { timeout: 10000 }).catch(() => {});
-    const again = await p.evaluate(() => window.__jellyDebug?.().pieces);
-    check(`${device}: ...and playing again finds the tower as it was`, again >= count && count > 0, `${count} pieces before, ${again} after`);
-
-    // straight in by address (#dropper-world), then the Escape key comes back too
-    await p.goto(page + '#dropper-world');
-    await p.waitForFunction(() => window.__jellyDebug && document.getElementById('clubBack'), null, { timeout: 8000 }).catch(() => {});
-    await p.waitForTimeout(500);
-    await p.keyboard.press('Escape');
-    const home2 = await up();
-    check(`${device}: the Escape key comes back too (even when it came in by address)`, home2 && !(await p.evaluate(() => location.hash)));
 
     // pausing, and starting the letter over (only once you say you're sure)
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
@@ -342,6 +344,22 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: a start-over button asks first`, await p.isVisible('#sureYes') && !(await p.isVisible('#resets')));
     await p.click('#sureNo');
     check(`${device}: ...and NO keeps it`, await p.isVisible('#resets') && !(await p.isVisible('#sure')) && await p.evaluate(() => localStorage.getItem('mansion.invited') !== null));
+    // each activity's start-over button erases its own saves (all of its card's `keeps`) and nobody else's
+    const marks = cards.flatMap(c => (c.keeps || []).map(k => k + 'zz-check')), wrongly = [];
+    for (const c of cards.filter(c => c.keeps)) {
+      await p.evaluate(ks => ks.forEach(k => localStorage.setItem(k, '1')), marks);
+      if (await M('mode') !== 'menu') { if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape'); await p.waitForTimeout(200); }
+      await p.evaluate(name => [...document.querySelectorAll('#resets button')].find(b => b.textContent === name)?.click(), c.name.toUpperCase());
+      await p.click('#sureYes', { timeout: 3000 }).catch(() => wrongly.push(`${c.id} has no start-over button`));
+      await up();
+      const left = await p.evaluate(ks => ks.filter(k => localStorage.getItem(k) !== null), marks), mine = c.keeps.map(k => k + 'zz-check');
+      if (left.some(k => mine.includes(k))) wrongly.push(`${c.id} kept some of its own`);
+      const gone = marks.filter(k => !mine.includes(k) && !left.includes(k));
+      if (gone.length) wrongly.push(`${c.id} erased ${gone.join(' ')}`);
+    }
+    await p.evaluate(ks => ks.forEach(k => localStorage.removeItem(k)), marks);
+    check(`${device}: each activity's START OVER erases its own saves and nobody else's (${cards.filter(c => c.keeps).length})`, !wrongly.length, wrongly.join(', '));
+    if (await M('mode') !== 'menu') { if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape'); await p.waitForTimeout(200); }
     // your saves: how much room they take, SAVE A BACKUP (a file with every save) and LOAD A BACKUP
     // (only once you say yes: every save goes back as it was in the file)
     check(`${device}: the pause menu says how much the saves take`, /SAVES: [\d.]+ [KM]B OF/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
@@ -349,7 +367,7 @@ export default async function ({ browser, page, check, outDir }) {
     const file = download ? readFileSync(download, 'utf8') : '{}', made = JSON.parse(file);
     const savedNow = await p.evaluate(() => Object.keys(localStorage).length);
     check(`${device}: ...SAVE A BACKUP gives a file with every save in it`, made.format && Object.keys(made.saves || {}).length === savedNow && made.saves['mansion.invited'], `${Object.keys(made.saves || {}).length} of ${savedNow} saves`);
-    await p.evaluate(() => { localStorage.setItem('mansion.music', '"off"'); localStorage.setItem('sadies-clubhouse.aquarium.extra', '1'); });
+    await p.evaluate(k => { localStorage.setItem('mansion.music', '"off"'); localStorage.setItem(k + 'extra', '1'); }, junk);
     await p.setInputFiles('#backupFile', { name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(file) });
     await p.waitForSelector('#sure', { state: 'visible', timeout: 5000 }).catch(() => {});   // (the file's read first)
     await shot('8b-load-backup');
@@ -358,14 +376,14 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...LOAD A BACKUP asks first, right there under YOUR SAVES`, asked && await p.isVisible('#sure') && (await p.textContent('#sureYes')) === 'YES, LOAD IT', `${await p.isVisible('#sure')} ${await p.textContent('#sureYes')} ${await p.textContent('#saveNote')} ${await M('mode')}`);
     await p.click('#sureYes');
     await up();
-    const loaded = await p.evaluate(() => [localStorage.getItem('mansion.music'), localStorage.getItem('sadies-clubhouse.aquarium.extra')]);
+    const loaded = await p.evaluate(k => [localStorage.getItem('mansion.music'), localStorage.getItem(k + 'extra')], junk);
     check(`${device}: ...and puts every save back as it was`, loaded[0] === '"on"' && loaded[1] === null, JSON.stringify(loaded));
     // nearly full: the pause menu says so
-    await p.evaluate(() => localStorage.setItem('sadies-clubhouse.aquarium.junk', 'x'.repeat(4.2e6)));
+    await p.evaluate(k => localStorage.setItem(k + 'junk', 'x'.repeat(4.2e6)), junk);
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
     await p.waitForTimeout(200);
     check(`${device}: ...and warns when the saves are nearly full`, /NEARLY FULL/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
-    await p.evaluate(() => localStorage.removeItem('sadies-clubhouse.aquarium.junk'));
+    await p.evaluate(k => localStorage.removeItem(k + 'junk'), junk);
     await p.click('#resume');
     check(`${device}: RESUME carries on`, await M('mode') === 'play');
     if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
@@ -374,7 +392,7 @@ export default async function ({ browser, page, check, outDir }) {
     await p.click('#sureYes');
     await up();
     check(`${device}: YES starts the invitation over: Sadie's letter is back`, await M('mode') === 'letter');
-    // every save written while walking round (and playing Dropper World) belongs to someone: a card's
+    // every save written while walking round (and playing every computer's activity) belongs to someone: a card's
     // `keeps` or the mansion's own, so the start-over buttons can always find it
     const keeps = await allKeeps(), keys = await p.evaluate(() => Object.keys(localStorage));
     const stray = keys.filter(k => !keeps.some(s => k.startsWith(s)));
@@ -389,20 +407,21 @@ export default async function ({ browser, page, check, outDir }) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   let cut = true, asked = 0;
-  await ctx.route(url => url.pathname.endsWith('/game/' + files['src/activities/aquarium/room.js']), r => { asked++; return cut ? r.abort() : r.continue(); });
+  const cutOff = 'room:' + spare.id;
+  await ctx.route(url => url.pathname.endsWith('/game/' + files[`src/activities/${spare.id}/room.js`]), r => { asked++; return cut ? r.abort() : r.continue(); });
   const p = await ctx.newPage(), errors = [];
   p.on('pageerror', e => errors.push(e.message));
   const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
   await p.goto(page);
   await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 });
-  const failed = await M('build', 'room:aquarium');
+  const failed = await M('build', cutOff);
   const rooms = (await M('places')).filter(n => n.startsWith('room:')).length;
   await p.waitForFunction(n => window.__mansion.built().length >= n, rooms - 1, { timeout: 20000 }).catch(() => {});
-  const others = (await M('built')).filter(n => n !== 'room:aquarium').length;
-  check('a room whose file won\'t load keeps its door shut, and the other rooms still build', !failed && !(await M('built')).includes('room:aquarium') && others >= rooms - 1 && asked > 0,
-    `aquarium built: ${failed}, ${others} of ${rooms - 1} other rooms built`);
+  const others = (await M('built')).filter(n => n !== cutOff).length;
+  check('a room whose file won\'t load keeps its door shut, and the other rooms still build', !failed && !(await M('built')).includes(cutOff) && others >= rooms - 1 && asked > 0,
+    `${spare.id} built: ${failed}, ${others} of ${rooms - 1} other rooms built`);
   cut = false;
-  check('...and it\'s built once its file comes', await M('build', 'room:aquarium') && (await M('built')).includes('room:aquarium'));
+  check('...and it\'s built once its file comes', await M('build', cutOff) && (await M('built')).includes(cutOff));
   check('...with no errors on the page', !errors.length, errors.slice(0, 3).join(' | '));
   await ctx.close();
 }

@@ -5,21 +5,15 @@
 // from the internet, so each one fetched in a row adds a wait), and the font can be left out
 // (`--no-font`, as the checks do).
 //   node tools/clubhouse/startup.mjs [--runs 5] [--delay 100] [--no-font] [--phone]
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
-import { join } from 'node:path';
+import { launch } from '../browser.mjs';
 
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i < 0 ? d : Number(process.argv[i + 1]); };
 const RUNS = arg('--runs', 5), DELAY = arg('--delay', 100), FONT = !process.argv.includes('--no-font');
 const PHONE = process.argv.includes('--phone');
 const server = await serve();
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await launch();
 const wait = ms => new Promise(ok => setTimeout(ok, ms));
 const times = [];
 for (let i = 0; i < RUNS; i++) {

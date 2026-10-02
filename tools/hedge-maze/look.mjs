@@ -2,22 +2,17 @@
 // front gate, then turns a step at a time. For checking the clubhouse over the hedges and the gates.
 //   node tools/hedge-maze/look.mjs [steps] [pitch: how far up to look] [weather: rain, snow, sun, cats]
 // Saves dist/shots/hedge-maze/look-<n>.png (desktop size).
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { launch } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/hedge-maze');
 mkdirSync(out, { recursive: true });
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const steps = Number(process.argv[2] || 4);
 const server = await serve();
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await launch();
 const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 p.on('pageerror', e => console.log('page error:', e.message));
 await p.goto(`http://127.0.0.1:${server.address().port}/`);

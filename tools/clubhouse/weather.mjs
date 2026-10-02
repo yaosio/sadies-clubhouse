@@ -2,27 +2,21 @@
 // with a `sky` (the outside, the Hedge Maze...) and each weather, a look four ways round from its start.
 // As a desktop and a phone. Saves dist/shots/clubhouse/<device>-weather-<place>-<weather>-<ahead|right|behind|left>.png.
 //   node tools/clubhouse/weather.mjs [desktop|phone] [rain|snow|sun|cats|clear]
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { launch, quietFonts, DEVICES } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clubhouse');
 mkdirSync(out, { recursive: true });
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const [only, which] = process.argv.slice(2);
 const server = await serve();
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const DEVICES = { desktop: { viewport: { width: 1280, height: 800 } }, phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } };
+const browser = await launch();
 for (const [device, opts] of Object.entries(DEVICES)) {
   if (only && only !== device) continue;
   const ctx = await browser.newContext(opts);
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  await quietFonts(ctx);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);

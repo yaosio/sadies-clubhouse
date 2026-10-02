@@ -866,6 +866,8 @@ export async function open(cards, enter) {
     weatherSpeed: k => weather.speed(k),
     // the places out of doors (a `sky`) built now, and how bright a place's sunlight is
     outdoors: () => places.filter(w => w.sky).map(w => w.name),
+    // the built places that always keep the main theme out (`hush: true`)
+    quiet: () => places.filter(w => w.hush === true).map(w => w.name),
     sunlight: name => places.find(w => w.name === name)?.light.sun ?? null,
     // take a step of d metres straight ahead (through a doorway, if there's one there), and draw
     step(d) { const r = move(-Math.sin(me.yaw) * d, -Math.cos(me.yaw) * d); draw(); return r; },

@@ -55,6 +55,7 @@ async function enter(card) {
   await fetchPiece(card.start);
   // listening after the activity has, so its own Escape (closing a panel) comes first
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) leave(); });
+  document.getElementById('clubBack').dataset.ready = '';   // (it's all here: the checks wait for this)
 }
 
 const wanted = cards.find(c => c.id === location.hash.slice(1) && c.start);   // (a game that lives in its room has no page of its own)
