@@ -18,9 +18,11 @@
   padding:6px 12px;white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:6px}
 #mansion #useHint canvas{width:20px;height:20px;image-rendering:pixelated;border:2px solid #fff}
 #mansion #useHint canvas[hidden]{display:none}
-/* (on a phone: no key, and beside the button, pointing at it, between it and the thumb stick) */
-#mansion #useHint.touch{left:auto;right:calc(114px + env(safe-area-inset-right));bottom:calc(64px + env(safe-area-inset-bottom));transform:none;
-  white-space:normal;max-width:calc(100% - 270px);font-size:11px;line-height:1.3;padding:5px 8px}
+/* (on a phone: no key, and just above the button, right-aligned; higher still when painting's LOOK and PAINT
+   buttons are there, so it never runs under them) */
+#mansion #useHint.touch{left:auto;right:calc(26px + env(safe-area-inset-right));bottom:calc(134px + env(safe-area-inset-bottom));transform:none;
+  white-space:normal;max-width:calc(100% - 52px);font-size:11px;line-height:1.3;padding:5px 8px}
+#mansion:has(#paint:not([hidden])) #useHint.touch{bottom:calc(196px + env(safe-area-inset-bottom))}
 #mansion #useHint.touch kbd{display:none}
 #mansion #arcadeHint{left:50%;top:calc(12px + env(safe-area-inset-top));transform:translateX(-50%);background:#1c1238c0;padding:5px 10px;
   white-space:nowrap;pointer-events:none}

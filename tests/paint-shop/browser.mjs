@@ -57,6 +57,13 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and dipping in it, you're holding yellow (plip)`, s.holding.paint === 3 && s.heard.includes('plip'), JSON.stringify(s.holding));
     await face(-3.6, -0.92, -4.9, 1.6, -0.92);
     check(`${device}: on the pegboard, the spray can`, await M('target') === 'TAKE THE SPRAY CAN', await M('target'));
+    const clash = await p.evaluate(() => {
+      const r = s => document.querySelector(s).getBoundingClientRect(), a = r('#mansion #useHint');
+      return ['#mansion #paint', '#mansion #use', '#mansion #holding'].filter(s => !document.querySelector(s).hidden).filter(s => {
+        const b = r(s); return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      });
+    });
+    check(`${device}: ...its label is clear of the LOOK and PAINT buttons and the rest`, !clash.length, clash.join());
     await use(); await p.waitForTimeout(150);
     s = await S();
     check(`${device}: ...taking it, you hold it (tok)`, s.holding.tool === 'spray' && s.heard.includes('tok'));
