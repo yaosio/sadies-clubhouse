@@ -1,10 +1,12 @@
 # The game's checks on GitHub, on every pull request and on main: `npm run check` (docs/clubhouse/CHECKS.md),
 # split up so each activity (and the mansion) gets a computer of its own, all at the same time.
 #
-#   plan      the docs every change reads are short (tools/docs.mjs, on every pull request, even
-#             one that only changes docs), and which activities still need checking: an
-#             activity that already passed on exactly its code (remembered between runs) is
-#             skipped, as on Claude's own machine
+#   plan      the code checker (lint) and the docs every change reads are short (tools/docs.mjs),
+#             on every pull request, whatever it changes; and which activities still need checking:
+#             an activity that already passed on exactly its code (remembered between runs) is
+#             skipped, as on Claude's own machine. On main, after a merge, what the pull request's
+#             last green run passed counts too (main can't see what a pull request remembered), so
+#             code that was checked there isn't checked all over again before it can be published
 #   check     one computer per activity that needs it: `npm run check -- --only <activity>`
 #   remember  saves what passed for next time, and is the one tick (or cross) for the whole lot
 name: check
@@ -14,6 +16,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
+# (reading the pull request a merge came from, and its runs' notes of what passed)
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
 
 # a newer push to the same pull request stops the older run
 concurrency:
@@ -30,12 +38,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx eslint .
+      - run: node tools/docs.mjs
       - uses: actions/cache/restore@v4
         with:
           path: dist/*-passed-*
           key: passed-${{ github.sha }}
           restore-keys: passed-
-      - run: node tools/docs.mjs
+      # on main: what the merged pull request's last green run had passed (its notes are named after
+      # exactly the files they passed on, so they only count for code that's the same here)
+      - if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" --jq '.[0].head.sha' 2>/dev/null) || true
+          run=$([ -n "$head" ] && gh run list -R "${{ github.repository }}" --workflow check.yml --commit "$head" --status success --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null) || true
+          if [ -n "$run" ] && gh run download "$run" -R "${{ github.repository }}" -n passed-all -D from-pr 2>/dev/null; then
+            mkdir -p dist && cp from-pr/*-passed-* dist/ && echo "counting what pull request run $run passed: $(ls from-pr | wc -l) notes"
+          else echo "no pull request run to count (pull request head ${head:-none})"; fi
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: passed-from-pr
+          path: dist/*-passed-*
+          if-no-files-found: ignore
+          retention-days: 1
       - id: plan
         run: echo "todo=$(node tools/check.mjs --plan)" >> "$GITHUB_OUTPUT"
 
@@ -65,8 +94,8 @@ jobs:
           key: playwright-${{ steps.pw.outputs.version }}
       - if: steps.browser.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps --only-shell chromium
-      - if: steps.browser.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
+      # (the computer already has what the browser needs from Ubuntu; installing it again each time
+      # cost 15 to 25 s per computer)
       - uses: actions/cache/restore@v4
         with:
           path: dist/*-passed-*
@@ -78,7 +107,7 @@ jobs:
         with:
           path: dist/prepared/${{ matrix.activity }}
           key: prepared-${{ matrix.activity }}-${{ hashFiles(format('src/activities/{0}/**', matrix.activity), format('tools/{0}/**', matrix.activity)) }}
-      - run: npm run check -- --only ${{ matrix.activity }}
+      - run: npm run check -- --only ${{ matrix.activity }} --no-lint
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -113,6 +142,14 @@ jobs:
         with:
           path: dist/*-passed-*
           key: passed-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      # everything that has passed, for main to count once this pull request is merged
+      - uses: actions/upload-artifact@v4
+        with:
+          name: passed-all
+          path: dist/*-passed-*
+          if-no-files-found: ignore
+          retention-days: 7
+          overwrite: true
       - name: every activity passed
         run: |
           echo "plan: ${{ needs.plan.result }}, checks: ${{ needs.check.result }}"
