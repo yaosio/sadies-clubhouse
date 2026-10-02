@@ -50,6 +50,8 @@ export default async function ({ browser, page, check, outDir }) {
     // dipping the brush in a pot, and taking a tool off the pegboard
     await face(-0.75, -2.9, -0.75, 1.16, -3.95);
     check(`${device}: looking at a pot on the counter, it offers a dip`, await M('target') === 'DIP IN YELLOW', await M('target'));
+    check(`${device}: ...and says so on screen, with the colour (on a phone too)`, await p.isVisible('#mansion #useHint')
+      && /DIP IN YELLOW/.test(await p.textContent('#mansion #useHint')) && await p.isVisible('#mansion #useHint canvas'));
     await use(); await p.waitForTimeout(150);
     let s = await S();
     check(`${device}: ...and dipping in it, you're holding yellow (plip)`, s.holding.paint === 3 && s.heard.includes('plip'), JSON.stringify(s.holding));
@@ -61,14 +63,20 @@ export default async function ({ browser, page, check, outDir }) {
     const box = await p.textContent('#mansion #holding');
     check(`${device}: the YOU'RE HOLDING box says the spray can, in yellow, and how to paint`,
       await p.isVisible('#mansion #holding') && /SPRAY CAN/.test(box) && /YELLOW/.test(box) && /ANYTHING TO SPRAY/.test(box), box);
-    check(`${device}: ...and picking it up switched to painting`, await M('painting'));
+    check(`${device}: ...and picking it up leaves you looking, and says how to start painting`,
+      !await M('painting') && /THEN (TAP|CLICK) ANYTHING/.test(await p.textContent('#mansion #holding p')));
 
-    // painting the right wall (nothing on it): the LOOK | PAINT switch, then a stroke (no sound at all)
+    // painting the right wall (nothing on it): the LOOK and PAINT buttons, then a stroke (no sound at all)
     await face(1, 2.5, 5, 1.8, 2.5);
-    check(`${device}: there's a LOOK | PAINT switch`, await p.isVisible('#mansion #paint'));
-    await p.click('#mansion #paint');
-    check(`${device}: ...LOOK stops painting, and says how to start again`, !await M('painting') && /THEN (TAP|CLICK) ANYTHING/.test(await p.textContent('#mansion #holding p')));
-    await p.click('#mansion #paint');
+    const on = () => p.$$eval('#mansion #paint button', bs => bs.filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.textContent).join());
+    check(`${device}: there are LOOK and PAINT buttons, LOOK on`, await p.isVisible('#mansion #paint') && await on() === 'LOOK', await on());
+    await p.click('#mansion #paint [data-to=paint]');
+    check(`${device}: ...PAINT turns painting on, and only it is lit`, await M('painting') && await on() === 'PAINT', await on());
+    await p.click('#mansion #paint [data-to=paint]');
+    check(`${device}: ...tapping PAINT again leaves it on`, await M('painting') && await on() === 'PAINT');
+    await p.click('#mansion #paint [data-to=look]');
+    check(`${device}: ...LOOK stops painting`, !await M('painting') && await on() === 'LOOK');
+    await p.click('#mansion #paint [data-to=paint]');
     check(`${device}: ...and PAINT turns it back on`, await M('painting'));
     await p.evaluate(() => window.__paintShop.hold('brush', 1));
     const played = (await S()).played;

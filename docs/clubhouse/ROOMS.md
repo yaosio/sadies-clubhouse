@@ -36,7 +36,9 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   (`origin`, `dir`) for it to find what's under it; its `view` can say `down` (how far, in radians,
   to look down on it: a keyboard lying flat), and `hint` (`keys`, `touch`) is what the hint at the
   top says while you play it. A use with `act` instead of `play` just does something when you press
-  E (turning a dial or a sign): its `label` can change, and `button` names it on a phone. `act` is
+  E (turning a dial or a sign): its `label` can change, and `button` names it on a phone (where the label
+  shows beside the button too). It can show what it is, small, by the label: `swatch` (a colour, any
+  css background: a paint pot) and `icon` (a little picture: a tool on a pegboard). `act` is
   handed `{ from, EYE, glide }`: where you stand, and `glide(to, secs, then)`, which eases your view
   to `to` (`x`, `z`, `eye`, `yaw`, `pitch`) and then calls `then`; once a `then` doesn't glide on,
   you have the controls back (the aquarium's tap on the glass, rising over the rim and sinking into
@@ -70,13 +72,12 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
 - **A place you paint** (Chooter's Paint Shop) has a `brush(id, ray, 'down' | 'move' | 'up')`: you
   walk about as normal, and pressing paints the place itself. With the mouse locked, holding its
   button presses where the dot in the middle of the view is (`#aim`, shown only then); on a phone or
-  with the mouse free, the LOOK | PAINT switch (`#paint`) says whether pressing looks around or paints
-  where you press (the thumb stick still walks; it goes back to LOOK when you leave or pause, and to
-  PAINT when you pick something up). The YOU'RE HOLDING box (`#holding`) shows what you're holding
+  with the mouse free, the LOOK and PAINT buttons (`#paint`, each turning itself on) say whether pressing looks around or paints
+  where you press (the thumb stick still walks; it goes back to LOOK when you leave or pause; picking something up leaves it be). The YOU'RE HOLDING box (`#holding`) shows what you're holding
   and how to use it right now. The place
   gets each press as a line out into it (`origin`, `dir`) when it goes down, every frame while it's
   held (so walking or turning while you hold it paints a stroke), and when it lets go, and says what
-  you're holding with `brushLook()`: `{ color` (the switch, dot and pointer), `tool` (its name),
+  you're holding with `brushLook()`: `{ color` (the PAINT button's border, the dot and pointer), `tool` (its name),
   `icon` (a little picture), `paint` (its name, or none), `verb` (PAINT, STAMP...), `drags` (whether
   dragging paints a line), `picks }` (a count that goes up each time something's picked up). What it does with the line is its own business (the shop's `surfaces.js`).
 - **A building outside** (Clyde's House and Chooter's Paint Shop on the lane, the Hedge Maze in the

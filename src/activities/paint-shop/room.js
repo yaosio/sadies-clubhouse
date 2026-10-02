@@ -132,7 +132,8 @@ export async function buildRoom(m) {
     const top = p.paint === 'rainbow' ? psx(A.rainbowTop, { unlit: 0.5 }) : tint(PAINTS[p.paint].hex, { unlit: 0.5 });
     const pot = new Mesh(potGeo, [psx(A.potLabel(p.paint, p.name), { rx: 3, unlit: 0.35 }), top, tint(0xc8c8d8)]);
     pot.position.set(x, y, z); pot.rotation.y = -Math.PI / 2; scene.add(pot);
-    uses.push({ pos: new Vector3(x, y + 0.1, z), reach: 2.2, label: 'DIP IN ' + p.name, button: 'DIP', act: () => hold(held.tool, p.paint, 'plip') });
+    uses.push({ pos: new Vector3(x, y + 0.1, z), reach: 2.2, label: 'DIP IN ' + p.name, button: 'DIP',
+      swatch: p.paint === 'rainbow' ? `linear-gradient(${RAINBOW.map(c => PAINT_CSS[c]).join(',')})` : PAINT_CSS[p.paint], act: () => hold(held.tool, p.paint, 'plip') });
   });
   // the pegboard on the left wall, a tool on each hook (the one you're holding isn't there)
   plane(4.4, 1.5, psx(A.pegboard, { rx: 11, ry: 3.75 }), [-RW + 0.05, 1.6, 0], [0, Math.PI / 2, 0], 2);
@@ -141,7 +142,7 @@ export async function buildRoom(m) {
   TOOLS.forEach((t, i) => {
     const z = -1.84 + i * 0.46, pic = icons[t.id] = t.kind === 'stamp' ? A.stampIcon(STAMPS[t.stamp]) : A.tool[t.id];
     hooks[t.id] = plane(0.4, 0.4, psx(pic, { unlit: 0.35 }), [-RW + 0.1, 1.6, z], [0, Math.PI / 2, 0], 1);
-    uses.push({ pos: new Vector3(-RW + 0.1, 1.6, z), reach: 2.2, label: 'TAKE THE ' + t.name, button: 'TAKE', act: () => hold(t.id, held.paint, 'tok') });
+    uses.push({ pos: new Vector3(-RW + 0.1, 1.6, z), reach: 2.2, label: 'TAKE THE ' + t.name, button: 'TAKE', icon: pic.image, act: () => hold(t.id, held.paint, 'tok') });
   });
   // the plunger: push it once and it asks; again (soon) and the whole room goes up
   const tnt = new Group(); tnt.position.set(2.4, 0, RD - 0.8); scene.add(tnt);
@@ -185,7 +186,7 @@ export async function buildRoom(m) {
   S.load(m.saves.get(PAINT_KEY, null));
   let clock = 0, saveAt = 0;
   const ears = () => m.ears?.();
-  let picks = 0;   // (how many times you've picked something up: the mansion switches to painting each time)
+  let picks = 0;   // (how many times you've picked something up: the mansion flashes the YOU'RE HOLDING box each time)
   function hold(t, paint, sound) {
     held.tool = t; held.paint = paint; picks++;
     m.saves.set(HOLD_KEY, { tool: t, paint });
