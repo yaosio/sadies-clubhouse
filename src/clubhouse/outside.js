@@ -22,8 +22,10 @@ import { kit, wallGeometry, doorway } from './build.js';
 export const LOTS = [{ x: -10, y: 0, z: -37 }, { x: 10, y: 0, z: -37 }, { x: -24, y: 0, z: -37 }, { x: 24, y: 0, z: -37 }];
 // spots in the grounds round the house, for buildings that aren't on the lane (a card's `grounds`):
 // the middle of each, its ground's height, and how much room there is (w across, d deep). They never move either.
-// 0: beside the house on the left, from the front garden to the backyard (the hedge maze)
-export const GROUNDS = [{ x: -20, y: 0, z: 4, w: 8, d: 10 }];
+// 0: beside the house on the left, from the front garden to the backyard (the hedge maze). `joins`:
+// where a little path to it can join the outside's paths (the main path's edge, just before the porch,
+// where the hedges leave a gap; and the backyard's path, which runs along to it)
+export const GROUNDS = [{ x: -20, y: 0, z: 4, w: 8, d: 10, joins: { front: { x: -1.5, z: -3.4 }, back: { x: -20, z: 12.6 } } }];
 // how far the outside goes: round every plot and spot, with room to walk up to it
 const EDGE = {
   x: Math.max(30, ...LOTS.map(l => Math.abs(l.x) + 6), ...GROUNDS.map(g => Math.abs(g.x) + g.w / 2 + 6)),
@@ -174,7 +176,8 @@ export function buildOutside(T, cards = []) {
   // a patio of flagstones, flower beds along the back wall, and a path round to the hedge maze
   plane(7, 4, psx(T.stone, { rx: 5, ry: 3, onFloor: true }), [0, 0, 13.1], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
   for (const s of [-1, 1]) box(5.6, 0.4, 0.9, psx(T.flowers, { rx: 5, ry: 1 }), [s * 5.4, 0.2, 10.55]);
-  plane(16.5, 1.4, psx(T.path, { rx: 11, ry: 1, onFloor: true }), [-11.75, 0, 12.6], [-Math.PI / 2, 0, 0], 8).renderOrder = -1;
+  const back = GROUNDS[0].joins.back;   // (from the patio to grounds spot 0)
+  plane(-3.5 - back.x, 1.4, psx(T.path, { rx: 11, ry: 1, onFloor: true }), [(back.x - 3.5) / 2, 0, back.z], [-Math.PI / 2, 0, 0], 8).renderOrder = -1;
   // two trees, a bird bath, and the bench in the sun where Sadie naps
   const YARD_TREES = [[-12, 22, 1.3], [16, 24, 1.5], [24, 16, 1.2]];
   for (const [x, z, s] of YARD_TREES) {
@@ -242,6 +245,7 @@ export function buildOutside(T, cards = []) {
     return best;
   }
 
+  let blinkAt = 3, blinkOff = 0;
   return {
     name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs], sadie, napper, uses: [], lots: LOTS, grounds: GROUNDS, house,
     // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r);
@@ -257,6 +261,9 @@ export function buildOutside(T, cards = []) {
     sky: { dome: 130, sun2: { x: -82, z: 99 } },
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
     update(t) {
+      // Sadie on the gatepost blinks now and then
+      if (t > blinkAt) { sadie.material.uniforms.map.value = T.nap; blinkOff = t + 0.15; blinkAt = t + 2.5 + Math.random() * 3; }
+      if (blinkOff && t > blinkOff) { sadie.material.uniforms.map.value = T.sadie; blinkOff = 0; }
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;
       // Sadie's Zs drift up off the bench and fade
       for (const z of zs) {

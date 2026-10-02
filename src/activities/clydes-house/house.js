@@ -14,7 +14,7 @@ export const DW = 1.3, DH = 2.3;   // the front door
 export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
   // (all in one group, so the mansion can swap it for a plain stand-in when you're far off)
-  const scene = new Group(); outside.scene.add(scene);
+  const scene = new Group(); outside.add(scene);
   const { add, box, plane, ball } = kit(scene);
   const hx = lot.x, hz = lot.z, W = 5.4, D = 5, H1 = 3.6;
   // (it faces the gate, away from the sun, so it's lit a little from within: never drab)
@@ -74,7 +74,7 @@ export function buildHouse(m, A) {
   me.position.set(hx + 1.05, 0, hz + 0.9); scene.add(me);
   const hi = new Mesh(keep(new PlaneGeometry(0.95, 0.31).translate(0.3, 0.155, 0)), psx(A.greet, { unlit: 0.8 }));
   hi.position.set(hx + 1.05, 0.8, hz + 0.9); hi.visible = false; scene.add(hi);
-  outside.faces.push(me, hi, ...puffs);
+  outside.face(me, hi, ...puffs);
 
   // what's solid: the house, the mailbox, the sign
   outside.block(hx - W / 2, hx + W / 2, hz - D, hz);
@@ -101,7 +101,7 @@ export function buildHouse(m, A) {
         p.scale.setScalar(0.5 + k * 0.8);
         p.material.uniforms.uFade.value = Math.max(0, k * 1.3 - 0.35);
       }
-      const near = ears && ears.place === outside && Math.hypot(ears.x - me.position.x, ears.z - me.position.z) < 7;
+      const near = ears && outside.is(ears.place) && Math.hypot(ears.x - me.position.x, ears.z - me.position.z) < 7;
       hi.visible = near;
       let mood = 'idle';
       if (near) mood = Math.floor(t * 3) % 2 ? 'wave' : 'happy';

@@ -11,7 +11,7 @@ export const DW = 1.3, DH = 2.4;   // the front door
 
 export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
-  const scene = new Group(); outside.scene.add(scene);
+  const scene = new Group(); outside.add(scene);
   const { add, box, plane } = kit(scene);
   const hx = lot.x, hz = lot.z, W = 6.4, D = 5, H = 3.6;
   // (it faces the gate, away from the sun, so it's lit a little from within: never drab)

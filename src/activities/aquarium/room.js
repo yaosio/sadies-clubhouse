@@ -308,7 +308,7 @@ export async function buildRoom(m) {
   }
 
   // ---------- the sound tester (only in the test version): every sound, one at a time ----------
-  const testing = !!document.getElementById('testBadge');
+  const testing = m.testing;   // (the test version: the kit says)
   let tester = null, testN = 0;
   if (testing) {
     const boxPic = tex(32, 24, g => {

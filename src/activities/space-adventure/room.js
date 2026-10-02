@@ -42,7 +42,7 @@ export async function buildRoom(m) {
   const sadie = new Mesh(keep(new PlaneGeometry(0.62, 0.5, 1, 1).translate(0, 0.25, 0)), psx(TX.sadie, { unlit: 0.45 }));
   cockpit.group.add(sadie); sadie.visible = false;
 
-  const talk = makeTalk(TX.sadie.image);
+  const talk = makeTalk(TX.sadie.image, m.overlay);
   const music = makeMusic(soundsFor('room:' + card.id)), tripNotes = tripSong(T.land - T.go), radio = radioSong();
   const song = music.track(tripNotes), radioTrack = music.track(radio.notes, { loop: radio.length });
 
@@ -158,7 +158,7 @@ export async function buildRoom(m) {
     // plays as you arrive). With the radio off, the theme comes back.
     hush: () => stage === 'cockpit' || !!trip || radioOn,
     // (the mansion puts it away when you're far off, and builds it again from its save as you come back)
-    putAway() { music.close(); talk.remove(); },
+    putAway() { music.close(); },   // (its talk box goes with its layer of the page)
     update(t, dt = 0) {
       const paused = !!m.paused?.();
       // paused: the song stops where it is (and starts again from there), the radio goes quiet

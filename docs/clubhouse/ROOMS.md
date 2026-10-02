@@ -48,15 +48,25 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   can't walk or look away until it's null again: Brickbuster's escaping yarn ball; the thumb stick hides meanwhile). A `watch` can also
   say `at` (`x`, `z`, and `y`, where you stand: you're eased there, or put there at once with `snap`): Space Adventure straps
   you into its pilot's seat that way. The kit's `paused()` says whether the pause menu is up (a place keeps updating while it is). The kit also has its door's picture (`doorImage`) and its door on the landing
-  (`landingDoor`, whose `paint(texture)` puts a new picture on its front: Brickbuster's OUT OF
-  ORDER sign) and the hall itself (`hall`: its scene and `faces`, `napping`, Sadie asleep in her
-  box, and `shape`, its solid shape for things bouncing round it), so a game can let something
-  loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update` moves them,
-  since every place updates every frame), and `ears()`, where you are right now (`place`, `x`, `y`, `z`: your eye, and `yaw`, `pitch`: where you're looking), so a
+  (`landingDoor`: its `pos` and `normal`, which way it faces, and `paint(texture)`, which puts a new
+  picture on its front: Brickbuster's OUT OF ORDER sign), and the hall, lent (`hall`: `add(...things)`
+  and `face(...things)` (things that turn to face you) into it, each handing back how to take them
+  out again; `is(place)`, whether a place, like `ears().place`, is the hall; `shape`, its solid shape
+  for things bouncing round it; and Sadie asleep in her box, `borrowSadie()`, which hands back how to
+  give her back: she's out of her box while anyone has her, `sadieBorrowed()`), so a game can let
+  something loose in the hall (Brickbuster's yarn ball, and Sadie chasing it: its room's `update`
+  moves them, since every place updates every frame), and `ears()`, where you are right now (`place`, `x`, `y`, `z`: your eye, and `yaw`, `pitch`: where you're looking), so a
   game can play a sound only where you'd hear it (Sadie out in the hall), and `outside` (where outside
   is seen from: you, out there, or the door you're looking out of; null when it can't be seen: the
   weather works out its rain and snow only then, round that spot). Both `ears()` and `paused()` work
-  while a room's still being built. An address naming it after the `#` just opens the mansion.
+  while a room's still being built. `overlay(css)` gives it a layer of the page of its own, just over
+  the 3D view and under the pause menu, with those styles, gone when the room's put away (Space
+  Adventure's talk box); `testing` says it's the test version (the aquarium's sound tester). An address
+  naming it after the `#` just opens the mansion.
+- **Only what's listed.** A room is lent the hall and (a building) the outside, never the places
+  themselves (`src/clubhouse/neighbours.js`), and asking the kit, the hall, the outside or its door for
+  anything this page and `OUTSIDE.md` don't list is an error on the spot, so the checks fail it. Something
+  a room needs from next door is added here first.
 - **A place you paint** (Chooter's Paint Shop) has a `brush(id, ray, 'down' | 'move' | 'up')`: you
   walk about as normal, and pressing paints the place itself. With the mouse locked, holding its
   button presses where the dot in the middle of the view is (`#aim`, shown only then); on a phone or
