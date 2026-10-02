@@ -1,0 +1,6 @@
+{
+ "sadies-clubhouse.music-room.sign": "true",
+ "sadies-clubhouse.music-room.tape": "{\"mine\":[],\"sadie\":[{\"inst\":\"piano\",\"n\":63,\"loud\":0.5961083126003427,\"voice\":\"CAT\",\"at\":1.317},{\"inst\":\"piano\",\"n\":66,\"loud\":0.8267890333555588,\"voice\":\"CAT\",\"at\":1.916},{\"inst\":\"piano\",\"n\":68,\"loud\":0.45750807179487685,\"voice\":\"CAT\",\"at\":2.433},{\"inst\":\"piano\",\"n\":70,\"loud\":0.9375997463183476,\"voice\":\"CAT\",\"at\":3.3},{\"inst\":\"piano\",\"n\":71,\"loud\":0.9375997463183476,\"voice\":\"CAT\",\"at\":3.3},{\"inst\":\"piano\",\"n\":73,\"loud\":0.628665351112683,\"voice\":\"CAT\",\"at\":4.15},{\"inst\":\"piano\",\"n\":76,\"loud\":0.3,\"voice\":\"CAT\",\"at\":4.15},{\"inst\":\"piano\",\"n\":75,\"loud\":0.3,\"voice\":\"CAT\",\"at\":4.15},{\"inst\":\"piano\",\"n\":74,\"loud\":0.3,\"voice\":\"CAT\",\"at\":4.15}],\"which\":\"mine\"}",
+ "sadies-clubhouse.music-room.volume": "\"LOUD\"",
+ "mansion.invited": "true"
+}
