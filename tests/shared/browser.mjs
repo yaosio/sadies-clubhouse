@@ -37,7 +37,7 @@ export function bothDevices(browser, outDir, fn) {
       device, opts, ctx, p, errors,
       shot: name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) }),
       M: (f, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [f, a]),
-      up: () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false),
+      up: () => up(p),
       walk: (ms, key) => walk(p, ms, key),
       rest: ms => rest(p, ms),
       use: () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE'),
@@ -46,6 +46,19 @@ export function bothDevices(browser, outDir, fn) {
     };
     try { await fn(kit); } finally { await ctx.close().catch(() => {}); }
   }));
+}
+
+// Wait for the mansion to open and every room to be built. It gets slower with every room: past 8 s
+// it says so (docs/clubhouse/DECISIONS.md, known limits: the plan for when it does).
+export async function up(p) {
+  const t = Date.now();
+  const ok = await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false);
+  const secs = (Date.now() - t) / 1000;
+  if (ok && secs > 8) {
+    const say = `the mansion took ${secs.toFixed(1)} s to build every room (the checks give up at 15): time for checks that don't wait for every room (docs/clubhouse/DECISIONS.md)`;
+    console.log(process.env.CI ? `::warning title=many rooms::${say}` : `(slow: ${say})`);
+  }
+  return ok;
 }
 
 // Let `ms` of the game's own time go by, not the clock's: on a busy computer (GitHub's, say) frames
