@@ -1,7 +1,8 @@
 // The code checker (ESLint): `npm run lint`. It looks for mistakes (a misspelt name, a variable
 // that's never used, code that can never run), not for how the code is laid out. It also keeps the
 // folder rules in CLAUDE.md: an activity only uses its own folder and the toolbox (src/shared/),
-// the toolbox uses nobody's, and Dropper World's core/ never reaches into render/, ui/ or input/.
+// the toolbox uses nobody's, and an activity's core/ (the game itself, with no page: Dropper World's)
+// never reaches into its render/, ui/ or input/, nor uses the page's own words (document, window...).
 import js from '@eslint/js';
 import globals from 'globals';
 import { dirname, resolve, relative, sep } from 'node:path';
@@ -16,8 +17,8 @@ function folderRule(from, to) {
   if (act) {
     const own = resolve(src, 'activities', act);
     if (!inside(to, own) && !inside(to, resolve(src, 'shared'))) return `an activity only uses its own folder and src/shared/`;
-    if (act === 'dropper-world' && inside(from, 'src/activities/dropper-world/core') && ['render', 'ui', 'input'].some(d => inside(to, resolve(own, d))))
-      return `Dropper World's core/ never uses render/, ui/ or input/`;
+    if (inside(resolve(root, from), resolve(own, 'core')) && ['render', 'ui', 'input'].some(d => inside(to, resolve(own, d))))
+      return `an activity's core/ never uses its render/, ui/ or input/`;
   }
   if (from.startsWith('src/shared/') && !inside(to, resolve(src, 'shared'))) return `the toolbox (src/shared/) only uses itself`;
   return null;
@@ -44,13 +45,16 @@ export default [
   { ignores: ['dist/', 'node_modules/', 'art/'] },   // (art/: the old mockups the look was drawn from, not the game)
   js.configs.recommended,
   {
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...globals.browser } },
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
     rules: {
       'no-empty': ['error', { allowEmptyCatch: true }],   // `catch {}`: ignoring a failure on purpose
       'no-unused-vars': ['error', { caughtErrors: 'none' }],
     },
   },
   { files: ['src/**'], plugins: { clubhouse }, rules: { 'clubhouse/own-folder': 'error' } },
+  { files: ['src/**'], ignores: ['src/activities/*/core/**'], languageOptions: { globals: { ...globals.browser } } },
+  // (core/ runs with no page at all, in the tests in Node too: only what both have, like console)
+  { files: ['src/activities/*/core/**'], languageOptions: { globals: { ...globals['shared-node-browser'] } } },
   {
     files: ['tools/**', 'tests/**', 'eslint.config.js'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },

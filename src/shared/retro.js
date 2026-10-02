@@ -1,9 +1,9 @@
 // The kit the rooms' sounds are made with: plain numbers, no browser (the tests run it in Node).
 // 8-bit, 11 kHz samples, like the .WAV files off a 1996 shareware CD. Played through the sound
 // system (sound.js), each held 4 times over at 44.1 kHz so it keeps its crunch. Rings and pings, a
-// tone that slides and a soft hush, Sadie's "mrrp", and three endings: `finish`, gentle (soft
+// tone that slides and a soft hush, Sadie's "mrrp", and two endings: `finish`, gentle (soft
 // starts, a fade right down to nothing, only a whisper of echo: the owner can't stand harsh noise),
-// `dry`, the same with no echo, and `crunch`, Brickbuster's arcade one (a slapback, a harder limit).
+// and `dry`, the same with no echo. (Brickbuster's harder arcade ending is its own: sounds/crunch.js.)
 
 export const RATE = 11025;
 export const TAU = Math.PI * 2;
@@ -107,14 +107,3 @@ export function finish(a, echo = 0.12, delay = 0.09, fade = 0.04) {
 
 // The same with no echo: rounded off, faded to nothing over its last bit, 8 bits
 export const dry = (a, fade = 0.04) => finish(a, 0, 0, fade);
-
-// The arcade version (Brickbuster's): a slapback echo, a hard limit, 8 bits.
-export function crunch(a, echo = 0.3, delay = 0.085) {
-  const d = Math.round(delay * RATE);
-  if (echo) for (let i = a.length - 1; i >= d; i--) a[i] += a[i - d] * echo;
-  for (let i = 0; i < a.length; i++) {
-    const v = Math.tanh(a[i] * 1.3);
-    a[i] = Math.round(v * 127) / 127;
-  }
-  return a;
-}

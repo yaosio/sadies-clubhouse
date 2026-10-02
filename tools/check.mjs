@@ -46,6 +46,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync
 import { join } from 'node:path';
 import { serve } from './serve.mjs';
 import { readSource } from './source.mjs';
+import { activityIds } from './activities.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -81,14 +82,14 @@ function hashOf(paths) {
   paths.forEach(add);
   return h.digest('hex').slice(0, 12);
 }
-const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')) && wanted(d));
+const ACTIVITIES = activityIds(root).filter(wanted);
 // what an activity's tests depend on, and what its browser checks depend on besides
 // (the mansion's own headless tests: its music's, and that every sound in the game goes through the
 // sound director, so they depend on all of src/)
-const testPaths = a => a === 'clubhouse' ? ['package.json', 'src', 'tests/clubhouse'] : ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
+const testPaths = a => a === 'clubhouse' ? ['package.json', 'src', 'tests/clubhouse', 'tools/activities.mjs'] : ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
+const pagePaths = a => [`tools/${a}`, 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
@@ -118,14 +119,15 @@ function sameAsLive(file, paths) {
 
 // ---------- 0. anything an activity's browser checks need made first (Dropper World's full board) ----------
 // An activity's browser.mjs can export prepare(): it's started now, in the background, so it's made
-// while the headless tests run instead of after them. Its result is handed to the checks.
+// while the headless tests run instead of after them, in a folder of its own, dist/prepared/<activity>/
+// (kept between runs, and on GitHub kept until the activity's files change). Its result is handed to the checks.
 const mode = preview ? 'preview' : 'real';
 // (every hash is worked out now, once, from the files as they are before anything's checked: a file
 // edited while the checks run can't then be noted as passed without being checked)
 const testHash = Object.fromEntries([...ACTIVITIES, 'clubhouse'].map(a => [a, hashOf(testPaths(a))]));
 const browserHashes = Object.fromEntries(ACTIVITIES.map(a => [a, hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode]));
 const browserHash = a => browserHashes[a];
-const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs']) + '-' + mode;
+const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs']) + '-' + mode;
 // --plan: just say which of them still need checking (on GitHub, so only those get a computer):
 // those whose tests or browser checks haven't passed on exactly this code
 if (args.includes('--plan')) {
@@ -140,7 +142,7 @@ const toCheck = ACTIVITIES.filter(a => existsSync(join(root, 'tests', a, 'browse
 const suites = {}, prepared = {};
 for (const a of toCheck) {
   suites[a] = await import(join(root, 'tests', a, 'browser.mjs'));
-  if (suites[a].prepare) prepared[a] = suites[a].prepare({ root, hashOf });
+  if (suites[a].prepare) { const dir = join(root, 'dist/prepared', a); mkdirSync(dir, { recursive: true }); prepared[a] = suites[a].prepare({ root, hashOf, dir }); }
 }
 
 // ---------- the code checker (a few seconds, so always) ----------

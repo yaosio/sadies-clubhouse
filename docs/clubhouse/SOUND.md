@@ -26,7 +26,7 @@ sounds. The owner has misophonia: nothing droning, constant or repetitive.
   its radio's on (its song has quiet stretches the theme mustn't slip into). It stops when an activity on a
   computer starts (the mansion leaves the page).
 
-- **The sound kit** (`src/shared/retro.js`): what the rooms' sounds are made with (plain numbers: 8-bit 11 kHz samples, `rng`, `hz`, `blank`, `ring`, `ping`, `pluck`, `swell`, a sliding `tone`, a soft `hush`, `resonance`, Sadie's `mrrp` (each room its own pitch), and three endings, the gentle `finish`, the same with no echo `dry`, and Brickbuster's `crunch`). The rooms share it: never a copy of it in a room.
+- **The sound kit** (`src/shared/retro.js`): what the rooms' sounds are made with (plain numbers: 8-bit 11 kHz samples, `rng`, `hz`, `blank`, `ring`, `ping`, `pluck`, `swell`, a sliding `tone`, a soft `hush`, `resonance`, Sadie's `mrrp` (each room its own pitch), and two endings, the gentle `finish` and the same with no echo, `dry`). The rooms share it: never a copy of it in a room, and nothing in it only one room uses (Brickbuster's harder `crunch` is its own).
 - **The band** (`src/shared/band.js`): what a room's own music plays through (Brickbuster's, Space Adventure's, the Hedge Maze's): a music line, an echo, and parts that fade in and out with their share of the echo. The room keeps its notes and when they're due; a new room's music starts here.
 - **The sound system** (`src/shared/sound.js`): every sound in
   the game is played through it, on one audio engine for the whole page. A room gets a handle with

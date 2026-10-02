@@ -1,6 +1,7 @@
 // Brickbuster '96's glass: the cracks (worse each time), the big stock shatter when it breaks, and
 // the dull tink of glass that can't crack any more.
-import { RATE, TAU, rng, crunch as finish, ping } from '../../../shared/retro.js';
+import { RATE, TAU, rng, ping } from '../../../shared/retro.js';
+import { crunch as finish } from './crunch.js';
 
 // A crack in the glass. level 1, 2 or 3 (the third: the big one).
 export function crack(level, seed = level * 77) {

@@ -9,6 +9,7 @@ import { makeMeter, FIT_SCORES } from './love.js';
 import { reaction, pick, HELLO, NEW_SENTENCE, FITTING, WON, BRAGS, FIT_STEPS, SENTENCES, README, HELP } from './says.js';
 import { FONTS, WEB_FONTS, freshStyle, apply, lit, describe, render, layout } from './text.js';
 import { drawScan } from './scan.js';
+import { roomForBack } from '../../shared/back.js';
 
 const $ = id => document.getElementById(id);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -117,9 +118,7 @@ addEventListener('keydown', e => {
 new ResizeObserver(() => requestAnimationFrame(relayout)).observe($('doc'));
 
 // the top strip leaves room for the clubhouse's ESC BACK key (it sits over the strip's left end)
-const back = $('clubBack'), top = document.querySelector('#tf .top');
-if (back) new ResizeObserver(() => $('tf').style.setProperty('--back-w',
-  Math.max(0, Math.ceil(back.getBoundingClientRect().right - top.getBoundingClientRect().left)) + 'px')).observe(back);
+roomForBack(document.querySelector('#tf .top'), $('tf'));
 
 drawScan($('scan'));
 newRound(true);

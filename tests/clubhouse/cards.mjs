@@ -22,6 +22,7 @@ import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { SLOTS } from '../../src/clubhouse/hall.js';
 import { LOTS, GROUNDS } from '../../src/clubhouse/outside.js';
+import { activityIds } from '../../tools/activities.mjs';
 
 const root = new URL('../..', import.meta.url).pathname;
 // every field a card can have (docs/clubhouse/ROOMS.md)
@@ -50,7 +51,7 @@ function sourceOf(dir) {
 
 // where every save may start: each card's `keeps`, and the mansion's own (for the browser check)
 export async function allKeeps() {
-  const ids = readdirSync(join(root, 'src/activities')).filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
+  const ids = activityIds(root);
   const keeps = ['mansion.'];
   for (const id of ids) keeps.push(...((await readCard(join(root, 'src/activities', id))).keeps || []));
   return keeps;
@@ -58,12 +59,12 @@ export async function allKeeps() {
 
 // every activity's card (in folder order), for checks that go round them all without naming any
 export async function allCards() {
-  const ids = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
+  const ids = activityIds(root);
   return Promise.all(ids.map(id => readCard(join(root, 'src/activities', id))));
 }
 
 export async function checkCards(check) {
-  const ids = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
+  const ids = activityIds(root);
   const cards = [], unread = [];
   for (const id of ids) {
     const dir = join(root, 'src/activities', id);

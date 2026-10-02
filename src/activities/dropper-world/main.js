@@ -23,15 +23,14 @@ import './input/pointer.js';
 import './input/controls.js';
 import { frame } from './loop.js';
 import { draw } from './render/scene.js';
+import { roomForBack } from '../../shared/back.js';
 
 on('reset', () => setFollow(true));
 // the board's size, whatever the frame around it does; drawn again at once, so it never flashes black
 new ResizeObserver(() => { if (resize()) draw(performance.now()); }).observe(document.getElementById('board'));
 
 // the top strip leaves room for the clubhouse's ESC BACK key (it sits over the strip's left end)
-const back = document.getElementById('clubBack'), top = document.querySelector('.top');
-if (back) new ResizeObserver(() => document.getElementById('app').style.setProperty('--back-w',
-  Math.max(0, Math.ceil(back.getBoundingClientRect().right - top.getBoundingClientRect().left)) + 'px')).observe(back);
+roomForBack(document.querySelector('.top'), document.getElementById('app'));
 
 resize();
 cam.z = camState.fitZ;

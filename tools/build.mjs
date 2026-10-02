@@ -22,10 +22,11 @@
 // to be inside the page, which grew with every room towards the page limit (16 MB); nothing in the
 // game ever fetches it.
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, existsSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { activityIds } from './activities.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const preview = process.argv.includes('--preview'), readable = process.argv.includes('--readable');
@@ -49,8 +50,7 @@ const badge = () => `<div id="testBadge" style="position:fixed;right:12px;top:ca
   `padding:2px 10px;border-radius:999px;background:#c2410cdd;color:#fff;font:600 11px/1.6 system-ui,sans-serif;` +
   `pointer-events:none;white-space:nowrap;opacity:.9">test version · ${when}${commit ? ' · ' + commit : ''}</div>`;
 
-const activities = readdirSync(join(root, 'src/activities')).sort()
-  .filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
+const activities = activityIds(root);
 if (!activities.length) throw new Error('no activities in src/activities');
 const clubhouse = {
   name: 'clubhouse',

@@ -15,6 +15,14 @@ function speckle(g, c, x, y, w, h, n, seed = 1) {
   for (let i = 0; i < n; i++) rect(g, c, x + Math.floor(r() * w), y + Math.floor(r() * h), 1, 1);
 }
 export function disc(g, c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) rect(g, c, cx + x, cy + y); }
+// a sign: an edge, a stripe top and bottom, and its lines of words centred ([text, size, colour]);
+// `edge` and `stripe` in the colours of whatever it's on (the house, the weather machine)
+export const signs = ({ tex, words, C }, edge, stripe, plain) => (w, h, lines, bg = plain) => tex(w, h, g => {
+  rect(g, edge, 0, 0, w, h); rect(g, bg, 1, 1, w - 2, h - 2); rect(g, stripe, 1, 1, w - 2, 2); rect(g, stripe, 1, h - 3, w - 2, 2);
+  const lh = lines.map(l => (l[1] || 1) * 5 + 2), tot = lh.reduce((a, b) => a + b, 0) - 2;
+  let y = Math.round((h - tot) / 2);
+  lines.forEach(([text, s = 1, col = C.ink], i) => { words(g, text, w / 2, y, s, col, { align: 'center' }); y += lh[i]; });
+});
 
 // Clyde's own colours: terracotta, with a darker edge and a peach shine
 // the speech bubble's lines: at most this many letters
@@ -128,12 +136,7 @@ export function drawArt({ tex, words, C }) {
   A.doorBack = tex(26, 46, g => { rect(g, K.edge, 0, 0, 26, 46); rect(g, '#2a8ad0', 1, 1, 24, 45); for (const [x, y] of [[3, 3], [14, 3], [3, 24], [14, 24]]) { rect(g, '#1a5a9a', x, y, 9, 18); rect(g, '#50b0f0', x + 1, y + 1, 7, 1); } disc(g, C.gold2, 4, 26, 1); });
   A.round = tex(16, 16, g => { disc(g, K.edge, 8, 8, 7); disc(g, C.gold2, 8, 8, 6); disc(g, '#60c8f8', 8, 8, 5); dith(g, '#60c8f8', '#a8e8ff', 3, 3, 6, 5, 0.5); rect(g, C.gold2, 3, 8, 11, 1); rect(g, C.gold2, 8, 3, 1, 11); rect(g, '#fff08a', 5, 5, 2, 2); });
   A.window = tex(16, 20, g => { rect(g, K.edge, 0, 0, 16, 20); rect(g, '#fff4e4', 1, 1, 14, 18); rect(g, '#60c8f8', 2, 2, 12, 16); dith(g, '#60c8f8', '#fff08a', 2, 10, 12, 8, 0.4); rect(g, '#fff4e4', 7, 2, 2, 16); rect(g, '#fff4e4', 2, 9, 12, 2); rect(g, C.pink, 1, 17, 14, 2); });
-  const board = (w, h, lines, bg = '#fff4e4') => tex(w, h, g => {
-    rect(g, K.edge, 0, 0, w, h); rect(g, bg, 1, 1, w - 2, h - 2); rect(g, K.body, 1, 1, w - 2, 2); rect(g, K.body, 1, h - 3, w - 2, 2);
-    const lh = lines.map(l => (l[1] || 1) * 5 + 2), tot = lh.reduce((a, b) => a + b, 0) - 2;
-    let y = Math.round((h - tot) / 2);
-    lines.forEach(([text, s = 1, col = C.ink], i) => { words(g, text, w / 2, y, s, col, { align: 'center' }); y += lh[i]; });
-  });
+  const board = signs({ tex, words, C }, K.edge, K.body, '#fff4e4');
   A.houseSign = board(76, 30, [['THE', 1, K.dark], ['OVERTHINKERY', 1, C.ink], ['CLYDE: I CAN', 1, K.dark], ['HELP WITH THAT!', 1, K.dark]]);
   A.mailbox = board(28, 11, [['CLYDE', 1, C.ink]]);
   A.mat = tex(40, 16, g => { rect(g, '#7a4a2a', 0, 0, 40, 16); rect(g, '#b87848', 1, 1, 38, 14); words(g, 'WIPE YOUR', 20, 2, 1, C.ink, { align: 'center' }); words(g, 'THOUGHTS', 20, 9, 1, C.ink, { align: 'center' }); });

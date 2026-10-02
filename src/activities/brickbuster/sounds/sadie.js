@@ -4,7 +4,8 @@
 // pounces, a happy trill for a mighty whack, and a real meow only once in a while. No two of her
 // sounds come close together, the same one never plays twice in a row the same way, and she fades
 // with distance (index.js has that part).
-import { RATE, TAU, rng, crunch as finish, resonance } from '../../../shared/retro.js';
+import { RATE, TAU, rng, resonance } from '../../../shared/retro.js';
+import { crunch as finish } from './crunch.js';
 
 export const VARIANTS = 4;   // each of her sounds comes in this many slightly different versions
 
