@@ -14,9 +14,9 @@ import { join } from 'node:path';
 import { bothDevices } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, until: untilGame }) => {
     const A = () => p.evaluate(() => window.__aquarium.state());
-    const until = (fn, ms) => p.waitForFunction(fn, null, { timeout: ms }).then(() => true, () => false);
+    const until = (fn, ms) => untilGame(fn, null, ms);   // (in the game's time)
 
     await p.goto(page);
     if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); await ctx.close(); return; }

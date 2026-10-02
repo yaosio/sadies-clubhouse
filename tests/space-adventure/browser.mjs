@@ -12,9 +12,9 @@
 import { bothDevices } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, until: untilGame }) => {
     const S = () => p.evaluate(() => window.__space.state());
-    const until = (fn, ms, arg) => p.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
+    const until = (fn, ms, arg) => untilGame(fn, arg, ms);   // (in the game's time)
     const ROOM = 'room:space-adventure';
 
     await p.goto(page);

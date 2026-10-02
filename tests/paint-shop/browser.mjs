@@ -14,9 +14,9 @@ import { bothDevices } from '../shared/browser.mjs';
 const ROOM = 'room:paint-shop';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, p, errors, shot, M, up, walk, rest, use }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, p, errors, shot, M, up, walk, rest, use, until: untilGame }) => {
     const S = () => p.evaluate(() => window.__paintShop.state());
-    const until = (fn, arg, ms = 8000) => p.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
+    const until = (fn, arg, ms = 8000) => untilGame(fn, arg, ms);   // (in the game's time)
     // stand at (x, z) in the shop looking at a point, and let it draw from there
     const face = async (x, z, tx, ty, tz) => {
       const dx = tx - x, dz = tz - z;

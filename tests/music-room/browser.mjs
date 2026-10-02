@@ -12,7 +12,7 @@
 import { bothDevices } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs, until, rest }) => {
     const R = () => p.evaluate(() => window.__musicRoom.state());
     const stepUpTo = async spot => { await M('put', 'room:music-room', spot); await p.waitForTimeout(250); await use(); const ok = await modeIs('arcade'); await p.waitForTimeout(300); return ok; };
     const stepBack = async () => { if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape'); return modeIs('play'); };
@@ -127,22 +127,25 @@ export default async function ({ browser, page, check, outDir }) {
     await use(); await p.waitForTimeout(100);
     check(`${device}: turned back to SADIE WELCOME`, (await R()).welcome === true);
 
-    // Sadie walks across the piano (after she's back from sulking)
-    await p.waitForFunction(() => window.__musicRoom.state().sadie.mode === 'cushion', null, { timeout: 25000 }).catch(() => {});
+    // Sadie walks across the piano (after she's back from sulking). Her timers run in the game's
+    // time, so these waits do too: on a slow computer the game falls behind the clock, and a wait
+    // by the clock once gave up before she'd finished sulking (and then she never went).
+    const sadieIs = (mode, ms) => until(m => window.__musicRoom.state().sadie.mode === m, mode, ms);
+    await sadieIs('cushion', 25000);
     await M('put', 'room:music-room', 'piano'); await M('turnTo', 0.35, -0.25);
     a = await played();
     await p.evaluate(() => window.__musicRoom.sadieNow('piano'));
-    await p.waitForFunction(() => window.__musicRoom.state().sadie.mode === 'walk', null, { timeout: 5000 }).catch(() => {});
-    await p.waitForTimeout(1800);
+    await sadieIs('walk', 5000);
+    await rest(1800);
     await shot('7-sadie-on-the-piano');
-    await p.waitForFunction(() => window.__musicRoom.state().sadie.mode === 'cushion', null, { timeout: 60000 }).catch(() => {});
+    await sadieIs('cushion', 60000);
     s = await R();
     check(`${device}: Sadie walks across the piano, a few notes, then goes back to her cushion`, s.sadie.mode === 'cushion' && s.sounds >= a + 4, `${s.sounds - a} notes, now ${s.sadie.mode}`);
     check(`${device}: ...and her walk is kept on her tape`, s.tape.sadie >= 4, String(s.tape.sadie));
 
     // she hops straight off the instrument you step up to
     await p.evaluate(() => window.__musicRoom.sadieNow('xylophone'));
-    await p.waitForFunction(() => window.__musicRoom.state().sadie.mode === 'walk', null, { timeout: 5000 }).catch(() => {});
+    await sadieIs('walk', 5000);
     await stepUpTo('xylophone');
     s = await R();
     check(`${device}: stepping up to the xylophone while she's on it, she hops off`, ['back', 'cushion'].includes(s.sadie.mode), s.sadie.mode);

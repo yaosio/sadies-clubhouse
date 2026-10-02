@@ -13,7 +13,7 @@
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { walk as walkFor, rest } from '../shared/browser.mjs';
+import { walk as walkFor, rest, until } from '../shared/browser.mjs';
 import { allKeeps } from './cards.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
@@ -209,7 +209,11 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: a room can be put away, handing its things back`, away && !(await M('built')).includes('room:aquarium') && k1 < k0, `${k0} things kept, then ${k1}`);
     await M('faceDoor', 'hall', 'aquarium', 1.3);
     await walk(350);
-    const rebuilt = await p.waitForFunction(() => window.__mansion.looking() === 'room:aquarium' && window.__mansion.built().includes('room:aquarium'), null, { timeout: 5000 }).then(() => true, () => false);
+    // (built again and showing through its open door, or already walked through it: a shut door
+    // can't be walked through, so being in the room means it opened. On a slow computer the walk
+    // can carry you in before the check looks.)
+    const rebuilt = await until(p, () => window.__mansion.looking() === 'room:aquarium' || window.__mansion.where().place === 'room:aquarium', null, 5000)
+      && (await M('built')).includes('room:aquarium');
     await shot('4c-built-again');
     check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:aquarium') }));
     const k2 = (await M('speed')).kept;

@@ -15,9 +15,9 @@ import { bothDevices } from '../shared/browser.mjs';
 import { ROUNDS } from '../../src/activities/clydes-house/machine.js';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs, until: untilGame }) => {
     const S = () => p.evaluate(() => window.__clydesHouse.state());
-    const until = (fn, arg, ms = 30000) => p.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
+    const until = (fn, arg, ms = 30000) => untilGame(fn, arg, ms);   // (in the game's time)
     const ready = () => until(() => { const s = window.__clydesHouse.state(); return s.phase === 'ready' && !s.lines; });
     // a finger (or the mouse) pressing the screen at (fx, fy) of the way across and down, and moving by dx pixels
     const press = (fx, fy, dx = 0) => p.evaluate(async ([fx, fy, dx, touch]) => {

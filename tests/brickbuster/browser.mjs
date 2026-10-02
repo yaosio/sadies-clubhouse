@@ -12,7 +12,7 @@
 import { bothDevices } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs }) => {
+  await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs, until }) => {
     const B = () => p.evaluate(() => window.__brickbuster.state());
     // a finger sliding across the screen (dx pixels), or the mouse moving
     const slide = dx => p.evaluate(async dx => {
@@ -72,7 +72,7 @@ export default async function ({ browser, page, check, outDir }) {
     const since = s => s.heard.slice(-(s.sounds - played0) || s.heard.length);   // (the sounds since: the log keeps the last 200)
     await p.evaluate(() => { const b = window.__brickbuster, s = b.state(); b.throwBall(s.paddle < 2.1 ? 3.6 : 0.6, 1.4, 0, -5); });
     // (until it's cracked, however slow the computer: a set wait could end before, or long after)
-    await p.waitForFunction(n => window.__brickbuster.state().cracks.bottom > n, before, { timeout: 8000 }).catch(() => {});
+    await until(n => window.__brickbuster.state().cracks.bottom > n, before, 8000);
     s = await B();
     await shot('3-cracked');
     check(`${device}: missing cracks the bottom of the glass, with a crack sound`, s.cracks.bottom === before + 1 && s.sounds > played0 && since(s).some(h => /^crack/.test(h)), `cracks ${s.cracks.bottom}, heard ${since(s).join(' ')}`);
@@ -89,7 +89,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ${opts.hasTouch ? 'STEP BACK' : 'Escape'} steps back to where you stood`, back && Math.hypot((await M('where')).x - stood.x, (await M('where')).z - stood.z) < 0.05);
     check(`${device}: ...and the game waits, the ball where it was`, !(await B()).active && b1.x === b2.x && b1.y === b2.y);
     check(`${device}: ...the arcade music stops, and the theme comes back`, !(await B()).music.playing
-      && await p.waitForFunction(() => window.__mansion.music().playing, null, { timeout: 12000 }).then(() => true, () => false));
+      && await until(() => window.__mansion.music().playing, null, 12000));
 
     // the cracks are still there after a reload
     await p.reload(); await up();
@@ -131,7 +131,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: your view follows the yarn ball round the room, and you can't walk off`, watched > 4 && off < 0.6 && walked < 0.05, `${watched} looks, at most ${off.toFixed(2)} off it, walked ${walked.toFixed(2)} m`);
     check(`${device}: ...and it lets you go once the ball's out`, !(await B()).watched);
     // (Sadie gone after it and the door shut behind her, or as long as that could take)
-    await p.waitForFunction(() => { const s = window.__brickbuster.state(); return !s.sadie && s.sign && !s.doorHeld; }, null, { timeout: 15000 }).catch(() => {});
+    await until(() => { const s = window.__brickbuster.state(); return !s.sadie && s.sign && !s.doorHeld; }, null, 15000);
     await p.waitForTimeout(300);
     s = await B();
     await shot('6-left-broken');
