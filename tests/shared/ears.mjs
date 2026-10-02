@@ -8,8 +8,10 @@
 //   - anything held on that isn't music (a line on the sounds or voices bus: a drone).
 // Music is the sound system's own business (the main theme's checks, and a room's music only heard
 // in its room). Today every place plays at most one sound standing still for 40 s; these limits
-// leave room for a cat getting up to something, never for a sound that keeps on.
+// leave room for a cat getting up to something, never for a sound that keeps on. While it stands
+// there it also checks something is drawn (tests/shared/looks.mjs).
 import { rest } from './browser.mjs';
+import { looks } from './looks.mjs';
 
 const LISTEN = 30, SAME = 4, ALL = 12;
 
@@ -46,7 +48,7 @@ async function open(browser, page) {
 export async function roomEars({ browser, page, card, check }) {
   const { ctx, p, ok, M } = await open(browser, page);
   if (!ok || !(await M('faceDoor', 'room:' + card.id, 'door', 2.5))) check('it can be stood in, to listen', false);
-  else judge(check, 'in it', await listen(p, M));
+  else { judge(check, 'in it', await listen(p, M)); await looks(p, check, 'in it'); }
   await ctx.close().catch(() => {});
 }
 
@@ -55,9 +57,9 @@ export async function houseEars({ browser, page, cards, check }) {
   const { ctx, p, ok, M } = await open(browser, page);
   if (!ok) check('the mansion opens, to listen', false);
   else {
-    judge(check, 'outside at the gate', await listen(p, M));
+    judge(check, 'outside at the gate', await listen(p, M)); await looks(p, check, 'outside at the gate');
     const door = cards.find(c => c.slot !== undefined)?.id;
-    if (door && await M('faceDoor', 'hall', door, 3)) judge(check, 'in the hall', await listen(p, M));
+    if (door && await M('faceDoor', 'hall', door, 3)) { judge(check, 'in the hall', await listen(p, M)); await looks(p, check, 'in the hall'); }
   }
   await ctx.close().catch(() => {});
 }
