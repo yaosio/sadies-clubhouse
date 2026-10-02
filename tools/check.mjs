@@ -49,6 +49,8 @@ import { join } from 'node:path';
 import { serve } from './serve.mjs';
 import { readSource } from './source.mjs';
 import { activityIds } from './activities.mjs';
+import { allCards } from '../tests/clubhouse/cards.mjs';
+import { keepSample, oldSaves } from '../tests/shared/saves.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -95,7 +97,7 @@ const TOOLS = ['tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serv
 const testPaths = a => a === 'clubhouse' ? [...BASE, 'src', 'tests/clubhouse', 'tools/activities.mjs'] : [...BASE, 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, ...TOOLS, ...(inMansion(a) ? ['src/clubhouse'] : []),
+const pagePaths = a => [`tools/${a}`, `tests/saves/${a}`, ...TOOLS, ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
@@ -198,26 +200,43 @@ const page = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch();
 // Every page a room's checks open is watched for errors the page itself didn't catch, and any one
 // fails its checks, whether or not they remembered to look (CLAUDE.md: any page error fails).
-let pageErrors = [];
+// (and, for an activity that saves, what each page has saved is kept every few seconds and as its
+// window closes, for the old-saves samples below: a check that ends by starting over erases it)
+let pageErrors = [], dumps = [], keeping = false;
 const watched = new Proxy(browser, {
   get(b, k) {
     if (k !== 'newContext') return typeof b[k] === 'function' ? b[k].bind(b) : b[k];
     return async (...a) => {
-      const ctx = await b.newContext(...a);
+      const ctx = await b.newContext(...a), close = ctx.close.bind(ctx);
       ctx.on('page', p => p.on('pageerror', e => pageErrors.push(e.message.split('\n')[0])));
+      const dump = () => Promise.all(ctx.pages().map(p => p.evaluate(() => ({ ...localStorage })).then(d => dumps.push(d), () => {})));
+      const every = keeping && setInterval(dump, 3000);
+      ctx.close = async (...c) => { clearInterval(every); if (keeping) await dump(); return close(...c); };
       return ctx;
     };
   },
 });
+const cards = Object.fromEntries((await allCards()).map(c => [c.id, c]));
 async function browserChecks(name, hash, suite, extra = {}) {
   console.log(`\n== ${name} in a browser`);
   const t = Date.now(), dir = join(outDir, name), before = failed;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
-  pageErrors = [];
+  pageErrors = []; dumps = []; keeping = !!cards[name]?.keeps?.length;
+  const roomCheck = (n, ok, detail) => check(`${name}: ${n}`, ok, detail);
   // (a check that gets stuck counts as failed, and the rest still run)
-  try { await (await suite).default({ browser: watched, page, check: (n, ok, detail) => check(`${name}: ${n}`, ok, detail), run, hashOf, root, outDir: dir, ...extra }); }
+  try { await (await suite).default({ browser: watched, page, check: roomCheck, run, hashOf, root, outDir: dir, ...extra }); }
   catch (e) { check(`${name}: the checks ran to the end`, false, e.message.split('\n')[0]); }
   check(`${name}: no page it opened had an error of its own`, !pageErrors.length, [...new Set(pageErrors)].slice(0, 3).join(' | '));
+  // its saves as earlier versions wrote them still load (tests/shared/saves.mjs); and what it saved
+  // this time kept as a new sample if its saves have a new shape (here, not on GitHub: commit it)
+  const card = cards[name];
+  keeping = false;
+  if (card?.keeps?.length) {
+    const kept = failed === before && !process.env.CI ? keepSample({ root, id: name, keeps: card.keeps, dumps }) : null;
+    if (kept) console.log(`(its saves have a new shape: kept as tests/saves/${name}/${kept}, commit it with the change)`);
+    try { await oldSaves({ browser: watched, page, card, check: roomCheck, root, skip: kept ? [kept] : [] }); }
+    catch (e) { check(`${name}: its old saves were checked`, false, e.message.split('\n')[0]); }
+  }
   if (failed === before) passed('browser', name, hash);
   took(t);
 }
