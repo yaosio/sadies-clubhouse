@@ -51,8 +51,8 @@ gatepost; saved as `mansion.weather`). It comes over every place out of doors: o
 `sky` (`dome`, how far off its cloud cover is, inside its sun and outside its hills; `follow`, for a
 sky that goes round you; `sun2`, where a second sun comes up, if it has a sun): the outside and the
 Hedge Maze. Its sunlight is dimmed or brightened from its own clear-day `light.sun`, and what falls,
-falls round wherever out of doors is seen from (you, or the door you're looking out of; nothing's
-worked out while nobody can see out). Whatever makes weather (Clyde's Weather Machine) uses its
+falls in every place out of doors you can see at once: round you, and round each open doorway you're
+looking through into one (up to four places; nothing's worked out in a place nobody can see). Whatever makes weather (Clyde's Weather Machine) uses its
 kit's `weather`: `now()`, `set(kind)` (`rain`, `snow`, `sun`, `cats` or `clear`), `kinds`. Two things
 setting it just take turns; neither owns it. The checks: `tests/clubhouse/run.mjs` (its rules) and
 `browser.mjs` (rain over every place with a `sky`, found as they're built, so a new one is checked

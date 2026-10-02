@@ -264,8 +264,16 @@ export default async function ({ browser, page, check, outDir }) {
       const w = await M('weather'), sun = await M('sunlight', n);
       if (!(sun < clear[n] * 0.5 && w.clouds > 0.9 && w.seen === n && w.rain > 100)) rained.push(`${n}: sun ${clear[n]} to ${sun}, ${JSON.stringify(w)}`);
     }
+    // ...and in one seen through a doorway from outside (a building out of doors, like the maze),
+    // while you stay out there
+    for (const n of outdoors.filter(n => n !== 'outside')) {
+      if (!(await M('faceDoor', 'outside', n.replace('room:', ''), 2))) { rained.push(`${n}: no door to it from outside`); continue; }
+      await rest(p, 800);
+      const w = await M('weather');
+      if (!(w.each[n]?.rain > 100 && w.each.outside?.rain > 100)) rained.push(`${n} through its door from outside: ${JSON.stringify(w.each)}`);
+    }
     await M('setWeather', 'clear'); await rest(p, 600);
-    check(`${device}: the weather comes over every place out of doors (${outdoors.join(', ')}), and rain falls round you in each`, outdoors.length >= 2 && !rained.length, rained.join(' | '));
+    check(`${device}: the weather comes over every place out of doors (${outdoors.join(', ')}), and rain falls round you in each, and in one seen through its door`, outdoors.length >= 2 && !rained.length, rained.join(' | '));
     await M('weatherSpeed', 1);
 
     // through Dropper World's door into its room

@@ -24,6 +24,7 @@ import { store } from '../../shared/storage.js';
 const EASE = 1 / 3;          // the weather takes about three seconds to change
 const SNOW_SETTLES = 40;     // seconds for the snow to lie (it melts in a quarter of that)
 const RAIN = 520, SNOW = 380, CATS = 12;
+const SEEN = 4;              // places out of doors seen at once, at most (you, and the doorways drawn: three)
 const FIELD = 30, TOP = 16;  // what falls, falls in a box this wide and tall round you
 const LIE = 260, TILE = 2;   // the snow on the ground: this wide, round where it's seen from (a tile at a time)
 
@@ -51,15 +52,19 @@ export function makeWeather(T, outside) {
     return d;
   }
 
-  // what falls (one lot, in whichever place out of doors is being seen)
-  const rain = falling(RAIN, 0.035, 0.75, 0xa8d8ff, 0.35), snow = falling(SNOW, 0.11, 0.11, 0xffffff, 0);
-  for (const d of rain.drops) d.v = 13 + d.r * 4;
-  for (const d of snow.drops) d.v = 0.9 + d.r * 0.7;
+  // what falls: a lot for each place out of doors being seen at once (the one you're in, and each
+  // one through an open doorway), made up front and handed to whichever places are seen
   const catGeo = keep(new PlaneGeometry(0.55, 0.48).translate(0, 0.24, 0));
   const catMats = A.cats.map(c => ({ sit: psx(c.sit, { unlit: 0.4 }), fall: psx(c.fall, { unlit: 0.4 }) }));
-  const cats = Array.from({ length: CATS }, (_, i) => {
-    const o = new Mesh(catGeo, catMats[i % 3].fall); o.visible = false;
-    return { o, coat: i % 3, phase: 'idle', t: 0, spin: 0, ground: 0 };
+  const lots = Array.from({ length: SEEN }, () => {
+    const rain = falling(RAIN, 0.035, 0.75, 0xa8d8ff, 0.35), snow = falling(SNOW, 0.11, 0.11, 0xffffff, 0);
+    for (const d of rain.drops) d.v = 13 + d.r * 4;
+    for (const d of snow.drops) d.v = 0.9 + d.r * 0.7;
+    const cats = Array.from({ length: CATS }, (_, i) => {
+      const o = new Mesh(catGeo, catMats[i % 3].fall); o.visible = false;
+      return { o, coat: i % 3, phase: 'idle', t: 0, spin: 0, ground: 0 };
+    });
+    return { rain, snow, cats, place: null, catT: 0 };
   });
 
   // Sadie on the gatepost: what she wears and says (drawn in front of her, turning with her)
@@ -72,7 +77,7 @@ export function makeWeather(T, outside) {
   // ---------- how it's going ----------
   let now = loaded(store.get(KEY, 'clear')), speed = 1, clock = 0, saying = null, sayUntil = 0, meowAt = 0, sounds = null, sun = LOOK[now].sun, clouds = 0;
   const amount = Object.fromEntries(KINDS.map(k => [k, k === now ? 1 : 0]));
-  let settled = now === 'snow' ? 1 : 0, catT = 0, seen = null;
+  let settled = now === 'snow' ? 1 : 0, seenNames = [];
   const lastClouds = new Color(LOOK[now].clouds ?? 0x5e5c80);
 
   // a new weather (`snap`: there at once, not coming over: an old save brought in)
@@ -85,9 +90,10 @@ export function makeWeather(T, outside) {
     return now;
   }
 
-  // Every frame, before the places update: `places`, every place there is now; `from`, where out of
-  // doors is seen from ({ place, x, z }, or null); `ears`, where you are.
-  function update(t, dt, places, from, ears) {
+  // Every frame, before the places update: `places`, every place there is now; `seen`, each place
+  // out of doors that can be seen and where from ([{ place, x, z }]: you, or the doorway you're
+  // looking through; nearest first); `ears`, where you are.
+  function update(t, dt, places, seen, ears) {
     clock = t; dt *= speed;
     for (const k of KINDS) amount[k] += ((k === now ? 1 : 0) - amount[k]) * Math.min(1, dt * EASE * 3);
     // the sunlight (clear is 0.5), and the cloud cover (in the colour of the last weather that had clouds)
@@ -103,20 +109,26 @@ export function makeWeather(T, outside) {
       if (!p.sky) continue;
       const d = dress(p);
       p.light.sun = d.sun * sun / LOOK.clear.sun;
-      const at = from?.place === p ? from : null;
+      const at = seen.find(q => q.place === p);
       d.cover.visible = clouds > 0.01;
       if (p.sky.follow && at) d.cover.position.set(at.x, 0, at.z);
       if (d.sun2) { d.sun2.visible = s2 > 0.01; d.sun2.position.set(p.sky.sun2.x, 14 + s2 * 48, p.sky.sun2.z); d.sun2.scale.setScalar(1.3); }
       d.lying.visible = settled > 0.01;
       if (at) d.lying.position.set(Math.round(at.x / TILE) * TILE, 0, Math.round(at.z / TILE) * TILE);
     }
-    // what falls, round where out of doors is seen from. Nothing's worked out while nobody can see out.
-    if (from && from.place !== seen?.place) { const sc = dress(from.place).scene; for (const o of [rain.mesh, snow.mesh, ...cats.map(k => k.o)]) sc.add(o); }
-    if (from) seen = from;
-    if (!from) for (const k of cats) { k.phase = 'idle'; k.o.visible = false; }
-    rain.fall(dt, seen, from ? amount.rain : 0, t);
-    snow.fall(dt, seen, from ? amount.snow : 0, t, 0.5);
-    if (from) catsFall(dt, from, ears);
+    // what falls, round where each place out of doors is seen from. Nothing's worked out in a place
+    // nobody can see.
+    const looking = seen.slice(0, SEEN);
+    for (const lot of lots) if (lot.place && !looking.some(q => q.place === lot.place)) { lot.place = null; for (const k of lot.cats) { k.phase = 'idle'; k.o.visible = false; } }
+    for (const q of looking) {
+      let lot = lots.find(l => l.place === q.place);
+      if (!lot) { lot = lots.find(l => !l.place); lot.place = q.place; for (const o of [lot.rain.mesh, lot.snow.mesh, ...lot.cats.map(k => k.o)]) q.place.scene.add(o); }
+      lot.rain.fall(dt, q, amount.rain, t);
+      lot.snow.fall(dt, q, amount.snow, t, 0.5);
+      catsFall(lot, dt, q, ears);
+    }
+    for (const lot of lots) if (!lot.place) { lot.rain.fall(dt, null, 0, t); lot.snow.fall(dt, null, 0, t); }
+    seenNames = looking.map(q => q.place.name);
     // Sadie: dressed for it, and a word (and a little sound) once it's here
     for (const [k, o] of Object.entries(wear)) o.visible = amount[k] > 0.5;
     if (meowAt && clock > meowAt) {
@@ -175,11 +187,12 @@ export function makeWeather(T, outside) {
     };
   }
 
-  function catsFall(dt, c, ears) {
-    catT += dt;
+  function catsFall(lot, dt, c, ears) {
+    const cats = lot.cats;
+    lot.catT += dt;
     const wanted = amount.cats > 0.6 && now === 'cats';
-    if (wanted && catT > 0.7) {
-      catT = 0;
+    if (wanted && lot.catT > 0.7) {
+      lot.catT = 0;
       const k = cats.find(q => q.phase === 'idle');
       if (k) for (let tries = 0; tries < 6; tries++) {
         const a = Math.random() * Math.PI * 2, d = 2 + Math.random() * 11, x = c.x + Math.cos(a) * d, z = c.z + Math.sin(a) * d;
@@ -217,12 +230,16 @@ export function makeWeather(T, outside) {
     // for the checks: how it's going
     state: () => ({
       now, sun: +sun.toFixed(2), clouds: +clouds.toFixed(2), sun2: amount.sun > 0.01, settled: +settled.toFixed(2),
-      rain: rain.count, snow: snow.count, cats: cats.filter(k => k.phase !== 'idle').length, landed: cats.filter(k => k.phase === 'sit').length,
-      wearing: Object.keys(wear).filter(k => wear[k].visible), saying, seen: seen?.place?.name ?? null,
+      // (what falls, in the place seen first: the one you're in, or the nearest doorway's)
+      ...falls(lots.find(l => l.place?.name === seenNames[0])),
+      // and in each place seen
+      each: Object.fromEntries(lots.filter(l => l.place).map(l => [l.place.name, falls(l)])),
+      wearing: Object.keys(wear).filter(k => wear[k].visible), saying, seen: seenNames[0] ?? null, seenAll: seenNames.slice(),
       sounds: sounds ? sounds.log.slice() : [],
     }),
     speed(k) { speed = k; },
   };
 }
+const falls = l => ({ rain: l?.rain.count ?? 0, snow: l?.snow.count ?? 0, cats: l ? l.cats.filter(k => k.phase !== 'idle').length : 0, landed: l ? l.cats.filter(k => k.phase === 'sit').length : 0 });
 
 const tmpColor = new Color();

@@ -225,12 +225,14 @@ export async function open(cards, enter) {
     if (!from) for (const s of sides) if (s.w === me.world && s.tw === outside && s.p.open > 0.02) from = s.to.pos;
     return from;
   }
-  // Where the sky is seen from, for the weather: you, in a place out of doors (one with a `sky`), or
-  // the open door you're looking out of into one ({ place, x, z }; null: no sky can be seen)
+  // Where the sky is seen from, for the weather: each place out of doors (one with a `sky`) you can
+  // see, nearest first: the one you're in, and each one through an open doorway in front of you
+  // ([{ place, x, z }]: where you are, or that doorway on its far side)
   function skySeen() {
-    if (me.world.sky) return { place: me.world, x: me.x, z: me.z };
-    for (const s of sides) if (s.w === me.world && s.tw.sky && s.p.open > 0.02) return { place: s.tw, x: s.to.pos.x, z: s.to.pos.z };
-    return null;
+    const seen = me.world.sky ? [{ place: me.world, x: me.x, z: me.z, d: 0 }] : [];
+    for (const s of sides) if (s.w === me.world && s.tw.sky && s.p.open > 0.02 && !seen.some(q => q.place === s.tw))
+      seen.push({ place: s.tw, x: s.to.pos.x, z: s.to.pos.z, d: Math.hypot(me.x - s.d.pos.x, me.z - s.d.pos.z) });
+    return seen.sort((a, b) => a.d - b.d);
   }
   function farHouses() {
     const from = seenFrom;
