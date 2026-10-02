@@ -36,14 +36,14 @@ for (const [device, opts] of Object.entries(DEVICES)) {
     await M('put', place, { x, z, y, yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(ly - (y + 1.6), Math.hypot(dx, dz)) });
   };
   const { x: mx, z: mz } = await p.evaluate(() => window.__weather.machine);
-  await p.evaluate(() => window.__weather.speed(8));
+  await p.evaluate(() => window.__mansion.weatherSpeed(8));
   await look('outside', mx + 1.5, mz + 3.6, 0, mx, 1.6, mz); await shot('0-machine');
   for (const w of ['rain', 'snow', 'sun', 'cats', 'clear']) {
     if (which && which !== w) continue;
     await p.evaluate(w => { const W = window.__weather; if (W.state().now !== w) W.pull(w === 'clear' ? W.state().now : w); }, w);
-    if (w === 'snow') await p.evaluate(() => window.__weather.speed(40));
+    if (w === 'snow') await p.evaluate(() => window.__mansion.weatherSpeed(40));
     await look('outside', mx + 0.3, mz + 2.4, 0, mx, 1.4, mz); await shot(`${w}-1-levers`, 1500);
-    await p.evaluate(() => window.__weather.speed(8));
+    await p.evaluate(() => window.__mansion.weatherSpeed(8));
     await look('outside', -3, -31, 0, 2, 5, -10); await shot(`${w}-2-lane`, 1200);
     await look('outside', 1.2, -23.5, 0, 2.6, 2.7, -20.1); await shot(`${w}-3-sadie`, 400);
     await look('outside', 0, -27, 0, 0, 3, -20); await shot(`${w}-4-sky`, 400);

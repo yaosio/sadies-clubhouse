@@ -13,6 +13,8 @@ the last lantern on the left) to the front gate, and one runs from the backyard'
 gate. Both stop just short of their gates (running on under them, they flickered).
 
 **Inside** it's much bigger than the block: corridors of hedge under an open sky, with soft music.
+It's out of doors, so the world's weather comes here too (its place says `sky`): clouds, dimmer or
+brighter light, and rain, snow or cats falling round you.
 It's made in front of you as you walk. After 5 to 8 corners, the next corner you turn is the end: a
 short stretch with a garden gate at the end of it, which lets you out into **the backyard**, behind
 the clubhouse.

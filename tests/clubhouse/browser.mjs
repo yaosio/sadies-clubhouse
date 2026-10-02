@@ -13,7 +13,7 @@
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { walk as walkFor } from '../shared/browser.mjs';
+import { walk as walkFor, rest } from '../shared/browser.mjs';
 import { allKeeps } from './cards.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
@@ -52,13 +52,15 @@ export default async function ({ browser, page, check, outDir }) {
     // walking: the keys on a desktop, the thumb stick on a phone
     const before = await M('where');
     if (opts.hasTouch) {
-      await p.evaluate(async () => {
+      // (held for 700 ms of the game's own time, as W is: a slow computer walks no less far)
+      const stick = steps => p.evaluate(steps => {
         const c = document.querySelector('#mansion #view'), r = document.querySelector('#mansion #stick').getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-        const ev = (type, dy) => c.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'touch', clientX: x, clientY: y + dy, bubbles: true }));
-        ev('pointerdown', 0); ev('pointermove', -45);
-        await new Promise(ok => setTimeout(ok, 700));
-        ev('pointerup', -45);
-      });
+        for (const [type, dy] of steps) c.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'touch', clientX: x, clientY: y + dy, bubbles: true }));
+        return window.__mansion.played();
+      }, steps);
+      const t0 = await stick([['pointerdown', 0], ['pointermove', -45]]);
+      await rest(p, 700, t0);
+      await stick([['pointerup', -45]]);
     } else await walk(700);
     const after = await M('where');
     check(`${device}: ${opts.hasTouch ? 'the thumb stick' : 'W'} walks you up the path`, after.z - before.z > 0.8, `moved ${(after.z - before.z).toFixed(2)} m`);
@@ -250,6 +252,31 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and every room's save is just as it was`, saved1 === saved0, saved1 === saved0 ? '' : `before ${saved0.slice(0, 300)} after ${saved1.slice(0, 300)}`);
     const slowAgain = all.filter(n => sp3.places[n] > SLOW || sp3.bits[n] > BIT);
     check(`${device}: ...and each is as quick to build again (under ${SLOW} ms, no bit over ${BIT} ms)`, !slowAgain.length, all.map(n => `${n.replace('room:', '')} ${sp3.places[n]}/${sp3.bits[n]}`).join(', '));
+
+    // the weather is the world's: it comes over every place out of doors (one with a `sky`), and what
+    // falls, falls round you in whichever one you're in
+    for (const n of await M('places')) await M('build', n);
+    await M('weatherSpeed', 20); await M('setWeather', 'clear'); await rest(p, 400);
+    const outdoors = await M('outdoors'), clear = {};
+    for (const n of outdoors) clear[n] = await M('sunlight', n);
+    await M('setWeather', 'rain'); await rest(p, 600);
+    const rained = [];
+    for (const n of outdoors) {
+      await M('put', n, 'start'); await rest(p, 300);
+      const w = await M('weather'), sun = await M('sunlight', n);
+      if (!(sun < clear[n] * 0.5 && w.clouds > 0.9 && w.seen === n && w.rain > 100)) rained.push(`${n}: sun ${clear[n]} to ${sun}, ${JSON.stringify(w)}`);
+    }
+    // ...and in one seen through a doorway from outside (a building out of doors, like the maze),
+    // while you stay out there
+    for (const n of outdoors.filter(n => n !== 'outside')) {
+      if (!(await M('faceDoor', 'outside', n.replace('room:', ''), 2))) { rained.push(`${n}: no door to it from outside`); continue; }
+      await rest(p, 800);
+      const w = await M('weather');
+      if (!(w.each[n]?.rain > 100 && w.each.outside?.rain > 100)) rained.push(`${n} through its door from outside: ${JSON.stringify(w.each)}`);
+    }
+    await M('setWeather', 'clear'); await rest(p, 600);
+    check(`${device}: the weather comes over every place out of doors (${outdoors.join(', ')}), and rain falls round you in each, and in one seen through its door`, outdoors.length >= 2 && !rained.length, rained.join(' | '));
+    await M('weatherSpeed', 1);
 
     // through Dropper World's door into its room
     // (from 1.3 m out: further than that is off the landing, except in front of the first door)

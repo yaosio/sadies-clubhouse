@@ -17,6 +17,7 @@ changed, saying when and why).
 | The copy of the project travels as a file beside the page (`game/source-*.json`), not inside it | The page stays tiny; inside, it grew with every room towards the 16 MB limit |
 | Doors, plots and spots never move (`tests/clubhouse/spots.json`, checked); a new activity takes a new one; the clubhouse can grow in any direction, doors anywhere | Moving a door once shuffled two others; nothing the owner knows should move |
 | Everything outside the gate belongs to somebody else (Clyde, Chooter); inside the fence is Sadie's | The world's rule (the owner, 2026-10-01) |
+| The weather is the world's (`src/clubhouse/weather/`), over every place out of doors; Clyde's levers only say which (2026-10-02) | It lived in Clyde's House: his room failing to load meant no weather, starting it over reset the world's, and the Hedge Maze stayed sunny in the rain |
 
 ## Sound
 | Decision | Why |
@@ -73,9 +74,8 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
   a big town none would ever count as far: it needs distance in metres there.
 - **The outside's scenery is a fixed size** (the lane, fences, grass, hills); only the walkable
   edge grows with the plots. A plot past about 30 m either side needs it to grow.
-- **One outside, shared by every building.** A place's settings (`hush`, `brush`, `watch`, `light`)
-  are one each for the whole outside, so two outdoor activities would fight over them, and two
-  `weather` cards would both set the light. Music a room plays isn't heard outside (only an
+- **One outside, shared by every building.** A place's settings (`hush`, `brush`, `watch`)
+  are one each for the whole outside, so two outdoor activities would fight over them. Music a room plays isn't heard outside (only an
   `everywhere` line is, and that's heard everywhere). The every-room checks visit rooms, not
   houses or things to use outside.
 - **The every-room check gets longer with every room**; split it across computers when it's slow.

@@ -200,6 +200,7 @@ export async function buildRoom(m) {
   const place = {
     name: 'room:' + card.id, card, scene, floor, doors, faces: [], uses: [],
     light: { sun: 0.55, bulb: 0, lamp: [0, 60, 0] },
+    sky: { dome: 200, follow: true },   // out in the open: the weather comes here too (its cloud cover goes round you, inside the sky)
     spots: { start: (() => { const sp = mz.gateSpot(mz.doors.door); return { x: sp.x + DI[sp.dir] * 1.5, z: sp.z + DJ[sp.dir] * 1.5, yaw: sp.yaw + Math.PI, pitch: 0 }; })() },
     house,
     // for the checks (tests/hedge-maze/browser.mjs): the maze itself

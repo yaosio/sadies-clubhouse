@@ -97,9 +97,14 @@ green screen with the forecast (TODAY: RAIN / FOR THE PLANTS), a note on a stake
 PULL THE LEVERS. (THAT WAS A JOKE. PLEASE DO.)), and four levers with brass plates: **RAIN**,
 **SNOW**, **2ND SUN** and **CATS**.
 
-Walk up to a lever and press E (PULL on a phone): its weather comes over the whole of outside (the
-garden, the lane, and what you see of it through the hall's front door or Clyde's) in about three
-seconds, and every other lever goes back up. Pull it again and the sky clears. One weather at a time.
+Walk up to a lever and press E (PULL on a phone): its weather comes over everywhere out of doors (the
+garden, the lane, the Hedge Maze, and what you see of them through a door) in about three seconds,
+and every other lever goes back up. Pull it again and the sky clears. One weather at a time.
+
+**The weather is the world's, not Clyde's** (since 2026-10-02: `src/clubhouse/weather/`, and
+`docs/clubhouse/OUTSIDE.md`). The machine only says which (its kit's `weather.set`), and shows it: its
+levers, its forecast and its wind cups follow the weather whoever changed it. What the weather does
+(below) is the world's code.
 
 - **Rain:** a dark dome of cloud covers the sky (and hides the sun), the light goes dim, and
   pixelly streaks fall all round you (or round the door you're looking out of; while nobody can
@@ -112,7 +117,8 @@ seconds, and every other lever goes back up. Pull it again and the sky clears. O
   at once) fall tumbling from the sky, each one
   rights itself just before the ground (they always land on their feet), sits a moment, and poofs.
 
-**Sadie** on the gatepost reacts: a little pink umbrella in the rain, a heap of snow on her head,
+**Sadie** on the gatepost reacts (the world's weather does this, with her own mew and mrrp:
+`src/clubhouse/weather/sounds.js`): a little pink umbrella in the rain, a heap of snow on her head,
 sunglasses for the second sun, and a word bubble for a few seconds once it arrives (rain MEW!, snow
 MRRP?, sun ..., cats MINE., clear MRRP.), with her mew or mrrp if you're outside (fading with how far off she is; nothing beyond 30 m).
 
@@ -121,24 +127,26 @@ notes going down for rain, three high ones for snow, going up for the sun, a que
 for cats, two settling notes for clear). Nothing plays while it rains or snows: no hiss, no patter,
 no dripping.
 
-The weather is saved (`sadies-clubhouse.clydes-house.weather`), so it's still there after a reload;
-the pause menu's CLYDE'S HOUSE button clears it too. It's built with the house, into the outside, so
-it stays when the room inside is put away.
+The weather is saved by the world (`mansion.weather`), so it's still there after a reload, and the
+pause menu's CLYDE'S HOUSE button leaves it alone (EVERYTHING clears it). A weather saved where it
+used to be (`sadies-clubhouse.clydes-house.weather`) is brought in once, the first time the room is
+built, and let go. The machine is built with the house, into the outside, so it stays when the room
+inside is put away.
 
 ## How it's built
 
 | File | What it does |
 |---|---|
-| `card.js` | Its card: `lot` 0 (not a `slot`: it's not behind a door on the landing), `weather` (its Weather Machine changes all of outside, so it's built before the mansion's first picture even though it's behind you at the gate), `room` (loads `room.js`), `keeps`. |
+| `card.js` | Its card: `lot` 0 (not a `slot`: it's not behind a door on the landing), `room` (loads `room.js`), `keeps`. |
 | `room.js` | The room (9.2 x 8.4 m, 5.6 m tall: a workshop with the chalkboard, PLAN V47, the bookshelf, sticky notes and MY FIRST CLIENT, a photo of Sadie) and the machine: every part, the timeline that plays a run one step after another, the gaps, Sadie, Clyde, the speech bubble. Builds the house outside too (`house.js`). Hands the mansion its place, with a `play` on the machine (`key`, every key; `touch`, every press as a line into the room) and `house` (its front door, so the mansion joins it to the outside). `window.__clydesHouse` for the checks (`state()`, and `speed(k)` to run it faster). |
 | `house.js` | The house from outside, built into the outside's scene on its plot: walls, the storeys, the turret, the chimney's puffs, the path, mailbox, sign, bushes, and Clyde by the door (waves when you're near). Tells the outside what's solid. |
 | `machine.js` | The machine's rules, with no screen (the tests run them): the steps, the gaps, the junk, the rounds, swapping, where a run stops, what happens when it works, what's saved. |
 | `reactions.js` | What each bit of junk does when the machine bumps into it: how long, its sound, a puff, and its pose over time (moved, turned, stretched), plus the toaster's toast, the bulb lighting up and Sadie waking for the fish bone. Plain numbers; the tests check every bit of junk has its own. |
 | `lines.js` | Everything Clyde says. The bubble holds four lines of 26 letters in the mansion's 3x5 font: no lower case, no double quotes (the tests check). |
 | `art.js` | Its pictures, drawn when the mansion opens: Clyde in nine moods (idle, blink, talk, happy, oops, think, wave, and two running), the junk, the house's siding, tiles, door and signs, the wallpaper, the chalkboard; and the ones drawn again as they change: the speech bubble, the tags, the treat counter. |
-| `weather.js` | The weather machine's rules, with no screen: the four kinds, how each looks (the sunlight, the cloud colour, what falls), the forecasts, what Sadie says, pulling a lever, what's saved. |
-| `weather-machine.js` | The weather machine, built beside the house (`buildWeather`, called by `house.js`), and the weather itself: the cloud dome, the second sun, the snow lying on the ground, the rain and snow (a box of little crossed quads round wherever you are, written into one mesh each frame), the falling cats, Sadie's umbrella, snow, sunglasses and word. Its levers are `act` uses it puts in the outside's `uses`, and it sets the outside's `light.sun`. `window.__weather` for the checks (`state()`, `pull(kind)`, `speed(k)`, `machine`). |
-| `weather-art.js` | The weather machine's pictures: the enamel, the signs and lever plates, the forecast screen (drawn again when it changes), the cloud cover, the snow, the cats, and what Sadie wears and says. |
+| `weather.js` | The weather machine's rules, with no screen: its four levers, the forecasts, pulling a lever, and reading the weather's old save. |
+| `weather-machine.js` | The weather machine, built beside the house (`buildWeather`, called by `house.js`): the cabinet, dish, wind cups, funnel and puff, the forecast and the levers (`act` uses it puts in the outside's `uses`, which set the world's weather). `window.__weather` for the checks (`state()`: the levers, labels and jingles; `pull(kind)`; `machine`); the weather itself is `__mansion.weather()`. |
+| `weather-art.js` | The weather machine's pictures: the enamel, the signs and lever plates, the forecast screen (drawn again when it changes), the puff. |
 | `sounds/` | Made in code, 8-bit, 11 kHz, a file per group: `machine.js` (every step's sound, the pop, bonk and squeak, and the toaster's ding, the yo-yo's zip and the bulb's plink), `sadie.js` (mrrp, mew), `clyde.js` (hello, idea), `chime.js` (the treat landing), `weather.js` (the weather machine's jingles); `synth.js`, what they're made with; `index.js`, which plays them on the clubhouse's sound system (`src/shared/sound.js`; never the same one twice within a tenth of a second; Sadie's and Clyde's on the VOICES volume). The weather machine has its own handle (`house:weather-machine`), since it stays outside when the room's put away (the mansion closes it when it leaves the page). `synth.js` is built on the toolbox's kit (`src/shared/retro.js`). |
 
 Checks: `tests/clydes-house/run.mjs` (the rules, the weather machine's rules, the lines fitting the bubble, every bit of junk reacting its own way, every sound soft and short) and

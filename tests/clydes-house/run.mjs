@@ -94,17 +94,16 @@ check('...and says what it keeps in the browser', card.keeps.every(k => k.starts
   check('...and they all stay near their gap', !far.length, far.join());
 }
 
-// 5c. the weather machine: one weather at a time, a lever again clears it, and each has its look and words
+// 5c. the weather machine: one weather at a time, a lever again clears it, and each has its forecast
+// (the weather itself, its look and Sadie's words, is the world's: tests/clubhouse/run.mjs)
 {
   check('the weather machine has four levers: rain, snow, a second sun, cats', WX.KINDS.join() === 'rain,snow,sun,cats');
   check('pulling a lever brings its weather; pulling it again clears the sky', WX.pull('clear', 'rain') === 'rain' && WX.pull('rain', 'snow') === 'snow' && WX.pull('snow', 'snow') === 'clear');
-  check('...and the weather comes back from a save (anything odd is clear)', WX.loaded('cats') === 'cats' && WX.loaded('hail') === 'clear' && WX.loaded(null) === 'clear');
+  check('...and a weather from its old save is brought in (anything odd isn\'t)', WX.loaded('cats') === 'cats' && WX.loaded('clear') === 'clear' && WX.loaded('hail') === null && WX.loaded(null) === null);
   const all = ['clear', ...WX.KINDS];
-  check('every weather has its look, a forecast and a word from Sadie', all.every(k => WX.LOOK[k] && WX.FORECAST[k]?.length === 2 && WX.SADIE[k]));
-  check('...rain is dimmer and the second sun brighter than a clear day', WX.LOOK.rain.sun < WX.LOOK.clear.sun && WX.LOOK.sun.sun > WX.LOOK.clear.sun);
-  const words = all.flatMap(k => [...WX.FORECAST[k], WX.SADIE[k]]).concat(Object.values(WX.NAMES));
+  check('every weather has a forecast', all.every(k => WX.FORECAST[k]?.length === 2));
+  const words = all.flatMap(k => WX.FORECAST[k]).concat(Object.values(WX.NAMES));
   check('the forecasts fit the screen (18 letters), in letters the mansion\'s font has', all.every(k => WX.FORECAST[k].every(l => l.length <= 18)) && words.every(l => !/[^A-Z0-9 .,!'()\-$:?/&*]/.test(l)), words.find(l => l.length > 18));
-  check('...and it keeps the weather where the pause menu can start it over', card.keeps.some(k => WX.KEY.startsWith(k)));
   check('every weather has its own soft jingle', all.every(k => ALL[k + 'In']));
 }
 

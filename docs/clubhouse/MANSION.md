@@ -30,8 +30,7 @@ other side, turned round. So there are no loading screens, a place can be any si
 than out), and changing one place never touches another. Only the place you're in, and through
 the doorways open in front of you, get drawn.
 - **Building rooms as they're needed.** Only the garden, the hall, the buildings outside you can
-  see from the gate as you start (in front of you there: the Hedge Maze) and any building whose
-  card says `weather` (it changes how all of outside looks: Clyde's House) are built before the
+  see from the gate as you start (in front of you there: the Hedge Maze) are built before the
   mansion opens (and the room you're coming back to). The buildings behind you at the gate are
   built straight after the first picture, first in line. Each other room is built afterwards, one at a time, nearest door first: while you stand
   still (or read the letter, or pause), when you're within 7 m of its door, or when you walk up to
