@@ -52,6 +52,7 @@ import { activityIds } from './activities.mjs';
 import { allCards } from '../tests/clubhouse/cards.mjs';
 import { keepSample, oldSaves } from '../tests/shared/saves.mjs';
 import { roomEars, houseEars } from '../tests/shared/ears.mjs';
+import { computerLooks } from '../tests/shared/looks.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -239,11 +240,13 @@ async function browserChecks(name, hash, suite, extra = {}) {
     catch (e) { check(`${name}: its old saves were checked`, false, e.message.split('\n')[0]); }
   }
   // standing still in it is kind to the ears (tests/shared/ears.mjs): every room in the mansion, and
-  // after the mansion's own, outside at the gate and in the hall
+  // after the mansion's own, outside at the gate and in the hall; and what you see there (or on a
+  // computer, as it starts) is drawn, not one colour (tests/shared/looks.mjs)
   try {
     if (card?.room) await roomEars({ browser: watched, page, card, check: roomCheck });
+    else if (card) await computerLooks({ browser: watched, page, card, check: roomCheck });
     if (name === 'clubhouse') await houseEars({ browser: watched, page, cards: Object.values(cards), check: roomCheck });
-  } catch (e) { check(`${name}: it was listened to`, false, e.message.split('\n')[0]); }
+  } catch (e) { check(`${name}: it was listened to and looked at`, false, e.message.split('\n')[0]); }
   if (failed === before) passed('browser', name, hash);
   took(t);
 }
