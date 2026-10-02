@@ -91,13 +91,15 @@ export function paused(on) { still = !!on; }
 export function closeSounds(owner) { for (const h of [...handles]) if (owner === undefined || h.owner === owner) h.close(); }
 
 // What's going on (for the checks): the engine, how many sounds are playing, and per owner its
-// sounds playing, its lines, and its music lines that can be heard where you are.
+// sounds playing, its lines, its music lines that can be heard where you are, its lines that aren't
+// music (a held note), and how many times it has played each sound by name.
 export function soundState() {
   const owners = {};
   for (const h of handles) {
-    const o = owners[h.owner] ||= { sounds: 0, lines: 0, music: 0 };
+    const o = owners[h.owner] ||= { sounds: 0, lines: 0, music: 0, held: 0, counts: {} };
     o.sounds += h.sources.size; o.lines += h.lines.length;
-    for (const l of h.lines) if (l.bus === 'music' && (l.everywhere || h.owner === here)) o.music++;
+    for (const l of h.lines) if (l.bus === 'music' && (l.everywhere || h.owner === here)) o.music++; else if (l.bus !== 'music') o.held++;
+    for (const [k, n] of Object.entries(h.counts)) o.counts[k] = (o.counts[k] || 0) + n;
   }
   return { engine: ctx ? ctx.state : 'none', playing: live, here, paused: still, levels: { ...levels }, owners };
 }
@@ -111,7 +113,7 @@ export function soundsFor(owner) {
   let lastVoice = null, lastVoiceAt = -1e9;
   const h = {
     owner, sources: new Set(), lines: [], closed: false,
-    played: 0, last: null, log: [],   // (how many, the last, and the last 200: for the checks)
+    played: 0, last: null, log: [], counts: {},   // (how many, the last, the last 200, and how many of each: for the checks)
     // play a sound by name. `make()` makes its samples (plain numbers, at `rate`, each held `hold`
     // times over: the 8-bit crunch), the first time only. Returns whether it played.
     play(key, make, { loud = 1, bus: b = 'sounds', rate = 11025, hold = 1, gap = 0.08, at, dist, near, far } = {}) {
@@ -123,7 +125,7 @@ export function soundsFor(owner) {
       if (dist !== undefined) loud *= nearness(dist, near, far);
       if (loud < 0.005) return false;
       lastAt.set(key, now); if (b === 'voices') { lastVoice = key; lastVoiceAt = now; }
-      h.played++; h.last = key; h.log.push(key); if (h.log.length > 200) h.log.shift();
+      h.played++; h.last = key; h.log.push(key); if (h.log.length > 200) h.log.shift(); h.counts[key] = (h.counts[key] || 0) + 1;
       if (!engine() || ctx.state !== 'running' || live >= MAX) return true;
       try {
         if (!made.has(key)) {
