@@ -3,6 +3,7 @@
 // the clubhouse's sound system (src/shared/sound.js) plays them, through the room's handle. A new
 // sound goes in the file it belongs with (or a new file), and gets a line here.
 import { RATE } from '../../../shared/retro.js';
+import { wrap } from '../../../shared/sound.js';
 import { crack, shatter, tink } from './glass.js';
 import { boing, blip, tock } from './machine.js';
 import { mute } from './quiet.js';
@@ -12,7 +13,7 @@ import * as sadie from './sadie.js';
 // keeps its crunch); everything at half volume, as it always was.
 export function makeSounds(h) {
   const play = (key, make, loud = 1, more) => h.play(key, make, { loud: loud * 0.5, rate: RATE, hold: 4, ...more });
-  return Object.assign(h, {
+  return wrap(h, {
     crack: level => play('crack' + level, () => crack(level)),
     boing: off => play('boing' + Math.round(off * 2), () => boing(Math.round(off * 2) / 2), 0.8),
     blip: row => play('blip' + row, () => blip(row), 0.7, { gap: 0.03 }),
@@ -20,7 +21,7 @@ export function makeSounds(h) {
     tink: () => play('tink', tink, 0.7),
     shatter: () => play('shatter', shatter),
     mute: () => play('mute', mute, 0.9),
-    // Sadie (a sound makeChatter picked), `d` metres from you: a voice, fading with distance
-    sadie({ name, variant }, d) { play(`sadie-${name}${variant}`, () => sadie[name](variant), sadie.LOUD[name], { bus: 'voices', dist: d }); },
+    // Sadie (a sound makeChatter picked), `at` where she is: a voice, fading with distance
+    sadie({ name, variant }, at) { play(`sadie-${name}${variant}`, () => sadie[name](variant), sadie.LOUD[name], { bus: 'voices', at }); },
   });
 }

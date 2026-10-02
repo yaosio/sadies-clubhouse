@@ -4,7 +4,8 @@
 // every room, and every room still to come, keeps them without doing anything.
 //
 // A room gets a handle with soundsFor(owner), `owner` being its place's name ('room:brickbuster'),
-// and plays by name: handle.play('crack2', () => samples, { loud, bus, dist }). A sound's samples are
+// and plays by name: handle.play('crack2', () => samples, { loud, bus, at }) (`at`: where it is, {x, z}
+// or {x, y, z}, so it fades the further off you are; or `dist`, how far off it is, worked out yourself). A sound's samples are
 // made the first time its name is played and kept. Music that streams (a song, a radio, the main
 // theme) asks for a line instead: handle.line('music') gives { ctx, out } to connect notes to.
 //
@@ -30,7 +31,7 @@ const HOLD = 6;           // seconds the theme stays away after other music was 
 const HEARD = 0.004;      // how loud (RMS) counts as music playing
 const VOICE_GAP = 10;     // seconds before a voice may say the same thing again
 
-let ctx = null, bus = null, here = null, heardAt = -1e9, live = 0, still = false;
+let ctx = null, bus = null, here = null, earsAt = null, heardAt = -1e9, live = 0, still = false;
 const handles = new Set(), levels = { music: 1, sounds: 1, voices: 1 };
 
 function engine() {
@@ -60,8 +61,10 @@ export function setVolume(b, v) {
 }
 export const volume = b => levels[b];
 
-// Where you are (the mansion says, every frame): a room's music is only heard while you're in it.
-export function youAreIn(owner) {
+// Where you are (the mansion says, every frame): a room's music is only heard while you're in it,
+// and a sound played `at` somewhere fades the further it is from `ears` ({x, y, z}).
+export function youAreIn(owner, ears = null) {
+  earsAt = ears;
   if (owner === here) return;
   here = owner;
   if (ctx) for (const h of handles) for (const l of h.lines) if (l.bus === 'music' && !l.everywhere) l.mute.gain.setTargetAtTime(h.owner === here ? 1 : 0, ctx.currentTime, 0.25);
@@ -99,6 +102,10 @@ export function soundState() {
   return { engine: ctx ? ctx.state : 'none', playing: live, here, paused: still, levels: { ...levels }, owners };
 }
 
+// A room's own handle on top of the sound system's: `more` (its sounds by name, its own `play`...)
+// on top, everything else the handle's. The handle itself is never changed.
+export const wrap = (h, more) => Object.create(h, Object.getOwnPropertyDescriptors(more));
+
 export function soundsFor(owner) {
   const made = new Map(), lastAt = new Map();
   let lastVoice = null, lastVoiceAt = -1e9;
@@ -107,11 +114,12 @@ export function soundsFor(owner) {
     played: 0, last: null, log: [],   // (how many, the last, and the last 200: for the checks)
     // play a sound by name. `make()` makes its samples (plain numbers, at `rate`, each held `hold`
     // times over: the 8-bit crunch), the first time only. Returns whether it played.
-    play(key, make, { loud = 1, bus: b = 'sounds', rate = 11025, hold = 1, gap = 0.08, dist, near, far } = {}) {
+    play(key, make, { loud = 1, bus: b = 'sounds', rate = 11025, hold = 1, gap = 0.08, at, dist, near, far } = {}) {
       if (h.closed || (still && b !== 'music')) return false;
       const now = performance.now() / 1000;
       if (now - (lastAt.get(key) ?? -1e9) < gap) return false;
       if (b === 'voices' && key === lastVoice && now - lastVoiceAt < VOICE_GAP) return false;
+      if (at && earsAt) dist = Math.hypot(at.x - earsAt.x, (at.y ?? earsAt.y) - earsAt.y, at.z - earsAt.z);
       if (dist !== undefined) loud *= nearness(dist, near, far);
       if (loud < 0.005) return false;
       lastAt.set(key, now); if (b === 'voices') { lastVoice = key; lastVoiceAt = now; }
@@ -155,6 +163,11 @@ export function soundsFor(owner) {
       h.lines = [];
     },
   };
+  // A room wraps its handle (wrap(h, more): its own sounds by name on top), never changes it:
+  // nothing can be added to it or put in place of what it does (trying is an error, which the checks
+  // catch), so its rules hold for every room.
+  for (const k of ['play', 'line', 'wake', 'close']) Object.defineProperty(h, k, { writable: false, configurable: false });
+  Object.preventExtensions(h);
   handles.add(h);
   return h;
 }

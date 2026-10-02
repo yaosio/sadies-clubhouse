@@ -793,7 +793,7 @@ export async function open(cards, enter) {
     for (const w of places) w.update(t, dt);
     // the main theme: it makes way for any other music by itself (the sound system hears it), and
     // for a place that asks for quiet (its `hush`: the Music Room, Space Adventure's cockpit and radio)
-    youAreIn(me.world.name);   // (a room's music is only heard in it)
+    youAreIn(me.world.name, ears());   // (a room's music is only heard in it; sounds fade with how far off they are)
     const hush = me.world.hush;
     theme.tick(typeof hush === 'function' ? !!hush() : !!hush);
     farHouses();

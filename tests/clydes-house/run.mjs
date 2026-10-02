@@ -6,7 +6,7 @@
 import { makeMachine, missing, partIn, swap, run, won, works, saveOf, STEPS, GAPS, JUNK, NAMES, ROUNDS, OPTIONS, MOST } from '../../src/activities/clydes-house/machine.js';
 import * as L from '../../src/activities/clydes-house/lines.js';
 import { wrap, LINE } from '../../src/activities/clydes-house/art.js';
-import { RATE } from '../../src/activities/clydes-house/sounds/synth.js';
+import { RATE } from '../../src/shared/retro.js';
 import { ALL } from '../../src/activities/clydes-house/sounds/index.js';
 import card from '../../src/activities/clydes-house/card.js';
 import { REACT } from '../../src/activities/clydes-house/reactions.js';

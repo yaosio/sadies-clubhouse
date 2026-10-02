@@ -7,6 +7,7 @@
 // Each time it works, Clyde "improves" it: more pieces go missing (ROUNDS, one to four). After the
 // fourth, Clyde has an idea (the finale, in room.js), and from then on each run has two to four
 // gaps at random.
+import { rng } from '../../shared/retro.js';
 
 // every step, in the order the machine does them
 export const STEPS = ['lever', 'ramp', 'dominoes', 'seesaw', 'funnel', 'wheel', 'fan', 'boat', 'cup', 'bowl'];
@@ -26,8 +27,6 @@ export const ROUNDS = [['dominoes'], ['seesaw', 'funnel'], ['dominoes', 'fan', '
 export const MOST = 4;      // after the finale, two to this many gaps at once
 export const OPTIONS = 4;   // parts to choose from in each gap: the right one and three bits of junk
 
-// the same numbers every time from a seed
-export function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 
 export function makeMachine(saved = {}, seed = Date.now()) {
   const M = { round: saved.round | 0, treats: saved.treats | 0, finale: !!saved.finale, gaps: {}, rand: rng(seed) };

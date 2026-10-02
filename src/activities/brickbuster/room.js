@@ -362,7 +362,7 @@ export async function buildRoom(m) {
     const e = m.ears?.();
     if (!said || !e || !hall.is(e.place)) return;
     if (!sound) sound = makeSounds(sfx);   // (it wakes on your next press or key, if the browser's still holding it back)
-    sound.sadie(said, Math.hypot(loose.cat.x - e.x, loose.cat.y + 0.3 - e.y, loose.cat.z - e.z));
+    sound.sadie(said, { x: loose.cat.x, y: loose.cat.y + 0.3, z: loose.cat.z });
   }
   if (loose) {
     hallBall = new Mesh(ball.geometry, ball.material); hallBall.visible = false;

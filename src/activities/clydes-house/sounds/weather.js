@@ -1,14 +1,13 @@
 // Clyde's Weather Machine's sounds: one short, soft jingle when the weather changes, and nothing at
 // all while it rains or snows (no hiss, no patter, no dripping: those go on and on). The lever's
 // clunk is the machine's own (machine.js). Plain numbers, no browser: 8-bit, 11 kHz.
-import { blank, pluck, tone, finish } from './synth.js';
-import { hz } from '../../../shared/retro.js';
+import { blank, pluck, tone, dry, hz } from '../../../shared/retro.js';
 
 // a few soft music-box notes, one after another
 function notes(list, gap, len = 1.3, gain = 0.2, rate = 4.5) {
   const a = blank(len);
   list.forEach((n, i) => tone(a, i * gap, len - i * gap, hz(n), hz(n), pluck(rate), { gain, tri: true }));
-  return finish(a, 0.25);
+  return dry(a, 0.25);
 }
 // rain coming: three low notes going down
 export const rainIn = () => notes([67, 64, 60], 0.18);
