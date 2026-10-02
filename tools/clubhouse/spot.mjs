@@ -2,23 +2,18 @@
 //   node tools/clubhouse/spot.mjs <name> <place> <x> <z> <y> <lookX> <lookY> <lookZ>
 // stands at x, y (the floor's height), z in that place and looks at the point lookX, lookY, lookZ.
 // Saves dist/shots/clubhouse/spot-<name>.png (desktop size). Places: outside, hall, room:<id>.
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { launch } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clubhouse');
 mkdirSync(out, { recursive: true });
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const [name, placeName, ...n] = process.argv.slice(2);
 const [x, z, y, lx, ly, lz] = n.map(Number);
 const server = await serve();
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await launch();
 const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 p.on('pageerror', e => console.log('page error:', e.message));
 await p.goto(`http://127.0.0.1:${server.address().port}/`);

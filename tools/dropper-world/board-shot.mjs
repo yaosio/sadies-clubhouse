@@ -3,16 +3,11 @@
 // dist/index.html (npm run build).
 //
 //   node tools/dropper-world/board-shot.mjs [out folder]      (default: dist/board-shots)
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { serve } from '../serve.mjs';
+import { chromium, quietFonts } from '../browser.mjs';
 
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const root = resolve(new URL('../..', import.meta.url).pathname);
 const out = resolve(process.argv[2] || join(root, 'dist/board-shots'));
@@ -24,7 +19,7 @@ for (const [name, opts] of [
   ['desktop', { viewport: { width: 1280, height: 800 } }],
 ]) {
   const ctx = await browser.newContext(opts);
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  await quietFonts(ctx);
   const p = await ctx.newPage();
   await p.goto(`http://127.0.0.1:${server.address().port}/#dropper-world`);
   await p.waitForTimeout(1500);

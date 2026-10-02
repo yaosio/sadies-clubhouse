@@ -2,25 +2,20 @@
 // first): walking in, standing back, stepping up to play, the glass cracked, the heap of bricks, the
 // glass breaking and the yarn ball escaping, the room left broken and the sign on its door. dist/shots/brickbuster/
 //   node tools/brickbuster/shots.mjs
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { launch, quietFonts } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/brickbuster');
 mkdirSync(out, { recursive: true });
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const server = await serve();
 const url = `http://127.0.0.1:${server.address().port}/`;
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
+const browser = await launch(['--autoplay-policy=no-user-gesture-required']);
 for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
   const ctx = await browser.newContext(opts);
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  await quietFonts(ctx);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(url);

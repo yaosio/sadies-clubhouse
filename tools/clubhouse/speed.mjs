@@ -5,18 +5,12 @@
 // away and builds it again, a few times over, to show nothing piles up. In between, how long each
 // frame's work takes standing in each place (typical and worst), and how many frames a second.
 //   node tools/clubhouse/speed.mjs
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
-import { join } from 'node:path';
+import { launch, quietFonts } from '../browser.mjs';
 
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const server = await serve();
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info'] });
+const browser = await launch(['--enable-precise-memory-info']);
 const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 p.on('pageerror', e => console.log('page error:', e.message));
 // time every frame's work from outside the game, as tools/dropper-world/profile.mjs does
@@ -24,7 +18,7 @@ await p.addInitScript(() => {
   const raf = window.requestAnimationFrame.bind(window); window.__frames = [];
   window.requestAnimationFrame = cb => raf(t => { const a = performance.now(); cb(t); window.__frames.push([t, performance.now() - a]); });
 });
-await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+await quietFonts(p);
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
 await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5, null, { timeout: 30000 });
 await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 30000 });

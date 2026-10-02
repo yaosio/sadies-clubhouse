@@ -13,7 +13,8 @@
 //   - its saves: a room saves through its kit's box (`m.saves`, src/shared/storage.js), never
 //     straight to the browser; `keeps` names where they start; a new activity's start `sadies-clubhouse.<id>.`;
 //     no two activities' overlap, nor the mansion's own (`mansion.`); an activity that saves
-//     anything (uses the toolbox's `store`) has `keeps`; and it never names another activity's save.
+//     anything (uses the toolbox's `store`) has `keeps`; and it never names another activity's save;
+//   - it has its own checks, headless and in a browser (tests/<id>/run.mjs and browser.mjs).
 // The mansion's browser check also looks at every save actually written while it walks round every
 // room, and fails on one no card's `keeps` covers (tests/clubhouse/browser.mjs).
 import { build } from 'esbuild';
@@ -55,6 +56,12 @@ export async function allKeeps() {
   return keeps;
 }
 
+// every activity's card (in folder order), for checks that go round them all without naming any
+export async function allCards() {
+  const ids = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
+  return Promise.all(ids.map(id => readCard(join(root, 'src/activities', id))));
+}
+
 export async function checkCards(check) {
   const ids = readdirSync(join(root, 'src/activities')).sort().filter(d => existsSync(join(root, 'src/activities', d, 'card.js')));
   const cards = [], unread = [];
@@ -87,6 +94,9 @@ export async function checkCards(check) {
     need(!saves || keeps.length, "it saves things but its card doesn't say what (keeps)");
     const others = [...new Set([...src.matchAll(/['"`](sadies-clubhouse\.[\w-]+\.)/g)].map(m => m[1]).filter(k => k !== own))];
     need(!others.length, `it names another activity's save: ${others.join(', ')}`);
+    // its own checks: headless (run.mjs) and in a browser (browser.mjs), or nothing would ever test it
+    const missing = ['run.mjs', 'browser.mjs'].filter(f => !existsSync(join(root, 'tests', id, f)));
+    need(!missing.length, `it has no tests/${id}/${missing.join(' or ')} (every activity has its own checks)`);
     check(`room checker: ${id}'s card is right`, !bad.length, bad.join('; ') || `${where} ${n}${keeps.length ? ', saves ' + keeps.join(' ') : ', saves nothing'}`);
   }
 

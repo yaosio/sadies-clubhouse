@@ -41,7 +41,6 @@
 // Needs Playwright's Chromium (already on Claude's cloud machines; `npm install` brings Playwright
 // itself, and GitHub fetches the browser).
 import { spawnSync } from 'node:child_process';
-import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -89,7 +88,7 @@ const ACTIVITIES = readdirSync(join(root, 'src/activities')).sort().filter(d => 
 const testPaths = a => a === 'clubhouse' ? ['package.json', 'src', 'tests/clubhouse'] : ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
+const pagePaths = a => [`tools/${a}`, 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
@@ -126,7 +125,7 @@ const mode = preview ? 'preview' : 'real';
 const testHash = Object.fromEntries([...ACTIVITIES, 'clubhouse'].map(a => [a, hashOf(testPaths(a))]));
 const browserHashes = Object.fromEntries(ACTIVITIES.map(a => [a, hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode]));
 const browserHash = a => browserHashes[a];
-const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs']) + '-' + mode;
+const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs']) + '-' + mode;
 // --plan: just say which of them still need checking (on GitHub, so only those get a computer):
 // those whose tests or browser checks haven't passed on exactly this code
 if (args.includes('--plan')) {
@@ -181,13 +180,7 @@ if (!run('build', 'node', ['tools/build.mjs', ...(preview ? ['--preview'] : [])]
     missing.length ? 'missing or different: ' + missing.join(', ') : `page ${(size / 1024).toFixed(1)} kB, ${Object.keys(copy.files).length} files beside it`); }
 
 // ---------- 2. the page in a browser ----------
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch {
-  try { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
-  catch { console.log('\nPlaywright is not installed, so the browser checks can\'t run'); process.exit(1); }
-}
+const { chromium } = await import('./browser.mjs');   // (only now: without Playwright, the steps above still run)
 mkdirSync(outDir, { recursive: true });
 // served from a local web address, like the real page (a page opened as a file:// can't fetch its
 // game files, and now and then forgets its saved storage on a reload, which real players never see)
@@ -195,13 +188,28 @@ const server = await serve();
 const page = `http://127.0.0.1:${server.address().port}/`;
 
 const browser = await chromium.launch();
+// Every page a room's checks open is watched for errors the page itself didn't catch, and any one
+// fails its checks, whether or not they remembered to look (CLAUDE.md: any page error fails).
+let pageErrors = [];
+const watched = new Proxy(browser, {
+  get(b, k) {
+    if (k !== 'newContext') return typeof b[k] === 'function' ? b[k].bind(b) : b[k];
+    return async (...a) => {
+      const ctx = await b.newContext(...a);
+      ctx.on('page', p => p.on('pageerror', e => pageErrors.push(e.message.split('\n')[0])));
+      return ctx;
+    };
+  },
+});
 async function browserChecks(name, hash, suite, extra = {}) {
   console.log(`\n== ${name} in a browser`);
   const t = Date.now(), dir = join(outDir, name), before = failed;
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
+  pageErrors = [];
   // (a check that gets stuck counts as failed, and the rest still run)
-  try { await (await suite).default({ browser, page, check: (n, ok, detail) => check(`${name}: ${n}`, ok, detail), run, hashOf, root, outDir: dir, ...extra }); }
+  try { await (await suite).default({ browser: watched, page, check: (n, ok, detail) => check(`${name}: ${n}`, ok, detail), run, hashOf, root, outDir: dir, ...extra }); }
   catch (e) { check(`${name}: the checks ran to the end`, false, e.message.split('\n')[0]); }
+  check(`${name}: no page it opened had an error of its own`, !pageErrors.length, [...new Set(pageErrors)].slice(0, 3).join(' | '));
   if (failed === before) passed('browser', name, hash);
   took(t);
 }

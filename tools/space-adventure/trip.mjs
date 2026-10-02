@@ -2,27 +2,22 @@
 // on the landing, the cockpit through it, then sat in the seat at moments along the way (it jumps the
 // trip's clock to each), and Sadie's space room afterwards: dist/shots/space-adventure/
 //   npm run build -- --preview && node tools/space-adventure/trip.mjs [phone|desktop] [times...]
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { launch, quietFonts } from '../browser.mjs';
 
 const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(root, 'dist/shots/space-adventure');
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 mkdirSync(out, { recursive: true });
 const args = process.argv.slice(2), only = args.find(a => /^[a-z]+$/.test(a));
 const TIMES = args.filter(a => /^[\d.]+$/.test(a)).map(Number);
 const times = TIMES.length ? TIMES : [3, 20, 45, 60, 65, 70, 73, 76, 80, 85, 91, 98, 103, 107.2];
 const server = await serve();
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
+const browser = await launch(['--autoplay-policy=no-user-gesture-required']);
 for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }]]) {
   if (only && only !== device) continue;
   const ctx = await browser.newContext(opts);
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  await quietFonts(ctx);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);

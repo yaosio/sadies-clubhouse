@@ -2,18 +2,13 @@
 // (npm run build first): dist/shots/clubhouse/*.png
 //   node tools/clubhouse/shots.mjs            every spot
 //   node tools/clubhouse/shots.mjs hall door  only the spots whose names have these in them
-import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { launch } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clubhouse');
 mkdirSync(out, { recursive: true });
-const require = createRequire(import.meta.url);
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
 const server = await serve();
 const url = `http://127.0.0.1:${server.address().port}/`;
@@ -38,7 +33,7 @@ const SPOTS = [
   ['10-room-door', m => m.faceDoor('room:dropper-world', 'door', 2.0)],
 ];
 const only = process.argv.slice(2);
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await launch();
 for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
   const ctx = await browser.newContext({ ...opts, ignoreHTTPSErrors: true });
   const p = await ctx.newPage();
