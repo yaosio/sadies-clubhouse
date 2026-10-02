@@ -5,6 +5,7 @@
 //
 // SHAPES are the numbers (the tests read them): how fast each comes in (`attack`, s), how fast it
 // dies away (`decay`: seconds to fall to a third), and how loud it is next to the others (`gain`).
+import { hz } from '../../shared/retro.js';
 export const SHAPES = {
   ep: { attack: 0.012, decay: 1.1, gain: 0.5 },
   box: { attack: 0.008, decay: 0.75, gain: 0.42 },
@@ -19,7 +20,6 @@ export const RELEASE = 0.12;   // how fast a note fades out once it's let go (to
 const WET = { ep: 0.35, box: 0.5, flute: 0.4, marimba: 0.35, vibes: 0.45, harp: 0.4, bass: 0.05 };
 const PAN = { ep: 0, box: 0.25, flute: -0.2, marimba: 0.2, vibes: -0.25, harp: -0.3, bass: 0 };
 
-const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 
 // Play one note: { midi, len, voice, vel } starting at `when` (the browser's clock), into `dry` and
 // `wet` (the echo). Everything it makes is let go when it stops.

@@ -80,7 +80,7 @@ the shop's), and they stop paint going through them.
 | `stamps.js` | The four stamps and Sadie's paw print, as little pictures in letters. |
 | `tools.js` | The pots and the tools: what each is called and does, how big, what you start with. |
 | `art.js` | Its pictures: the shop outside, the signs, the pegboard and every tool on it, the pots' labels, Chooter (made for each paint the first time it's needed), the TNT box, the BOOM. |
-| `sounds/` | 8-bit, 11 kHz, made in code: `shop.js` (plip, tok, pup, glug, fwump, eh, kaboom), `sadie.js` (mrrp), `synth.js` (made on the toolbox's `retro.js`), `index.js` (plays them on the sound system; Sadie's on VOICES). |
+| `sounds/` | 8-bit, 11 kHz, made in code: `shop.js` (plip, tok, pup, glug, fwump, eh, kaboom), `sadie.js` (mrrp), all made with the toolbox's kit (`src/shared/retro.js`), `index.js` (plays them on the sound system; Sadie's on VOICES). |
 
 **The mansion's part (`brush`):** a place with a `brush(id, ray, 'down' | 'move' | 'up')` is painted
 as you walk about: the mansion hands it every press as a line out into the place, every frame while

@@ -278,7 +278,7 @@ export async function buildRoom(m) {
     Object.assign(walk, { on: true, path: [[FLAP.x, FLAP.z], [(FLAP.x + tx) / 2 + 0.6, (FLAP.z + tz) / 2 - 0.4], [tx, tz], [tx, tz], [FLAP.x, FLAP.z]], i: 0, t: 0, prints: 0, gone: 0, sit: 0,
       paint: typeof held.paint === 'number' && held.paint !== 13 ? held.paint : RAINBOW[Math.floor(Math.random() * RAINBOW.length)] });
     sadie.position.set(FLAP.x, 0, FLAP.z); sadie.visible = true;
-    const e = ears(); sounds().mrrp({ dist: e ? Math.hypot(e.x - FLAP.x, e.z - FLAP.z) : 0 });
+    sounds().mrrp({ at: FLAP });
     hop = 2;   // (his best friend!)
   }
   function sadieWalks(dt) {

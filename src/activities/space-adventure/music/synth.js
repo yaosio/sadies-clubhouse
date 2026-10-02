@@ -2,13 +2,10 @@
 // browser: the tests run it in Node), at 22 kHz, like a sound card's MIDI from 1994 that somebody
 // loved too much. Everything is soft: slow starts, filtered edges, clean fades to nothing, no hum.
 // song.js says which notes, player.js plays them.
+import { rng, hz } from '../../../shared/retro.js';
 
 export const RATE = 22050;
 const TAU = Math.PI * 2;
-export const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
-
-// the same numbers every time from a seed
-function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 
 // a soft low-pass filter (two poles): smooths the buzz off a sawtooth; cutoff can move per sample
 function lowpass() {

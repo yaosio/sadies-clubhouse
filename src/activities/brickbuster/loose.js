@@ -10,6 +10,7 @@
 //
 // shape: the hall's solid shape (hall.js `shape`): wall, post, landing { inner, y, thick, rail },
 // top, stairs { r0, r1, th0, turn, rise, treads }, blocks [{ x, z, r, h }]. Positions are the hall's.
+import { rng } from '../../shared/retro.js';
 
 export const R = 0.16, GRAVITY = 9.8;
 const BOUNCE = 0.72, WALL = 0.85, ROLL = 0.9;   // how much speed a bounce keeps, off a wall, and rolling friction (per second)
@@ -20,7 +21,6 @@ const SETTLE = 0.35;                            // slower than this, sitting on 
 const CAT = { leap: 2.2, speed: 6.5, trot: 4, keep: 1.6, pause: 0.12, pounce: 1.2, whack: [5, 8], up: [2.5, 5], mighty: 0.3 };
 
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
-function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 
 export function makeLoose(shape, seed = 1) {
   return { shape, r: rng(seed), ball: null, cat: null, stopped: 0, stuck: 0, whacks: 0, pops: 0, t: 0 };

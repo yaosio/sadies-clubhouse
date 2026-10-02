@@ -8,6 +8,7 @@
 // She never walks on the instrument you're playing, and if you step up to the one she's on, she
 // hops off. If the sign on the door says SHH, she goes and sits next to one instead, silently,
 // looking offended. room.js draws her and plays her notes.
+import { rng } from '../../shared/retro.js';
 
 // her instruments and how much she likes each (never the theremin or the chimes: out of reach);
 // how many keys each has for her paws to land on
@@ -17,7 +18,6 @@ export const KEYS = { piano: 17, drums: 4, xylophone: 8, synth: 17 };
 // steps, how long between them, how likely she is to lie down at the end, and how long she naps
 export const TIMING = { first: [45, 100], between: [160, 360], steps: [4, 6], step: [0.4, 0.85], nap: 0.3, napFor: [18, 35], sulk: 15, hop: 0.8 };
 
-function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 const between = (r, [a, b]) => a + r() * (b - a);
 
 export function makeSadie(seed = 1) {

@@ -3,21 +3,22 @@
 // sample: it plays for as long as you hold it, sliding wherever your hand goes.
 // (If the browser has no sound at all, it quietly does nothing, but still counts, for the checks.)
 import { RATE } from '../../../shared/retro.js';
+import { wrap } from '../../../shared/sound.js';
 
 // `h`: the room's handle (src/shared/sound.js): the clubhouse's sound system plays everything, with
 // its rules (no buzzing, a cap on how many at once). The instruments are sounds, not music (the
 // main theme is kept out of this room by its `hush` instead), on the pause menu's SOUNDS volume.
 export function makePlayer(h, volume = 0.5) {
   let line = null;   // (the theremin's: made the first time it's played)
-  const player = Object.assign(h, {
+  const player = wrap(h, {
     volume,
     // the volume dial: 0 (off) to 1
     setVolume(v) { player.volume = v; if (line) line.out.gain.setTargetAtTime(v, line.ctx.currentTime, 0.05); },
-    // play a sound: its name (the same name, the same sound: it's only made once), how to make it,
-    // and how loud (0 to 1). 11 kHz samples, each held 4 times over (no smoothing: the crunch).
-    play0: h.play,
     // a voice that sounds while it's held: set(frequency, how loud) as often as you like (it glides),
     // stop() to let it fade away. Crunched to 8 bits like everything else.
+    // play a sound: its name (the same name, the same sound: it's only made once), how to make it,
+    // and how loud (0 to 1). 11 kHz samples, each held 4 times over (no smoothing: the crunch).
+    play(key, make, loud = 1) { if (player.volume) h.play(key, make, { loud: loud * player.volume, rate: RATE, hold: 4, gap: 0.03 }); },
     voice() {
       h.played++; h.last = 'voice'; h.log.push('voice'); if (h.log.length > 200) h.log.shift();
       line ||= h.line('sounds');
@@ -51,6 +52,5 @@ export function makePlayer(h, volume = 0.5) {
       } catch { return { set() {}, stop() {} }; }
     },
   });
-  player.play = (key, make, loud = 1) => { if (player.volume) player.play0(key, make, { loud: loud * player.volume, rate: RATE, hold: 4, gap: 0.03 }); };
   return player;
 }

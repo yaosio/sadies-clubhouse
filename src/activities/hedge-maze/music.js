@@ -4,9 +4,12 @@
 // a quiet moment between pieces. Each piece has its own key, mode, speed and instruments.
 //
 // makeComposer(rng) writes the notes (no browser: the tests read an hour of it); makeMusic(h) plays
-// them on the browser's own oscillators through a music line from the sound system
-// (src/shared/sound.js: the clubhouse's theme makes way for it, the pause menu's MUSIC button sets
-// its volume, it's only heard in the maze, and it's all stopped when the maze is put away).
+// them on the browser's own oscillators through a band (src/shared/band.js: the clubhouse's theme
+// makes way for it, the pause menu's MUSIC button sets its volume, it's only heard in the maze, and
+// it's all stopped when the maze is put away).
+import { hz } from '../../shared/retro.js';
+import { makeBand } from '../../shared/band.js';
+
 export const SCALES = {
   pentatonic: [0, 2, 4, 7, 9], major: [0, 2, 4, 5, 7, 9, 11], lydian: [0, 2, 4, 6, 7, 9, 11],
   mixolydian: [0, 2, 4, 5, 7, 9, 10], dorian: [0, 2, 3, 5, 7, 9, 10],
@@ -58,23 +61,13 @@ export function makeComposer(rng = Math.random) {
 }
 
 const LOUD = 0.13, AHEAD = 0.6;
-const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 
 // `h`: the maze's sound handle. play() as you come in, stop() as you leave (a slow fade); it carries
 // on where it was next time. tick() every frame hands over the notes coming up.
 export function makeMusic(h, rng = Math.random) {
-  const line = h.line('music');
-  const ctx = line?.ctx ?? null;
-  let out = null, wet = null, echo = null, playing = false, played = 0;
-  const fresh = () => { out = ctx.createGain(); out.gain.value = 0; out.connect(line.out); wet = ctx.createGain(); wet.gain.value = 0; wet.connect(echo); };
-  if (ctx) {
-    // a soft echo, like a garden with walls
-    echo = ctx.createGain(); echo.gain.value = 0.3;
-    const d = ctx.createDelay(1), fb = ctx.createGain(), lp = ctx.createBiquadFilter();
-    d.delayTime.value = 0.37; fb.gain.value = 0.28; lp.type = 'lowpass'; lp.frequency.value = 1700;
-    echo.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(line.out);
-    fresh();
-  }
+  // a soft echo, like a garden with walls
+  const band = makeBand(h, { echo: { delay: 0.37, feedback: 0.28, cut: 1700, send: 0.3 } }), ctx = band.ctx, part = band.part(0);
+  let playing = false, played = 0;
   const C = makeComposer(rng);
   let next = C.next(), song = 0, base = null;   // song: where in the music it's got to (seconds)
   function voice(n, when) {
@@ -92,8 +85,8 @@ export function makeMusic(h, rng = Math.random) {
       amp.gain.linearRampToValueAtTime(peak, when + 0.006);
       amp.gain.setTargetAtTime(0, when + 0.006, n.len / 3.5);   // dies away by itself
     }
-    lp.connect(amp); amp.connect(out);
-    const w = ctx.createGain(); w.gain.value = 0.5; amp.connect(w); w.connect(wet);
+    lp.connect(amp); amp.connect(part.out);
+    const w = ctx.createGain(); w.gain.value = 0.5; amp.connect(w); w.connect(part.wet);
     for (const o of oscs) { o.start(when); o.stop(end + 1); }
     oscs[0].onended = () => { try { amp.disconnect(); w.disconnect(); } catch {} };
   }
@@ -105,16 +98,13 @@ export function makeMusic(h, rng = Math.random) {
       playing = true; base = null;
       if (!ctx) return;
       h.wake();
-      for (const [g, v] of [[out, LOUD], [wet, 1]]) { g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setTargetAtTime(v, ctx.currentTime, 0.4); }
+      part.to(LOUD, 0.4, 1);
     },
     stop() {
       if (!playing) return;
       playing = false;
       if (!ctx) return;
-      const old = [out, wet];
-      for (const g of old) { g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setTargetAtTime(0, ctx.currentTime, 0.5); }
-      fresh();
-      setTimeout(() => { for (const g of old) try { g.disconnect(); } catch {} }, 4000);
+      part.fade(1.5);
     },
     tick() {
       if (!playing) return;

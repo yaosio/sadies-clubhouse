@@ -1,8 +1,9 @@
 // Clyde's house's sounds (made by the other files here, as plain numbers), by name.
 // Each group has a file of its own: the machine's (machine.js), Sadie's (sadie.js), Clyde's (clyde.js)
-// the chime when the treat lands (chime.js) and the weather machine's jingles (weather.js); synth.js is what they're made with. The same sound
-// can't play twice within a tenth of a second (mashing a key never makes a buzz).
-import { RATE } from './synth.js';
+// the chime when the treat lands (chime.js) and the weather machine's jingles (weather.js), made with
+// the toolbox's kit (src/shared/retro.js). The same sound can't play twice within a tenth of a second (mashing a key never makes a buzz).
+import { RATE } from '../../../shared/retro.js';
+import { wrap } from '../../../shared/sound.js';
 import { chime } from './chime.js';
 import * as machine from './machine.js';
 import * as sadie from './sadie.js';
@@ -17,6 +18,7 @@ export const ALL = { chime, ...machine, ...sadie, ...clyde, ...weather };
 // Sadie's and Clyde's are voices (the pause menu's VOICES volume); the rest are sounds.
 const VOICES = new Set([...Object.keys(sadie), ...Object.keys(clyde)]);
 export function makeSounds(h, volume = 0.45) {
-  for (const [k, make] of Object.entries(ALL)) h[k] = (o = {}) => h.play(k, make, { loud: volume, rate: RATE, hold: 4, gap: 0.1, bus: VOICES.has(k) ? 'voices' : 'sounds', ...o });   // (o: `dist`, `near`, `far`)
-  return h;
+  const more = {};
+  for (const [k, make] of Object.entries(ALL)) more[k] = (o = {}) => h.play(k, make, { loud: volume, rate: RATE, hold: 4, gap: 0.1, bus: VOICES.has(k) ? 'voices' : 'sounds', ...o });   // (o: `dist`, `near`, `far`)
+  return wrap(h, more);
 }

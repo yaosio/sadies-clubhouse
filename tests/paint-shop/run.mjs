@@ -6,7 +6,7 @@
 import { makeLayer, dab, stroke, spray, fill, stamp, clear, painted, encode, decode, PAINTS, RAINBOW } from '../../src/activities/paint-shop/layer.js';
 import { STAMPS, SADIE_PAW } from '../../src/activities/paint-shop/stamps.js';
 import { POTS, TOOLS, START } from '../../src/activities/paint-shop/tools.js';
-import { RATE } from '../../src/activities/paint-shop/sounds/synth.js';
+import { RATE } from '../../src/shared/retro.js';
 import { ALL } from '../../src/activities/paint-shop/sounds/index.js';
 import card from '../../src/activities/paint-shop/card.js';
 import { makeSurfaces, boxGeometry } from '../../src/activities/paint-shop/surfaces.js';

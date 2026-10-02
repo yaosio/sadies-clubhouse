@@ -3,6 +3,7 @@
 // the clubhouse's sound system (src/shared/sound.js) plays them, through the room's handle. A new sound goes in the file it belongs with (or a new file), and gets a line
 // here and in LIST (the test version's sound tester plays through LIST).
 import { RATE } from '../../../shared/retro.js';
+import { wrap } from '../../../shared/sound.js';
 import { FIND_SOUNDS, reef } from './finds.js';
 import { wave, sail } from './sea.js';
 
@@ -19,7 +20,7 @@ export const LIST = [
 // `h`: the room's handle (soundsFor). 11 kHz samples, each held 4 times over (its crunch), at half volume.
 export function makeSounds(h) {
   const play = (key, make, loud) => h.play(key, make, { loud: loud * 0.5, rate: RATE, hold: 4 });
-  return Object.assign(h, {
+  return wrap(h, {
     find: name => play('find-' + name, FIND_SOUNDS[name], LOUD.find),
     reef: () => play('reef', reef, LOUD.reef),
     sea: ({ name, variant }) => play(`${name}${variant}`, () => (name === 'wave' ? wave(variant) : sail()), LOUD[name]),

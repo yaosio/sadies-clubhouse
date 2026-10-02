@@ -84,7 +84,7 @@ the sun in the backyard, where the maze lets you out (built with the backyard, i
 - `music.js`: `makeComposer` writes the music a piece at a time (each its own key, mode, speed, beats
   a bar and instruments: a harp, a bell, a little flute): a wandering tune that rests often, a few
   soft chord notes under it, home at the end, then 6 to 11 seconds of quiet. `makeMusic` plays it
-  on the browser's own oscillators through a music line (`src/shared/sound.js`), starting as you come
+  on the browser's own oscillators through the toolbox's band (`src/shared/band.js`, a music line on `src/shared/sound.js`), starting as you come
   in and fading as you leave. The clubhouse's theme makes way for it by itself.
 
 ## Checks
