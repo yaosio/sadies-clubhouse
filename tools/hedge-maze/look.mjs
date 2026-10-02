@@ -1,6 +1,6 @@
 // Pictures from inside the hedge maze, looking all round (npm run build first): walks in through the
 // front gate, then turns a step at a time. For checking the clubhouse over the hedges and the gates.
-//   node tools/hedge-maze/look.mjs [steps] [pitch: how far up to look]
+//   node tools/hedge-maze/look.mjs [steps] [pitch: how far up to look] [weather: rain, snow, sun, cats]
 // Saves dist/shots/hedge-maze/look-<n>.png (desktop size).
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
@@ -24,6 +24,7 @@ await p.goto(`http://127.0.0.1:${server.address().port}/`);
 await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
 await p.click('#ok');
 const M = (f, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [f, a]);
+if (process.argv[4]) await M('setWeather', process.argv[4], { snap: true });
 await M('faceDoor', 'outside', 'hedge-maze', 3);
 await p.keyboard.down('KeyW'); await p.waitForTimeout(1700); await p.keyboard.up('KeyW');
 await p.waitForTimeout(500);

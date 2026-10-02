@@ -44,6 +44,9 @@ export function makeWeather(T, outside) {
     if (d) return d;
     const sky = place.sky, scene = place.scene;
     const cover = new Mesh(domeGeo, cloudMat); cover.scale.setScalar(sky.dome); cover.visible = false; scene.add(cover);
+    // (drawn straight after the sky, before anything else: a place's far-off pictures drawn on top of
+    // everything, like the clubhouse hung over the maze's hedges, stay in front of it)
+    cover.renderOrder = -2.5;
     let sun2 = null;
     if (sky.sun2) { sun2 = new Mesh(sunGeo, sunMat); sun2.rotation.y = Math.atan2(sky.sun2.x, sky.sun2.z) + Math.PI; sun2.visible = false; scene.add(sun2); }
     const lying = new Mesh(lyingGeo, lyingMat); lying.rotation.x = -Math.PI / 2; lying.renderOrder = -0.5; lying.visible = false; scene.add(lying);

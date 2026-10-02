@@ -1,6 +1,6 @@
 // Pictures of the world's weather in every place out of doors (npm run build first): for each place
-// with a `sky` (the outside, the Hedge Maze...) and each weather, a look round from its start, a little
-// way up. As a desktop and a phone. Saves dist/shots/clubhouse/<device>-weather-<place>-<weather>.png.
+// with a `sky` (the outside, the Hedge Maze...) and each weather, a look four ways round from its start.
+// As a desktop and a phone. Saves dist/shots/clubhouse/<device>-weather-<place>-<weather>-<ahead|right|behind|left>.png.
 //   node tools/clubhouse/weather.mjs [desktop|phone] [rain|snow|sun|cats|clear]
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
@@ -35,10 +35,15 @@ for (const [device, opts] of Object.entries(DEVICES)) {
     await M('setWeather', w);
     if (w === 'snow') await M('weatherSpeed', 60);
     for (const n of await M('outdoors')) {
-      await M('put', n, 'start'); await M('turnTo', (await M('where')).yaw, 0.15);
-      await p.waitForTimeout(w === 'cats' ? 4000 : 1500);
-      const name = `${device}-weather-${n.replace('room:', '')}-${w}`;
-      await p.screenshot({ path: join(out, name + '.png') }); console.log(name);
+      await M('put', n, 'start');
+      const yaw = (await M('where')).yaw;
+      // (looking four ways round: whatever's far off, like the clubhouse over the maze's hedges, in one of them)
+      for (const [i, turn] of ['ahead', 'right', 'behind', 'left'].entries()) {
+        await M('turnTo', yaw - i * Math.PI / 2, 0.3);
+        await p.waitForTimeout(i ? 500 : w === 'cats' ? 4000 : 1500);
+        const name = `${device}-weather-${n.replace('room:', '')}-${w}-${turn}`;
+        await p.screenshot({ path: join(out, name + '.png') }); console.log(name);
+      }
     }
     await M('weatherSpeed', 30);
   }
