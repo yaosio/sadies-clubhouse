@@ -1,11 +1,15 @@
-/* painting (a place with a brush): the LOOK | PAINT switch (the side you're on lit up, in the paint you're
-   holding), the YOU'RE HOLDING box with how to paint, and the dot in the middle you paint with while the
+/* painting (a place with a brush): the LOOK and PAINT buttons (the one that's on lit up gold, its light on,
+   bordered in the paint you're holding), the YOU'RE HOLDING box with how to paint, and the dot in the middle you paint with while the
    mouse is locked */
-#mansion #paint{right:calc(26px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));height:44px;display:flex;
-  padding:0;background:#1c1238d0;color:#fff;border:3px solid var(--paint,#fff);font-size:11px;cursor:pointer;font-family:var(--px)}
-#mansion #paint b{display:grid;place-items:center;padding:0 10px;font-weight:normal;opacity:.6}
-#mansion #paint b:first-child{border-right:2px solid var(--paint,#fff)}
-#mansion #paint:not(.on) b:first-child,#mansion #paint.on b:last-child{opacity:1;background:var(--paint,#fff);color:var(--ink);text-shadow:0 0 2px #fff}
+#mansion #paint{right:calc(26px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom));display:flex;gap:6px;padding:0;
+  background:none;border:0}
+#mansion #paint button{position:relative;height:44px;padding:0 10px 0 22px;font:11px var(--px);cursor:pointer;
+  background:#1c1238c0;color:#ffffffa0;border:2px solid #ffffff60;box-shadow:0 3px 0 #0a0628}
+#mansion #paint button::before{content:'';position:absolute;left:7px;top:50%;margin-top:-4px;width:8px;height:8px;background:#ffffff30;border:1px solid #ffffff60}
+/* (the one that's on: lit up gold, pushed in, its light on, and a border in the paint you're holding) */
+#mansion #paint button[aria-pressed=true]{background:var(--gold);color:var(--ink);border:3px solid var(--paint,#fff);outline:2px solid var(--ink);
+  box-shadow:inset 0 3px 0 #8a5a10;transform:translateY(3px)}
+#mansion #paint button[aria-pressed=true]::before{background:#3aff6a;border-color:var(--ink);box-shadow:0 0 6px #3aff6a}
 #mansion #holding{left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));max-width:calc(100% - 70px);display:grid;
   grid-template-columns:48px auto;gap:2px 8px;align-items:center;background:#1c1238d8;border:2px solid #ffffff70;padding:6px 10px 6px 6px;pointer-events:none}
 #mansion #holding canvas{width:48px;height:48px;image-rendering:pixelated;background:#d8a868;border:2px solid #8a5a30}

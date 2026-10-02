@@ -577,13 +577,20 @@ export async function open(cards, enter) {
   }
   function showTarget() {
     const hint = $('#useHint'), btn = $('#use'), inGame = mode === 'arcade';
-    hint.hidden = !target || touchy || mode !== 'play';
+    // (on a phone too, beside the button, so you know what it'll do: what you'd pick up, say)
+    hint.hidden = !target || mode !== 'play'; hint.classList.toggle('touch', touchy);
     btn.hidden = !((target && mode === 'play') || inGame) || !touchy;
     $('#arcadeHint').hidden = !inGame;
     $('#stick').hidden = !touchy || inGame || !!me.world.watch;   // (no walking while you're made to watch something)
     if (inGame) $('#keysHint').hidden = true;
     if (inGame) btn.textContent = 'STEP BACK';
-    else if (target) { hint.querySelector('span').textContent = target.label; btn.textContent = target.act ? target.button || 'USE' : 'PLAY'; }
+    else if (target) {
+      hint.querySelector('span').textContent = target.label; btn.textContent = target.act ? target.button || 'USE' : 'PLAY';
+      // a use can show what it is, little: `swatch` (a colour, any css background) and `icon` (a picture)
+      const pic = hint.querySelector('canvas'), g = pic.getContext('2d');
+      pic.hidden = !target.swatch && !target.icon; pic.style.background = target.swatch || '';
+      g.clearRect(0, 0, 16, 16); if (target.icon) g.drawImage(target.icon, 0, 0, 16, 16);
+    }
   }
   on($('#use'), 'click', () => { if (mode === 'arcade') game.stepBack(); else if (target && mode === 'play') use(target); });
   // Sit down at the computer: you lean in until the screen fills the view, then the program starts.

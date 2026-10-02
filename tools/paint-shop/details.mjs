@@ -56,7 +56,7 @@ await look(ROOM, 2.2, -0.9, -0.6, 3.3, 0.35, -1.4); await shot('plaque');
 await look(ROOM, 2.4, 2.6, -0.4, 2.4, 0.3, 3.7); await shot('tnt');
 await look(ROOM, -4.6, 4.2, 0, -3.7, 1.3, 3.0); await shot('easel-back');
 // the bucket on the crate's top and two of its sides, and the plinth's front and side
-await p.evaluate(() => { window.__paintShop.hold('bucket', 8); document.querySelector('#mansion #paint').click(); });
+await p.evaluate(() => { window.__paintShop.hold('bucket', 8); document.querySelector('#mansion #paint [data-to=paint]').click(); });
 await look(ROOM, -2.6, -0.9, 0.4, -2.6, 0.5, -2.4); await press(0.5, 0.5); await press(0.5, 0.75);
 await look(ROOM, -0.9, -2.0, -0.6, -2.6, 0.4, -2.4); await press(0.5, 0.5);
 await shot('crate');

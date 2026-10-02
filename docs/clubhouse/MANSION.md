@@ -84,7 +84,7 @@ further in (`swing`), so it's hinged on opposite sides as seen from each side.
   glides back until the game's `view` fits the screen, looking at it square on from a little below;
   A/D, the arrows, the mouse without clicking, or a finger sliding anywhere go to the game; Esc, W,
   S or STEP BACK glide you back to where you stood; the pause menu stops the game too). `paint.js`,
-  painting a place with a `brush` (its switch, box and dot are its own HTML and CSS beside it).
+  painting a place with a `brush` (its LOOK and PAINT buttons, box and dot are its own HTML and CSS beside it).
 - `neighbours.js`: what a room is lent of the hall, the outside and its landing door (only what
   `ROOMS.md` lists; anything else a room asks the kit or them for is an error on the spot).
 - `look.js`: the PS1 material (corners snapping to the pixel grid, light per corner, few colours

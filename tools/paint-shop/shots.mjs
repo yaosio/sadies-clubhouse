@@ -1,5 +1,5 @@
 // Pictures of Chooter's Paint Shop (npm run build first): the shop from the lane, its door, inside
-// (the counter and Chooter, the pegboard, the plaster Sadie), then painting: the LOOK | PAINT switch and a
+// (the counter and Chooter, the pegboard, the plaster Sadie), then painting: the LOOK and PAINT buttons and a
 // stroke across the back wall with a finger or the mouse, a stamp, a rainbow stroke, the bucket on the
 // floor, Sadie's paw prints, the dynamite going off, and the room after all of it. As a desktop and a
 // phone. Saves dist/shots/paint-shop/<device>-<name>.png.
@@ -50,9 +50,9 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   await M('put', ROOM, 'counter'); await shot('3-counter');
   await M('put', ROOM, 'pegboard'); await shot('4-pegboard');
   await look(ROOM, 1.2, -0.6, 0, 3.3, 1.1, -1.4); await shot('5-plaster-sadie');
-  // painting the back wall: the switch to PAINT, then a stroke
+  // painting the back wall: PAINT on, then a stroke
   await look(ROOM, 0, 1.5, 0, 0, 2.0, -4.5);
-  await p.click('#mansion #paint'); await shot('6-paint-switch', 300);
+  await p.click('#mansion #paint [data-to=paint]'); await shot('6-paint-switch', 300);
   await p.evaluate(() => window.__paintShop.hold('roller', 1));
   await drag(0.2, 0.3, 0.8, 0.35);
   await p.evaluate(() => window.__paintShop.hold('brush', 'rainbow'));
