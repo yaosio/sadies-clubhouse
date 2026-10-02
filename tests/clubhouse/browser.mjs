@@ -52,13 +52,15 @@ export default async function ({ browser, page, check, outDir }) {
     // walking: the keys on a desktop, the thumb stick on a phone
     const before = await M('where');
     if (opts.hasTouch) {
-      await p.evaluate(async () => {
+      // (held for 700 ms of the game's own time, as W is: a slow computer walks no less far)
+      const stick = steps => p.evaluate(steps => {
         const c = document.querySelector('#mansion #view'), r = document.querySelector('#mansion #stick').getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-        const ev = (type, dy) => c.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'touch', clientX: x, clientY: y + dy, bubbles: true }));
-        ev('pointerdown', 0); ev('pointermove', -45);
-        await new Promise(ok => setTimeout(ok, 700));
-        ev('pointerup', -45);
-      });
+        for (const [type, dy] of steps) c.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'touch', clientX: x, clientY: y + dy, bubbles: true }));
+        return window.__mansion.played();
+      }, steps);
+      const t0 = await stick([['pointerdown', 0], ['pointermove', -45]]);
+      await rest(p, 700, t0);
+      await stick([['pointerup', -45]]);
     } else await walk(700);
     const after = await M('where');
     check(`${device}: ${opts.hasTouch ? 'the thumb stick' : 'W'} walks you up the path`, after.z - before.z > 0.8, `moved ${(after.z - before.z).toFixed(2)} m`);
