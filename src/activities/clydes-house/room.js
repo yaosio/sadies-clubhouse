@@ -502,7 +502,6 @@ export async function buildRoom(m) {
     update(t, dt = 0) {
       clock = t;
       const e = m.ears();
-      house?.update(t, dt, e);
       const here = e && e.place === place;
       if (!here && !tl.length) return;
       dt *= speed;

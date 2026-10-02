@@ -1,6 +1,7 @@
 // What Sadie says comes up in a box at the bottom of the screen, typed out a letter at a time (with no
 // sound: a blip per letter would never stop), with her face in the corner. And the black the screen
-// goes when she flies at you. Both sit just over the 3D view, under the mansion's pause menu.
+// goes when she flies at you. Both sit on the room's own layer of the page (the kit's `overlay`: just
+// over the 3D view, under the mansion's pause menu, and gone when the room's put away).
 import { portrait } from './pictures.js';
 
 const CSS = `
@@ -17,16 +18,13 @@ const CSS = `
 `;
 const CPS = 40;   // letters a second, as it types
 
-export function makeTalk(sadieImage) {
-  const root = document.getElementById('mansion') || document.body;
-  const style = document.createElement('style'); style.textContent = CSS; document.head.appendChild(style);
+export function makeTalk(sadieImage, overlay) {
+  const layer = overlay(CSS);
   const box = document.createElement('div'); box.id = 'saTalk'; box.hidden = true;
   box.innerHTML = '<canvas width="26" height="26"></canvas><div><b>SADIE</b><p><span></span><i></i></p></div>';
   portrait(box.querySelector('canvas'), sadieImage);
   const black = document.createElement('div'); black.id = 'saBlack'; black.hidden = true;
-  // (just over the 3D view, so the pause menu and the buttons still come on top)
-  const view = root.querySelector('#view');
-  if (view) { view.after(black); view.after(box); } else root.append(box, black);
+  layer.append(box, black);
   const shown = box.querySelector('span'), rest = box.querySelector('i');
   let text = null, n = -1;
   return {
@@ -41,7 +39,5 @@ export function makeTalk(sadieImage) {
     showing: () => (box.hidden ? null : text),
     // how black the screen is (0 to 1)
     black(k) { black.hidden = k <= 0; black.style.opacity = k; },
-    // gone from the page (the room's been put away)
-    remove() { box.remove(); black.remove(); style.remove(); },
   };
 }

@@ -23,12 +23,13 @@ one goes on the end of its list, there and in the code).
 
 **A building outside** is a game that lives in its room (`ROOMS.md`) whose card has `lot` or
 `grounds` instead of `slot`. Nothing on the landings changes (the hall skips it). Its kit also has:
-- `outside`: the outside place. Its `scene` and `faces` to add to; `block(x0, x1, z0, z1, y0, y1)`
-  and `blockRound(x, z, r, y0, y1)` for what's solid (from the ground up unless it says);
-  `surface((x, z) => height or null)` for somewhere more to walk on, a bridge or a balcony (each of
-  these hands back how to take it away); `uses`, for things to use out there (Clyde's weather
-  levers); and its `light` (the weather sets its sunlight).
-- `lot` (its plot) or `ground` (its spot).
+- `outside`: the outside, lent (never to a room that isn't a building): `add(...things)` into it,
+  `face(...things)` that turn to face you, `use(...uses)` for things to use out there (Clyde's weather
+  levers); `block(x0, x1, z0, z1, y0, y1)` and `blockRound(x, z, r, y0, y1)` for what's solid (from
+  the ground up unless it says); `surface((x, z) => height or null)` for somewhere more to walk on, a
+  bridge or a balcony (each of these hands back how to take it away); `is(place)`, whether a place
+  (like `ears().place`) is the outside; and `house`, the clubhouse itself (for a picture of it).
+- `lot` (its plot) or `ground` (its spot, with `joins`: where its little paths meet the outside's).
 - `skyMat` (the outside's sky, for a room that's out of doors) and `snapshot(obj, place, { from, at,
   fov, w, h })`, a picture of one thing in a place, taken once, with everything else see-through
   (the maze shows the real house over its hedges that way). Every room's kit has these too.
@@ -38,8 +39,8 @@ It builds its house into the outside's scene itself and hands back, with its pla
   Or `doors` (`{ door, back }`) for more than one way in, each joined to the room's door of that
   name (the outside calls them by its card's id, and `<id>.back`). A doorway can move (`moveTo(pos,
   yaw)`): the maze's door to the backyard is always wherever its end is.
-- `update(t, dt, ears)`: called every frame, even while its room is put away (the house stays: the
-  mansion hands it back as `house` when the room is built again).
+- `update(t, dt, ears)`: called every frame by the mansion, whether or not its room is built (the
+  house stays: the mansion hands it back as `house` when the room is built again).
 - `group` (everything in the house), `body` (what a plain block is sized to) and `farTint` (its
   colour): from further than 90 m (from you, or the door you're looking out of) the house is drawn as
   a plain block. None is that far yet. (Fog, to hide the far end, is parked: the PS1 material has

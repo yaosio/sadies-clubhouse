@@ -328,7 +328,6 @@ export async function buildRoom(m) {
     update(t, dt = 0) {
       clock = t;
       const e = ears();
-      house?.update(t, dt, e);
       if (saveAt && clock > saveAt) keepPaint();
       const here = e && e.place === place;
       // the fish turns a little, and the plunger comes back up; what the dynamite did settles down

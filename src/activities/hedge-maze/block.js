@@ -12,7 +12,7 @@ export const DW = 1.6, DH = 2.3, TRIM = 0x2a5a2a;   // the gates, and their fram
 
 export function buildBlock(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, ground } = m;
-  const scene = new Group(); outside.scene.add(scene);
+  const scene = new Group(); outside.add(scene);
   const { add, box, plane } = kit(scene);
   const x0 = ground.x - ground.w / 2, x1 = ground.x + ground.w / 2, z0 = ground.z - ground.d / 2, z1 = ground.z + ground.d / 2;
   const H = 2.8, gx = ground.x;
@@ -37,10 +37,10 @@ export function buildBlock(m, A) {
     gates[name] = d;
   }
   // the little paths: off the main path just before the porch to the front gate, and from the
-  // backyard's path to the back one
+  // backyard's path to the back one (where they join the outside's paths, its spot says: `joins`)
   const path = (x, z, w, d) => { plane(w, d, psx(T.path, { rx: w / 1.5, ry: d / 1.5, onFloor: true }), [x, 0, z], [-Math.PI / 2, 0, 0], 4).renderOrder = -1; };
-  const TURN = -3.4, YARD = 12.6;   // (where the main path's turning is, and the backyard's path)
-  path((-1.5 + gx - 0.6) / 2, TURN, -1.5 - (gx - 0.6), 1.2);
+  const { front: J, back: { z: YARD } } = ground.joins, TURN = J.z;
+  path((J.x + gx - 0.6) / 2, TURN, J.x - (gx - 0.6), 1.2);
   // (stopping just short of each gate: running on under it, it flickered against the maze's grass)
   const e0 = z0 - 0.08, e1 = z1 + 0.08;
   path(gx, (TURN - 0.6 + e0) / 2, 1.2, e0 - (TURN - 0.6));

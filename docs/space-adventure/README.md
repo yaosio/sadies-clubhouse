@@ -69,7 +69,7 @@ the cockpit through it, walking in and being strapped in, Sadie talking, the mus
 swap, landing, the black, the space room with the radio, the button, and the door afterwards).
 `tools/space-adventure/trip.mjs [phone|desktop] [times...]` takes pictures along the trip.
 
-**Put away when you're far off.** The mansion puts Space Adventure away when you've been three doors or more from it for a while (see the clubhouse's `MANSION.md`): `putAway()` closes its music for good and takes Sadie's talk box and the black off the page. It's built again from its save (whether you've been on the trip) as you come back.
+**Put away when you're far off.** The mansion puts Space Adventure away when you've been three doors or more from it for a while (see the clubhouse's `MANSION.md`): `putAway()` closes its music for good, and Sadie's talk box and the black go with its layer of the page (the kit's `overlay`). It's built again from its save (whether you've been on the trip) as you come back.
 
 ## Parked ideas
 

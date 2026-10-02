@@ -352,27 +352,28 @@ export async function buildRoom(m) {
   function finished() { place.holding = null; doneAt = 0; putSignUp(); }
 
   // ---------- out in the hall: the yarn ball loose for ever, and Sadie chasing it ----------
-  // (loose.js has how; here they're drawn in the hall, which the mansion hands over as m.hall)
+  // (loose.js has how; here they're drawn in the hall, which the mansion lends as m.hall: ROOMS.md)
   const hall = m.hall, loose = hall?.shape ? makeLoose(hall.shape, Math.floor(Math.random() * 1e6) + 1) : null;
-  let hallBall = null, hallCat = null;
+  let hallBall = null, hallCat = null, outOfHall = [], giveSadieBack = null;
   // Sadie's sounds while she plays (sounds/sadie.js: rare and soft, never two close together),
   // heard only in the hall, fading the further off she is. The ball itself stays silent.
   const chatter = makeChatter(Math.floor(Math.random() * 1e6) + 1);
   function sadieHeard(said) {
     const e = m.ears?.();
-    if (!said || !e || e.place !== hall) return;
+    if (!said || !e || !hall.is(e.place)) return;
     if (!sound) sound = makeSounds(sfx);   // (it wakes on your next press or key, if the browser's still holding it back)
     sound.sadie(said, Math.hypot(loose.cat.x - e.x, loose.cat.y + 0.3 - e.y, loose.cat.z - e.z));
   }
   if (loose) {
-    hallBall = new Mesh(ball.geometry, ball.material); hallBall.visible = false; hall.scene.add(hallBall);
-    hallCat = new Mesh(sadie.geometry, psx(T.sadie, { unlit: 0.4 })); hallCat.visible = false; hall.scene.add(hallCat); hall.faces.push(hallCat);
+    hallBall = new Mesh(ball.geometry, ball.material); hallBall.visible = false;
+    hallCat = new Mesh(sadie.geometry, psx(T.sadie, { unlit: 0.4 })); hallCat.visible = false;
+    outOfHall = [hall.add(hallBall, hallCat), hall.face(hallCat)];   // (how to take them out again)
   }
   // just now: bouncing out of the door onto the landing, Sadie a moment behind it; or (it got out
   // before) somewhere on the ground floor, Sadie beside it
   function outInTheHall(now) {
     if (!loose) return;
-    if (hall.napping) hall.napping.visible = false;   // her box in the sunbeam is empty: she's busy
+    giveSadieBack ||= hall.borrowSadie();   // her box in the sunbeam is empty: she's busy
     const d = m.landingDoor, s = hall.shape;
     if (now && d) {
       const n = d.normal, y = d.pos.y;
@@ -395,8 +396,8 @@ export async function buildRoom(m) {
     putAway() {
       if (dirty) keep_();
       leaving.abort(); sfx.close();
-      if (hallBall) { hall.scene.remove(hallBall, hallCat); hall.faces.splice(hall.faces.indexOf(hallCat), 1); }
-      if (hall.napping) hall.napping.visible = true;   // (back in her box in the sunbeam till the room's built again)
+      for (const out of outOfHall) out();
+      giveSadieBack?.();   // (back in her box in the sunbeam till the room's built again)
     },
     watch: null,     // what your view follows (the yarn ball, while it's getting out)
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },
@@ -497,7 +498,7 @@ export async function buildRoom(m) {
       escape: escape === 'gone' ? 'gone' : escape ? 'hop ' + escape.i : null, sadie: sadie.visible, doorHeld: !!place.holding, sign: signUp,
       yarn: ball.getWorldPosition(new Vector3()).toArray(), watched: !!place.watch,
       hall: loose?.ball ? { ball: [loose.ball.x, loose.ball.y, loose.ball.z], cat: [loose.cat.x, loose.cat.y, loose.cat.z], mode: loose.cat.mode,
-        whacks: loose.whacks, pops: loose.pops, shown: hallBall.visible && hallCat.visible, napping: !!hall.napping?.visible } : null,
+        whacks: loose.whacks, pops: loose.pops, shown: hallBall.visible && hallCat.visible, napping: !hall.sadieBorrowed() } : null,
       music: music ? { playing: music.playing, notes: music.played() } : null,
       sounds: sound ? sound.played : 0, lastSound: sound ? sound.last : null, heard: sound ? sound.log.slice() : [], face: showing }),
     // put the ball back on the paddle (it stays there till it's thrown)

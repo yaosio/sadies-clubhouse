@@ -86,7 +86,7 @@ export function buildWeather(m, group) {
     A.forecast(shown);
   }
   show();
-  outside.uses.push(...uses);
+  outside.use(...uses);
 
   function pull(k) {
     const now = weather.set(next(weather.now(), k));

@@ -29,6 +29,7 @@ import { buildOutside } from './outside.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
+import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
 import { store, saveBox, saveRoom, backup, loadBackup } from '../shared/storage.js';
 import { makeTheme } from './music/theme.js';
 import { makeWeather } from './weather/sky.js';
@@ -79,6 +80,8 @@ export async function open(cards, enter) {
   // the weather, over every place out of doors (weather/): whoever makes it just says which (the kit's `weather`)
   const weather = makeWeather(T, outside);
   for (const x of made()) shared.add(x);   // (its things go with no room)
+  // what a room is lent of the hall, and a building of the outside (neighbours.js: only what the docs list)
+  const lent = { hall: hallView(hall), outside: outsideView(outside) };
   const took = Math.round(performance.now() - t0);
   const speed = { places: { 'outside and hall': took }, bits: { 'outside and hall': took }, first: 0 };
   // a room per card: `place` once it's built
@@ -121,10 +124,12 @@ export async function open(cards, enter) {
       if (!c.room) w = buildRoom(T, c, boxes[i], doorPics[i]);
       else {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
-        w = await code.buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
-          doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null,
-          ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null, skyMat, snapshot, house: r.house, ears, paused: () => mode === 'menu',
-          saves: saveBox(c.id), weather: weather.kit });
+        // (asking it for anything else is an error: neighbours.js)
+        w = await code.buildRoom(strict('the kit', { T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
+          doorImage: doorPics[i], landingDoor: doorView(hall.doors[c.id]), hall: lent.hall, outside: outdoors(c) ? lent.outside : null,
+          lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null,
+          skyMat, snapshot, house: r.house ?? null, ears, paused: () => mode === 'menu', saves: saveBox(c.id), weather: weather.kit,
+          overlay: css => overlay(r, css), testing }));
       }
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
@@ -156,6 +161,8 @@ export async function open(cards, enter) {
     const w = r.place;
     if (!w || w === me.world || r.building || w.holding || w.busy?.()) return false;
     w.putAway?.(); closeSounds(r.name);   // (everything it started stops, whatever it forgot)
+    for (const o of r.overlays || []) o.remove();   // (and its boxes on the page go)
+    r.overlays = null;
     for (const p of r.portals) { p.b = p.wb = null; p.open = 0; p.a.setOpen(0); if (lastThrough === p) lastThrough = null; }
     const mine = new Set(r.mine);
     for (const sc of w.scenes || [w.scene]) things(sc, mine);
@@ -167,6 +174,17 @@ export async function open(cards, enter) {
     handedBack(gone); r.mine = null;
     return true;
   }
+  // A room's own box on the page (`overlay(css)`): a layer just over the 3D view, under the pause menu
+  // and the buttons, with its styles; it's gone from the page when the room's put away.
+  function overlay(r, css) {
+    const layer = document.createElement('div'); layer.style.cssText = 'position:absolute;inset:0;pointer-events:none';
+    const style = document.createElement('style'); style.textContent = css || '';
+    document.head.appendChild(style); canvas.after(layer);
+    (r.overlays ||= []).push(layer, style);
+    return layer;
+  }
+  // the test version (its label's on the page): a room can show things only for checking (the aquarium's sound tester)
+  const testing = !!document.getElementById('testBadge');
   // every shape, material and picture in a scene
   function things(scene, into) {
     scene.traverse(o => {
@@ -255,6 +273,7 @@ export async function open(cards, enter) {
   // pixels, lit as `place` is. A place that can't see the real thing shows the picture instead, so
   // it's never out of date: the hedge maze's view of the clubhouse over its hedges.
   function snapshot(obj, place, { from, at, fov = 40, w = 256, h = 256 }) {
+    place = realPlace(place);   // (a room has the outside lent to it: neighbours.js)
     const target = keep(new WebGLRenderTarget(w, h, { minFilter: NearestFilter, magFilter: NearestFilter }));
     const c = new PerspectiveCamera(fov, w / h, 0.5, 400); c.position.set(...from); c.lookAt(...at); c.updateMatrixWorld();
     const was = res.clone(), alpha = renderer.getClearAlpha(), hid = [];
@@ -713,7 +732,7 @@ export async function open(cards, enter) {
   });
 
   // ---------- the loop ----------
-  let raf = 0, last = performance.now(), frames = 0, played = 0, blinkAt = 3, blinkOff = 0, hintGone = false, watching = false;
+  let raf = 0, last = performance.now(), frames = 0, played = 0, hintGone = false, watching = false;
   const born = performance.now();
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now; played += dt; const t = now / 1000;
@@ -778,11 +797,8 @@ export async function open(cards, enter) {
     const hush = me.world.hush;
     theme.tick(typeof hush === 'function' ? !!hush() : !!hush);
     farHouses();
-    // (a house outside the gate whose room is put away: the house still moves, like the rest of outside)
-    for (const r of slots) if (r.house && !r.place) r.house.update(t, dt, ears());
-    // Sadie on the gatepost blinks now and then
-    if (t > blinkAt) { outside.sadie.material.uniforms.map.value = T.nap; blinkOff = t + 0.15; blinkAt = t + 2.5 + Math.random() * 3; }
-    if (blinkOff && t > blinkOff) { outside.sadie.material.uniforms.map.value = T.sadie; blinkOff = 0; }
+    // (a house outside the gate, whether or not its room's built: it's part of outside)
+    for (const r of slots) if (r.house) r.house.update(t, dt, ears());
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
