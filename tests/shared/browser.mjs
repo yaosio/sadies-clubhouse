@@ -29,6 +29,7 @@ export async function openDevice(browser, opts) {
 //   rest(ms): let that long go by in the game (see rest below)
 //   use(): E on a desktop, the button on a phone
 //   modeIs(mode): wait for the mansion to be in that mode ('play', 'arcade'...; false if it isn't)
+//   until(fn, arg, ms): wait for fn(arg) on the page to come true, for up to ms of the game's time
 export function bothDevices(browser, outDir, fn) {
   return Promise.all(DEVICES.map(async ([device, opts]) => {
     const { ctx, p, errors } = await openDevice(browser, opts);
@@ -41,6 +42,7 @@ export function bothDevices(browser, outDir, fn) {
       rest: ms => rest(p, ms),
       use: () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE'),
       modeIs: m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false),
+      until: (f, a, ms) => until(p, f, a, ms),
     };
     try { await fn(kit); } finally { await ctx.close().catch(() => {}); }
   }));
@@ -54,6 +56,22 @@ export async function rest(p, ms, from) {
   const t0 = from ?? await p.evaluate(() => window.__mansion?.played());
   if (t0 === undefined) return p.waitForTimeout(ms);
   await p.waitForFunction(([t0, s]) => !window.__mansion || window.__mansion.played() - t0 >= s, [t0, ms / 1000], { polling: 'raf', timeout: ms * 8 + 5000 }).catch(() => {});
+}
+
+// Wait for something to happen in the game (`fn(arg)` run on the page comes true), giving up only
+// once `ms` of the game's own time has gone by (and, if the game stops counting, after plenty of the
+// clock's). For anything the game does on its own timers (Sadie getting up, a ball coming back):
+// waiting by the clock gives up too soon on a slow computer, where the game falls behind the clock.
+// Whether it happened. (Without the mansion on the page, it's the clock.)
+export async function until(p, fn, arg, ms) {
+  const played = () => p.evaluate(() => window.__mansion?.played()).catch(() => undefined);
+  const t0 = await played(), start = Date.now(), cap = ms * 8 + 5000;
+  for (;;) {
+    if (await p.evaluate(fn, arg).catch(() => false)) return true;
+    const t = await played(), gone = t0 === undefined || t === undefined ? Date.now() - start : (t - t0) * 1000;
+    if (gone >= ms || Date.now() - start >= cap) return !!(await p.evaluate(fn, arg).catch(() => false));
+    await p.waitForTimeout(50);
+  }
 }
 
 // Hold a key down (W: forward) for `ms` of the game's own time (so a slow computer doesn't stop

@@ -1,7 +1,7 @@
 // Checks everything before a change goes anywhere: each activity's headless tests, a fresh build,
 // and the built page played in a real (hidden) browser, as a phone and as a desktop.
 //
-//   npm run check                  everything (about 2.5 minutes if nothing can be skipped)
+//   npm run check                  everything (about 11 minutes here if nothing can be skipped)
 //   npm run check -- --quick       skip the headless tests (for a quick look while working)
 //
 // It starts with the code checker (ESLint, `npm run lint`, a few seconds, every time): it finds
