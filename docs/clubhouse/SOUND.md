@@ -49,5 +49,7 @@ sounds. The owner has misophonia: nothing droning, constant or repetitive.
   (music on a music line) and keeps every rule for free. The clubhouse's headless test fails if
   anything else makes an AudioContext or plays straight to the speakers, and its browser test
   visits every room and fails if any of its music is still heard after you've left, or anything
-  of it is left once it's put away.
+  of it is left once it's put away. And standing still for 30 s in every room in the mansion, outside at the gate and in the hall
+  (`tests/shared/ears.mjs`, no code of a room's own) it fails on the same sound more than 4 times,
+  more than 12 sounds in all, or anything but music held on: a drone or a tick slipping in.
 
