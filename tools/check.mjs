@@ -13,17 +13,19 @@
 //                                  what that page was built from counts as having passed its tests
 //   npm run check -- --only a,b    just those activities ('clubhouse': the mansion's own checks)
 //   npm run check -- --plan        just print which activities still need checking (for GitHub)
+//   npm run check -- --no-lint     skip the code checker (GitHub runs it once for the whole change)
 //
 // On GitHub (.github/workflows/check.yml) every pull request runs this too, each activity that needs
 // it on a computer of its own, all at once, remembering what passed between runs.
 //
 // Each activity is checked on its own, so a change to one never means retesting the others:
 //   - its headless tests (tests/<activity>/run.mjs) depend only on its own folder
-//     (src/activities/<activity>/), its tests, the shared toolbox (src/shared/) and package.json;
+//     (src/activities/<activity>/), its tests, the shared toolbox (src/shared/) and what everything
+//     runs on (package.json, package-lock.json, .nvmrc);
 //   - its browser checks (tests/<activity>/browser.mjs) depend on those plus its own tools
 //     (tools/<activity>/), the clubhouse's shell (the files directly in src/; not the mansion in
 //     src/clubhouse/, which an activity on a computer never needs, unlike a game that lives in its
-//     room, like Brickbuster) and the build and check tools.
+//     room, like Brickbuster) and the build and check tools (and GitHub's own steps for them).
 // Once either has passed on exactly those files it isn't run again until one of them changes. This
 // session remembers it in dist/, which makes the check at merge time quick when the branch was
 // checked here. A fresh session has no memory of it, but the live game page does: it's only ever
@@ -50,7 +52,7 @@ import { activityIds } from './activities.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
-const quick = args.includes('--quick'), preview = args.includes('--preview'), retest = args.includes('--retest');
+const quick = args.includes('--quick'), preview = args.includes('--preview'), retest = args.includes('--retest'), lint = !args.includes('--no-lint');
 const valueOf = flag => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
 // --only a,b: just those activities ('clubhouse' for the mansion), as GitHub does, one per computer
 const only = valueOf('--only')?.split(','), wanted = a => !only || only.includes(a);
@@ -86,10 +88,14 @@ const ACTIVITIES = activityIds(root).filter(wanted);
 // what an activity's tests depend on, and what its browser checks depend on besides
 // (the mansion's own headless tests: its music's, and that every sound in the game goes through the
 // sound director, so they depend on all of src/)
-const testPaths = a => a === 'clubhouse' ? ['package.json', 'src', 'tests/clubhouse', 'tools/activities.mjs'] : ['package.json', 'src/shared', `src/activities/${a}`, `tests/${a}`];
+// what everything runs on: the tools' exact versions and Node's (a change there could change any result)
+const BASE = ['package.json', 'package-lock.json', '.nvmrc'];
+// the build and check tools every browser check runs through, and GitHub's own steps for them
+const TOOLS = ['tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs', 'tools/source.mjs', '.github/workflows/check.yml'];
+const testPaths = a => a === 'clubhouse' ? [...BASE, 'src', 'tests/clubhouse', 'tools/activities.mjs'] : [...BASE, 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs', ...(inMansion(a) ? ['src/clubhouse'] : []),
+const pagePaths = a => [`tools/${a}`, ...TOOLS, ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
@@ -127,7 +133,7 @@ const mode = preview ? 'preview' : 'real';
 const testHash = Object.fromEntries([...ACTIVITIES, 'clubhouse'].map(a => [a, hashOf(testPaths(a))]));
 const browserHashes = Object.fromEntries(ACTIVITIES.map(a => [a, hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode]));
 const browserHash = a => browserHashes[a];
-const clubHash = hashOf(['package.json', 'src', 'tests/clubhouse', 'tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs']) + '-' + mode;
+const clubHash = hashOf([...BASE, 'src', 'tests/clubhouse', ...TOOLS]) + '-' + mode;
 // --plan: just say which of them still need checking (on GitHub, so only those get a computer):
 // those whose tests or browser checks haven't passed on exactly this code
 if (args.includes('--plan')) {
@@ -146,7 +152,7 @@ for (const a of toCheck) {
 }
 
 // ---------- the code checker (a few seconds, so always) ----------
-check('code checker (npm run lint)', run('code checker', 'npx', ['eslint', '.']));
+if (lint) check('code checker (npm run lint)', run('code checker', 'npx', ['eslint', '.']));
 check('the docs every change reads (tools/docs.mjs)', run('the docs every change reads', 'node', ['tools/docs.mjs']));
 
 // ---------- 1. each activity's headless tests (unless they passed on this exact code already) ----------
