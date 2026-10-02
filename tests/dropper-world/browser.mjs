@@ -18,10 +18,10 @@ const SAVE_KEY = 'sadies-dropper-world.save';
 // ---------- a full board to load (remade only when the game's code changes) ----------
 // tools/check.mjs starts this before the headless tests, so the board (about a minute and a half of
 // work) is made alongside them rather than after. Resolves to the save's text, or an Error.
-export function prepare({ root, hashOf }) {
-  const boardFile = join(root, 'dist/fullboard-' + hashOf(['src/activities/dropper-world/core', 'src/activities/dropper-world/config.js', 'tools/dropper-world/fullboard.mjs']) + '.json');
+export function prepare({ root, hashOf, dir }) {
+  const boardFile = join(dir, 'fullboard-' + hashOf(['src/activities/dropper-world/core', 'src/activities/dropper-world/config.js', 'tools/dropper-world/fullboard.mjs']) + '.json');
   if (existsSync(boardFile)) return Promise.resolve(readFileSync(boardFile, 'utf8'));
-  for (const f of readdirSync(join(root, 'dist'))) if (/^fullboard-.*\.json$/.test(f)) rmSync(join(root, 'dist', f));
+  for (const f of readdirSync(dir)) if (/^fullboard-.*\.json$/.test(f)) rmSync(join(dir, f));
   console.log('(making a full board in the background: the game changed since the last one)');
   return new Promise(done => {
     const c = spawn(process.execPath, ['tools/dropper-world/fullboard.mjs', boardFile], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });

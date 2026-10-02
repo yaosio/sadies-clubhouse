@@ -6,8 +6,6 @@
 // touchdown, the radio's song going round cleanly. Run in Node, in a few seconds.
 //
 //   node tests/space-adventure/run.mjs
-import { readdirSync, existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import card from '../../src/activities/space-adventure/card.js';
 import { T, LINES, lineAt, AFTER, planetSize, PLANET_FROM, entry, shipAt, sadieAt, heightAt, shore, GROUND, SKIDS, SEAT, EYE, DASH, LOCK_Z, RD, readSave } from '../../src/activities/space-adventure/trip.js';
 import { tripSong, radioSong, LANDING } from '../../src/activities/space-adventure/music/song.js';
@@ -18,16 +16,13 @@ function check(name, ok, detail) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
   if (!ok) failed++;
 }
-const root = join(new URL('.', import.meta.url).pathname, '../..');
 
 // 1. the card: a room in the mansion, behind the sixth door, with its own door picture
 check('the card is a room in the mansion', card.id === 'space-adventure' && typeof card.room === 'function' && !card.start && !card.page);
 const png = Buffer.from(card.door.split(',')[1] || '', 'base64');
 const w = png.length > 24 ? png.readUInt32BE(16) : 0, h = png.length > 24 ? png.readUInt32BE(20) : 0;
 check('its door is a 40 x 64 picture, like every door', card.door.startsWith('data:image/png;base64,') && w === 40 && h === 64, `${w} x ${h}`);
-const others = readdirSync(join(root, 'src/activities')).filter(d => d !== card.id && existsSync(join(root, 'src/activities', d, 'card.js')))
-  .map(d => ({ id: d, slot: Number((readFileSync(join(root, 'src/activities', d, 'card.js'), 'utf8').match(/^\s*slot:\s*(\d+)/m) || [])[1]) }));
-check('its door is the sixth on the landing, and no other activity has that one', card.slot === 5 && !others.some(c => c.slot === card.slot), others.map(c => `${c.id} ${c.slot}`).join(', '));
+check('its door is the sixth on the landing (the room checker sees no other activity has it)', card.slot === 5);
 check('starting it over forgets the trip', card.keeps.length === 1 && card.keeps[0] === 'sadies-clubhouse.space-adventure.');
 
 // 2. what Sadie says

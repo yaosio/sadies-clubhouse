@@ -72,12 +72,12 @@ jobs:
           path: dist/*-passed-*
           key: passed-${{ github.sha }}
           restore-keys: passed-
-      # Dropper World's full board (remade only when its game changes)
-      - if: matrix.activity == 'dropper-world'
-        uses: actions/cache@v4
+      # anything an activity's checks make first (its browser.mjs's prepare(): Dropper World's full
+      # board), kept until that activity's own files change
+      - uses: actions/cache@v4
         with:
-          path: dist/fullboard-*.json
-          key: fullboard-${{ hashFiles('src/activities/dropper-world/core/**', 'src/activities/dropper-world/config.js', 'tools/dropper-world/fullboard.mjs') }}
+          path: dist/prepared/${{ matrix.activity }}
+          key: prepared-${{ matrix.activity }}-${{ hashFiles(format('src/activities/{0}/**', matrix.activity), format('tools/{0}/**', matrix.activity)) }}
       - run: npm run check -- --only ${{ matrix.activity }}
       - if: always()
         uses: actions/upload-artifact@v4

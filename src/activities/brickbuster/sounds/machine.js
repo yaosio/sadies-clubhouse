@@ -1,6 +1,7 @@
 // Brickbuster '96's machine: the paddle's BOING, the bricks' blips (higher rows, higher notes), and
 // the low wooden tock of the sides of the case (and of bricks landing on the heap).
-import { RATE, TAU, crunch as finish } from '../../../shared/retro.js';
+import { RATE, TAU } from '../../../shared/retro.js';
+import { crunch as finish } from './crunch.js';
 
 // The paddle: a springy square-wave BOING, the pitch wobbling up.
 export function boing(off = 0) {

@@ -11,7 +11,7 @@
 //
 // Random numbers are seeded, so the same code gives the same run (the times vary a little).
 // Times are for this machine; a slow phone is several times slower.
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
@@ -20,14 +20,15 @@ let seed = 7;
 Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
 const mem = {}; // the save is read from "localStorage", like in the browser
 globalThis.localStorage = { getItem: k => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: k => { delete mem[k]; } };
-const boardFile = readdirSync(join(root, 'dist')).find(f => /^fullboard-.*\.json$/.test(f));
-if (!boardFile) { console.error('no full board in dist/: run node tools/dropper-world/fullboard.mjs dist/fullboard-x.json (or npm run check) first'); process.exit(2); }
+const boards = join(root, 'dist/prepared/dropper-world');   // (where the checks keep theirs)
+const boardFile = existsSync(boards) && readdirSync(boards).find(f => /^fullboard-.*\.json$/.test(f));
+if (!boardFile) { console.error('no full board in dist/prepared/dropper-world/: run npm run check (or node tools/dropper-world/fullboard.mjs dist/prepared/dropper-world/fullboard-x.json) first'); process.exit(2); }
 
 const src = new URL('../../src/activities/dropper-world/', import.meta.url);
 const { world } = await import(new URL('core/world.js', src));
 const { update } = await import(new URL('core/game.js', src));
 const { loadGame, SAVE_KEY } = await import(new URL('core/save.js', src));
-mem[SAVE_KEY] = readFileSync(join(root, 'dist', boardFile), 'utf8');
+mem[SAVE_KEY] = readFileSync(join(boards, boardFile), 'utf8');
 if (!loadGame()) { console.error('the full board could not be loaded'); process.exit(1); }
 
 for (let f = 0; f < 600; f++) update(1 / 60); // warm up (the first steps are slow while the code is compiled)

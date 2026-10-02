@@ -1,7 +1,8 @@
 // The yarn ball hitting Sadie's QUIET!! poster: a squeaky little wheee going up, then a sad droop
 // down that's cut off dead, like a speaker being switched off mid-sound. The ball never makes
 // another sound after it.
-import { RATE, TAU, crunch as finish } from '../../../shared/retro.js';
+import { RATE, TAU } from '../../../shared/retro.js';
+import { crunch as finish } from './crunch.js';
 
 export function mute() {
   const n = Math.round(0.62 * RATE), a = new Float32Array(n + Math.round(0.15 * RATE));

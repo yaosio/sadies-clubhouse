@@ -10,7 +10,7 @@ its places and doorways, building and putting rooms away, walking and controls, 
   after the `#` (`#dropper-world`, used by its checks) goes straight into it. It runs one activity
   at a time: it puts that activity's styles and page in, then calls `start()`. It also puts
   an ESC BACK key in the activity's top left corner (its own look, in a candy keycap style; an
-  activity keeps that corner free). Pressing it, or Escape when the activity didn't use the key for
+  activity keeps that corner free, with the toolbox's `roomForBack(strip, host)`, `src/shared/back.js`). Pressing it, or Escape when the activity didn't use the key for
   something itself (`preventDefault()`, like Dropper World closing its dev sheet), reloads the page
   into the clubhouse, so an activity never has to tidy up after itself (its timers, listeners and
   loop just stop). It must save when the page goes away, through the save director's `onLeave(fn)`

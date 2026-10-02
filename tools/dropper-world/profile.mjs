@@ -14,7 +14,7 @@
 // graphics card, so "drawing to screen" costs look different from a real phone; the game's own
 // code (physics, the characters, preparing each drawing) is measured fairly.
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from '../serve.mjs';
 import { chromium, quietFonts } from '../browser.mjs';
@@ -26,13 +26,15 @@ const seconds = +opt('--seconds', 40), slow = +opt('--slow', 4), desktop = args.
 const SAVE_KEY = 'sadies-dropper-world.save';
 
 if (!args.includes('--no-build') && spawnSync('node', ['tools/build.mjs', '--readable'], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
-let boardFile = readdirSync(join(root, 'dist')).find(f => /^fullboard-.*\.json$/.test(f));
+const boards = join(root, 'dist/prepared/dropper-world');   // (where the checks keep theirs)
+mkdirSync(boards, { recursive: true });
+let boardFile = readdirSync(boards).find(f => /^fullboard-.*\.json$/.test(f));
 if (!boardFile) {
   boardFile = 'fullboard-profile.json';
   console.log('making a full board (about a minute)');
-  if (spawnSync('node', ['tools/dropper-world/fullboard.mjs', join(root, 'dist', boardFile)], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
+  if (spawnSync('node', ['tools/dropper-world/fullboard.mjs', join(boards, boardFile)], { cwd: root, stdio: 'inherit' }).status !== 0) process.exit(1);
 }
-const board = readFileSync(join(root, 'dist', boardFile), 'utf8');
+const board = readFileSync(join(boards, boardFile), 'utf8');
 
 // which source file each line of each game file came from (the bundler marks each file's start)
 const fileOfLine = {};

@@ -2,7 +2,7 @@
 // enamel and its signs, a plate under each lever, the forecast screen (drawn again as the weather
 // changes), and the puff out of its funnel. (The weather's own pictures are the world's: src/clubhouse/weather/.)
 import { NAMES, FORECAST } from './weather.js';
-import { rect, dith, disc } from './art.js';
+import { rect, dith, disc, signs } from './art.js';
 
 // the machine's own colours: mint enamel, brass, and Clyde's terracotta
 export const W = { mint: '#6ee0c0', mint2: '#3aa88a', mint3: '#1e6a58', brass: '#ffd23a', brass2: '#c89018', edge: '#5a2414', body: '#d97757' };
@@ -16,12 +16,7 @@ export function drawWeatherArt({ tex, words, C }) {
     rect(g, W.mint3, 0, 15, 16, 1); rect(g, '#b8fff0', 0, 0, 16, 1);
     for (const x of [2, 13]) { rect(g, W.brass2, x, 2); rect(g, W.brass2, x, 12); rect(g, W.brass, x, 1); }
   });
-  const board = (w, h, lines, bg = C.cream) => tex(w, h, g => {
-    rect(g, W.edge, 0, 0, w, h); rect(g, bg, 1, 1, w - 2, h - 2); rect(g, W.body, 1, 1, w - 2, 2); rect(g, W.body, 1, h - 3, w - 2, 2);
-    const lh = lines.map(l => (l[1] || 1) * 5 + 2), tot = lh.reduce((a, b) => a + b, 0) - 2;
-    let y = Math.round((h - tot) / 2);
-    lines.forEach(([text, s = 1, col = C.ink], i) => { words(g, text, w / 2, y, s, col, { align: 'center' }); y += lh[i]; });
-  });
+  const board = signs({ tex, words, C }, W.edge, W.body, C.cream);
   A.title = board(100, 32, [["CLYDE'S", 1, W.edge], ['WEATHER MACHINE', 1, C.ink], ['MORE WEATHER IN THE', 1, W.mint3], ['FULL VERSION!', 1, W.mint3]], C.yellow);
   A.note = board(64, 30, [['PLEASE DO NOT', 1, C.ink], ['PULL THE LEVERS.', 1, C.ink], ['(THAT WAS A JOKE.', 1, W.edge], ['PLEASE DO.)', 1, W.edge]]);
 

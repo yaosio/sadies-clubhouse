@@ -5,8 +5,6 @@
 // in a second or two.
 //
 //   node tests/aquarium/run.mjs
-import { readdirSync, existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import card from '../../src/activities/aquarium/card.js';
 import { TW, T0, T1, GZ, BZ, FINDS, dive, surfaceHome, LOW } from '../../src/activities/aquarium/tank.js';
 import { SPOTS, START, SEA_R, BOAT, REEF_R, sailable, findHere, reefOpen, loom, MT, LOOK, readSave } from '../../src/activities/aquarium/chart.js';
@@ -19,17 +17,13 @@ function check(name, ok, detail) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
   if (!ok) failed++;
 }
-const root = join(new URL('.', import.meta.url).pathname, '../..');
 
 // 1. the card: a room in the mansion, behind the fifth door, with its own door picture
 check('the card is a room in the mansion', card.id === 'aquarium' && typeof card.room === 'function' && !card.start && !card.page);
 const png = Buffer.from(card.door.split(',')[1] || '', 'base64');
 const w = png.length > 24 ? png.readUInt32BE(16) : 0, h = png.length > 24 ? png.readUInt32BE(20) : 0;
 check('its door is a 40 x 64 picture, like every door', card.door.startsWith('data:image/png;base64,') && w === 40 && h === 64, `${w} x ${h}`);
-// (the other cards are read as text: some only load in a browser)
-const others = readdirSync(join(root, 'src/activities')).filter(d => d !== 'aquarium' && existsSync(join(root, 'src/activities', d, 'card.js')))
-  .map(d => ({ id: d, slot: Number((readFileSync(join(root, 'src/activities', d, 'card.js'), 'utf8').match(/^\s*slot:\s*(\d+)/m) || [])[1]) }));
-check('its door is the fifth on the landing, and no other activity has that one', card.slot === 4 && !others.some(c => c.slot === card.slot), others.map(c => `${c.id} ${c.slot}`).join(', '));
+check('its door is the fifth on the landing (the room checker sees no other activity has it)', card.slot === 4);
 
 // 2. the fish swim in the water, well away from the glass, the back, the sand and the // 4. the dive into the ocean, and back: never through the glass or the rim; the swap happens down at
 // the sand, looking straight down, well inside the tank; and home brings you back where you stood
