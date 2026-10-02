@@ -4,6 +4,7 @@ import { U } from './config.js';
 import { world } from './core/world.js';
 import { resetGame } from './core/game.js';
 import { loadGame, saveGame } from './core/save.js';
+import { onLeave } from '../../shared/storage.js';
 import { groundAt } from './core/surface.js';
 import { sadie } from './core/sadie/brain.js';
 import { chooter, peekSpot } from './core/friends/chooter.js';
@@ -45,8 +46,7 @@ requestAnimationFrame(frame);
 // covers a crash. A full board's save (about 200 KB) costs a slow phone a frame or two, so not
 // more often than this.
 setInterval(saveGame, 60000);
-document.addEventListener('visibilitychange', () => { if (document.hidden) saveGame(); });
-window.addEventListener('pagehide', saveGame);
+onLeave(saveGame);   // (the save director's: never after the pause menu's start-over)
 
 // For automated testing in a browser.
 // sx/sy: where on the page (for tapping), the board being inside the frame.

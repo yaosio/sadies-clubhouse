@@ -30,7 +30,7 @@ import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
 import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
-import { store, saveBox, saveRoom, backup, loadBackup } from '../shared/storage.js';
+import { store, saveBox, saveRoom, backup, loadBackup, forget, reloading } from '../shared/storage.js';
 import { makeTheme } from './music/theme.js';
 import { makeWeather } from './weather/sky.js';
 import { arcade } from './play/arcade.js';
@@ -664,8 +664,8 @@ export async function open(cards, enter) {
   // Starting over, from the pause menu: everything at once, or one thing at a time. Nothing is
   // erased until you say yes.
   const resets = [
-    ['EVERYTHING', 'EVERYTHING IN THE CLUBHOUSE', () => { try { localStorage.clear(); sessionStorage.clear(); } catch {} }],
-    ["SADIE'S INVITATION", "SADIE'S INVITATION", () => store.remove(INVITED)],
+    ['EVERYTHING', 'EVERYTHING IN THE CLUBHOUSE', () => forget()],
+    ["SADIE'S INVITATION", "SADIE'S INVITATION", () => forget([INVITED])],
     ...cards.filter(c => c.keeps).map(c => [c.name.toUpperCase(), c.name.toUpperCase(), () => forget(c.keeps)]),
   ];
   let undoing = null;
@@ -686,11 +686,10 @@ export async function open(cards, enter) {
     });
     $('#resets').appendChild(b);
   }
-  on($('#sureYes'), 'click', () => { if (undoing && undoing() !== false) location.reload(); });
+  // (then the page starts afresh, with nothing saved on the way out: a room's last save would put
+  // back what was just erased)
+  on($('#sureYes'), 'click', () => { if (undoing && undoing() !== false) { reloading(); location.reload(); } });
   on($('#sureNo'), 'click', () => ask(false));
-  function forget(prefixes) {
-    try { for (const k of Object.keys(localStorage)) if (prefixes.some(p => k.startsWith(p))) localStorage.removeItem(k); } catch {}
-  }
 
   // Your saves (src/shared/storage.js): how much room they take, a warning when they're nearly
   // full (past that, a save quietly fails), and a backup: one file with every save in the

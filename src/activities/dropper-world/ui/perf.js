@@ -9,12 +9,13 @@ import { bedrock } from '../core/bedrock.js';
 import { rockInfo } from '../core/surface.js';
 import { U } from '../config.js';
 import { vp } from '../render/view.js';
+import { SAVES } from '../core/saves.js';
 
 const perfEl = document.getElementById('perf'), perfList = document.getElementById('perfList'), pcv = document.getElementById('perfCv'), pctx = pcv.getContext('2d');
 const perfToggle = document.getElementById('perfToggle');
-export const prof = { on: !!store.get('jellystack.perf', false), hist: new Float32Array(150), hi: 0,
+export const prof = { on: !!store.get(SAVES.perf, false), hist: new Float32Array(150), hi: 0,
   frames: 0, sumFrame: 0, sumGame: 0, sumWork: 0, sumPhys: 0, sumLogic: 0, sumDraw: 0, worst: 0, steps: 0, pairs: 0, touching: 0, lastReport: 0, slow: 0 };
-export function setPerf(v) { prof.on = v; perfEl.hidden = !v; perfToggle.checked = v; store.set('jellystack.perf', v); }
+export function setPerf(v) { prof.on = v; perfEl.hidden = !v; perfToggle.checked = v; store.set(SAVES.perf, v); }
 perfToggle.addEventListener('change', () => setPerf(perfToggle.checked));
 setPerf(prof.on);
 function reportPerf(now) {

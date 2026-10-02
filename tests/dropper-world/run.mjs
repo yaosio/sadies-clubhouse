@@ -371,8 +371,18 @@ if (wanted(9)) {
   check('a save from a different version is refused, not half-loaded', threw);
   clearTower();
   check('"Clear tower" empties the board but Sadie keeps Chooter', world.pieces.filter(p => !p.fixed).length === 0 && chooter.met);
+  const { tuning, DEFAULTS } = await import('../../src/activities/dropper-world/config.js');
+  tuning.set.gravity = 2;
   startOver();
-  check('"Start over" forgets everything, Chooter included', world.pieces.filter(p => !p.fixed).length === 0 && !chooter.met && world.climbBest === 0);
+  check('"Start over" forgets everything, Chooter and the dev sheet\'s physics included (as the pause menu\'s does)', world.pieces.filter(p => !p.fixed).length === 0 && !chooter.met && world.climbBest === 0 && tuning.set.gravity === DEFAULTS.gravity);
+  const { SAVES } = await import('../../src/activities/dropper-world/core/saves.js');
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const dir = new URL('../../src/activities/dropper-world/', import.meta.url).pathname;
+  const keeps = JSON.parse(readFileSync(dir + 'card.js', 'utf8').match(/keeps: (\[[^\]]*\])/)[1].replace(/'/g, '"'));   // (the card itself imports its page)
+  const outside = Object.values(SAVES).filter(k => !keeps.some(p => k.startsWith(p)));
+  const named = readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js') && f !== 'core/saves.js')
+    .filter(f => /store\.(get|set|remove)\(\s*['"`]/.test(readFileSync(dir + f, 'utf8')));
+  check('its saves are named in one list (core/saves.js), which its card\'s `keeps` covers', !outside.length && !named.length, [...outside, ...named].join(', '));
 }
 
 // 10. Chooter teases Sadie: fed up with being ignored, he snatches her hay; she chases him for it

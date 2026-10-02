@@ -13,7 +13,15 @@
 //   loadBackup(text, prefixes) to put it back (all or nothing).
 //   store            the plain get, set and remove under a full key, for Dropper World's saves
 //                    from before there was a clubhouse (never renamed: everyone's would be lost).
+//   onLeave(fn)      fn() runs as the page is hidden or closed (switching apps on a phone counts,
+//                    and is often the last chance to save); hands back how to stop it. A box has
+//                    it too. Never after a start-over.
+//   forget(prefixes) every save under those prefixes erased (or every save there is, with none).
+//   reloading()      nothing more is saved on this page, by anyone: it's about to reload after a
+//                    start-over or a backup's put back, and a room saving on its way out would
+//                    write back what was just erased.
 let failed = false;   // a save that didn't fit (the pause menu says so)
+let over = false;     // started over: nothing more is saved on this page
 
 export const store = {
   get(k, d) {
@@ -22,7 +30,7 @@ export const store = {
     if (v == null) return d;
     try { return JSON.parse(v); } catch { putAside(k); return d; }
   },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { failed = true; return false; } },
+  set(k, v) { if (over) return false; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { failed = true; return false; } },
   remove(k) { try { localStorage.removeItem(k); } catch {} },
 };
 
@@ -38,9 +46,29 @@ export function saveBox(id) {
     set: (name, v) => store.set(key(name), v),
     remove: name => store.remove(key(name)),
     putAside: name => putAside(key(name)),
+    onLeave,
     key,
   };
 }
+
+// ---------- leaving, and starting over ----------
+const leaving = new Set();
+let listening = false;
+export function onLeave(fn) {
+  if (!listening && globalThis.addEventListener) {
+    listening = true;
+    const go = () => { if (!over) for (const f of [...leaving]) { try { f(); } catch {} } };
+    addEventListener('pagehide', go);
+    globalThis.document?.addEventListener('visibilitychange', () => { if (document.hidden) go(); });
+  }
+  leaving.add(fn);
+  return () => leaving.delete(fn);
+}
+export function forget(prefixes) {
+  if (!prefixes) { try { localStorage.clear(); sessionStorage.clear(); } catch {} return; }
+  try { for (const k of keys()) if (mine(k, prefixes)) localStorage.removeItem(k); } catch {}
+}
+export function reloading() { over = true; }
 
 // About 5 million letters of saves (keys and all) per page in every browser; nearly full at 4.
 const ROOM = 5e6, NEARLY = 4e6;

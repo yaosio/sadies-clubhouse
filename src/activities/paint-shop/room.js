@@ -196,8 +196,7 @@ export async function buildRoom(m) {
   chooter.material.uniforms.map.value = A.chooter(held.paint, 0); A.chooter(held.paint, 1);   // (both his pictures now, not mid-game)
   function keepPaint() { if (S.changedSinceSave()) m.saves.set(PAINT_KEY, S.save()); saveAt = 0; }
   const later = () => { saveAt = clock + 1.5; };
-  const onHide = () => keepPaint();
-  addEventListener('pagehide', onHide);
+  const stopLeaving = m.saves.onLeave(keepPaint);   // (saved as the page is hidden or closed)
 
   // ---------- painting: every press, as a line into the room ----------
   const presses = new Map();
@@ -324,7 +323,7 @@ export async function buildRoom(m) {
       if (Math.hypot(x - 2.85, z + RD - 0.75) < 0.35 + P) return null;                  // Chooter
       return 0;
     },
-    putAway() { keepPaint(); removeEventListener('pagehide', onHide); },
+    putAway() { keepPaint(); stopLeaving(); },
     update(t, dt = 0) {
       clock = t;
       const e = ears();
