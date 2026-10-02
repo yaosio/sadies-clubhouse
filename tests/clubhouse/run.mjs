@@ -6,6 +6,8 @@
 import { makeComposer, MODES, RANGE, LONGEST } from '../../src/clubhouse/music/compose.js';
 import { SHAPES, RELEASE } from '../../src/clubhouse/music/voices.js';
 import { checkCards } from './cards.mjs';
+import * as WX from '../../src/clubhouse/weather/rules.js';
+import { ALL as SADIE_SAYS, RATE } from '../../src/clubhouse/weather/sounds.js';
 import { store, saveBox, saveRoom, backup, loadBackup } from '../../src/shared/storage.js';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -179,6 +181,17 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check('nearly full saves are noticed', saveRoom().nearlyFull && !saveRoom().failed);
   check('...and a save that doesn\'t fit fails and is noticed', !store.set('sadies-clubhouse.aquarium.more', 'x'.repeat(1e6)) && saveRoom().failed);
   delete globalThis.localStorage;
+}
+
+// ---------- the weather (src/clubhouse/weather/): the world's, over everywhere out of doors ----------
+{
+  const all = ['clear', ...WX.KINDS];
+  check('the weather is one of clear, rain, snow, a second sun or cats; anything odd is clear', WX.KINDS.join() === 'rain,snow,sun,cats' && WX.loaded('cats') === 'cats' && WX.loaded('hail') === 'clear' && WX.loaded(null) === 'clear');
+  check('every weather has its look and a word from Sadie, in letters the mansion\'s font has', all.every(k => WX.LOOK[k] && WX.SADIE[k] && !/[^A-Z0-9 .,!'?]/.test(WX.SADIE[k])));
+  check('...rain is dimmer and the second sun brighter than a clear day', WX.LOOK.rain.sun < WX.LOOK.clear.sun && WX.LOOK.sun.sun > WX.LOOK.clear.sun);
+  check('it\'s saved with the mansion\'s own (a backup has it; no room\'s start-over clears it)', WX.KEY.startsWith('mansion.'));
+  const say = Object.entries(SADIE_SAYS).map(([k, make]) => { const a = make(); return { k, secs: a.length / RATE, top: Math.max(...a.map(Math.abs)), end: Math.abs(a[a.length - 1]) }; });
+  check('Sadie\'s mew and mrrp on the gatepost are short and soft, and end in silence', say.every(x => x.secs < 0.6 && x.top < 0.6 && x.end < 0.01), JSON.stringify(say));
 }
 
 // ---------- the room checker: every activity's card (tests/clubhouse/cards.mjs) ----------

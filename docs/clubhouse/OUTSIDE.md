@@ -27,8 +27,7 @@ one goes on the end of its list, there and in the code).
   and `blockRound(x, z, r, y0, y1)` for what's solid (from the ground up unless it says);
   `surface((x, z) => height or null)` for somewhere more to walk on, a bridge or a balcony (each of
   these hands back how to take it away); `uses`, for things to use out there (Clyde's weather
-  levers); and `light`, which a card with `weather: true` sets (the weather: the mansion reads it
-  every frame).
+  levers); and its `light` (the weather sets its sunlight).
 - `lot` (its plot) or `ground` (its spot).
 - `skyMat` (the outside's sky, for a room that's out of doors) and `snapshot(obj, place, { from, at,
   fov, w, h })`, a picture of one thing in a place, taken once, with everything else see-through
@@ -46,13 +45,26 @@ It builds its house into the outside's scene itself and hands back, with its pla
   a plain block. None is that far yet. (Fog, to hide the far end, is parked: the PS1 material has
   none, and adding it would change the approved look.)
 
+**The weather** is the world's, not any building's (`src/clubhouse/weather/`: `rules.js`, the kinds
+and how each looks; `sky.js`, the clouds, sunlight, rain, snow, cats and Sadie's reactions on the
+gatepost; saved as `mansion.weather`). It comes over every place out of doors: one whose place says
+`sky` (`dome`, how far off its cloud cover is, inside its sun and outside its hills; `follow`, for a
+sky that goes round you; `sun2`, where a second sun comes up, if it has a sun): the outside and the
+Hedge Maze. Its sunlight is dimmed or brightened from its own clear-day `light.sun`, and what falls,
+falls round wherever out of doors is seen from (you, or the door you're looking out of; nothing's
+worked out while nobody can see out). Whatever makes weather (Clyde's Weather Machine) uses its
+kit's `weather`: `now()`, `set(kind)` (`rain`, `snow`, `sun`, `cats` or `clear`), `kinds`. Two things
+setting it just take turns; neither owns it. The checks: `tests/clubhouse/run.mjs` (its rules) and
+`browser.mjs` (rain over every place with a `sky`, found as they're built, so a new one is checked
+with no new test).
+
 **Sounds outside.** A building's sounds that belong to the house, not the room, use their own owner
 (`soundsFor('house:<name>')`, like Clyde's weather machine), so they carry on while its room is put
 away; leaving the page stops them. Music a room plays is only heard inside that room, so music meant
 for outside needs `line('music', { everywhere: true })`, which is heard everywhere (`SOUND.md`).
 
-**When it's built.** The buildings you can see from the gate as you start (ahead of you there), and
-any card with `weather`, are built before the first picture; the rest of the buildings outside
+**When it's built.** The buildings you can see from the gate as you start (ahead of you there) are built
+before the first picture; the rest of the buildings outside
 straight after it, first in line, wherever they are. Only a building's room is ever put away.
 
 **Growing into a town.** The clubhouse is meant to sit on a hill in the middle of a town, one space

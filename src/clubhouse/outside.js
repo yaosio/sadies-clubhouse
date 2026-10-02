@@ -251,6 +251,10 @@ export function buildOutside(T, cards = []) {
     // somewhere more to walk on: (x, z) => its height there, or null where it isn't
     surface(at) { return keepIn(SURFACES, at); },
     light: { sun: 0.5, bulb: 0, lamp: [0, 20, -40] },
+    // out of doors (the weather: weather/sky.js): the cloud cover just inside the sun and just outside
+    // the hills, so it hides the sun and its edge is behind the hills; a second sun comes up over the
+    // hills just left of the first, clear of the mansion
+    sky: { dome: 130, sun2: { x: -82, z: 99 } },
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
     update(t) {
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;

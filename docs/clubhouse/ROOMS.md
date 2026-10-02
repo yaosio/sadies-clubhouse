@@ -17,7 +17,7 @@ it doesn't know, a place that doesn't exist or is taken, or saves that aren't th
   from `door.js`, drawn by `art/clubhouse/pictures.py`; the back of the door is the same with the
   sign painted over; without one it gets a plain door with its name), `box` (`front`, a picture: on
   its computer's screen and its poster; `side`, a colour: the plain computer room's walls, and the
-  plain door's) and `doorstep` (below). A building outside can say `weather` (`OUTSIDE.md`).
+  plain door's) and `doorstep` (below).
   None of an activity's code runs until `start()` is called (the build keeps it waiting), so its modules can look up its page's elements as they load.
 - **A game that lives in its room** (Brickbuster '96, the Music Room, the aquarium, Space Adventure, Clyde's House, Chooter's Paint Shop, the Hedge Maze) has no page, styles or `start()`: its card
   has `room` instead, which loads its module; the mansion calls that module's `buildRoom(kit)` when

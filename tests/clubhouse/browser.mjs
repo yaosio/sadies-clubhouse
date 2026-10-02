@@ -13,7 +13,7 @@
 // on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { walk as walkFor } from '../shared/browser.mjs';
+import { walk as walkFor, rest } from '../shared/browser.mjs';
 import { allKeeps } from './cards.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
@@ -250,6 +250,23 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and every room's save is just as it was`, saved1 === saved0, saved1 === saved0 ? '' : `before ${saved0.slice(0, 300)} after ${saved1.slice(0, 300)}`);
     const slowAgain = all.filter(n => sp3.places[n] > SLOW || sp3.bits[n] > BIT);
     check(`${device}: ...and each is as quick to build again (under ${SLOW} ms, no bit over ${BIT} ms)`, !slowAgain.length, all.map(n => `${n.replace('room:', '')} ${sp3.places[n]}/${sp3.bits[n]}`).join(', '));
+
+    // the weather is the world's: it comes over every place out of doors (one with a `sky`), and what
+    // falls, falls round you in whichever one you're in
+    for (const n of await M('places')) await M('build', n);
+    await M('weatherSpeed', 20); await M('setWeather', 'clear'); await rest(p, 400);
+    const outdoors = await M('outdoors'), clear = {};
+    for (const n of outdoors) clear[n] = await M('sunlight', n);
+    await M('setWeather', 'rain'); await rest(p, 600);
+    const rained = [];
+    for (const n of outdoors) {
+      await M('put', n, 'start'); await rest(p, 300);
+      const w = await M('weather'), sun = await M('sunlight', n);
+      if (!(sun < clear[n] * 0.5 && w.clouds > 0.9 && w.seen === n && w.rain > 100)) rained.push(`${n}: sun ${clear[n]} to ${sun}, ${JSON.stringify(w)}`);
+    }
+    await M('setWeather', 'clear'); await rest(p, 600);
+    check(`${device}: the weather comes over every place out of doors (${outdoors.join(', ')}), and rain falls round you in each`, outdoors.length >= 2 && !rained.length, rained.join(' | '));
+    await M('weatherSpeed', 1);
 
     // through Dropper World's door into its room
     // (from 1.3 m out: further than that is off the landing, except in front of the first door)

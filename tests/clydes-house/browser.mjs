@@ -116,39 +116,48 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the treats and the finale are kept after a reload`, s.treats === ROUNDS.length && s.finale);
 
     // the weather machine, beside the house: each lever changes the weather outside, and Sadie reacts
-    const Wx = () => p.evaluate(() => window.__weather.state());
+    // (the weather itself is the world's: the mansion's; the levers, their labels and jingles are the machine's)
+    await p.evaluate(() => { window.__wx = () => { const m = window.__weather.state(), w = window.__mansion.weather(); return { ...w, ...m, sadie: w.sounds }; }; });
+    const Wx = () => p.evaluate(() => window.__wx());
     const { levers } = await p.evaluate(() => window.__weather.machine), front = (await p.evaluate(() => window.__weather.machine)).z;
-    await p.evaluate(() => window.__weather.speed(6));
+    await p.evaluate(() => window.__mansion.weatherSpeed(6));
     const lever = async k => { await M('put', 'outside', { x: levers[k], z: front + 1.3, y: 0, yaw: 0, pitch: -0.25 }); await p.waitForTimeout(300); };
     await lever('rain');
     check(`${device}: facing the rain lever, it offers to pull it`, /PULL THE RAIN LEVER/.test(await M('target') || ''), await M('target'));
     await use();
-    await until(() => { const w = window.__weather.state(); return w.rain > 100 && w.clouds > 0.9 && w.sun < 0.2 && w.wearing.length; }, null, 8000);
+    await until(() => { const w = window.__wx(); return w.rain > 100 && w.clouds > 0.9 && w.sun < 0.2 && w.wearing.length; }, null, 8000);
     let w = await Wx();
     check(`${device}: pulling it makes it rain: clouds over, dimmer, rain falling, the lever down`, w.now === 'rain' && w.clouds > 0.9 && w.sun < 0.2 && w.rain > 100 && w.levers.rain > 0.9, JSON.stringify(w));
     check(`${device}: ...one clunk and one soft jingle, and Sadie on the gatepost gets her umbrella`, w.sounds.join().startsWith('clunk,rainIn') && w.wearing.join() === 'rain', JSON.stringify(w));
     await M('put', 'outside', { x: 1.2, z: -23.5, y: 0, yaw: Math.PI - 0.3, pitch: 0.3 });
-    check(`${device}: ...and she has something to say about it`, await until(() => window.__weather.state().saying === 'rain', null, 3000));
+    check(`${device}: ...and she has something to say about it`, await until(() => window.__wx().saying === 'rain', null, 3000));
     await shot('7-rain');
     await lever('rain');
     check(`${device}: the lever says it'll put it back`, /PUT THE RAIN LEVER BACK/.test(await M('target') || ''), await M('target'));
     await use();
-    check(`${device}: ...and pulling it again clears the sky`, await until(() => { const w = window.__weather.state(); return w.now === 'clear' && w.clouds === 0 && !w.rain && w.sun === 0.5; }, null, 5000), JSON.stringify(await Wx()));
+    check(`${device}: ...and pulling it again clears the sky`, await until(() => { const w = window.__wx(); return w.now === 'clear' && w.clouds === 0 && !w.rain && w.sun === 0.5; }, null, 5000), JSON.stringify(await Wx()));
     await lever('snow'); await use();
-    await p.evaluate(() => window.__weather.speed(60));
-    check(`${device}: snow falls and settles on the ground, and there's snow on Sadie's head`, await until(() => { const w = window.__weather.state(); return w.snow > 100 && w.settled > 0.9 && w.wearing.join() === 'snow'; }, null, 8000), JSON.stringify(await Wx()));
-    await p.evaluate(() => window.__weather.speed(6));
+    await p.evaluate(() => window.__mansion.weatherSpeed(60));
+    check(`${device}: snow falls and settles on the ground, and there's snow on Sadie's head`, await until(() => { const w = window.__wx(); return w.snow > 100 && w.settled > 0.9 && w.wearing.join() === 'snow'; }, null, 8000), JSON.stringify(await Wx()));
+    await p.evaluate(() => window.__mansion.weatherSpeed(6));
     await lever('sun'); await use();
-    check(`${device}: a second sun comes up, brighter, snow melting, Sadie in sunglasses`, await until(() => { const w = window.__weather.state(); return w.now === 'sun' && w.sun2 && w.sun > 0.9 && !w.snow && w.wearing.join() === 'sun'; }, null, 5000), JSON.stringify(await Wx()));
+    check(`${device}: a second sun comes up, brighter, snow melting, Sadie in sunglasses`, await until(() => { const w = window.__wx(); return w.now === 'sun' && w.sun2 && w.sun > 0.9 && !w.snow && w.wearing.join() === 'sun'; }, null, 5000), JSON.stringify(await Wx()));
     await lever('cats'); await use();
     await M('put', 'outside', { x: 0, z: -27, y: 0, yaw: Math.PI, pitch: 0.2 });
-    check(`${device}: it rains cats, and they land on their feet`, await until(() => window.__weather.state().landed > 0, null, 15000), JSON.stringify(await Wx()));
+    check(`${device}: it rains cats, and they land on their feet`, await until(() => window.__wx().landed > 0, null, 15000), JSON.stringify(await Wx()));
     await shot('8-cats');
     w = await Wx();
     check(`${device}: every change had its own jingle`, ['rainIn', 'clearIn', 'snowIn', 'sunIn', 'catsIn'].every(k => w.sounds.includes(k)), w.sounds.join());
     await p.reload(); await up();
+    await p.evaluate(() => { window.__wx = () => ({ ...window.__mansion.weather(), ...window.__weather.state() }); });
     w = await Wx();
     check(`${device}: the weather's kept after a reload`, w.now === 'cats' && w.levers.cats > 0.9 && w.clouds > 0.9, JSON.stringify(w));
+    // a weather saved where it was before it was the world's (Clyde's own saves) is brought in, once
+    await p.evaluate(() => { localStorage.removeItem('mansion.weather'); localStorage.setItem('sadies-clubhouse.clydes-house.weather', '"snow"'); });
+    await p.reload(); await up();
+    await p.evaluate(() => { window.__wx = () => ({ ...window.__mansion.weather(), ...window.__weather.state() }); });
+    w = await Wx();
+    check(`${device}: an old weather save is brought in, straight away, and let go`, w.now === 'snow' && w.settled > 0.9 && await p.evaluate(() => localStorage.getItem('sadies-clubhouse.clydes-house.weather') === null), JSON.stringify(w));
     check(`${device}: no errors on the page`, !errors.length, errors[0]);
     await ctx.close();
   });

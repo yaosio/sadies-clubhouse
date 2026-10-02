@@ -65,7 +65,7 @@ every card against these rules and says plainly what's wrong.
 | **Saves** | `src/shared/storage.js` | Saves with its kit's box `saves` (`get`, `set`), listed in the card's `keeps` | Start-over buttons, backups and a nearly-full warning in the pause menu; an unreadable save put aside, never wiped; never throws |
 | **Pause** | `mansion.js` | Can ask `paused()` | Sounds held; controls stopped |
 | **Outside** | `outside.js` | A building adds its house, what's solid and where to walk (`outside` in its kit) | Its plot or spot, levels, its house kept while its room's put away, a plain block from far off |
-| **Weather** | Clyde's House | Nothing (outside's `light`) | Rain, snow and the rest round wherever outside is seen from |
+| **Weather** | `src/clubhouse/weather/` (the world's) | A place out of doors says `sky`; whoever makes weather says which with its kit's `weather.set` | Its sunlight, clouds, rain, snow and cats, wherever it's seen from; saved |
 
 ## Where to read more
 

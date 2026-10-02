@@ -31,6 +31,7 @@ import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
 import { store, saveBox, saveRoom, backup, loadBackup } from '../shared/storage.js';
 import { makeTheme } from './music/theme.js';
+import { makeWeather } from './weather/sky.js';
 import { arcade } from './play/arcade.js';
 import { painting } from './play/paint.js';
 import { setVolume, youAreIn, closeSounds, paused as soundsPaused, soundState, LEVELS, BUSES } from '../shared/sound.js';
@@ -75,6 +76,9 @@ export async function open(cards, enter) {
   const shared = new Set(made());   // (the textures every place uses: never put away with a room)
   const t0 = performance.now();
   const outside = buildOutside(T, cards), hall = buildHall(T, cards, doorPics);
+  // the weather, over every place out of doors (weather/): whoever makes it just says which (the kit's `weather`)
+  const weather = makeWeather(T, outside);
+  for (const x of made()) shared.add(x);   // (its things go with no room)
   const took = Math.round(performance.now() - t0);
   const speed = { places: { 'outside and hall': took }, bits: { 'outside and hall': took }, first: 0 };
   // a room per card: `place` once it's built
@@ -120,7 +124,7 @@ export async function open(cards, enter) {
         w = await code.buildRoom({ T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
           doorImage: doorPics[i], landingDoor: hall.doors[c.id], hall, outside, lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null,
           ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null, skyMat, snapshot, house: r.house, ears, paused: () => mode === 'menu',
-          saves: saveBox(c.id) });
+          saves: saveBox(c.id), weather: weather.kit });
       }
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
@@ -221,6 +225,13 @@ export async function open(cards, enter) {
     if (!from) for (const s of sides) if (s.w === me.world && s.tw === outside && s.p.open > 0.02) from = s.to.pos;
     return from;
   }
+  // Where the sky is seen from, for the weather: you, in a place out of doors (one with a `sky`), or
+  // the open door you're looking out of into one ({ place, x, z }; null: no sky can be seen)
+  function skySeen() {
+    if (me.world.sky) return { place: me.world, x: me.x, z: me.z };
+    for (const s of sides) if (s.w === me.world && s.tw.sky && s.p.open > 0.02) return { place: s.tw, x: s.to.pos.x, z: s.to.pos.z };
+    return null;
+  }
   function farHouses() {
     const from = seenFrom;
     for (const r of slots) {
@@ -301,12 +312,11 @@ export async function open(cards, enter) {
   let back = null;
   try { back = sessionStorage.getItem(BACK); sessionStorage.removeItem(BACK); } catch {}
   const backSlot = slots.find(r => r.card.id === back);
-  // (and the buildings outside you can see from the gate as you start, and any that changes how all
-  // of outside looks: `weather`. The ones behind you are built straight after the first picture,
-  // before you've had time to turn round)
+  // (and the buildings outside you can see from the gate as you start. The ones behind you are built
+  // straight after the first picture, before you've had time to turn round)
   const start = outside.spots.start, ahead = r => {
     const at = Number.isInteger(r.card.lot) ? outside.lots[r.card.lot] : outside.grounds[r.card.grounds];
-    return r.card.weather || (!backSlot && (at.x - start.x) * -Math.sin(start.yaw) + (at.z - start.z) * -Math.cos(start.yaw) > 0);
+    return !backSlot && (at.x - start.x) * -Math.sin(start.yaw) + (at.z - start.z) * -Math.cos(start.yaw) > 0;
   };
   for (const r of slots) if (outdoors(r.card) && ahead(r)) await build(r);
   if (backSlot) await build(backSlot);
@@ -758,6 +768,7 @@ export async function open(cards, enter) {
     }
     seenFrom = outsideSeenFrom();
     soundsPaused(mode === 'menu');   // (nothing new sounds behind the pause menu but music)
+    weather.update(t, dt, places, skySeen(), ears());
     for (const w of places) w.update(t, dt);
     // the main theme: it makes way for any other music by itself (the sound system hears it), and
     // for a place that asks for quiet (its `hush`: the Music Room, Space Adventure's cockpit and radio)
@@ -831,6 +842,13 @@ export async function open(cards, enter) {
     // the main theme: what it's doing; the sound system: what's playing, whose, and how loud
     music: () => theme.state(),
     sound: () => soundState(),
+    // the weather: how it's going, a new one, and how fast it changes (k times quicker)
+    weather: () => weather.state(),
+    setWeather: (kind, o) => weather.set(kind, o),
+    weatherSpeed: k => weather.speed(k),
+    // the places out of doors (a `sky`) built now, and how bright a place's sunlight is
+    outdoors: () => places.filter(w => w.sky).map(w => w.name),
+    sunlight: name => places.find(w => w.name === name)?.light.sun ?? null,
     // take a step of d metres straight ahead (through a doorway, if there's one there), and draw
     step(d) { const r = move(-Math.sin(me.yaw) * d, -Math.cos(me.yaw) * d); draw(); return r; },
     // how far the view leans over sideways (0: not at all), and how open the last doorway walked through is

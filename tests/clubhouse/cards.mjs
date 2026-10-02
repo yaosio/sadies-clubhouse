@@ -24,7 +24,7 @@ import { LOTS, GROUNDS } from '../../src/clubhouse/outside.js';
 
 const root = new URL('../..', import.meta.url).pathname;
 // every field a card can have (docs/clubhouse/ROOMS.md)
-const FIELDS = ['id', 'name', 'page', 'styles', 'start', 'room', 'door', 'slot', 'lot', 'grounds', 'doorstep', 'box', 'keeps', 'weather'];
+const FIELDS = ['id', 'name', 'page', 'styles', 'start', 'room', 'door', 'slot', 'lot', 'grounds', 'doorstep', 'box', 'keeps'];
 const PLACES = { slot: SLOTS.length, lot: LOTS.length, grounds: GROUNDS.length };
 // saves from before there was a clubhouse (Dropper World's): never renamed, or everyone's would be lost
 const OLD_KEEPS = { 'dropper-world': ['sadies-dropper-world.', 'jellystack.', 'sadie.'] };
@@ -78,7 +78,6 @@ export async function checkCards(check) {
     const places = Object.keys(PLACES).filter(k => c[k] !== undefined), where = places[0], n = c[where];
     need(places.length === 1, `it needs exactly one place (a door, a plot or a spot in the grounds), has ${places.join(', ') || 'none'}`);
     need(places.length !== 1 || (Number.isInteger(n) && n >= 0 && n < PLACES[where]), `its ${where} ${n} doesn't exist (there are ${PLACES[where]})`);
-    need(!c.weather || where !== 'slot', 'only a building outside can change the weather');
     need(!c.doorstep || where === 'slot', 'only a door on the landing has a doorstep');
     // saves
     const keeps = c.keeps || [], own = `sadies-clubhouse.${id}.`, old = OLD_KEEPS[id] || [];
