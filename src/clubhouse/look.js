@@ -66,6 +66,8 @@ export function disposeLook() { for (const x of kept) x.dispose(); kept.clear();
 // the floor under it: no depth test at all, drawn just after the floor, so it can never flicker even
 // far away on a phone; give the floor renderOrder -2 and this -1)
 export function psx(map, o = {}) {
+  // (undefined, not null: a texture that was never drawn, `T.something` misspelt or deleted; it would show as plain white)
+  if (map === undefined) console.error('psx: a texture is missing (T.<name> was never drawn)', new Error().stack.split('\n')[2]?.trim());
   return keep(new ShaderMaterial({
     uniforms: {
       map: { value: map || WHITE }, uRes: { value: res }, uRep: { value: new Vector2(o.rx || 1, o.ry || 1) },
@@ -296,6 +298,7 @@ export function drawTextures(sadie, sadieNap) {
     words(g, b, w / 2, h / 2 + 1, 2, C.red, { align: 'center' });
   });
   T.soonSign = sign(96, 32, 'MORE ROOMS', 'COMING SOON!!');
+  T.wingSign = sign(72, 32, 'NEW WING', 'SOON!!');   // on the hall's wall, by the stairs
   T.lotSign = sign(88, 32, 'NEW HOUSE', 'COMING SOON!!');   // on the next free plot along the lane outside the gate
   // the back of the house: the back door (a cat flap fit for a lion), its sign, flowers, a patch of
   // sun on the grass, and the Zs Sadie naps out
