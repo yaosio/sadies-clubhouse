@@ -134,6 +134,14 @@ export default async function ({ browser, page, check, outDir }) {
     s = await A();
     check(`${device}: the next trip comes up where you left the boat`, again && Math.hypot(s.boatAt.x + 60, s.boatAt.z - 120) < 0.5 && s.found.includes('duck'));
 
+    // sail a little, then reload while still at sea: the boat is where it was, not where it was last left
+    await walk(1500);
+    const sailed = (await A()).boatAt;
+    await p.reload(); await up();
+    await M('put', 'room:aquarium', 'glass'); await p.waitForTimeout(400);
+    s = await A();
+    check(`${device}: a reload out at sea keeps the boat where it was`, Math.hypot(s.boat.x - sailed.x, s.boat.z - sailed.z) < 1 && Math.hypot(sailed.x + 60, sailed.z - 120) > 5, `saved ${s.boat.x.toFixed(1)}, ${s.boat.z.toFixed(1)}; was ${sailed.x.toFixed(1)}, ${sailed.z.toFixed(1)}`);
+
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   });
