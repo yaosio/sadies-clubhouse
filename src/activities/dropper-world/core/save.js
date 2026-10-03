@@ -7,7 +7,7 @@
 //
 // If a save can't be read (from an older version of the game, or damaged), the game starts fresh
 // rather than breaking, and the old save is put aside (sadies-dropper-world.save.unreadable), never
-// wiped. Bump SAVE_VERSION when the format changes, and teach restore() to read the old version:
+// wiped. Bump SAVE_VERSION when the format changes, and add the step from the old version to UPGRADES:
 // a format change must never lose anyone's tower.
 import { U, W, tuning, DEFAULTS, physParams } from '../config.js';
 import { store, putAside, forget } from '../../../shared/storage.js';
@@ -28,6 +28,13 @@ import { resetGame } from './game.js';
 
 export const SAVE_KEY = SAVES.board;
 export const SAVE_VERSION = 1;
+// How a save of each older version becomes the next one's: UPGRADES[2] turns a version 2 save into
+// a version 3 one. Empty while there's only one version; a format change adds its step here.
+const UPGRADES = {};
+export function upgrade(s, steps = UPGRADES, to = SAVE_VERSION) {
+  while (s && Number.isInteger(s.v) && s.v < to && steps[s.v]) s = steps[s.v](s);
+  return s;
+}
 // everything else the game keeps in the browser that "Start over" forgets (dev settings stay)
 
 const r2 = v => Math.round(v * 100) / 100; // positions to 1/100 px: plenty, and keeps the save small
@@ -65,6 +72,7 @@ export function snapshot() {
 
 // Put a saved game back on the board. Throws if the save doesn't make sense (loadGame catches it).
 export function restore(s) {
+  s = upgrade(s);
   if (!s || s.v !== SAVE_VERSION || !Array.isArray(s.pieces)) throw new Error('not a save this version can read');
   resetGame();
   world.pieces = [];
