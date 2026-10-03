@@ -27,7 +27,9 @@ level while you walk with the thumb stick.
 - Sadie's letter (`mansion.invited`: the first time only).
 - The pause menu (Esc or the pause button). It also starts over everything, the invitation, or an
   activity's saves, each only after a YES on its "are you sure?"; and YOUR SAVES: how full they are,
-  and backups (`docs/clubhouse/rooms/saves.md`).
+  and backups (`docs/clubhouse/rooms/saves.md`); and CREDITS (`credits.js`): whatever the game uses
+  that someone else made (three.js, the fonts) and its licence. A new one is added there (a check
+  fails if a font isn't, and if three.js's notice goes missing from the build).
 - `window.__mansion`, for the checks.
 
 ## The ways of playing (`play/`)

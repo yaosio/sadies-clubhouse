@@ -31,6 +31,7 @@ import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
 import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
 import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading } from '../shared/storage.js';
+import { showCredits } from './credits.js';
 import { makeTheme } from './music/theme.js';
 import { makeWeather } from './weather/sky.js';
 import { arcade } from './play/arcade.js';
@@ -678,12 +679,13 @@ export async function open(cards, enter) {
     if (document.pointerLockElement) document.exitPointerLock();
   }
   function resume() {
-    $('#menu').hidden = true; ask(false);
+    $('#menu').hidden = true; $('#credits').hidden = true; ask(false);
     if (!ways.some(w => w.resume?.())) mode = 'play';
     showTarget();
   }
   on($('#pause'), 'click', e => { e.stopPropagation(); if (mode === 'play' || mode === 'arcade') pause(); });
   on($('#resume'), 'click', resume);
+  on($('#creditsBtn'), 'click', () => { const box = $('#credits'); if (box.hidden) { showCredits(box); box.hidden = false; box.scrollIntoView?.({ block: 'nearest' }); } else box.hidden = true; });
   // how loud: MUSIC, SOUNDS and VOICES (Sadie, Clyde), each ON, SOFT or OFF (src/shared/sound.js)
   const showVolumes = () => { for (const b of BUSES) $('#vol-' + b).textContent = `${b.toUpperCase()}: ${loud[b].toUpperCase()}`; };
   for (const b of BUSES) on($('#vol-' + b), 'click', () => setLoud(b, { on: 'soft', soft: 'off', off: 'on' }[loud[b]]));
