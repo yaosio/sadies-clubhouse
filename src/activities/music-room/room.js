@@ -33,25 +33,16 @@ const FLAT = [-Math.PI / 2, 0, 0];
 const CUSHION = new Vector3(PX - 1.75, 0.12, PZ + 0.8);
 
 export async function buildRoom(m) {
-  const { T, psx, keep, kit, wallGeometry, doorway, card, leaf } = m;
+  const { T, psx, keep, kit, doorway, card, leaf } = m;
   const A = drawArt(m);
   await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
   const scene = new Scene(); scene.background = new Color(0x0a0628);
-  const { add, box, plane, cyl } = kit(scene);
+  const { box, plane, cyl, shell: roomShell } = kit(scene);
   const mesh = (geo, mat, pos, rot, parent = scene) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
 
   // ---------- the room: teal music-note wallpaper, a wooden floor, the door in the front wall ----------
   const paper = psx(A.paper, { rx: 1 / 1.2, ry: 1 / 1.2 });
-  add(new Mesh(wallGeometry(2 * RW, H), paper), [0, 0, -RD]);
-  add(new Mesh(wallGeometry(2 * RW, H, 1.5, 2.45), paper), [0, 0, RD], [0, Math.PI, 0]);
-  add(new Mesh(wallGeometry(2 * RD, H), paper), [-RW, 0, 0], [0, Math.PI / 2, 0]);
-  add(new Mesh(wallGeometry(2 * RD, H), paper), [RW, 0, 0], [0, -Math.PI / 2, 0]);
-  const sw = RW - 0.9, side = sw / 2 + 0.9;   // (the wainscot along the front wall: either side of the door)
-  for (const [w, pos, rot] of [[2 * RW, [0, 0.55, -RD + 0.04], 0], [sw, [-side, 0.55, RD - 0.04], Math.PI], [sw, [side, 0.55, RD - 0.04], Math.PI],
-    [2 * RD, [-RW + 0.04, 0.55, 0], Math.PI / 2], [2 * RD, [RW - 0.04, 0.55, 0], -Math.PI / 2]]) {
-    plane(w, 1.1, psx(T.wainscot, { rx: w / 0.9, decal: true }), pos, [0, rot, 0], 2);
-    plane(w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), [pos[0], 1.12, pos[2]], [0, rot, 0], 2);
-  }
+  roomShell({ w: RW, d: RD, h: H, paper, doorAt: 1, wholeWainscot: true, wainscot: w => psx(T.wainscot, { rx: w / 0.9, decal: true }) });   // (the door is in the back wall: the wainscot runs whole along the front)
   plane(2 * RW, 2 * RD, psx(A.floor, { rx: 2 * RW / 1.6, ry: 2 * RD / 1.6 }), [0, 0, 0], FLAT, 8).renderOrder = -2;
   plane(2 * RW, 2 * RD, psx(A.ceiling, { rx: 6, ry: 5 }), [0, H, 0], [Math.PI / 2, 0, 0], 6);
   const door = doorway(scene, { pos: [0, 0, RD], yaw: Math.PI, w: 1.5, h: 2.45, leaves: [leaf], hinge: 1 });

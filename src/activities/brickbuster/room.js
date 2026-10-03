@@ -23,23 +23,13 @@ const Z = { play: 0.25, glass: 0.55 };   // in the case: where the game is, and 
 const ROW_COLS = [0xff3a3a, 0xff7a2a, 0xffa41e, 0xffe23a, 0x58d04a, 0x3ac8f0, 0x5a6af0, 0xb04af0];
 
 export async function buildRoom(m) {
-  const { T, psx, keep, tex, words, kit, wallGeometry, doorway, card, leaf } = m;
+  const { T, psx, keep, tex, words, kit, doorway, card, leaf } = m;
   const scene = new Scene(); scene.background = new Color(0x0a0628);
-  const { add, plane, cyl } = kit(scene);
+  const { plane, cyl, shell } = kit(scene);
 
   // ---------- the room: tall walls, arcade carpet, the door ----------
   const paper = psx(T.damask, { rx: 1 / 1.3, ry: 1 / 1.3, tint: 0xd8ccff });
-  add(new Mesh(wallGeometry(2 * RW, RH, 1.5, 2.45), paper), [0, 0, -RD]);
-  add(new Mesh(wallGeometry(2 * RW, RH), paper), [0, 0, RD], [0, Math.PI, 0]);
-  add(new Mesh(wallGeometry(2 * RD, RH), paper), [-RW, 0, 0], [0, Math.PI / 2, 0]);
-  add(new Mesh(wallGeometry(2 * RD, RH), paper), [RW, 0, 0], [0, -Math.PI / 2, 0]);
-  // the wainscot and its gold rail, all the way round
-  // (in two pieces along the front wall, either side of the door)
-  const side = (RW - 0.9) / 2 + 0.9, sw = RW - 0.9;
-  for (const [w, pos, rot] of [[sw, [-side, 0.55, -RD + 0.04], 0], [sw, [side, 0.55, -RD + 0.04], 0], [2 * RD, [-RW + 0.04, 0.55, 0], Math.PI / 2], [2 * RD, [RW - 0.04, 0.55, 0], -Math.PI / 2]]) {
-    plane(w, 1.1, psx(T.wainscot, { rx: w / 0.9, decal: true }), pos, [0, rot, 0], 2);
-    plane(w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), [pos[0], 1.12, pos[2]], [0, rot, 0], 2);
-  }
+  shell({ w: RW, d: RD, h: RH, paper, wainscot: w => psx(T.wainscot, { rx: w / 0.9, decal: true }) });
   // the carpet every arcade had: black, with neon squiggles
   const carpet = tex(32, 32, g => {
     g.fillStyle = '#120a24'; g.fillRect(0, 0, 32, 32);
