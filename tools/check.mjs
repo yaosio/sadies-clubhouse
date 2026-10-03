@@ -218,6 +218,9 @@ if (!quick) {
 if (!run('build', 'node', ['tools/build.mjs', ...(preview ? ['--preview'] : [])])) {
   console.log('\nthe build failed, nothing else to check'); process.exit(1);
 }
+// three.js's licence notice stays with the game (the MIT licence needs it)
+{ const files = readdirSync(join(root, 'dist/game')).filter(f => f.endsWith('.js'));
+  check("three.js's licence notice is still in the game", files.some(f => /Copyright 2010-\d+ Three\.js Authors/.test(readFileSync(join(root, 'dist/game', f), 'utf8')))); }
 // the copy of the project beside the page is all there, and the page itself stays small
 { const page = join(root, 'dist/index.html'), copy = readSource(page), size = statSync(page).size;
   const missing = ['README.md', 'CLAUDE.md', 'package.json', 'src/main.js', 'tools/build.mjs'].filter(f => copy?.files[f] !== readFileSync(join(root, f), 'utf8'));

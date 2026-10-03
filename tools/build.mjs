@@ -86,7 +86,7 @@ const result = await build({
   chunkNames: 'chunk-[hash]',
   metafile: true,
   target: 'es2020',
-  legalComments: 'none',
+  legalComments: 'eof',   // (three.js's licence notice has to stay with it)
   minify: !readable,   // three.js (the clubhouse's 3D) is big; readable source travels in the page anyway
   write: false,
   // A browser remembers a file that failed to come and won't fetch it again, so every file's

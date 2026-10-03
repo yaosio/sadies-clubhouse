@@ -255,6 +255,12 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   walk(new URL('../../src', import.meta.url).pathname);
   check('the game asks nobody else for its fonts', !hits.length, hits.join(', '));
 }
+{
+  const { CREDITS } = await import('../../src/clubhouse/credits.js');
+  const families = [...new Set([...readFileSync(new URL('../../src/shared/fonts/fonts.css', import.meta.url), 'utf8').matchAll(/font-family:'([^']+)'/g)].map(m => m[1]))];
+  const missing = families.filter(f => !CREDITS.some(c => c.name === f));
+  check('every font the game carries is credited on the CREDITS page (and three.js)', !missing.length && CREDITS.some(c => c.name === 'three.js'), missing.join(', '));
+}
 await checkCards(check);
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');

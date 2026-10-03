@@ -56,6 +56,11 @@
 #mansion #saveNote.full{color:#ffd23a}
 #mansion #resets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 #mansion #menu #resets button{font-size:10px;padding:6px 10px;background:#ff8ec8}
+/* CREDITS: what the game uses that someone else made */
+#mansion #menu #creditsBtn{font-size:10px;padding:6px 10px;background:#8a78ff;color:#fff;box-shadow:0 3px 0 #4a3aa8}
+#mansion #credits{width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
+#mansion #credits p{margin:0 0 8px;font-size:10px;line-height:1.7;color:#e8dcff;text-align:left}
+#mansion #credits b{color:#ff8ec8}
 /* "are you sure?" before anything is erased */
 #mansion #sure{display:grid;gap:8px;justify-items:center}
 #mansion #sure p{margin:0;font-size:11px;line-height:1.6;color:#ffd23a}

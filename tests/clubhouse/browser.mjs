@@ -377,6 +377,13 @@ export default async function ({ browser, page, check, outDir }) {
     // your saves: how much room they take, SAVE A BACKUP (a file with every save) and LOAD A BACKUP
     // (only once you say yes: every save goes back as it was in the file)
     check(`${device}: the pause menu says how much the saves take`, /SAVES: [\d.]+ [KM]B OF/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
+    // CREDITS: what the game uses that someone else made, opened and shut from the pause menu
+    await p.click('#creditsBtn');
+    const credited = await p.evaluate(() => [document.querySelector('#credits').hidden, document.querySelector('#credits').textContent]);
+    await shot('8a-credits');
+    check(`${device}: the pause menu's CREDITS names three.js and every font, with their licences`, !credited[0] && ['three.js', 'Silkscreen', 'Comic Neue', 'MIT', 'Open Font License'].every(w => credited[1].includes(w)), credited[1].slice(0, 120));
+    await p.click('#creditsBtn');
+    check(`${device}: ...and shuts again`, await p.evaluate(() => document.querySelector('#credits').hidden));
     const download = await Promise.all([p.waitForEvent('download', { timeout: 8000 }), p.click('#saveBackup')]).then(([d]) => d.path(), () => null);
     const file = download ? readFileSync(download, 'utf8') : '{}', made = JSON.parse(file);
     const savedNow = await p.evaluate(() => Object.keys(localStorage).length);
