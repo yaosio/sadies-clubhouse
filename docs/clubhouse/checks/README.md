@@ -7,7 +7,7 @@ tool, then only the file below that fits.
 `npm run check` (`tools/check.mjs`) runs the code checker, each activity's headless tests, a build,
 then the page in headless Chromium: the clubhouse's checks (unless exactly this page already passed
 them), then each activity's browser checks, each played as a phone and a desktop side by side. It
-prints how long each stage took. GitHub runs the same checks on every pull request.
+prints how long each stage took. It's the only check: GitHub's copy runs only when started by hand.
 
 ## The files
 - `activity.md`: read when you're writing or changing an activity's own tests, `tests/run.mjs`, or
@@ -19,8 +19,8 @@ prints how long each stage took. GitHub runs the same checks on every pull reque
 - `shared.md`: read when changing the checks every room gets with no code of its own: old saves,
   kind to the ears, something is drawn.
 - `runner.md`: read when changing `tools/check.mjs` (what's skipped when, the flags) or
-  `.github/workflows/check.yml` (GitHub's plan, remember and weekly retest).
-- `safari.md`: read when changing the weekly look at the game in Safari's engine (WebKit).
+  `.github/workflows/check.yml` (GitHub's plan and remember, run by hand only).
+- `safari.md`: read when changing the by-hand look at the game in Safari's engine (WebKit).
 - `tools.md`: read when changing the build, the publishing tools, the docs checker or the code
   checker's rules.
 - `look-tools.md`: read when you want pictures of the clubhouse, its weather, its speed or start-up

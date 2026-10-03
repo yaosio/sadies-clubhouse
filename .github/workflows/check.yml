@@ -1,4 +1,4 @@
-# The game's checks on GitHub, on every pull request and on main: `npm run check` (docs/clubhouse/checks/README.md),
+# The game's checks on GitHub, started by hand only (see below): `npm run check` (docs/clubhouse/checks/README.md),
 # split up so each activity (and the mansion) gets a computer of its own, all at the same time.
 #
 #   plan      the code checker (lint) and the docs are small, listed and shaped alike (tools/docs.mjs),
@@ -11,17 +11,13 @@
 #             16 of them, small ones share: `--only a+b`, shared out by how long each took last time)
 #   remember  saves what passed for next time, and is the one tick (or cross) for the whole lot
 #
-# Once a week it also checks all of main again from scratch (`--retest`): a pass is otherwise
-# trusted until the code changes, even if the computers underneath have changed since.
+# It only runs when started by hand (the Actions page's "Run workflow"): the repository is private, so
+# GitHub's computers cost minutes, and running on every push used up the free month in two days
+# (2026-10-03). Claude's own `npm run check` before every push, merge and publish is the check now.
 name: check
 
 on:
-  pull_request:
-  push:
-    branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: '17 6 * * 1'
 
 # (reading the pull request a merge came from, and its runs' notes of what passed)
 permissions:

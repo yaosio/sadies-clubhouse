@@ -12,11 +12,11 @@
 //   npm run check -- --live <file> the live game page, saved (with its game/source-*.json beside it): an activity whose code is exactly
 //                                  what that page was built from counts as having passed its tests
 //   npm run check -- --only a,b    just those activities ('clubhouse': the clubhouse's own checks)
-//   npm run check -- --plan        just print which activities still need checking (for GitHub)
+//   npm run check -- --plan        just print which activities still need checking (for GitHub's computers, run by hand)
 //   npm run check -- --no-lint     skip the code checker (GitHub runs it once for the whole change)
 //
-// On GitHub (.github/workflows/check.yml) every pull request runs this too, each activity that needs
-// it on a computer of its own, all at once, remembering what passed between runs.
+// On GitHub (.github/workflows/check.yml, started by hand only, since GitHub's minutes cost money) it
+// runs each activity that needs it on a computer of its own, all at once, remembering what passed.
 //
 // Each activity is checked on its own, so a change to one never means retesting the others:
 //   - its headless tests (tests/<activity>/run.mjs) depend only on its own folder
