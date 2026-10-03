@@ -128,6 +128,19 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check(`the mansion, the outside, the shell and the toolbox name no room (${rooms.length / 2} rooms)`, !bad.length, bad.join('; '));
 }
 
+// ---------- a room's timers run on the game's time ----------
+// A room that lives in the clubhouse waits with `m.after(secs, fn)` (held while paused, gone when the
+// room is put away): a browser timer does neither, so nothing in a room's folder may use one.
+{
+  const acts = new URL('../../src/activities/', import.meta.url).pathname, bad = [];
+  const walk = d => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.m?js$/.test(f)) {
+    const code = readFileSync(p, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
+    if (/\b(setTimeout|setInterval)\b/.test(code)) bad.push(p.slice(acts.length));
+  } } };
+  for (const d of readdirSync(acts)) if (/\broom:/.test(readFileSync(join(acts, d, 'card.js'), 'utf8'))) walk(join(acts, d));
+  check('no room uses a browser timer (m.after runs on the game\'s time)', !bad.length, bad.join(', '));
+}
+
 // Its rules, with no browser sound at all (it still counts what it would have played), on a clock
 // the check moves by hand: a voice never says the same thing twice running (but can, a good while
 // later: a room with only one meow still meows), and nothing but music plays behind the pause menu.

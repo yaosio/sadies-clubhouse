@@ -4,7 +4,7 @@
 // one day any shape.)
 import { Mesh, Scene, Color, Vector3 } from 'three';
 import { psx, picture, doorBack } from './look.js';
-import { kit, wallGeometry, doorway } from './build.js';
+import { kit, wallGeometry, doorway, WALKER } from './build.js';
 
 const W = 3.5, D = 4, H = 3.2;   // half its width and depth, and its height
 
@@ -42,7 +42,7 @@ export function buildRoom(T, card, boxImage, doorImage) {
   box(0.5, 0.08, 0.5, seat, [1.6, 0.48, D - 1.6], [0, 0.5, 0]); box(0.5, 0.55, 0.06, seat, [1.73, 0.78, D - 1.83], [0, 0.5, 0]);
   cyl(0.03, 0.03, 0.44, 4, psx(null, { tint: 0x333344 }), [1.6, 0.22, D - 1.6]);
 
-  const P = 0.35;
+  const P = WALKER;
   function floor(x, z) {
     if (Math.abs(x) > W - P || z < -D + P || z > D - P) return null;
     if (z > D - 1.1 - P && Math.abs(x) < 1.2 + P) return null;       // the desk

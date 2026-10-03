@@ -13,8 +13,8 @@
 // strictly for cats, flower beds), a patio, a bench in the sun where Sadie naps, and a fence round
 // it all. You get there round either side of the house (or through the hedge maze).
 import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
-import { psx, keep, skyMat, tex } from './look.js';
-import { kit, wallGeometry, doorway } from './build.js';
+import { psx, keep, skyMat, tex, sadieSprite } from './look.js';
+import { kit, wallGeometry, doorway, WALKER } from './build.js';
 
 // The plots along the lane outside the gate: where each house's front door is (they face the gate),
 // and how high its ground is (y). Never moved or reordered (tests/clubhouse/spots.json): a new one
@@ -200,7 +200,7 @@ export function buildOutside(T, cards = []) {
   for (const s of [-1, 1]) plane(50, 1.5, psx(T.fence, { rx: 50 / 1.5, side: DoubleSide }), [s * 29, 0.75, 5], [0, Math.PI / 2, 0], 1);
 
   // Sadie on the gatepost: she's expecting you (not that she'd show it)
-  const sadie = new Mesh(keep(new PlaneGeometry(0.9, 0.73, 1, 1).translate(0, 0.365, 0)), psx(T.sadie, { unlit: 0.35 }));
+  const sadie = sadieSprite(T, 0.9);
   sadie.position.set(2.6, 2.4, -20.1); scene.add(sadie);
 
   if (free) {
@@ -215,7 +215,7 @@ export function buildOutside(T, cards = []) {
   // you're on the one nearest your feet, and a step up or down is at most half a metre. What's solid
   // only gets in the way at its own height (y0 to y1), so you can walk under a bridge, or over a
   // tunnel. The rest of what's here is all at ground level for now.
-  const P = 0.35, TALL = 1.6;
+  const P = WALKER, TALL = 1.6;
   const RECTS = [[-9, 9, 0, 10], [13, 19, 3, 9], [-7.3, -5.7, -9.8, -8.2], [-8.2, -2.6, 10, 11], [2.6, 8.2, 10, 11], [-1.2, 1.2, 10, 11.1],
     [4.3, 6.7, 17.5, 18.15], [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
     ...HEDGES.map(([x, z, len]) => [x - 0.5, x + 0.5, z - len / 2, z + len / 2]),
@@ -245,7 +245,6 @@ export function buildOutside(T, cards = []) {
     return best;
   }
 
-  let blinkAt = 3, blinkOff = 0;
   return {
     name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs], sadie, napper, uses: [], lots: LOTS, grounds: GROUNDS, house,
     // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r);
@@ -260,10 +259,9 @@ export function buildOutside(T, cards = []) {
     // hills just left of the first, clear of the mansion
     sky: { dome: 130, sun2: { x: -82, z: 99 } },
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
-    update(t) {
+    update(t, dt) {
       // Sadie on the gatepost blinks now and then
-      if (t > blinkAt) { sadie.material.uniforms.map.value = T.nap; blinkOff = t + 0.15; blinkAt = t + 2.5 + Math.random() * 3; }
-      if (blinkOff && t > blinkOff) { sadie.material.uniforms.map.value = T.sadie; blinkOff = 0; }
+      sadie.userData.blink(dt);
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;
       // Sadie's Zs drift up off the bench and fade
       for (const z of zs) {

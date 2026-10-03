@@ -173,7 +173,7 @@ export async function buildRoom(m) {
   const perch = new Group(); perch.position.set(SADIE.x, 0, SADIE.z); perch.rotation.y = -0.25; scene.add(perch);
   const cardboard = psx(T.cardboard, { rx: 1, ry: 1 });
   { const b = new Mesh(keep(new BoxGeometry(0.9, 0.85, 0.75, 2, 2, 2)), cardboard); b.position.y = 0.465; perch.add(b); }   // (4 cm off the floor, so the floor never shows through its bottom)
-  const sadie = new Mesh(keep(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.31, 0)), psx(T.sadie, { unlit: 0.4 }));
+  const sadie = m.sadie(0.78, { unlit: 0.4 });
   sadie.position.copy(SADIE); scene.add(sadie);
 
   await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
@@ -402,7 +402,7 @@ export async function buildRoom(m) {
     light: { sun: 0.2, bulb: 0.8, lamp: [0, RH - 1.5, 0] },
     spots: { case: { x: 0, z: CZ - 7.5, yaw: Math.PI, pitch: 0.25, y: 0 } },
     floor(x, z) {
-      const P = 0.35;
+      const P = m.walker;
       if (Math.abs(x) > RW - P || z < -RD + P || z > RD - P) return null;
       if (heapZone(x, z, P)) return null;                                                   // the case, and the heap in front and down its side
       if (Math.abs(x - SADIE.x) < 0.5 + P && Math.abs(z - SADIE.z) < 0.45 + P) return null;   // Sadie's box
@@ -477,8 +477,8 @@ export async function buildRoom(m) {
       if (!run) {
         sadie.scale.y = 1 + 0.07 * (game.ball.y / H);
         sadie.rotation.z = Math.sin(t * 0.7) * 0.03;
-        sadie.material.uniforms.map.value = !active && (t % 4.2) < 0.15 ? T.nap : T.sadie;
-      } else { sadie.scale.y = 1; sadie.rotation.z = 0; sadie.material.uniforms.map.value = T.sadie; }
+        if (active) sadie.userData.set(false); else sadie.userData.blink(dt);
+      } else { sadie.scale.y = 1; sadie.rotation.z = 0; sadie.userData.set(false); }
     },
   };
 

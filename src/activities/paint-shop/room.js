@@ -40,7 +40,7 @@ const BARE = {
 };
 
 export async function buildRoom(m) {
-  const { T, psx, keep, kit, wallGeometry, doorway, card } = m;
+  const { psx, keep, kit, wallGeometry, doorway, card } = m;
   const A = drawArt(m);
   await m.breathe?.();
   const scene = new Scene(); scene.background = new Color(0x0a0628);
@@ -167,7 +167,7 @@ export async function buildRoom(m) {
   let hop = 0;   // (how long he's still jumping about for: a BOOM, or Sadie coming in, is the best thing ever)
 
   // ---------- Sadie, who comes in now and then, having stepped in the paint ----------
-  const sadie = new Mesh(keep(new PlaneGeometry(0.55, 0.5).translate(0, 0.25, 0)), psx(T.sadie, { unlit: 0.3 }));
+  const sadie = m.sadie(0.55, { unlit: 0.3 });
   sadie.visible = false; sadie.userData.ghost = true; scene.add(sadie);
   // the dynamite's bits flying off, and the BOOM
   const bits = Array.from({ length: 28 }, () => {
@@ -313,7 +313,7 @@ export async function buildRoom(m) {
       middle: { x: 0, z: 0.5, yaw: 0, pitch: 0, y: 0 },
     },
     floor(x, z) {
-      const P = 0.35;
+      const P = m.walker;
       if (Math.abs(x) > RW - P || Math.abs(z) > RD - P) return null;
       if (z < -RD + 0.85 + P && Math.abs(x) < 2.15 + P) return null;                 // the counter
       if (Math.hypot(x - 3.3, z + 1.4) < 0.57 + P) return null;                       // Sadie's plinth

@@ -7,6 +7,7 @@
 // has its own light: set it with light() before drawing that place.
 import {
   Color, Vector2, Vector3, ShaderMaterial, CanvasTexture, NearestFilter, RepeatWrapping, FrontSide, BackSide,
+  Mesh, PlaneGeometry,
 } from 'three';
 
 // the drawing size in pixels (the mansion keeps it up to date) and each place's light
@@ -390,6 +391,28 @@ export function drawTextures(sadie, sadieNap) {
 }
 
 // An activity's door on the landing, in its box's colour, with its name on a sign.
+// Sadie's sprite, for every place that has her in it: always her own 58:47 shape (so she is never
+// squashed), `width` wide, standing on the spot it's put at. `awake` and `asleep` are the two
+// pictures it swaps between (hers, or her in a helmet or scuba gear, which have a `shape` (height
+// over width) of their own, and may sit `centred` on the spot); `blink(dt, asleep)` is called
+// every update she's meant to blink in, with the game's own `dt`: she blinks now and then (at random,
+// never at a fixed beat, and not racing ahead after a hidden tab); `set(asleep)` holds her awake or
+// asleep instead.
+const SHAPE = 47 / 58;
+export function sadieSprite(T, width, { awake = T.sadie, asleep = T.nap, unlit = 0.35, shape = SHAPE, tint, centred } = {}) {
+  const h = width * shape;
+  const s = new Mesh(keep(new PlaneGeometry(width, h, 1, 1).translate(0, centred ? 0 : h / 2, 0)), psx(awake, { unlit, tint }));
+  let wait = 2.5 + Math.random() * 3, shut = 0;
+  const show = shutEyes => { s.material.uniforms.map.value = shutEyes ? asleep : awake; };
+  s.userData.set = show;
+  s.userData.blink = dt => {
+    if (shut > 0) shut -= dt;
+    else if ((wait -= dt) < 0) { shut = 0.15; wait = 2.5 + Math.random() * 3; }
+    show(shut > 0);
+  };
+  return s;
+}
+
 export function doorTexture(card) {
   const col = hex(card.box?.side ?? 0x3aa04a), name = card.name.toUpperCase();
   return tex(64, 104, g => {

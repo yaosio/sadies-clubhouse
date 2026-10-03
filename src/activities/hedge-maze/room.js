@@ -16,11 +16,11 @@ import { drawArt } from './art.js';
 import { makeMusic } from './music.js';
 import { soundsFor } from '../../shared/sound.js';
 
-const HH = 2.6, HT = 0.25, P = 0.35;   // the hedges: how tall, half how thick; and you, how far round
+const HH = 2.6, HT = 0.25;   // the hedges: how tall, and half how thick
 const GROUND = 800;                     // the grass under each door's maze (they're far apart)
 
 export async function buildRoom(m) {
-  const { T, psx, keep, doorway, skyMat, card } = m;
+  const { T, psx, keep, doorway, skyMat, card } = m, P = m.walker;   // (P: how far round you the hedges keep you)
   const A = drawArt(m);
   // (built again after being put away, the block outside is still there: the mansion hands it back)
   const house = m.house || (m.outside && m.ground ? buildBlock(m, A) : null);

@@ -24,11 +24,12 @@
 import {
   WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace, Box3, Mesh, BoxGeometry,
 } from 'three';
-import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack, skyMat } from './look.js';
+import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack, skyMat, sadieSprite } from './look.js';
+import { timers } from './timers.js';
 import { buildOutside } from './outside.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
-import { kit, wallGeometry, doorway } from './build.js';
+import { kit, wallGeometry, doorway, WALKER } from './build.js';
 import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
 import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading } from '../shared/storage.js';
 import { showCredits } from './credits.js';
@@ -122,16 +123,19 @@ export async function open(cards, enter) {
         at = performance.now();
       };
       let w;
+      const clock = timers(() => mode === 'menu');
       if (!c.room) w = buildRoom(T, c, boxes[i], doorPics[i]);
       else {
         const leaf = doorPics[i] ? { front: doorBack(doorPics[i]), back: picture(doorPics[i]) } : T.leafL;
         // (asking it for anything else is an error: neighbours.js)
-        w = await code.buildRoom(strict('the kit', { T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, card: c, leaf, breathe,
+        w = await code.buildRoom(strict('the kit', { T, C, psx, keep, tex, words, picture, loadImage, kit, wallGeometry, doorway, walker: WALKER, card: c, leaf, breathe,
+          sadie: (width, o) => sadieSprite(T, width, o), after: clock.after,
           doorImage: doorPics[i], landingDoor: doorView(hall.doors[c.id]), hall: lent.hall, outside: outdoors(c) ? lent.outside : null,
           lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null,
           skyMat, snapshot, house: r.house ?? null, ears, paused: () => mode === 'menu', saves: saveBox(c.id), weather: weather.kit,
           overlay: css => overlay(r, css), testing, checks: (name, hook) => hook && checking(r, name, hook) }));
       }
+      const update = w.update || (() => {}); w.update = (t, dt) => { clock.step(dt); update(t, dt); };   // (its timers run on the game's time: timers.js)
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
       r.mine = made().filter(x => !before.has(x));   // everything it made (to hand back if it's put away)

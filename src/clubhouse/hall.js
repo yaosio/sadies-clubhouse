@@ -9,7 +9,7 @@
 import { Mesh, Group, Scene, Color, Vector3, BoxGeometry, PlaneGeometry, CylinderGeometry, SphereGeometry, TorusGeometry,
   CircleGeometry, RingGeometry, TubeGeometry, CatmullRomCurve3, DoubleSide } from 'three';
 import { psx, keep, doorTexture, picture, doorBack } from './look.js';
-import { kit, wallGeometry, doorway } from './build.js';
+import { kit, wallGeometry, doorway, WALKER } from './build.js';
 
 export const R = 8, N = 16, L1 = 4.6, L2 = 9.2, TOP = 13.6;
 const A = R * Math.cos(Math.PI / N), FW = 2 * R * Math.sin(Math.PI / N);   // a wall's distance from the middle, and its width
@@ -192,7 +192,7 @@ export function buildHall(T, cards, doorPictures = []) {
   // ---------- where you can walk ----------
   // the ground (clear of the stairs), the treads, the bridge and the landing. A step up or down is
   // at most half a metre, so the railings and the landing's edge hold you in by themselves.
-  const P = 0.35;
+  const P = WALKER;
   const polyR = (x, z) => { let m = 0; for (let k = 0; k < N; k++) { const th = faceAngle(k); m = Math.max(m, x * Math.sin(th) + z * Math.cos(th)); } return m; };
   function heights(x, z) {
     const r = Math.hypot(x, z), th = Math.atan2(x, z), pr = polyR(x, z), out = [];

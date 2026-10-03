@@ -494,7 +494,7 @@ export async function buildRoom(m) {
       machine: { x: 0, z: MZ + 3.2, yaw: 0, pitch: 0.12, y: 0 },
     },
     floor(x, z) {
-      const P = 0.35;
+      const P = m.walker;
       if (Math.abs(x) > RW - P || Math.abs(z) > RD - P) return null;
       if (z < MZ + 1.05 + P) return null;                                     // the machine, Sadie and her bowl
       if (x > RW - 0.5 - P && z > -0.1 - P && z < 1.9 + P) return null;       // the bookshelf

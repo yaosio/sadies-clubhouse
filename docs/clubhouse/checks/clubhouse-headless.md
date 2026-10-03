@@ -12,6 +12,7 @@ Three hours of it from seeds, and it must have:
 
 ## Two rules about the code
 - Nothing in `src/` but the sound system makes an AudioContext.
+- No room uses `setTimeout` or `setInterval`: its waits go through `m.after`, on the game's time.
 - The shared code (`src/clubhouse/`, `src/shared/`, `src/main.js`, `src/index.html`, comments aside)
   never names an activity, by its folder or its card's name.
 
