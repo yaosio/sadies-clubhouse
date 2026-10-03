@@ -17,7 +17,7 @@ or comes back from one.
   save when the page goes away, through the save director's `onLeave(fn)`
   (`docs/clubhouse/rooms/saves.md`).
 - **The test version's label** goes where an activity's `page.html` (or the clubhouse's
-  `mansion.html`) says `<!--@badge-->` (at the end of the page if none does).
+  `clubhouse.html`) says `<!--@badge-->` (at the end of the page if none does).
 - If the clubhouse's file or an activity's own page won't load, it's tried again, and then the page
   says it couldn't load rather than staying blank (`building-rooms.md`).
 
