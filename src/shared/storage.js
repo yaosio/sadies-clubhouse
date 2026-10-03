@@ -10,7 +10,8 @@
 //   saveRoom()       how much the saves take ({ used, of, nearlyFull, failed }): browsers keep
 //                    about 5 MB of saves per page, and past that a save quietly fails.
 //   backup(prefixes) everything saved under those prefixes, as one file's worth of text, and
-//   loadBackup(text, prefixes) to put it back (all or nothing).
+//   inspectBackup(text, prefixes) looks a backup over first; loadBackup(text, prefixes) puts it back
+//   (all or nothing).
 //   store            the plain get, set and remove under a full key, for Dropper World's saves
 //                    from before there was a clubhouse (never renamed: everyone's would be lost).
 //   onLeave(fn)      fn() runs as the page is hidden or closed (switching apps on a phone counts,
@@ -87,22 +88,38 @@ export function backup(prefixes) {
   try { for (const k of keys()) if (mine(k, prefixes)) saves[k] = localStorage.getItem(k); } catch {}
   return JSON.stringify({ format: FORMAT, made: new Date().toISOString(), saves });
 }
-// Puts a backup back: every save under the prefixes becomes the backup's (one it doesn't have is
-// forgotten). All or nothing: if it won't all fit, everything is left as it was. Says why not, or ''.
-export function loadBackup(text, prefixes) {
+const NOT_ONE = "THAT'S NOT A CLUBHOUSE BACKUP";
+const aside = k => k.endsWith('.unreadable');   // saves put aside are never wiped
+const readable = v => { try { JSON.parse(v); return true; } catch { return false; } };
+// Looks over a backup file's text before anything is touched: { error } (what to say), or
+// { saves } (the [key, value] pairs it would put back) and `made` (its date). It refuses a file that
+// isn't one, one from a newer version, one with nothing in it, and one with any save that isn't
+// readable, so a bad file can never replace a good save.
+export function inspectBackup(text, prefixes) {
   let b;
-  try { b = JSON.parse(text); } catch { return "THAT'S NOT A CLUBHOUSE BACKUP"; }
-  if (!b || b.format !== FORMAT || !b.saves || typeof b.saves !== 'object') return "THAT'S NOT A CLUBHOUSE BACKUP";
-  const incoming = Object.entries(b.saves).filter(([k, v]) => mine(k, prefixes) && typeof v === 'string');
+  try { b = JSON.parse(text); } catch { return { error: NOT_ONE }; }
+  if (!b || typeof b.format !== 'string' || !b.format.startsWith('sadies-clubhouse-backup/') || !b.saves || typeof b.saves !== 'object' || Array.isArray(b.saves)) return { error: NOT_ONE };
+  if (b.format !== FORMAT) return { error: 'THAT BACKUP IS FROM A NEWER VERSION OF THE GAME' };
+  const saves = Object.entries(b.saves).filter(([k]) => mine(k, prefixes) && !aside(k));
+  if (!saves.length) return { error: 'THAT BACKUP HAS NO SAVES IN IT' };
+  if (saves.some(([, v]) => typeof v !== 'string' || !readable(v))) return { error: 'THAT BACKUP IS DAMAGED: NOTHING WAS CHANGED' };
+  return { saves, made: typeof b.made === 'string' ? b.made.slice(0, 10) : '' };
+}
+// Puts a backup back: every save under the prefixes becomes the backup's (one it doesn't have is
+// forgotten, except saves put aside as unreadable). All or nothing: if it won't all fit, everything
+// is left as it was. Says why not, or ''.
+export function loadBackup(text, prefixes) {
+  const { error, saves } = inspectBackup(text, prefixes);
+  if (error) return error;
   const before = {};
   try {
-    for (const k of keys()) if (mine(k, prefixes)) before[k] = localStorage.getItem(k);
+    for (const k of keys()) if (mine(k, prefixes) && !aside(k)) before[k] = localStorage.getItem(k);
     for (const k of Object.keys(before)) localStorage.removeItem(k);
-    for (const [k, v] of incoming) localStorage.setItem(k, v);
+    for (const [k, v] of saves) localStorage.setItem(k, v);
     return '';
   } catch {
     try {
-      for (const k of keys()) if (mine(k, prefixes)) localStorage.removeItem(k);
+      for (const k of keys()) if (mine(k, prefixes) && !aside(k)) localStorage.removeItem(k);
       for (const [k, v] of Object.entries(before)) localStorage.setItem(k, v);
     } catch {}
     return "IT WON'T FIT: NOTHING WAS CHANGED";

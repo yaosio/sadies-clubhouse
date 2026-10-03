@@ -9,7 +9,7 @@ import { checkCards } from './cards.mjs';
 import * as WX from '../../src/clubhouse/weather/rules.js';
 import { strict, hallView, outsideView, realPlace } from '../../src/clubhouse/neighbours.js';
 import { ALL as SADIE_SAYS, RATE } from '../../src/clubhouse/weather/sounds.js';
-import { store, saveBox, saveRoom, backup, loadBackup, onLeave, forget, reloading } from '../../src/shared/storage.js';
+import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, onLeave, forget, reloading } from '../../src/shared/storage.js';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -176,8 +176,25 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check('a backup puts every save back as it was (and only the clubhouse\'s)', !why && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft'
     && box.get('extra', null) === null && data.get('someone.else') === 'theirs' && !JSON.parse(file).saves['someone.else'], why);
   check('...and something that isn\'t a backup changes nothing', loadBackup('hello', PRE) && loadBackup('{"format":"other"}', PRE) && box.get('ocean').found.length === 2);
-  const big = JSON.stringify({ format: 'sadies-clubhouse-backup/1', saves: { 'sadies-clubhouse.aquarium.huge': 'x'.repeat(5.1e6) } });
+  const big = JSON.stringify({ format: 'sadies-clubhouse-backup/1', saves: { 'sadies-clubhouse.aquarium.huge': JSON.stringify('x'.repeat(5.1e6)) } });
   check('...nor one too big to fit: all or nothing', loadBackup(big, PRE) && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft');
+  // a bad file is turned away before anything is touched, and saves put aside are never wiped
+  data.set('sadies-clubhouse.aquarium.old.unreadable', 'kept');
+  const mk = (saves, format = 'sadies-clubhouse-backup/1') => JSON.stringify({ format, made: '2026-01-02T03:04:05Z', saves });
+  const bad = {
+    'a backup with no saves in it': mk({}), 'one whose saves are a list': mk([]),
+    'one with only other people\'s keys': mk({ 'someone.else': '1' }),
+    'one with a save that isn\'t readable': mk({ 'mansion.music': '"off"', 'sadies-clubhouse.aquarium.ocean': '{broken' }),
+    'one with a save that isn\'t text': mk({ 'mansion.music': 5 }),
+    'one from a newer version': mk({ 'mansion.music': '"off"' }, 'sadies-clubhouse-backup/2'),
+  };
+  for (const [what, text] of Object.entries(bad))
+    check(`...${what} is turned away, and nothing is lost`, !!loadBackup(text, PRE) && !!inspectBackup(text, PRE).error && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft', inspectBackup(text, PRE).error);
+  check('...a newer version\'s backup says so', /NEWER VERSION/.test(inspectBackup(bad['one from a newer version'], PRE).error));
+  const good = inspectBackup(mk({ 'mansion.music': '"off"' }), PRE);
+  check('...a good one says its date and how many saves it holds before it\'s loaded', !good.error && good.made === '2026-01-02' && good.saves.length === 1 && store.get('mansion.music') === 'soft');
+  check('...and loading never wipes a save put aside', !loadBackup(mk({ 'mansion.music': '"off"' }), PRE) && data.get('sadies-clubhouse.aquarium.old.unreadable') === 'kept' && store.get('mansion.music') === 'off');
+  store.set('mansion.music', 'soft');
   store.set('sadies-clubhouse.aquarium.fill', 'x'.repeat(4.2e6));
   check('nearly full saves are noticed', saveRoom().nearlyFull && !saveRoom().failed);
   check('...and a save that doesn\'t fit fails and is noticed', !store.set('sadies-clubhouse.aquarium.more', 'x'.repeat(1e6)) && saveRoom().failed);
