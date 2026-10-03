@@ -33,8 +33,6 @@ export default async function ({ browser, page, check, outDir }) {
   // the phone and the desktop at the same time (each in its own browser window)
   await Promise.all(DEVICES.map(async ([device, opts]) => {
     const ctx = await browser.newContext(opts);
-    // the web fonts can't be fetched from here; answer with nothing rather than log a network error
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     const p = await ctx.newPage(), errors = [];
     p.on('pageerror', e => errors.push(e.message));
     p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
@@ -413,6 +411,8 @@ export default async function ({ browser, page, check, outDir }) {
     const keeps = await allKeeps(), keys = await p.evaluate(() => Object.keys(localStorage));
     const stray = keys.filter(k => !keeps.some(s => k.startsWith(s)));
     check(`${device}: every save belongs to an activity's card or the mansion`, keys.length && !stray.length, stray.join(', ') || `${keys.length} saves`);
+    const fonts = await p.evaluate(async () => { await document.fonts.ready; return ['Silkscreen', 'Patrick Hand'].map(f => [f, document.fonts.check(`16px "${f}"`) && [...document.fonts].some(x => x.family.replace(/['"]/g, '') === f && x.status === 'loaded')]); });
+    check(`${device}: the lettering is the game's own fonts, loaded from its own files`, fonts.every(([, ok]) => ok), JSON.stringify(fonts));
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }));
@@ -421,7 +421,6 @@ export default async function ({ browser, page, check, outDir }) {
   // it's fetched again once the network's back
   const files = JSON.parse(readFileSync(join(new URL('../..', import.meta.url).pathname, 'dist/game-files.json'), 'utf8'));
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   let cut = true, asked = 0;
   const cutOff = 'room:' + spare.id;
   await ctx.route(url => url.pathname.endsWith('/game/' + files[`src/activities/${spare.id}/room.js`]), r => { asked++; return cut ? r.abort() : r.continue(); });

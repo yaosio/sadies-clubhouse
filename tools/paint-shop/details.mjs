@@ -8,7 +8,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch, quietFonts } from '../browser.mjs';
+import { launch } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/paint-shop');
 mkdirSync(out, { recursive: true });
@@ -16,7 +16,6 @@ mkdirSync(out, { recursive: true });
 const server = await serve();
 const browser = await launch();
 const ctx = await browser.newContext({ viewport: { width: 960, height: 640 } });
-await quietFonts(ctx);
 const p = await ctx.newPage();
 p.on('pageerror', e => console.log('page error:', e.message));
 await p.goto(`http://127.0.0.1:${server.address().port}/`);

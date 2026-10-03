@@ -17,7 +17,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from '../serve.mjs';
-import { chromium, quietFonts } from '../browser.mjs';
+import { chromium } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -47,7 +47,6 @@ const server = await serve();
 const browser = await chromium.launch();
 const ctx = await browser.newContext(desktop ? { viewport: { width: 1280, height: 800 } }
   : { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
-await quietFonts(ctx);
 await ctx.addInitScript(([k, s]) => {
   if (!sessionStorage.getItem('profile.planted')) { localStorage.setItem(k, s); sessionStorage.setItem('profile.planted', '1'); }
   // time every animation frame from outside the game: when it started and how long its work took

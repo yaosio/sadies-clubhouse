@@ -5,7 +5,7 @@ How Sadie's clubhouse is built as a 3D world you walk round (`src/clubhouse/`, i
 the part your change touches. The outside has its own folder: `docs/clubhouse/outside/README.md`.
 
 - `shell.md`: the page shell: opening the clubhouse or an activity, ESC BACK, the test version's
-  label.
+  label, the fonts.
 - `places-and-doorways.md`: places, and the doorways that join them; doors opening and closing.
 - `building-rooms.md`: building rooms as they're needed, putting them away, starting quickly, each
   room's code a file of its own.

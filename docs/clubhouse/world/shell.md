@@ -20,3 +20,11 @@ or comes back from one.
   `mansion.html`) says `<!--@badge-->` (at the end of the page if none does).
 - If the clubhouse's file or an activity's own page won't load, it's tried again, and then the page
   says it couldn't load rather than staying blank (`building-rooms.md`).
+
+## Fonts
+The game's fonts are files of its own (`src/shared/fonts/`, fetched once by `tools/fonts/get.mjs`,
+Latin only, all under the SIL Open Font License), never Google's servers: it works offline and
+nobody is told who's playing. The build copies them into `game/` and puts their `@font-face` rules
+in the page (`src/shared/fonts/fonts.css`); a font is only fetched once something uses it. A new
+font: add it to `tools/fonts/get.mjs`, run it, commit what it wrote. A check fails if any source
+names Google's font servers.

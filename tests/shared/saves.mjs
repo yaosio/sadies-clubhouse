@@ -57,7 +57,6 @@ export async function oldSaves({ browser, page, card, check, root, skip = [] }) 
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json') && !skip.includes(f)).sort()) {
     const saves = JSON.parse(readFileSync(join(dir, f), 'utf8'));
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     // (the saves go in before the game starts, once: not again on a reload)
     await ctx.addInitScript(saves => {
       if (sessionStorage.getItem('saves-put-back')) return;

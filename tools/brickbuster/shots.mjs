@@ -5,7 +5,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch, quietFonts } from '../browser.mjs';
+import { launch } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/brickbuster');
 mkdirSync(out, { recursive: true });
@@ -15,7 +15,6 @@ const url = `http://127.0.0.1:${server.address().port}/`;
 const browser = await launch(['--autoplay-policy=no-user-gesture-required']);
 for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
   const ctx = await browser.newContext(opts);
-  await quietFonts(ctx);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(url);

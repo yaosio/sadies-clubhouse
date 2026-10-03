@@ -20,7 +20,7 @@ you want to see or time something, or change one of them. The other tools are in
 - `tools/clubhouse/startup.mjs`: how long the game takes to start, from the built page: from asking
   for the page to the clubhouse's first picture (the middle of a few runs), with every file held up
   as a real connection would (`--delay <ms>`, 100 by default) and when each came, so files fetched
-  one after another show up. `--delay 0` for the building alone, `--phone`, `--no-font`.
+  one after another show up. `--delay 0` for the building alone, `--phone`.
 - `tools/clubhouse/spot.mjs`: a picture from anywhere: `node tools/clubhouse/spot.mjs <name> <place>
   <x> <z> <y> <lookX> <lookY> <lookZ>` stands there and looks at that point
   (`dist/shots/clubhouse/spot-<name>.png`), for checking how one thing looks.

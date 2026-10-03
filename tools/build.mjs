@@ -22,7 +22,7 @@
 // to be inside the page, which grew with every room towards the page limit (16 MB); nothing in the
 // game ever fetches it.
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, rmSync, copyFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -36,7 +36,7 @@ function collect(p, out) {
   const full = join(root, p);
   let st; try { st = statSync(full); } catch { return; }
   if (st.isDirectory()) { for (const f of readdirSync(full).sort()) collect(join(p, f), out); }
-  else out[relative(root, full)] = readFileSync(full, 'utf8');
+  else if (!full.endsWith('.woff2')) out[relative(root, full)] = readFileSync(full, 'utf8');   // (the fonts are files, not text: tools/fonts/get.mjs fetches them)
 }
 
 // the test version's label: in each activity's page where it says <!--@badge-->, else at the end
@@ -95,6 +95,9 @@ const result = await build({
   banner: { js: 'var fetchAgain=u=>{const m=globalThis.gameMisses||={},n=m[u]|0;return import(u+(n?"?again="+n:"")).catch(e=>{m[u]=n+1;throw e})};' },
 });
 mkdirSync(join(root, 'dist/game'), { recursive: true });
+// the fonts, files of the game's own (src/shared/fonts/, named in its fonts.css)
+const FONTS = join(root, 'src/shared/fonts');
+for (const f of readdirSync(FONTS)) if (f.endsWith('.woff2')) copyFileSync(join(FONTS, f), join(root, 'dist/game', f));
 for (const f of result.outputFiles) {
   const text = f.text.replace(/\bimport\((".\/[\w-]+\.js")\)/g, 'fetchAgain($1)');
   writeFileSync(f.path, text);
@@ -135,6 +138,10 @@ const put = (marker, text) => {
 };
 put('/*@script*/', js);
 put('<!--@preload-->', [...needs].map(f => `<link rel="modulepreload" href="./game/${f.split('/').pop()}">`).join('\n'));
+// the rules for every font (a font is only fetched once something uses it), and the mansion's own two
+// asked for straight away
+put('<!--@fonts-->', `<style>${readFileSync(join(FONTS, 'fonts.css'), 'utf8').replace(/\/\*.*?\*\//g, '').trim()}</style>\n` +
+  ['silkscreen-n400', 'silkscreen-n700', 'patrick-hand-n400'].map(n => `<link rel="preload" as="font" type="font/woff2" crossorigin href="./game/font-${n}.woff2">`).join('\n'));
 put('<!--@source-->', `<link rel="alternate" type="application/json" id="jelly-source" href="./game/${sourceFile}">`);
 
 if (preview) {

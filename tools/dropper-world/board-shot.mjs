@@ -6,7 +6,7 @@
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { serve } from '../serve.mjs';
-import { chromium, quietFonts } from '../browser.mjs';
+import { chromium } from '../browser.mjs';
 
 
 const root = resolve(new URL('../..', import.meta.url).pathname);
@@ -19,7 +19,6 @@ for (const [name, opts] of [
   ['desktop', { viewport: { width: 1280, height: 800 } }],
 ]) {
   const ctx = await browser.newContext(opts);
-  await quietFonts(ctx);
   const p = await ctx.newPage();
   await p.goto(`http://127.0.0.1:${server.address().port}/#dropper-world`);
   await p.waitForTimeout(1500);

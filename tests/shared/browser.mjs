@@ -9,11 +9,9 @@ export const DEVICES = [
   ['desktop', { viewport: { width: 1280, height: 800 } }],
 ];
 
-// a browser window as that device, the web fonts answered with nothing (they can't be fetched from
-// here; rather than log a network error), and every error on its page collected
+// a browser window as that device, and every error on its page collected
 export async function openDevice(browser, opts) {
   const ctx = await browser.newContext(opts);
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const p = await ctx.newPage(), errors = [];
   p.on('pageerror', e => errors.push(e.message));
   p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });

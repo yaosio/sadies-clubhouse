@@ -25,7 +25,7 @@ The tools that take pictures of the clubhouse or measure it are in `look-tools.m
   `null` for the page's old files.
 - `tools/browser.mjs`: what every picture-taking or measuring tool starts with: Playwright (found in
   the project or installed for everyone), a hidden browser that draws 3D in software (`launch()`),
-  the desktop and phone screens (`DEVICES`), and the web fonts answered with nothing (`quietFonts()`).
+  and the desktop and phone screens (`DEVICES`).
   The checks' own version is `tests/shared/browser.mjs`.
 - `tools/activities.mjs`: which activities there are (every folder in `src/activities/` with a
   `card.js`), for the build, the checks and the room checker alike.
