@@ -5,12 +5,9 @@
 import { makeMaze, S, DI, DJ } from '../../src/activities/hedge-maze/grow.js';
 import { makeComposer, SCALES } from '../../src/activities/hedge-maze/music.js';
 import card from '../../src/activities/hedge-maze/card.js';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 function seeded(a) { return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const back = d => (d + 2) % 4;
 const cellAt = (mz, i, j) => mz.cells.get(i + ',' + j);
@@ -184,5 +181,4 @@ check('the card puts the maze in the grounds beside the house (not a door on the
   check('...and never the same eight notes twice', !again, `${again} repeats`);
 }
 
-console.log(failed ? `\n${failed} FAILED` : '\nall passed');
-process.exit(failed ? 1 : 0);
+finish();

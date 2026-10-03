@@ -14,6 +14,7 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { DESKTOP } from './devices.mjs';
 
 const SAMPLE_MAX = 50e3, TOTAL_MAX = 500e3;   // bytes: one sample, and all of an activity's
 const dirOf = (root, id) => join(root, 'tests/saves', id);
@@ -71,7 +72,7 @@ export async function oldSaves({ browser, page, card, check, root, skip = [] }) 
     big.length ? `${big.map(([f, n]) => `${f} is ${Math.round(n / 1024)} KB`).join(', ')} (over ${SAMPLE_MAX / 1024} KB: trim it to a few pieces of each kind)` : total > TOTAL_MAX ? `${Math.round(total / 1024)} KB in all, over ${TOTAL_MAX / 1024} KB` : `${sizes.length} samples, ${Math.round(total / 1024)} KB`);
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json') && !skip.includes(f)).sort()) {
     const saves = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const ctx = await browser.newContext(DESKTOP);
     // (the saves go in before the game starts, once: not again on a reload)
     await ctx.addInitScript(saves => {
       if (sessionStorage.getItem('saves-put-back')) return;

@@ -6,7 +6,7 @@
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { serve } from '../serve.mjs';
-import { chromium } from '../browser.mjs';
+import { chromium, DEVICES as SHARED } from '../browser.mjs';
 
 
 const root = resolve(new URL('../..', import.meta.url).pathname);
@@ -15,8 +15,8 @@ mkdirSync(out, { recursive: true });
 const server = await serve();
 const browser = await chromium.launch();
 for (const [name, opts] of [
-  ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }],
-  ['desktop', { viewport: { width: 1280, height: 800 } }],
+  ['phone', { ...SHARED.phone, deviceScaleFactor: 1 }],
+  ['desktop', SHARED.desktop],
 ]) {
   const ctx = await browser.newContext(opts);
   const p = await ctx.newPage();

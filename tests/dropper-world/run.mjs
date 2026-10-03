@@ -12,6 +12,7 @@
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { cpus } from 'node:os';
+import { checker } from '../shared/check.mjs';
 
 const only = process.argv.find(a => a.startsWith('--section='));
 const wanted = n => only && +only.slice(10) === n;
@@ -65,11 +66,7 @@ const { barn, barnX, barnCover, BARN_HALF } = await import('../../src/activities
 const { BURIED } = await import('../../src/activities/dropper-world/core/sadie/brain.js');
 const { on } = await import('../../src/activities/dropper-world/core/events.js');
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 
 function penetration(pieces) { // deepest any boundary point sits inside another piece, in px
   let worst = 0;
@@ -585,5 +582,4 @@ if (wanted(14)) {
   resetGame();
 }
 
-console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
-process.exit(failed ? 1 : 0);
+finish('check(s) failed', 'all checks passed');

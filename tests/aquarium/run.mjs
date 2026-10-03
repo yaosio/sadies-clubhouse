@@ -11,12 +11,9 @@ import { SPOTS, START, SEA_R, BOAT, REEF_R, sailable, findHere, reefOpen, loom, 
 import { FIND_SOUNDS, reef } from '../../src/activities/aquarium/sounds/finds.js';
 import { wave, sail, seaPacing, GAP, WAVE_MIN, WAVES } from '../../src/activities/aquarium/sounds/sea.js';
 import { RATE } from '../../src/shared/retro.js';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 
 // 1. the card: a room in the mansion, behind the fifth door, with its own door picture
 check('the card is a room in the mansion', card.id === 'aquarium' && typeof card.room === 'function' && !card.start && !card.page);
@@ -113,5 +110,4 @@ check('every ocean sound is short, never over full volume, and ends in silence',
   check(`in half an hour at sea: no two sounds within ${GAP} s, waves at most every ${WAVE_MIN} s, never the same wave twice running`, heard.length > 0 && gaps.every(g => g >= GAP) && waveGaps.every(g => g >= WAVE_MIN) && waves.every(([, s], i) => !i || s.variant !== waves[i - 1][1].variant) && WAVES > 1, `${heard.length} sounds, ${(heard.length / 30).toFixed(1)} a minute`);
 }
 
-console.log(failed ? `\n${failed} FAILED` : '\nall passed');
-process.exit(failed ? 1 : 0);
+finish();

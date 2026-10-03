@@ -11,12 +11,9 @@ import { ALL } from '../../src/activities/paint-shop/sounds/index.js';
 import card from '../../src/activities/paint-shop/card.js';
 import { makeSurfaces, boxGeometry } from '../../src/activities/paint-shop/surfaces.js';
 import { Scene, Mesh, Vector3, MeshBasicMaterial } from 'three';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 function seeded(a) { return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 // 1. the card: Chooter's shop, on the second plot outside the gate (across from Clyde's), not a door on the landing
@@ -131,5 +128,4 @@ check('no sound for painting (brush, roller, spray): only one-off blips', !Objec
   check('a box takes paint on all six sides, each on its own', new Set(parts).size === 6 && painted(s.L) > 6 * 4, `sides ${parts.join(' ')}`);
 }
 
-console.log(failed ? `\n${failed} FAILED` : '\nall passed');
-process.exit(failed ? 1 : 0);
+finish();

@@ -4,10 +4,9 @@
 // every room's browser checks again.
 import { join } from 'node:path';
 
-export const DEVICES = [
-  ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
-  ['desktop', { viewport: { width: 1280, height: 800 } }],
-];
+import { PHONE, DESKTOP } from './devices.mjs';
+
+export const DEVICES = [['phone', PHONE], ['desktop', DESKTOP]];
 
 // a browser window as that device, and every error on its page collected
 export async function openDevice(browser, opts) {
@@ -26,6 +25,7 @@ export async function openDevice(browser, opts) {
 //   walk(ms, key): hold a key down (W: forward) for that long in the game (see walk below)
 //   rest(ms): let that long go by in the game (see rest below)
 //   use(): E on a desktop, the button on a phone
+//   pause(): Escape on a desktop, the pause button on a phone
 //   modeIs(mode): wait for the mansion to be in that mode ('play', 'arcade'...; false if it isn't)
 //   until(fn, arg, ms): wait for fn(arg) on the page to come true, for up to ms of the game's time
 export function bothDevices(browser, outDir, fn) {
@@ -38,13 +38,19 @@ export function bothDevices(browser, outDir, fn) {
       up: () => up(p),
       walk: (ms, key) => walk(p, ms, key),
       rest: ms => rest(p, ms),
-      use: () => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE'),
+      use: () => pressUse(p, opts),
+      pause: () => pressPause(p, opts),
       modeIs: m => p.waitForFunction(m => window.__mansion.mode() === m, m, { timeout: 5000 }).then(() => true, () => false),
       until: (f, a, ms) => until(p, f, a, ms),
     };
     try { await fn(kit); } finally { await ctx.close().catch(() => {}); }
   }));
 }
+
+// The USE button on a phone, E on a desktop; and the pause button on a phone, Escape on a desktop
+// (`opts`: the device's, so a phone is told by its touch)
+export const pressUse = (p, opts) => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE');
+export const pressPause = (p, opts) => opts.hasTouch ? p.tap('#mansion #pause') : p.keyboard.press('Escape');
 
 // Wait for the mansion to open and every room to be built. It gets slower with every room: past 8 s
 // it says so (docs/clubhouse/decisions/known-limits.md, known limits: the plan for when it does).

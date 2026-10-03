@@ -5,7 +5,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch } from '../browser.mjs';
+import { launch, DEVICES } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clubhouse');
 mkdirSync(out, { recursive: true });
@@ -34,7 +34,7 @@ const SPOTS = [
 ];
 const only = process.argv.slice(2);
 const browser = await launch();
-for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }]]) {
+for (const [device, opts] of [['desktop', DEVICES.desktop], ['phone', { ...DEVICES.phone, deviceScaleFactor: 1 }]]) {
   const ctx = await browser.newContext({ ...opts, ignoreHTTPSErrors: true });
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));

@@ -9,7 +9,7 @@
 // clears it's standing in Sadie's space room, free to walk, the radio playing, Sadie saying she loves
 // space; the big red button takes it on the trip again; and coming back later the door opens onto
 // the space room. Screenshots in dist/check/space-adventure/. Any error on the page is a failure.
-import { bothDevices } from '../shared/browser.mjs';
+import { bothDevices, pressUse } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
   await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, until: untilGame }) => {
@@ -95,7 +95,7 @@ export default async function ({ browser, page, check, outDir }) {
     const offer = await M('target');
     check(`${device}: at the big red button, it offers to press it`, offer === 'PRESS THE BIG RED BUTTON', offer);
     await shot('7-button');
-    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+    await pressUse(p, opts);
     check(`${device}: pressing it takes you on the trip again`, await until(() => { const s = window.__space.state(); return s.stage === 'cockpit' && s.t > 0 && s.watching && !s.radio; }, 4000));
 
     // coming back later, the door opens onto her space room
