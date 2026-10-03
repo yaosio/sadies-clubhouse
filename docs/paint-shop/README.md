@@ -2,7 +2,7 @@
 
 The second building outside Sadie's front gate (`src/activities/paint-shop/`), on the plot across
 the path from Clyde's House (`lot` 1). A Kid Pix-style paint program where you paint the actual
-room, not a flat canvas. Everything outside the clubhouse belongs to somebody else (the owner's
+room, not a flat canvas. Everything outside the gate belongs to somebody else (the owner's
 rule), so the shop is Chooter's: the black lab/pitbull mix from Dropper World. Sadie drops in now
 and then as a customer.
 

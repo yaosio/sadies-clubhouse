@@ -9,7 +9,7 @@ win over any feature idea) and its pages.
 |---|---|
 | Any new idea for a feature or place | `docs/clubhouse/RULEBOOK.md`, `docs/clubhouse/ARCHITECTURE.md` |
 | Change what an activity does or how you play it | `docs/<name>/README.md`, then its `playing.md` |
-| Change an activity's code | `docs/<name>/README.md`, then its `how-built.md` (and the page it points to for your part) |
+| Change an activity's code | `docs/<name>/README.md`, then its `how-built.md` (Dropper World: its `how-built/` folder) and the page it points to for your part |
 | Change an activity's numbers or tuning | `docs/<name>/README.md`, then its numbers or tuning page |
 | Change how an activity looks | `docs/<name>/README.md`, `docs/clubhouse/look/README.md`, its own look page if it has one |
 | Change how a character behaves (Dropper World) | `docs/dropper-world/README.md`, then its `characters/` folder |

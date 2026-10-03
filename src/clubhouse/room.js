@@ -1,5 +1,5 @@
-// An activity's room, behind its door on the landing: for now a small den with a desk and an old
-// computer, its box's picture on the screen and a poster of it on the wall. The activities are
+// The room for an activity played at a computer, behind its door on the landing: a small den with a
+// desk and an old computer, its box's picture on the screen and a poster of it on the wall. The activities are
 // programs, so you play one at its computer. (Each room is its own place: it can be any size, and
 // one day any shape.)
 import { Mesh, Scene, Color, Vector3 } from 'three';

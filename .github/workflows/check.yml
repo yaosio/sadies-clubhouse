@@ -2,7 +2,7 @@
 # split up so each activity (and the clubhouse) gets a computer of its own, all at the same time.
 #
 #   plan      the code checker (lint) and the docs are small, listed and shaped alike (tools/docs.mjs),
-#             on every pull request, whatever it changes; and which activities still need checking:
+#             whatever it changes, when started; and which activities still need checking:
 #             an activity that already passed on exactly its code (remembered between runs) is
 #             skipped, as on Claude's own machine. On main, after a merge, what the pull request's
 #             last green run passed counts too (main can't see what a pull request remembered), so

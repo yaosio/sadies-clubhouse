@@ -1,6 +1,6 @@
 // Everything Clyde says, in one place. Clyde is eager, polite, and overthinks everything; the
 // machine is how a helper who can't do anything simply would give a cat a treat. Painted in the
-// clubhouse's little 3x5 letters, so: no double quotes, and about 150 letters a bubble at most.
+// clubhouse's little 3x5 letters, so: no double quotes, and at most 104 letters a bubble (4 lines of 26).
 // A list is said one bubble after another.
 
 export const HELLO = [

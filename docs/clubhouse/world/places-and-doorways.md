@@ -10,7 +10,7 @@ own scene with its own floor and light:
 - `outside.js`: the garden, the house's shell, the backyard behind it, and the lane outside the gate
   with its plots (`docs/clubhouse/outside/README.md`).
 - `hall.js`: the entrance hall, the bottom of the cat tree (`hall.md`).
-- `room.js`: an activity's room, one per card.
+- `room.js`: the plain den with a computer, for an activity played at a computer (the others build their own room).
 
 ## Doorways
 Places are joined only by **doorways** (`build.js`): a hole in a wall, two leaves that swing open,
