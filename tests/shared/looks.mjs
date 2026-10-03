@@ -1,7 +1,7 @@
 // Something is drawn: a room drawing black, a missing texture turned one flat colour, the sky gone
 // white, a page that never drew. Run by tools/check.mjs with no code of an activity's own, wherever
-// it's already standing still (tests/shared/ears.mjs: in every room in the mansion, outside at the
-// gate, in the hall) and on every activity started straight from its address (a computer's). It
+// it's already standing still (tests/shared/ears.mjs: in every room, wherever its door is: inside the
+// house, outside the gate, in the grounds; and outside at the gate, in the hall) and on every activity started straight from its address (a computer's). It
 // takes a picture of what you see and fails if it's nearly all one colour, or has hardly any colours
 // at all. It can't tell a picture that's drawn wrong; only one that's missing.
 import { DESKTOP } from './devices.mjs';

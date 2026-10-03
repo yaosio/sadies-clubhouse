@@ -1,6 +1,7 @@
 // Kind to the ears (the owner has misophonia: nothing droning, constant or repetitive): standing
 // still somewhere, doing nothing, the game must stay calm. Run by tools/check.mjs with no code of a
-// room's own: in every room that lives in the mansion (after its own checks), and outside at the
+// room's own: in every room (a door on a landing, a building outside the gate, a spot in the grounds: whatever
+// has a room), after its own checks, and outside at the
 // gate and in the hall (after the mansion's). For LISTEN seconds of the game's time it counts every
 // sound played, by anyone (what you'd hear there, wherever it comes from), and fails on
 //   - the same sound more than SAME times (a tick, a drip, a hum made of repeats),
@@ -44,7 +45,7 @@ async function open(browser, page) {
   return { ctx, p, ok, M: (f, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [f, a]) };
 }
 
-// in a room that lives in the mansion, a couple of metres in from its door
+// in a room (wherever its door is), a couple of metres in from its door
 export async function roomEars({ browser, page, card, check }) {
   const { ctx, p, ok, M } = await open(browser, page);
   if (!ok || !(await M('faceDoor', 'room:' + card.id, 'door', 2.5))) check('it can be stood in, to listen', false);

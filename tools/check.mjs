@@ -275,8 +275,8 @@ async function browserChecks(name, hash, suite, extra = {}) {
     try { await oldSaves({ browser: watched, page, card, check: roomCheck, root, skip: kept ? [kept] : [] }); }
     catch (e) { check(`${name}: its old saves were checked`, false, e.message.split('\n')[0]); }
   }
-  // standing still in it is kind to the ears (tests/shared/ears.mjs): every room in the clubhouse, and
-  // after the clubhouse's own, outside at the gate and in the hall; and what you see there (or on a
+  // standing still in it is kind to the ears (tests/shared/ears.mjs): every room (a door on a landing, a
+  // building outside the gate, a spot in the grounds), and after the clubhouse's own, outside at the gate and in the hall; and what you see there (or on a
   // computer, as it starts) is drawn, not one colour (tests/shared/looks.mjs)
   try {
     if (card?.room) await roomEars({ browser: watched, page, card, check: roomCheck });
