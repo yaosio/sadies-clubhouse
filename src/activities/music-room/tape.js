@@ -15,6 +15,7 @@ export const tapeIn = T => T[T.which];
 
 // a recording's done: the quiet before its first note is cut off, so it starts playing straight away
 function done(T) {
+  T.fresh = false;
   const first = T.mine[0]?.at ?? 0;
   if (first > 0.3) T.mine = T.mine.map(n => ({ ...n, at: Math.round((n.at - first + 0.3) * 1000) / 1000 }));
   T.state = 'idle';
@@ -23,7 +24,7 @@ function done(T) {
 // the buttons (now: seconds)
 export function press(T, button, now) {
   if (T.state === 'rec' && button !== 'rec') done(T);
-  if (button === 'rec') { T.which = 'mine'; T.mine = []; T.state = 'rec'; T.t0 = now; }
+  if (button === 'rec') { T.which = 'mine'; T.fresh = true; T.state = 'rec'; T.t0 = now; }   // (your old take goes only when you play the first new note: REC then STOP keeps it)
   else if (button === 'play' || button === 'loop') { if (tapeIn(T).length) { T.state = button; T.t0 = now; T.i = 0; } else T.state = 'idle'; }
   else if (button === 'stop') T.state = 'idle';
   else if (button === 'tape') { T.which = T.which === 'mine' ? 'sadie' : 'mine'; T.state = 'idle'; }
@@ -32,6 +33,7 @@ export function press(T, button, now) {
 // a note you just played: onto your tape, if it's recording
 export function heard(T, note, now) {
   if (T.state !== 'rec') return;
+  if (T.fresh) { T.mine = []; T.fresh = false; }
   const at = now - T.t0;
   if (at > LONGEST || T.mine.length >= MOST) { done(T); return; }
   T.mine.push({ ...note, at: Math.round(at * 1000) / 1000 });

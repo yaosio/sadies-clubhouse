@@ -24,7 +24,7 @@ off it). Inside, teal wallpaper with music notes and fish bones in it:
 - **The TAPE-O-MATIC** on its table: REC (R), PLAY (P), STOP (S), LOOP (L), and T (or tapping the
   cassette beside it) swaps tapes. Your tape (MY SONG) holds what you record on any instrument, up
   to a minute, starting from your first note; the other one, SADIE LIVE!, always holds her last
-  walk. REC always records on yours. (The theremin doesn't go on tape.) LOOP plays the take over
+  walk. REC always records on yours, and your old take stays until you play the first new note (REC, then STOP with nothing played, loses nothing). (The theremin doesn't go on tape.) LOOP plays the take over
   and over for as long as you leave it on (the owner's call, see `README.md`), and stops when you
   leave.
 - **The volume dial** on the back wall: E turns it SOFT, MEDIUM, LOUD, OFF (it starts on MEDIUM).

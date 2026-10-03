@@ -7,7 +7,7 @@ before changing the code. Its checks are in `checks.md`.
 
 - **`card.js`**: its card: no page and no `start()`, just `room` (loads `room.js`), `door`,
   `slot: 4`, and `keeps` (`sadies-clubhouse.aquarium.`, for starting over). It saves through the
-  kit's `m.saves` as `ocean`: what you've found, and where the boat is
+  kit's `m.saves` as `ocean`: what you've found, and where the boat is (kept every couple of seconds while sailing and as the page is hidden or closed, so a reload at sea keeps it; BACK TO AQUARIUM saves it too)
   (`docs/clubhouse/rooms/saves.md`).
 - **`tank.js`**: the tank in numbers, with no screen (the tests read it): the room and the tank's
   size, the fish and their lanes, Sadie's lazy loop (`sadieAt`), the dive when you tap the glass

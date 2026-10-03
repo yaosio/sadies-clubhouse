@@ -214,6 +214,15 @@ export async function buildRoom(m) {
   const underLight = { sun: 0.2, bulb: 0.8, lamp: [0, RH - 0.4, 1.5] };   // (underwater at sea: lit just like the tank, round the copy of its floor)
   const off = { x: 0, z: 0 }, copyAt = { x: 0, z: 0 };   // where the sea is this trip, and the copy of the tank's floor
   let where = 'room', tapFrom = null;
+  // where the boat is, kept as it sails (every couple of seconds) and as the page is hidden or closed,
+  // so a reload at sea doesn't put the boat back where it was last left
+  let boatKept = -9;
+  const keepBoat = () => {
+    if (where !== 'sea' || diving) return;
+    const me = m.ears();
+    saved.boat = { x: me.x - off.x, z: me.z - off.z, yaw: me.yaw }; save();
+  };
+  const stopLeaving = m.saves.onLeave(keepBoat);
 
   // For the checks: `hold` stops the dive just before the swap (and again just after) until told to
   // go on, with the weed held still, so the two pictures can be compared.
@@ -330,6 +339,7 @@ export async function buildRoom(m) {
     return 0;
   };
   const place = {
+    putAway() { keepBoat(); stopLeaving(); },
     name: 'room:' + card.id, card, scene, doors: { door }, faces, uses,
     light: roomLight,
     // (the clubhouse puts the aquarium away when you're far off, and builds it again from its save as
@@ -377,6 +387,7 @@ export async function buildRoom(m) {
       if (where !== 'sea') return;
       const me = m.ears();
       ocean.update(t, dt, me, off);
+      if (!diving && t - boatKept > 2) { boatKept = t; keepBoat(); }
       const up = me.y > SURFACE;
       place.light = up ? seaLight : underLight;
       place.far = up ? 1200 : undefined;

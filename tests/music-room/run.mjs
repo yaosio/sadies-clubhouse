@@ -105,6 +105,16 @@ const { check, finish } = checker();
   check('her paws always land on keys that are there', off === 0);
 }
 
+// 4a. REC keeps your old take until you play a new note
+{
+  const T = makeTape(null);
+  press(T, 'rec', 0); heard(T, { inst: 'piano', n: 60 }, 1); heard(T, { inst: 'piano', n: 62 }, 2); press(T, 'stop', 3);
+  press(T, 'rec', 10); press(T, 'stop', 12);
+  check('REC then STOP, with nothing played, keeps the old take', T.mine.length === 2 && T.state === 'idle');
+  press(T, 'rec', 20); heard(T, { inst: 'piano', n: 64 }, 21); press(T, 'stop', 22);
+  check('...the first new note replaces it', T.mine.length === 1 && T.mine[0].n === 64);
+}
+
 // 4. the tape deck
 {
   const T = makeTape(null);

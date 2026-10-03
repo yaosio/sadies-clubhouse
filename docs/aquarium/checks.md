@@ -13,6 +13,6 @@ Its tests and its trip-pictures tool. Read before changing what's checked, or wh
   picture just before the swap and just after are the same; up in the boat with the sign and the
   button home; sailing; picking up the duck, with its sound; the reef; going home, comparing that
   swap too, back where you stood; the duck in the cabinet; the next trip coming up where the boat
-  was left.
+  was left; a reload out at sea keeping the boat where it was.
 - **`tools/aquarium/sail.mjs`**: takes pictures of a whole trip (every spot, the mountain from
   further and further off, the cabinet) for looking at it by eye.
