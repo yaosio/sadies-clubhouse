@@ -18,7 +18,7 @@ import { psx, keep } from '../look.js';
 import { KEY, KINDS, LOOK, loaded } from './rules.js';
 import { drawWeatherArt } from './art.js';
 import { ALL as VOICE, RATE } from './sounds.js';
-import { soundsFor } from '../../shared/sound.js';
+import { soundsFor, wrap } from '../../shared/sound.js';
 import { store } from '../../shared/storage.js';
 
 const EASE = 1 / 3;          // the weather takes about three seconds to change
@@ -138,16 +138,15 @@ export function makeWeather(T, outside) {
       meowAt = 0; saying = now; sayUntil = clock + 4 / speed;
       // (heard only out there, fading with how far off she is)
       if (ears?.place === outside) {
-        try { sounds ||= voice(); (now === 'rain' ? sounds.mew : sounds.mrrp)({ dist: Math.hypot(ears.x - sadie.position.x, ears.z - sadie.position.z), near: 8, far: 30 }); } catch {}
+        try { sounds ||= voice(); (now === 'rain' ? sounds.mew : sounds.mrrp)({ dist: Math.hypot(ears.x - sadie.position.x, ears.z - sadie.position.z), near: 8, far: 30 }); } catch (e) { console.warn('the gatepost Sadie couldn\'t make her sound:', e); }
       }
     }
     if (saying && clock > sayUntil) saying = null;
     for (const [k, o] of Object.entries(says)) o.visible = saying === k;
   }
   function voice() {
-    const h = soundsFor('outside');
-    for (const [k, make] of Object.entries(VOICE)) h[k] = (o = {}) => h.play(k, make, { loud: 0.4, rate: RATE, hold: 4, gap: 0.1, bus: 'voices', ...o });
-    return h;
+    const h = soundsFor('outside');   // (a handle can't be added to: wrap it, with her sounds by name on top)
+    return wrap(h, Object.fromEntries(Object.entries(VOICE).map(([k, make]) => [k, (o = {}) => h.play(k, make, { loud: 0.4, rate: RATE, hold: 4, gap: 0.1, bus: 'voices', ...o })])));
   }
 
   // Rain or snow: `n` little crossed quads (w x h) in a box round you, falling, wrapped round as you

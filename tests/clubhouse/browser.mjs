@@ -296,6 +296,13 @@ export default async function ({ browser, page, check, outDir }) {
       if (!(w.each[n]?.rain > 100 && w.each.outside?.rain > 100)) rained.push(`${n} through its door from outside: ${JSON.stringify(w.each)}`);
     }
     await M('setWeather', 'clear'); await rest(p, 600);
+    // Sadie on the gatepost mews when the rain comes (heard out there; it failed silently once)
+    await M('put', 'outside', 'start'); await M('setWeather', 'clear'); await rest(p, 300);
+    const mewsBefore = (await M('sound')).owners.outside?.counts?.mew ?? 0;
+    await M('setWeather', 'rain'); await rest(p, 1800);
+    const mews = ((await M('sound')).owners.outside?.counts?.mew ?? 0) - mewsBefore;
+    await M('setWeather', 'clear'); await rest(p, 300);
+    check(`${device}: Sadie on the gatepost mews when the rain comes`, mews >= 1, `${mews} mews`);
     check(`${device}: the weather comes over every place out of doors (${outdoors.join(', ')}), and rain falls round you in each, and in one seen through its door`, outdoors.length >= 2 && !rained.length, rained.join(' | '));
     await M('weatherSpeed', 1);
 
