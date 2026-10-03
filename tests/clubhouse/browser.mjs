@@ -330,6 +330,18 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: every door on the landings leads to its own room (${landed.length})`, !wrong.length, wrong.join(', '));
     await shot('5-room');
 
+    // ...and so does every building outside (a plot along the lane, a spot in the grounds): walk in through
+    // its door, or its arch, from outside, and you're in its room
+    const buildings = cards.filter(c => c.room && (c.lot !== undefined || c.grounds !== undefined)), wrongOut = [];
+    for (const c of buildings) {
+      await M('build', 'room:' + c.id);
+      if (!(await M('faceDoor', 'outside', c.id, 1.3))) { wrongOut.push(`${c.id}: no door to it from outside`); continue; }
+      await walk(1200);
+      const at = (await M('where')).place;
+      if (at !== 'room:' + c.id) wrongOut.push(`${c.id}'s door took you to ${at}`);
+    }
+    check(`${device}: every building outside leads to its own room (${buildings.length})`, buildings.length >= 1 && !wrongOut.length, wrongOut.join(', '));
+
     // every activity on a computer: played there (the mansion leaves the page completely), ESC BACK
     // comes back to that computer, and so does the Escape key when it came in straight by address
     for (const c of computers) {

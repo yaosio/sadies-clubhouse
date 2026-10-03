@@ -24,7 +24,8 @@ working as rooms come and go.
 - A room put away and built again as you walk up to its door, with nothing piling up.
 - Two doors open side by side both showing their rooms.
 - A room whose file won't come keeping its door shut (the others still built), and built once it does.
-- Every landing door leading into its own room.
+- Every landing door leading into its own room, and every building outside (a plot along the lane, a
+  spot in the grounds) leading into its own room when you walk in through its door from outside.
 
 ## Playing an activity
 - Every activity played at a computer (found from the cards) opens with the clubhouse gone from the
