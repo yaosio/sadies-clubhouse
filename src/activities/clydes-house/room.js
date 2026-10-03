@@ -435,7 +435,8 @@ export async function buildRoom(m) {
     label: 'PLAY THE GOOD MORNING MACHINE', view,
     hint: {
       keys: '<kbd>A D</kbd> PICK A GAP &nbsp; <kbd>W S</kbd> SWAP PART &nbsp; <kbd>SPACE</kbd> PULL LEVER &nbsp; <kbd>ESC</kbd> STEP BACK',
-      touch: 'TAP A GAP: SWAP &middot; TAP THE LEVER &middot; SWIPE',
+      // (swiping only picks a gap on a narrow screen: see narrow())
+      get touch() { return 'TAP A GAP: SWAP &middot; TAP THE LEVER' + (narrow() ? ' &middot; SWIPE' : ''); },
     },
     start() {
       sounds().wake(); playing = true;

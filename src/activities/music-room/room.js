@@ -324,7 +324,7 @@ export async function buildRoom(m) {
   }
   const tapeDeck = instrument('tape', 'USE THE TAPE DECK',
     { center: new Vector3(TX, 0.9, TZ + 0.1), normal: n1, w: 1.35, h: 0.8, down: 0.35 },
-    { keys: '<kbd>R</kbd> REC &nbsp; <kbd>P</kbd> PLAY &nbsp; <kbd>S</kbd> STOP &nbsp; <kbd>L</kbd> LOOP &nbsp; <kbd>T</kbd> SWAP TAPES &nbsp; <kbd>ESC</kbd> STEP BACK', touch: 'TAP A BUTTON (OR THE TAPE BESIDE IT, TO SWAP)' },
+    { keys: '<kbd>R</kbd> REC &nbsp; <kbd>P</kbd> PLAY &nbsp; <kbd>S</kbd> STOP &nbsp; <kbd>L</kbd> LOOP &nbsp; <kbd>T</kbd> SWAP TAPES &nbsp; <kbd>ESC</kbd> STEP BACK', touch: 'TAP A BUTTON (OR A TAPE, TO SWAP)' },
     {
       key(code, isDown) { const b = TAPE_KEYS[code]; if (!b) return null; if (isDown) tapeButton(b); return b; },
       touch(who, r, kind) {

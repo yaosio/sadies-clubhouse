@@ -11,7 +11,7 @@
 // reacts, a jingle each time, kept after a reload). On a phone the parts are swapped
 // by tapping, and a swipe moves along the machine. Screenshots in dist/check/clydes-house/. Any
 // error on the page is a failure.
-import { bothDevices } from '../shared/browser.mjs';
+import { bothDevices, hintFits } from '../shared/browser.mjs';
 import { ROUNDS } from '../../src/activities/clydes-house/machine.js';
 
 export default async function ({ browser, page, check, outDir }) {
@@ -68,6 +68,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: looking at the machine, it offers to play it`, /GOOD MORNING MACHINE/.test(await M('target') || ''), await M('target'));
     await use();
     check(`${device}: stepping up to it`, await modeIs('arcade'));
+    { const f = await hintFits(p); check(`${device}: ...and its hint fits the screen`, f.ok, `"${f.text}" is ${f.width} px wide, ${f.lines} lines`); }
     await p.evaluate(() => window.__clydesHouse.speed(8));
     check(`${device}: Clyde says hello, then it's ready, with the dominoes missing`, await ready() && (await S()).missing.join() === 'dominoes');
     await p.evaluate(() => window.__clydesHouse.speed(4));

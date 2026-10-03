@@ -9,12 +9,13 @@
 // (her notes, and her walk kept on her tape), sulking next to it when the sign says SHH, and hopping
 // straight off the xylophone when you step up to it. Screenshots in dist/check/music-room/. Any
 // error on the page is a failure.
-import { bothDevices } from '../shared/browser.mjs';
+import { bothDevices, hintFits } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
   await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs, until, rest }) => {
     const R = () => p.evaluate(() => window.__musicRoom.state());
-    const stepUpTo = async spot => { await M('put', 'room:music-room', spot); await p.waitForTimeout(250); await use(); const ok = await modeIs('arcade'); await p.waitForTimeout(300); return ok; };
+    const fits = [];   // (what each instrument's hint did on this screen)
+    const stepUpTo = async spot => { await M('put', 'room:music-room', spot); await p.waitForTimeout(250); await use(); const ok = await modeIs('arcade'); await p.waitForTimeout(300); fits.push(await hintFits(p)); return ok; };
     const stepBack = async () => { if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape'); return modeIs('play'); };
     // a finger (or the mouse) pressing the screen at (fx, fy) of the way across and down, for `ms`
     const press = (fx, fy, ms = 120) => p.evaluate(async ([fx, fy, ms, touch]) => {
@@ -163,6 +164,10 @@ export default async function ({ browser, page, check, outDir }) {
     s = await R();
     check(`${device}: walking under the wind chimes, they chime`, s.heard.some(h => h.startsWith('chime')), s.heard.slice(-3).join(' '));
     await shot('8-chimes');
+
+    // what every instrument said to do fitted the screen (on the phone, none ran off its edges)
+    const bad = fits.filter(f => !f.ok);
+    check(`${device}: every instrument's hint fits the screen (${fits.length} seen)`, fits.length >= 5 && !bad.length, bad.map(f => `"${f.text}" ${f.width} px, ${f.lines} lines`).join(' | '));
 
     // kept after a reload: the dial, and the tape just as it was (Sadie's walk on it is the last
     // she finished: stepping up to the xylophone cut one short, and on a slow computer that one

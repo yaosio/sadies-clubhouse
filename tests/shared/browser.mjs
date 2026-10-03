@@ -52,6 +52,14 @@ export function bothDevices(browser, outDir, fn) {
 export const pressUse = (p, opts) => opts.hasTouch ? p.tap('#mansion #use') : p.keyboard.press('KeyE');
 export const pressPause = (p, opts) => opts.hasTouch ? p.tap('#mansion #pause') : p.keyboard.press('Escape');
 
+// Is the hint at the top of the screen (what the game being played says to do) all on screen, in at most
+// two lines, not running off either edge of a phone? ({ ok, text, width, lines })
+export const hintFits = p => p.evaluate(() => {
+  const h = document.querySelector('#mansion #arcadeHint'), r = h.getBoundingClientRect(), line = parseFloat(getComputedStyle(h).lineHeight) || 14;
+  const lines = Math.round((r.height - 10) / line);
+  return { ok: !h.hidden && r.left >= 0 && r.right <= innerWidth && lines <= 2, text: h.textContent.trim(), width: Math.round(r.width), lines };
+});
+
 // Wait for the mansion to open and every room to be built. It gets slower with every room: past 8 s
 // it says so (docs/clubhouse/decisions/known-limits.md, known limits: the plan for when it does).
 export async function up(p) {

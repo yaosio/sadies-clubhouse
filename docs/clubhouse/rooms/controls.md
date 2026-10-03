@@ -32,8 +32,11 @@ A `play` use can be an instrument instead:
 - `touch(id, ray, 'down' | 'move' | 'up')`: every press on the screen as a line out into the room
   (`origin`, `dir`), for it to find what's under it.
 - Its `view` can say `down` (how far, in radians, to look down on it: a keyboard lying flat).
-- `hint` (`keys`, `touch`) is what the hint at the top says while you play it. On a phone it's one
-  line, so keep `touch` short enough to fit a phone's width.
+- `hint` (`keys`, `touch`) is what the hint at the top says while you play it. On a phone it
+  wraps to a second line rather than run off the screen, but keep `touch` short: one line on a normal
+  phone. `touch` can be a getter, read each time you step up, for a hint that depends on the screen.
+  A room's checks can call `hintFits` (`tests/shared/browser.mjs`): it fails if the hint runs off the
+  screen or takes more than two lines.
 
 ## Painting a place: `brush`
 A place with `brush(id, ray, 'down' | 'move' | 'up')`: you walk about as normal, and pressing
