@@ -20,6 +20,7 @@ prints how long each stage took. GitHub runs the same checks on every pull reque
   kind to the ears, something is drawn.
 - `runner.md`: read when changing `tools/check.mjs` (what's skipped when, the flags) or
   `.github/workflows/check.yml` (GitHub's plan, remember and weekly retest).
+- `safari.md`: read when changing the weekly look at the game in Safari's engine (WebKit).
 - `tools.md`: read when changing the build, the publishing tools, the docs checker or the code
   checker's rules.
 - `look-tools.md`: read when you want pictures of the clubhouse, its weather, its speed or start-up
