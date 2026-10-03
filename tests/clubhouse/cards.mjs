@@ -92,6 +92,7 @@ export async function checkCards(check) {
     need(Array.isArray(keeps) && keeps.every(k => typeof k === 'string' && (k.startsWith(own) || old.includes(k))), `its saves must start ${own} (keeps: ${keeps})`);
     const src = sourceOf(dir), saves = /\b(store|saves)\.(get|set|remove)\(|saveBox\(|localStorage/.test(src);
     need(!room || !/shared\/storage\.js|localStorage/.test(src), "a room saves through its kit's box (m.saves), not straight to the browser");
+    need(!room || !/\b(window|globalThis)\.__\w+\s*=/.test(src), "a room's test hook goes on the page with its kit's `checks(name, hook)`, so it's taken away when the room's put away (not window.__x = ...)");
     need(!saves || keeps.length, "it saves things but its card doesn't say what (keeps)");
     const others = [...new Set([...src.matchAll(/['"`](sadies-clubhouse\.[\w-]+\.)/g)].map(m => m[1]).filter(k => k !== own))];
     need(!others.length, `it names another activity's save: ${others.join(', ')}`);

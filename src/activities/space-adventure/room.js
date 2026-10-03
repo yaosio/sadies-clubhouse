@@ -189,12 +189,12 @@ export async function buildRoom(m) {
   show(saved.done ? 'hangout' : 'cockpit');
 
   // for the checks (tests/space-adventure/browser.mjs)
-  window.__space = {
+  m.checks('__space', {
     state: () => ({ stage, t: trip ? trip.t : null, line: talk.showing(), swapped: !!trip?.swapped, done: saved.done, watching: !!place.watch,
       radio: radioTrack.playing, radioOn, played: song.played, radioPlayed: radioTrack.played, sadie: sadie.visible ? sadie.position.toArray() : null,
       land: land.group.visible, space: space.group.visible }),
     warp(k) { warp = k; },
     jump(t) { if (trip) trip.t = t; },
-  };
+  });
   return place;
 }

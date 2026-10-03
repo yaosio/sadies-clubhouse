@@ -406,7 +406,7 @@ export async function buildRoom(m) {
     },
   };
   // for the checks (tests/aquarium/browser.mjs)
-  window.__aquarium = {
+  m.checks('__aquarium', {
     state: () => ({ taps, diving, where, glaring: glare > 0, sadie: sadie.position.toArray(), fish: fish.length,
       found: saved.found.slice(), boat: { ...saved.boat }, sign: ocean.message(), held: hold.state, sounds: sounds.played, lastSound: sounds.last,
       boatAt: where === 'sea' ? (({ x, z }) => ({ x: x - off.x, z: z - off.z }))(m.ears()) : null }),
@@ -415,6 +415,6 @@ export async function buildRoom(m) {
     // where the sea is this trip (so a check can sail to a spot), and a way to find things quickly
     off: () => ({ ...off }),
     spots: () => SPOTS.map(s => ({ id: s.id, x: s.x, z: s.z, r: s.r, reach: s.reach })),
-  };
+  });
   return place;
 }

@@ -237,11 +237,20 @@ export default async function ({ browser, page, check, outDir }) {
       if (!(await M('putAway', n))) leftOver.push(`${n} wouldn't be put away`);
       else if ((await M('sound')).owners[n]) leftOver.push(`${n} left sounds behind`);
     }
+    // (a room's test hook (`window.__<room>`) goes with it, or it keeps the whole room's state alive)
+    const hooksLeft = (await M('built')).length ? [] : await p.evaluate(() => Object.keys(window).filter(k => k.startsWith('__') && k !== '__mansion'));
+    check(`${device}: a room's test hook is taken away when it's put away`, !hooksLeft.length, hooksLeft.join(', '));
     // (and nothing it had waiting to go off later starts up again once it's put away)
     await p.waitForTimeout(2000);
     const owners = (await M('sound')).owners;
     for (const n of (await M('places')).filter(n => n.startsWith('room:'))) if (owners[n] && !(await M('built')).includes(n)) leftOver.push(`${n} made sounds after it was put away`);
     check(`${device}: every room keeps the sound rules: its music isn't heard once you've left, and it leaves nothing playing when put away`, !leftOver.length, leftOver.join(', '));
+    // one place's mistake in a frame doesn't stop the game: it carries on (and says so once, not an error)
+    await M('sabotage', 'hall', true);
+    const f0 = await M('frames'); await p.waitForTimeout(600);
+    const carried = (await M('frames')) > f0 + 5;
+    await M('sabotage', 'hall', false);
+    check(`${device}: a place that fails in a frame doesn't freeze the game`, carried, `frames ${f0} then ${await M('frames')}`);
     // every room can be put away and built again, twice over, with nothing piling up (and no copies
     // of anything it puts on the screen)
     const all = (await M('places')).filter(n => n.startsWith('room:'));

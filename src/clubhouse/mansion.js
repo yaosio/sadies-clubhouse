@@ -108,7 +108,7 @@ export async function open(cards, enter) {
   function build(r) {
     if (r.place) return Promise.resolve(r.place);
     return r.building ||= (queue = queue.then(async () => {
-      const c = r.card, i = r.i, code = c.room && await c.room(), before = new Set(made());   // (its file first: fetching isn't building)
+      const c = r.card, i = r.i, code = c.room && await c.room(), before = r.before = new Set(made());   // (its file first: fetching isn't building)
       // A room can take a breath between its big parts (`await m.breathe()`): if it's been busy for
       // more than a few milliseconds, the next picture is drawn before it carries on, so building a
       // big room never holds the game up for long. (How long it was busy in all, and the longest bit.)
@@ -129,7 +129,7 @@ export async function open(cards, enter) {
           doorImage: doorPics[i], landingDoor: doorView(hall.doors[c.id]), hall: lent.hall, outside: outdoors(c) ? lent.outside : null,
           lot: Number.isInteger(c.lot) ? outside.lots[c.lot] : null, ground: Number.isInteger(c.grounds) ? outside.grounds[c.grounds] : null,
           skyMat, snapshot, house: r.house ?? null, ears, paused: () => mode === 'menu', saves: saveBox(c.id), weather: weather.kit,
-          overlay: css => overlay(r, css), testing }));
+          overlay: css => overlay(r, css), testing, checks: (name, hook) => hook && checking(r, name, hook) }));
       }
       const last = performance.now() - at;
       speed.places[r.name] = Math.round(busy + last); speed.bits[r.name] = Math.round(Math.max(bit, last));
@@ -151,6 +151,7 @@ export async function open(cards, enter) {
       return w;
     }).catch(e => {
       console.warn(`couldn't build ${r.name}:`, e);
+      cleanUp(r);   // (what it started before it failed goes, so a retry doesn't pile a copy on top)
       r.building = null; r.tries = (r.tries || 0) + 1; r.failed = performance.now();
       return null;
     }));
@@ -160,9 +161,8 @@ export async function open(cards, enter) {
   function putAway(r) {
     const w = r.place;
     if (!w || w === me.world || r.building || w.holding || w.busy?.()) return false;
-    w.putAway?.(); closeSounds(r.name);   // (everything it started stops, whatever it forgot)
-    for (const o of r.overlays || []) o.remove();   // (and its boxes on the page go)
-    r.overlays = null;
+    try { w.putAway?.(); } catch (e) { console.warn(`${r.name}'s putAway failed:`, e); }   // (its mistake mustn't stop the rest being taken back)
+    closeSounds(r.name); dropExtras(r);   // (everything it started stops, whatever it forgot; its boxes on the page and test hooks go)
     for (const p of r.portals) { p.b = p.wb = null; p.open = 0; p.a.setOpen(0); if (lastThrough === p) lastThrough = null; }
     const mine = new Set(r.mine);
     for (const sc of w.scenes || [w.scene]) things(sc, mine);
@@ -173,6 +173,29 @@ export async function open(cards, enter) {
     for (const x of gone) x.dispose();
     handedBack(gone); r.mine = null;
     return true;
+  }
+  // A room's test hook (`checks(name, hook)` in its kit, for the browser checks): put on the page while
+  // the room's built, gone when it's put away, so a put-away room's whole state isn't kept alive by it.
+  function checking(r, name, hook) {
+    globalThis[name] = hook;
+    (r.undo ||= []).push(() => { if (globalThis[name] === hook) delete globalThis[name]; });
+    return hook;
+  }
+  function dropExtras(r) {
+    for (const o of r.overlays || []) o.remove();
+    for (const u of r.undo || []) u();
+    r.overlays = r.undo = null;
+  }
+  // A room that failed to build: what it started goes, and what it made that nothing else uses goes back
+  // to the graphics card (the same as being put away, without a place to take things from).
+  function cleanUp(r) {
+    closeSounds(r.name); dropExtras(r);
+    if (!r.before) return;
+    const inUse = new Set(shared);
+    for (const p of places) for (const sc of p.scenes || [p.scene]) things(sc, inUse);
+    const gone = made().filter(x => !r.before.has(x) && !inUse.has(x));
+    for (const x of gone) x.dispose();
+    handedBack(gone); r.before = null;
   }
   // A room's own box on the page (`overlay(css)`): a layer just over the 3D view, under the pause menu
   // and the buttons, with its styles; it's gone from the page when the room's put away.
@@ -796,7 +819,7 @@ export async function open(cards, enter) {
     seenFrom = outsideSeenFrom();
     soundsPaused(mode === 'menu');   // (nothing new sounds behind the pause menu but music)
     weather.update(t, dt, places, skySeen(), ears());
-    for (const w of places) w.update(t, dt);
+    for (const w of places) guard(w.name, () => w.update(t, dt));
     // the main theme: it makes way for any other music by itself (the sound system hears it), and
     // for a place that asks for quiet (its `hush`: the Music Room, Space Adventure's cockpit and radio)
     youAreIn(me.world.name, ears());   // (a room's music is only heard in it; sounds fade with how far off they are)
@@ -804,13 +827,21 @@ export async function open(cards, enter) {
     theme.tick(typeof hush === 'function' ? !!hush() : !!hush);
     farHouses();
     // (a house outside the gate, whether or not its room's built: it's part of outside)
-    for (const r of slots) if (r.house) r.house.update(t, dt, ears());
+    for (const r of slots) if (r.house) guard(r.name + ' house', () => r.house.update(t, dt, ears()));
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
     if (!frames) { speed.first = Math.round(performance.now() - opened); speed.atFirst = slots.filter(r => r.place).map(r => r.name); }
     frames++;
-    raf = requestAnimationFrame(frame);
+  }
+  // One place's mistake mustn't stop the game: it's said once, and the next frame carries on without it.
+  const said = new Set();
+  function guard(name, fn) {
+    try { fn(); } catch (e) { if (!said.has(name)) { said.add(name); console.warn(`${name} failed in a frame:`, e); } }
+  }
+  function tick(now) {
+    try { frame(now); } catch (e) { if (!said.has('frame')) { said.add('frame'); console.warn('a frame failed:', e); } }
+    raf = requestAnimationFrame(tick);
   }
 
   function close() {
@@ -852,6 +883,13 @@ export async function open(cards, enter) {
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
+    // make a place's update fail every frame (or put it right again), to check one place's mistake can't stop the game
+    sabotage(name, on) {
+      const w = places.find(p => p.name === name); if (!w) return false;
+      if (on) { w.realUpdate ||= w.update; w.update = () => { throw new Error('sabotaged for a check'); }; }
+      else if (w.realUpdate) { w.update = w.realUpdate; w.realUpdate = null; }
+      return true;
+    },
     // how far off a building outside the gate becomes a plain block (and which are, right now)
     farHouse: metres => { FAR_HOUSE = metres; farHouses(); },
     houses: () => slots.filter(r => r.house?.group).map(r => ({ name: r.name, far: !r.house.group.visible })),
@@ -894,7 +932,7 @@ export async function open(cards, enter) {
   };
 
   resize();
-  raf = requestAnimationFrame(frame);
+  raf = requestAnimationFrame(tick);
   for (const r of slots) if (outdoors(r.card)) build(r);   // (the rest of the buildings outside, first in the queue)
 }
 

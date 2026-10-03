@@ -367,7 +367,7 @@ export async function buildRoom(m) {
   };
 
   // for the checks (tests/paint-shop/browser.mjs)
-  globalThis.__paintShop = {
+  m.checks('__paintShop', {
     state: () => ({
       holding: { ...held }, painted: Object.fromEntries(S.list.map(s => [s.name, S.painted(s)])),
       total: S.list.reduce((a, s) => a + S.painted(s), 0), surfaces: S.list.length,
@@ -377,6 +377,6 @@ export async function buildRoom(m) {
     hold: (t, paint) => hold(t, paint ?? held.paint),
     sadie: () => { sadieComes(); },
     keep: () => keepPaint(),
-  };
+  });
   return place;
 }

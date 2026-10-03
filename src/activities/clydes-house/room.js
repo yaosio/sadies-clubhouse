@@ -553,7 +553,7 @@ export async function buildRoom(m) {
   A.say(L.PEEK);
 
   // for the checks (tests/clydes-house/browser.mjs)
-  globalThis.__clydesHouse = {
+  m.checks('__clydesHouse', {
     state: () => ({
       round: M.round, treats: M.treats, finale: M.finale, phase, lines: tl.filter(s => s.line).length,
       missing: missing(M), parts: Object.fromEntries(GAPS.map(g => [g, partIn(M, g)])), options: Object.fromEntries(missing(M).map(g => [g, M.gaps[g].parts])),
@@ -564,6 +564,6 @@ export async function buildRoom(m) {
     // (for tools/clydes-house/tags.mjs) every gap empty, with this part in it
     everyGap(part) { for (const g of GAPS) M.gaps[g] = { parts: [part, g, g, g], pick: 0 }; showGaps(); },
     junk(part) { const g = missing(M)[0], x = M.gaps[g]; x.parts[x.parts.findIndex(p => p !== g)] = part; x.pick = x.parts.indexOf(part); showGaps(); return g; },
-  };
+  });
   return place;
 }

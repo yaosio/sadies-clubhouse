@@ -28,6 +28,12 @@ Like any room:
   and `y`, where you stand): you're eased there, or put there at once with `snap` (strapping you
   into a seat).
 
+## When a room goes wrong
+One place's mistake doesn't stop the game: if a place's `update` (or `putAway`) throws, it's said once
+in the console and the game carries on without it that frame. A room that fails to build has what it
+started taken away (sounds, boxes on the page, test hooks, what it made), so the retry doesn't pile a
+copy on top.
+
 ## Being put away and built again
 A room far from you is put away and built again from its save as you come back
 (`docs/clubhouse/world/building-rooms.md`). So a new room must be able to be put away, and must look
