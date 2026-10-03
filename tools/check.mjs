@@ -1,7 +1,7 @@
 // Checks everything before a change goes anywhere: each activity's headless tests, a fresh build,
 // and the built page played in a real (hidden) browser, as a phone and as a desktop.
 //
-//   npm run check                  everything (about 11 minutes here if nothing can be skipped)
+//   npm run check                  everything (takes a long while, and longer with every room; it prints its own times)
 //   npm run check -- --quick       skip the headless tests (for a quick look while working)
 //
 // It starts with the code checker (ESLint, `npm run lint`, a few seconds, every time): it finds
@@ -33,7 +33,7 @@
 // publishing anyway), an activity whose code the change doesn't touch skips its tests.
 //
 // The browser checks always build the page, then walk round Sadie's clubhouse
-// (tests/clubhouse/browser.mjs: about three minutes). It visits every room (the house's doors and the
+// (tests/clubhouse/browser.mjs: a few minutes, the biggest single part; its time is printed). It visits every room (the house's doors and the
 // buildings outside; an activity played only at a computer has no room), so it runs again
 // after any change to anything in the page. Each check plays the phone and the desktop side by side.
 // Screenshots go in dist/check/clubhouse/ and dist/check/<activity>/ to look at.

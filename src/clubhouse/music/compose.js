@@ -1,6 +1,6 @@
 // The clubhouse's main theme, composed as it plays: no screen and no browser (the tests run it in
 // Node), just notes. It writes one piece at a time, a couple of minutes long, and hands its bars
-// out one by one; player.js plays them.
+// out one by one; theme.js plays them.
 //
 // Each piece picks its own key, mode (plain major, dreamy lydian, wistful dorian...), speed, beat
 // (4 or 3 to a bar) and instruments, then a form (an intro, a tune it comes back to, a middle bit,

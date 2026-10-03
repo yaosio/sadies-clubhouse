@@ -3,7 +3,7 @@
 `tests/clubhouse/browser.mjs`: the clubhouse in headless Chromium as a phone and a desktop. Read
 this when changing the page, a room's building, the sound rules, the pause menu or saves, since
 these checks run again on any change in `src/`. `tools/check.mjs` runs it whenever anything in the
-page changed: about half a minute, the phone and the desktop side by side. It fails on any page
+page changed: the phone and the desktop side by side (it prints how long it took, and warns when it's slow). It fails on any page
 error; screenshots are in `dist/check/clubhouse/`.
 
 It names no activity: which rooms, doors and saves it uses all come from the cards, so it keeps

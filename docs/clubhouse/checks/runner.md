@@ -53,7 +53,7 @@ is skipped, the flags, or how GitHub runs the checks.
 The same checks on GitHub's computers, run only by hand (the Actions page's "Run workflow"): the
 repository is private, so they cost minutes, and on every push they used the free month up in two
 days (2026-10-03). Nothing waits on them; `npm run check` here is the check.
-- `plan` runs the code checker and the docs check (on every pull request, whatever it changes) and
+- `plan` runs the code checker and the docs check (whatever it changes) and
   works out which activities haven't passed on exactly their code. What passed is remembered
   between runs.
 - Each of those activities gets a computer of its own running `npm run check -- --only <activity>`,

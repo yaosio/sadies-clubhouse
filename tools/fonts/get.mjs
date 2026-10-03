@@ -5,7 +5,7 @@
 //   node tools/fonts/get.mjs
 //
 // Every font here is under the SIL Open Font License (credited on the pause menu's CREDITS page,
-// src/shared/credits.js). Add a font: add it to FAMILIES, run this, commit what it wrote.
+// src/clubhouse/credits.js). Add a font: add it to FAMILIES, run this, commit what it wrote.
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 

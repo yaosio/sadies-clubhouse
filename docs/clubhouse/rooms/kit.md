@@ -1,6 +1,6 @@
 # The building kit
 
-What the clubhouse hands a room's `buildRoom(kit)` (`src/clubhouse/room.js`, `neighbours.js`).
+What the clubhouse hands a room's `buildRoom(kit)` (built in `src/clubhouse/clubhouse.js`, with `neighbours.js`).
 Anything added to the kit reaches every room with no room edited. Read when a room needs something
 from the clubhouse.
 
