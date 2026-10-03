@@ -172,6 +172,7 @@ export default async function ({ browser, page, check, root, hashOf, outDir, pre
     await p.evaluate(() => localStorage.setItem('jellystack.perf', 'true')); await p.reload();
     const cdp = await p.context().newCDPSession(p);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await p.waitForFunction(() => typeof window.__jellyDebug === 'function', null, { timeout: 15000 });   // (the page has only just reloaded)
     const gameT0 = (await p.evaluate(() => window.__jellyDebug())).time, realT0 = Date.now();
     await wait(p, 15000);
     const speed = ((await p.evaluate(() => window.__jellyDebug())).time - gameT0) / ((Date.now() - realT0) / 1000);
