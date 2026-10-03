@@ -133,7 +133,7 @@ function sameAsLive(file, paths) {
   const walk = p => {
     if (!existsSync(join(root, p))) return;
     if (statSync(join(root, p)).isDirectory()) { for (const f of readdirSync(join(root, p))) walk(join(p, f)); }
-    else ours.add(p);
+    else if (!p.endsWith('.woff2')) ours.add(p);   // (the fonts are files, not text: the page's copy of the project leaves them out, tools/build.mjs)
   };
   paths.forEach(walk);
   const theirs = Object.keys(live).filter(p => paths.some(q => p === q || p.startsWith(q + '/')));

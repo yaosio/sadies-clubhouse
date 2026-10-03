@@ -80,7 +80,7 @@ export function saveRoom() {
 }
 
 // ---------- backups ----------
-const FORMAT = 'sadies-clubhouse-backup/1';
+const PREFIX = 'sadies-clubhouse-backup/', VERSION = 1, FORMAT = PREFIX + VERSION;   // (a new version must still read the older ones: only a newer one is turned away)
 const mine = (k, prefixes) => prefixes.some(p => k.startsWith(p));
 const keys = () => { const all = []; for (let i = 0; i < localStorage.length; i++) all.push(localStorage.key(i)); return all; };
 export function backup(prefixes) {
@@ -98,8 +98,8 @@ const readable = v => { try { JSON.parse(v); return true; } catch { return false
 export function inspectBackup(text, prefixes) {
   let b;
   try { b = JSON.parse(text); } catch { return { error: NOT_ONE }; }
-  if (!b || typeof b.format !== 'string' || !b.format.startsWith('sadies-clubhouse-backup/') || !b.saves || typeof b.saves !== 'object' || Array.isArray(b.saves)) return { error: NOT_ONE };
-  if (b.format !== FORMAT) return { error: 'THAT BACKUP IS FROM A NEWER VERSION OF THE GAME' };
+  if (!b || typeof b.format !== 'string' || !/^sadies-clubhouse-backup\/\d+$/.test(b.format) || !b.saves || typeof b.saves !== 'object' || Array.isArray(b.saves)) return { error: NOT_ONE };
+  if (+b.format.slice(PREFIX.length) > VERSION) return { error: 'THAT BACKUP IS FROM A NEWER VERSION OF THE GAME' };
   const saves = Object.entries(b.saves).filter(([k]) => mine(k, prefixes) && !aside(k));
   if (!saves.length) return { error: 'THAT BACKUP HAS NO SAVES IN IT' };
   if (saves.some(([, v]) => typeof v !== 'string' || !readable(v))) return { error: 'THAT BACKUP IS DAMAGED: NOTHING WAS CHANGED' };
