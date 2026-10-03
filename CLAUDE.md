@@ -48,9 +48,9 @@ door stays with it.
    `dist/check/`. `--quick` skips the tests. Details: `docs/clubhouse/checks/README.md`. If a change is
    meant to move a test's numbers, explain why in plain words and update that activity's tuning notes.
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to the
-   working branch. Never commit `dist/` or `node_modules/`; do commit `package-lock.json`. GitHub then
-   runs the same checks on the pull request (`.github/workflows/check.yml`); its tick must be green
-   before a merge.
+   working branch. Never commit `dist/` or `node_modules/`; do commit `package-lock.json`. GitHub
+   runs no checks (they cost minutes; `.github/workflows/` run only by hand), so before a merge, bring
+   in the latest `main` and `npm run check` must pass on exactly that.
 5. Publish that build to the test page (below) and give the owner the link. Build it again after
    committing (`npm run build -- --preview`): its label names the commit it was built at.
 6. When the owner says to (or the change is behind the scenes and needs no in-game check), open a pull
@@ -60,8 +60,8 @@ door stays with it.
 
 ## Publishing
 - GitHub `main` is the source of truth. The game page is https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
-- Only publish a build of `main`, to that same URL, once GitHub's check on main's latest commit is
-  green. Don't run the checks again here. First read the live page and its copy of the project
+- Only publish a build of `main`'s latest commit, to that same URL, once `npm run check -- --live
+  <the saved page>` passes on it (what the live page already passed is skipped). First read the live page and its copy of the project
   (`game/source-*.json`, named in the page) into a folder, and list its files into a text file; then
   `node tools/publish.mjs --live <folder> --published <list>` builds the real game and checks it:
   main's latest commit, no test label, and the live copy is one of main's commits (if not, the game

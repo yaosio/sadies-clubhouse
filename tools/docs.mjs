@@ -11,7 +11,7 @@
 //   - an activity's docs don't have the shape every activity's docs have (`docs/clubhouse/rooms/adding.md`):
 //     a README with `## Design pillars` then `## Its pages`, and a `parked.md`,
 //   - a shared page (docs/clubhouse/) names an activity (the shared code can't either).
-// `npm run check` runs it with the code checker, and GitHub runs it on every pull request.
+// `npm run check` runs it with the code checker, before every push, merge and publish.
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 

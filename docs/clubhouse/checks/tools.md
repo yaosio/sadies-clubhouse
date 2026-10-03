@@ -40,7 +40,7 @@ The tools that take pictures of the clubhouse or measure it are in `look-tools.m
   `.md` page that doesn't exist, or isn't listed in its folder's `README.md`. It also checks that
   every activity's docs have the same shape (README with `## Design pillars` then `## Its pages`, and a
   `parked.md`), and that the shared pages in `docs/clubhouse/` name no activity. Run with the code
-  checker by `npm run check`, and on GitHub for every pull request, even one that only changes docs.
+  checker by `npm run check`, before every push, merge and publish, even a change that's only docs.
 - `eslint.config.js`: `npm run lint`, the code checker (ESLint, its recommended rules). It reads the
   code without running it and points out mistakes: a misspelt or missing name, a leftover that's
   never used, code that can never run. Not how the code is laid out.
