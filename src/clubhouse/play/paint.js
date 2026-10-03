@@ -13,7 +13,7 @@
 // picks (a count, up one each time something's picked up) }.
 //
 // Any place, inside or out, can have a brush: nothing here knows which one it is.
-// `you` is what the mansion lends a way of playing (see mansion.js, "ways of playing").
+// `you` is what the clubhouse lends a way of playing (see clubhouse.js, "ways of playing").
 import html from './paint.html';
 import css from './paint.css';
 

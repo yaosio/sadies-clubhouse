@@ -42,7 +42,7 @@ const covered = (a, b) => a === undefined || a === 'null' || b === 'null' || (bo
 
 // After its checks: the fullest set of saves any page of them had (`dumps`: every page's saves, as
 // each window closed), kept as a new sample if no sample has its shape. The sample carries the
-// mansion's saves too, so the game opens on it as it was. Returns the new file's name, or null.
+// clubhouse's saves too, so the game opens on it as it was. Returns the new file's name, or null.
 export function keepSample({ root, id, keeps, dumps }) {
   if (!keeps.length) return null;
   const own = d => Object.keys(d).filter(k => ownKey(keeps, k)).length;
@@ -83,13 +83,13 @@ export async function oldSaves({ browser, page, card, check, root, skip = [] }) 
     p.on('pageerror', e => errors.push(e.message.split('\n')[0]));
     let opened;
     if (card.room) {
-      // in its room in the mansion: built (reading its saves), run a moment, then put away (saving)
+      // in its room in the clubhouse: built (reading its saves), run a moment, then put away (saving)
       await p.goto(page);
-      opened = await p.waitForFunction(n => window.__mansion?.settled() && window.__mansion.built().includes(n), 'room:' + id, { timeout: 30000 }).then(() => true, () => false);
+      opened = await p.waitForFunction(n => window.__clubhouse?.settled() && window.__clubhouse.built().includes(n), 'room:' + id, { timeout: 30000 }).then(() => true, () => false);
       if (opened) {
-        await p.evaluate(n => window.__mansion.faceDoor(n, 'door', 2), 'room:' + id).catch(() => {});
+        await p.evaluate(n => window.__clubhouse.faceDoor(n, 'door', 2), 'room:' + id).catch(() => {});
         await p.waitForTimeout(1500);
-        await p.evaluate(n => window.__mansion.putAway(n), 'room:' + id).catch(() => {});
+        await p.evaluate(n => window.__clubhouse.putAway(n), 'room:' + id).catch(() => {});
       }
     } else {
       // on a computer: started straight from its address, run a moment, then the page left (saving)

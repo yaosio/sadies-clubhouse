@@ -1,5 +1,5 @@
 # The game's checks on GitHub, started by hand only (see below): `npm run check` (docs/clubhouse/checks/README.md),
-# split up so each activity (and the mansion) gets a computer of its own, all at the same time.
+# split up so each activity (and the clubhouse) gets a computer of its own, all at the same time.
 #
 #   plan      the code checker (lint) and the docs are small, listed and shaped alike (tools/docs.mjs),
 #             on every pull request, whatever it changes; and which activities still need checking:

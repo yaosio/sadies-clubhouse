@@ -1,6 +1,6 @@
 // Plays the main theme in the browser: compose.js writes it a bar at a time, voices.js plays each
 // note, a moment ahead of when it's due, on the clubhouse's sound system (src/shared/sound.js). The
-// mansion calls tick() every frame. Whenever any other music is playing (the sound system hears it),
+// clubhouse calls tick() every frame. Whenever any other music is playing (the sound system hears it),
 // or the place you're in asks for quiet (`hush`), the theme fades out (and stops writing), and fades
 // back in once it's over, carrying on, or starting a new piece after a long quiet. With the pause
 // menu's MUSIC at OFF it stops writing too. With no sound at all in the browser, it does nothing.

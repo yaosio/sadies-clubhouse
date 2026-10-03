@@ -20,9 +20,9 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 20000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10 && window.__clubhouse.settled(), null, { timeout: 20000 });
   await p.click('#ok');
-  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
   for (const [name, go] of SHOTS) {
     await go(M); await p.waitForTimeout(700);
     await p.screenshot({ path: join(out, `${device}-${name}.png`) });

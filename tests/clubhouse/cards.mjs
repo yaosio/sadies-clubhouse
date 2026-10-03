@@ -12,10 +12,10 @@
 //     on the end of the file's list too: that's what's never allowed to change after);
 //   - its saves: a room saves through its kit's box (`m.saves`, src/shared/storage.js), never
 //     straight to the browser; `keeps` names where they start; a new activity's start `sadies-clubhouse.<id>.`;
-//     no two activities' overlap, nor the mansion's own (`mansion.`); an activity that saves
+//     no two activities' overlap, nor the clubhouse's own (`mansion.`); an activity that saves
 //     anything (uses the toolbox's `store`) has `keeps`; and it never names another activity's save;
 //   - it has its own checks, headless and in a browser (tests/<id>/run.mjs and browser.mjs).
-// The mansion's browser check also looks at every save actually written while it walks round every
+// The clubhouse's browser check also looks at every save actually written while it walks round every
 // room, and fails on one no card's `keeps` covers (tests/clubhouse/browser.mjs).
 import { build } from 'esbuild';
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -49,7 +49,7 @@ function sourceOf(dir) {
   return text;
 }
 
-// where every save may start: each card's `keeps`, and the mansion's own (for the browser check)
+// where every save may start: each card's `keeps`, and the clubhouse's own (for the browser check)
 export async function allKeeps() {
   const ids = activityIds(root);
   const keeps = ['mansion.'];
@@ -119,8 +119,8 @@ export async function checkCards(check) {
     check(`room checker: no two activities have the same ${where === 'slot' ? 'door' : where === 'lot' ? 'plot' : 'spot in the grounds'}`,
       !twice.length, twice.map(([n, who]) => `${n}: ${who.join(' and ')}`).join('; '));
   }
-  const all = cards.flatMap(({ id, card }) => (card.keeps || []).map(k => ({ id, k }))).concat({ id: 'the mansion', k: 'mansion.' });
+  const all = cards.flatMap(({ id, card }) => (card.keeps || []).map(k => ({ id, k }))).concat({ id: 'the clubhouse', k: 'mansion.' });
   const overlaps = all.flatMap(a => all.filter(b => a.id !== b.id && b.k.startsWith(a.k)).map(b => `${a.id} ${a.k} covers ${b.id} ${b.k}`));
-  check(`room checker: no two activities' saves (or the mansion's) overlap`, !overlaps.length, overlaps.join('; '));
+  check(`room checker: no two activities' saves (or the clubhouse's) overlap`, !overlaps.length, overlaps.join('; '));
   return cards;
 }

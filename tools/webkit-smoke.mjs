@@ -30,21 +30,21 @@ const open = async opts => {
   p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   return { ctx, p, errors };
 };
-const frames = p => p.evaluate(() => window.__mansion?.frames() ?? -1);
+const frames = p => p.evaluate(() => window.__clubhouse?.frames() ?? -1);
 
 try {
   await Promise.all(DEVICES.map(async ([device, opts]) => {
     const { ctx, p, errors } = await open(opts), n = s => `${device}: ${s}`;
     await p.goto(page);
-    const up = await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 60000 }).then(() => true, () => false);
+    const up = await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 60000 }).then(() => true, () => false);
     check(n('the clubhouse opens and draws frames'), up, errors[0]);
     if (up) {
       const a = await frames(p);
-      check(n('the frames keep coming'), await p.waitForFunction(a => window.__mansion.frames() > a + 5, a, { timeout: 30000 }).then(() => true, () => false), `stuck at ${await frames(p)}`);
+      check(n('the frames keep coming'), await p.waitForFunction(a => window.__clubhouse.frames() > a + 5, a, { timeout: 30000 }).then(() => true, () => false), `stuck at ${await frames(p)}`);
       await p.screenshot({ path: join(out, `${device}-letter.png`) });
       await p.click('#ok');
       await p.reload();
-      await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 60000 });
+      await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 60000 });
       check(n('the letter comes only the first time'), !(await p.isVisible('#letter')));
       await p.waitForTimeout(500);
       await drawn(p, n('the gate'));

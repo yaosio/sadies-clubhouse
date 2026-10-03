@@ -1,4 +1,4 @@
-// Outside the mansion: the front garden, the gate (Sadie on the gatepost), and the house. The house
+// Outside the clubhouse: the front garden, the gate (Sadie on the gatepost), and the house. The house
 // is only a shell: its front door leads to the entrance hall, which is its own place (it doesn't have
 // to fit in there, and either can change without the other).
 //
@@ -6,7 +6,7 @@
 // a branch, the bare platform on the other is where the next one goes.
 //
 // Outside the gate a lane runs along the fence, with plots (`LOTS`) either side of the path for
-// houses of their own: an activity whose card has a `lot` builds its house on that plot (the mansion
+// houses of their own: an activity whose card has a `lot` builds its house on that plot (the clubhouse
 // hands it this place), and the next free plot has a COMING SOON stake. Plots never move either.
 //
 // Behind the house, the backyard: the back of the house finished off (windows, a back door that's
@@ -256,7 +256,7 @@ export function buildOutside(T, cards = []) {
     light: { sun: 0.5, bulb: 0, lamp: [0, 20, -40] },
     // out of doors (the weather: weather/sky.js): the cloud cover just inside the sun and just outside
     // the hills, so it hides the sun and its edge is behind the hills; a second sun comes up over the
-    // hills just left of the first, clear of the mansion
+    // hills just left of the first, clear of the clubhouse
     sky: { dome: 130, sun2: { x: -82, z: 99 } },
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
     update(t, dt) {

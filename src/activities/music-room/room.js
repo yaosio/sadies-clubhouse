@@ -3,7 +3,7 @@
 // the drum kit (her bed) on its rug, the fish xylophone in the middle, the KEYCAT 3000 on its stand,
 // the theremin by the left wall, wind chimes by the window, the volume dial, and the sign by the door.
 //
-// The mansion calls buildRoom(m) with its building kit (m: its shapes, its PS1 material, its
+// The clubhouse calls buildRoom(m) with its building kit (m: its shapes, its PS1 material, its
 // textures, Sadie's sprite, and where you are: ears()), so nothing here imports the clubhouse. It
 // hands back a place like any room's, with a `play` on each instrument: stepping up to one eases
 // your view in until it fills the screen, then every key (and every press on the screen) goes to
@@ -35,7 +35,7 @@ const CUSHION = new Vector3(PX - 1.75, 0.12, PZ + 0.8);
 export async function buildRoom(m) {
   const { T, psx, keep, kit, doorway, card, leaf } = m;
   const A = drawArt(m);
-  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+  await m.breathe?.();   // (the clubhouse builds it a bit at a time, so nothing stutters)
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { box, plane, cyl, shell: roomShell } = kit(scene);
   const mesh = (geo, mat, pos, rot, parent = scene) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
@@ -410,7 +410,7 @@ export async function buildRoom(m) {
     ],
     holding: null, watch: null,
     light: { sun: 0.2, bulb: 0.8, lamp: [0.5, 3.6, -1.5] },
-    // (the mansion puts the room away when you're far off, never with something still to happen in
+    // (the clubhouse puts the room away when you're far off, never with something still to happen in
     // it; it's built again from its save as you come back)
     busy: () => later.length > 0 || !!playing,
     spots: {

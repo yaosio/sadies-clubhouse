@@ -6,7 +6,7 @@
 // back to where you stood. The game is told when to start and stop.
 //
 // Any place, inside or out, can have a use with `play`: nothing here knows which game it is.
-// `you` is what the mansion lends a way of playing (see mansion.js, "ways of playing").
+// `you` is what the clubhouse lends a way of playing (see clubhouse.js, "ways of playing").
 const TILT = 0.12;   // the view looks up at it a little, from a bit below its middle
 // (or, if the game says `down`, looks down on it from that far above: a keyboard lying flat)
 

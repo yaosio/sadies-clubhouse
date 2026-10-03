@@ -106,7 +106,7 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
 }
 
 // ---------- the shared code names no room ----------
-// The mansion, the outside, the shell and the toolbox work the same for every room: anything only
+// The clubhouse, the outside, the shell and the toolbox work the same for every room: anything only
 // one room needs lives in that room's folder, and a new kind of control goes in src/clubhouse/play/
 // as something any place can use. So none of their code (comments aside) names an activity, by its
 // folder or its card's name.
@@ -125,7 +125,7 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
     const code = readFileSync(join(src, f), 'utf8').replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
     for (const r of rooms) if (code.includes(r)) bad.push(`${f} names ${r}`);
   }
-  check(`the mansion, the outside, the shell and the toolbox name no room (${rooms.length / 2} rooms)`, !bad.length, bad.join('; '));
+  check(`the clubhouse, the outside, the shell and the toolbox name no room (${rooms.length / 2} rooms)`, !bad.length, bad.join('; '));
 }
 
 // ---------- a room's timers run on the game's time ----------
@@ -158,7 +158,7 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   paused(false); clock += 1000;
   check('behind the pause menu only music plays, and everything is back after', hushed && h.play('clunk', none));
   soundsFor('check:other'); closeSounds();
-  check('closing every sound (the mansion leaving the page) leaves none behind', !Object.keys(soundState().owners).length);
+  check('closing every sound (the clubhouse leaving the page) leaves none behind', !Object.keys(soundState().owners).length);
   performance.now = real;
 }
 
@@ -230,9 +230,9 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
 {
   const all = ['clear', ...WX.KINDS];
   check('the weather is one of clear, rain, snow, a second sun or cats; anything odd is clear', WX.KINDS.join() === 'rain,snow,sun,cats' && WX.loaded('cats') === 'cats' && WX.loaded('hail') === 'clear' && WX.loaded(null) === 'clear');
-  check('every weather has its look and a word from Sadie, in letters the mansion\'s font has', all.every(k => WX.LOOK[k] && WX.SADIE[k] && !/[^A-Z0-9 .,!'?]/.test(WX.SADIE[k])));
+  check('every weather has its look and a word from Sadie, in letters the clubhouse\'s font has', all.every(k => WX.LOOK[k] && WX.SADIE[k] && !/[^A-Z0-9 .,!'?]/.test(WX.SADIE[k])));
   check('...rain is dimmer and the second sun brighter than a clear day', WX.LOOK.rain.sun < WX.LOOK.clear.sun && WX.LOOK.sun.sun > WX.LOOK.clear.sun);
-  check('it\'s saved with the mansion\'s own (a backup has it; no room\'s start-over clears it)', WX.KEY.startsWith('mansion.'));
+  check('it\'s saved with the clubhouse\'s own (a backup has it; no room\'s start-over clears it)', WX.KEY.startsWith('mansion.'));
   const say = Object.entries(SADIE_SAYS).map(([k, make]) => { const a = make(); return { k, secs: a.length / RATE, top: Math.max(...a.map(Math.abs)), end: Math.abs(a[a.length - 1]) }; });
   check('Sadie\'s mew and mrrp on the gatepost are short and soft, and end in silence', say.every(x => x.secs < 0.6 && x.top < 0.6 && x.end < 0.01), JSON.stringify(say));
 }
@@ -249,7 +249,7 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check('...and can\'t change them', throws(() => { 'use strict'; H.shape = 1; }));
   const out = [H.add('ball'), H.face('cat')];
   check('...what it adds to a place it can take out again', scene.kids.includes('ball') && hall.faces.includes('cat') && (out.forEach(f => f()), !scene.kids.includes('ball') && !hall.faces.includes('cat')));
-  check('...and the hall knows itself (ears().place), and the mansion its real place behind the view', H.is(hall) && !H.is(outside) && O.is(outside) && realPlace(O) === outside);
+  check('...and the hall knows itself (ears().place), and the clubhouse its real place behind the view', H.is(hall) && !H.is(outside) && O.is(outside) && realPlace(O) === outside);
   const a = H.borrowSadie(), b = H.borrowSadie();
   a(); a();
   const stillOut = !hall.napping.visible && H.sadieBorrowed();

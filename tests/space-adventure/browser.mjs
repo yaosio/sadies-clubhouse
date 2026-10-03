@@ -1,5 +1,5 @@
 // Space Adventure in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page. It lives in the mansion, so these run whenever the mansion
+// (never on its own) with the built page. It lives in the clubhouse, so these run whenever the clubhouse
 // changes too.
 //
 // It finds the sixth door on the landing, goes through it into the cockpit, and walks in: it's
@@ -18,7 +18,7 @@ export default async function ({ browser, page, check, outDir }) {
     const ROOM = 'room:space-adventure';
 
     await p.goto(page);
-    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); await ctx.close(); return; }
+    if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); await ctx.close(); return; }
     await p.click('#ok');
 
     // its door on the landing, and through it: the cockpit
@@ -33,7 +33,7 @@ export default async function ({ browser, page, check, outDir }) {
     // the main theme makes way as you step in, and stays away the whole trip, until the radio's on
     // (watched every frame from here to the space room)
     check(`${device}: stepping into the cockpit, the clubhouse's theme goes quiet at once`, !(await M('music')).playing, JSON.stringify(await M('music')));
-    await p.evaluate(() => { window.__themeHeard = []; const w = () => { if (!window.__themeHeard) return; const m = window.__mansion.music(); if (m.playing) window.__themeHeard.push(JSON.stringify(window.__space.state().t)); requestAnimationFrame(w); }; w(); });
+    await p.evaluate(() => { window.__themeHeard = []; const w = () => { if (!window.__themeHeard) return; const m = window.__clubhouse.music(); if (m.playing) window.__themeHeard.push(JSON.stringify(window.__space.state().t)); requestAnimationFrame(w); }; w(); });
     await p.waitForTimeout(300);
     await shot('2-cockpit');
 
@@ -45,7 +45,7 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(600);   // (trying to get up)
     const seat = await M('where');
     check(`${device}: ...in the pilot's seat, and you can't walk off`, Math.abs(seat.x) < 0.05 && Math.abs(seat.z - 0.45) < 0.1 && Math.abs(seat.yaw - Math.PI) < 0.05, `${seat.x.toFixed(2)}, ${seat.z.toFixed(2)}`);
-    check(`${device}: no thumb stick while you're strapped in`, !opts.hasTouch || await p.isHidden('#mansion #stick'));
+    check(`${device}: no thumb stick while you're strapped in`, !opts.hasTouch || await p.isHidden('#clubhouse #stick'));
     await until(() => window.__space.state().line, 4000);
     s = await S();
     check(`${device}: Sadie hops up onto the dashboard and starts talking`, !!s.sadie && s.sadie[1] > 0.9 && s.line === "Oh, it's you. Sit down. We're leaving." && await p.isVisible('#saTalk'));
@@ -55,10 +55,10 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('3-trip');
 
     // pausing stops the trip where it is
-    await p.click('#mansion #pause');
+    await p.click('#clubhouse #pause');
     const t0 = (await S()).t; await p.waitForTimeout(700); const t1 = (await S()).t;
-    check(`${device}: pausing stops the trip`, t0 === t1 && await p.isVisible('#mansion #menu'));
-    await p.click('#mansion #resume');
+    check(`${device}: pausing stops the trip`, t0 === t1 && await p.isVisible('#clubhouse #menu'));
+    await p.click('#clubhouse #resume');
 
     // the rest of it, quickly: the clouds, the land, the black
     await p.evaluate(() => window.__space.warp(12));
@@ -78,7 +78,7 @@ export default async function ({ browser, page, check, outDir }) {
     s = await S();
     check(`${device}: she says "I love space!", and the radio plays`, s.line === 'I love space!' && s.radio && s.done);
     // (the sound director hears the radio, so the clubhouse's theme makes way for it by itself)
-    const theme = await p.waitForFunction(() => { const m = window.__mansion.music(); return m.other && !m.playing; }, null, { timeout: 4000 }).then(() => true, () => false);
+    const theme = await p.waitForFunction(() => { const m = window.__clubhouse.music(); return m.other && !m.playing; }, null, { timeout: 4000 }).then(() => true, () => false);
     check(`${device}: ...and the clubhouse's theme makes way for the radio`, theme, JSON.stringify(await M('music')));
     const heard = await p.evaluate(() => { const h = window.__themeHeard; window.__themeHeard = null; return h; });
     check(`${device}: ...and it never came back in between, not on the trip, not in the black before the radio`, !heard.length, heard.slice(0, 5).join(', '));

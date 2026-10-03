@@ -3,8 +3,8 @@
 // cans, a sandwich board on the path (TODAY: PAINT THE WALLS / ALSO FLOOR AND CAT?), and a giant
 // paint can up on the roof, tipping over, pouring pink onto the sign.
 //
-// Built into the outside's own scene, in a group of its own (the mansion hands the room this place
-// and the plot); the front door is a doorway into the room, like every door in the mansion.
+// Built into the outside's own scene, in a group of its own (the clubhouse hands the room this place
+// and the plot); the front door is a doorway into the room, like every door in the clubhouse.
 import { Group, Mesh, CylinderGeometry, BoxGeometry, DoubleSide } from 'three';
 
 export const DW = 1.3, DH = 2.4;   // the front door

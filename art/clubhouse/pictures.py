@@ -3,7 +3,7 @@
 #   src/clubhouse/pictures.js                 Sadie's sprite (on the gatepost and in her portraits)
 #   src/activities/dropper-world/box.js       the front of Dropper World's box (on its computer's screen and poster)
 #   src/activities/typefitter/box.js          the front of TypeFitter's box (the same)
-#   src/activities/<name>/door.js             each activity's door on the mansion's landing
+#   src/activities/<name>/door.js             each activity's door on the clubhouse's landing
 #   src/activities/brickbuster/poster.js      Sadie's angry NO NOISE poster in Brickbuster's room
 # Run after changing a drawing (pip install pillow): python3 art/clubhouse/pictures.py
 import base64, io, json, math, os, sys
@@ -24,7 +24,7 @@ def png(draw, w, h):
     b = io.BytesIO(); im.save(b, 'PNG')
     return 'data:image/png;base64,' + base64.b64encode(b.getvalue()).decode()
 
-A = {}  # Sadie's sprite for the mansion, awake and blinking
+A = {}  # Sadie's sprite for the clubhouse, awake and blinking
 BOX = png(lambda: c3._dropper(40, 44), 40, 44)
 def typefitter_box(w=40, h=44):
     # TypeFitter's box: a white page, a red dashed box, big letters spilling out of it, a gold band
@@ -60,7 +60,7 @@ def sadie_frame(blink):
     return draw
 A['sadie'] = png(sadie_frame(False), 58, 47)
 A['sadieBlink'] = png(sadie_frame(True), 58, 47)
-# The activities' doors on the mansion's landing (40 x 64, one door that swings open)
+# The activities' doors on the clubhouse's landing (40 x 64, one door that swings open)
 def box_(x0, y0, w, h, c):
     for y in range(y0, y0 + h):
         for x in range(x0, x0 + w): put(x, y, c)
@@ -153,17 +153,17 @@ def write(path, what, body):
 
 write('src/clubhouse/pictures.js', "The clubhouse's pictures: Sadie's sprite, awake and blinking, as PNGs.",
       'export default {\n' + ''.join(f'  {k}: {json.dumps(v)},\n' for k, v in A.items()) + '};')
-write('src/activities/dropper-world/box.js', "The front of Dropper World's box (on its computer's screen and poster in the mansion), as a PNG.",
+write('src/activities/dropper-world/box.js', "The front of Dropper World's box (on its computer's screen and poster in the clubhouse), as a PNG.",
       f'export default {json.dumps(BOX)};')
-write('src/activities/dropper-world/door.js', "Dropper World's door on the mansion's landing, as a PNG.",
+write('src/activities/dropper-world/door.js', "Dropper World's door on the clubhouse's landing, as a PNG.",
       f'export default {json.dumps(DW_DOOR)};')
-write('src/activities/typefitter/door.js', "TypeFitter's door on the mansion's landing, as a PNG.",
+write('src/activities/typefitter/door.js', "TypeFitter's door on the clubhouse's landing, as a PNG.",
       f'export default {json.dumps(TF_DOOR)};')
-write('src/activities/brickbuster/door.js', "Brickbuster '96's door on the mansion's landing, as a PNG.",
+write('src/activities/brickbuster/door.js', "Brickbuster '96's door on the clubhouse's landing, as a PNG.",
       f'export default {json.dumps(BB_DOOR)};')
-write('src/activities/music-room/door.js', "The music room's door on the mansion's landing, as a PNG.",
+write('src/activities/music-room/door.js', "The music room's door on the clubhouse's landing, as a PNG.",
       f'export default {json.dumps(MR_DOOR)};')
 write('src/activities/brickbuster/poster.js', "Sadie's QUIET!! poster in Brickbuster's room: a speaker crossed out, and her, cross about it. A PNG.",
       f'export default {json.dumps(POSTER)};')
-write('src/activities/typefitter/box.js', "The front of TypeFitter's box (on its computer's screen and poster in the mansion), as a PNG.",
+write('src/activities/typefitter/box.js', "The front of TypeFitter's box (on its computer's screen and poster in the clubhouse), as a PNG.",
       f'export default {json.dumps(TF_BOX)};')

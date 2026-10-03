@@ -3,7 +3,7 @@
 // says about it, and what's saved. The weather is the whole world's, over every place out of doors;
 // whoever makes it (Clyde's Weather Machine) just says which (the kit's `weather.set(kind)`).
 
-export const KEY = 'mansion.weather';   // (its save: the mansion's, so a backup has it and EVERYTHING starts it over)
+export const KEY = 'mansion.weather';   // (its save: the clubhouse's, so a backup has it and EVERYTHING starts it over)
 export const KINDS = ['rain', 'snow', 'sun', 'cats'];
 
 // how each looks: `sun`, how bright the sunlight is (clear is 0.5; a place out of doors with a light

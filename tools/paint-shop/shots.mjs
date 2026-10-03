@@ -23,9 +23,9 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   p.on('pageerror', e => console.log('page error:', e.message));
   p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.log('console:', m.text()); });
   await p.goto(`http://127.0.0.1:${server.address().port}/`);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 5 && window.__clubhouse.settled(), null, { timeout: 30000 });
   await p.evaluate(() => document.querySelector('#ok')?.click());
-  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
   const S = () => p.evaluate(() => window.__paintShop.state());
   const shot = async (name, wait = 600) => { await p.waitForTimeout(wait); await p.screenshot({ path: join(out, `${device}-${name}.png`) }); console.log(`${device}-${name}`); };
   const look = async (place, x, z, y, lx, ly, lz) => {
@@ -35,7 +35,7 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   };
   // a press on the screen that drags from (x0, y0) to (x1, y1), as a finger or the mouse, in steps
   const drag = async (x0, y0, x1, y1, steps = 12) => p.evaluate(async ([x0, y0, x1, y1, steps, touch]) => {
-    const c = document.querySelector('#mansion #view'), W = innerWidth, H = innerHeight;
+    const c = document.querySelector('#clubhouse #view'), W = innerWidth, H = innerHeight;
     const ev = (type, k) => c.dispatchEvent(new PointerEvent(type, { pointerId: 5, pointerType: touch ? 'touch' : 'mouse', button: 0, clientX: (x0 + (x1 - x0) * k) * W, clientY: (y0 + (y1 - y0) * k) * H, bubbles: true }));
     ev('pointerdown', 0);
     for (let i = 1; i <= steps; i++) { await new Promise(ok => requestAnimationFrame(ok)); ev('pointermove', i / steps); }
@@ -51,7 +51,7 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   await look(ROOM, 1.2, -0.6, 0, 3.3, 1.1, -1.4); await shot('5-plaster-sadie');
   // painting the back wall: PAINT on, then a stroke
   await look(ROOM, 0, 1.5, 0, 0, 2.0, -4.5);
-  await p.click('#mansion #paint [data-to=paint]'); await shot('6-paint-switch', 300);
+  await p.click('#clubhouse #paint [data-to=paint]'); await shot('6-paint-switch', 300);
   await p.evaluate(() => window.__paintShop.hold('roller', 1));
   await drag(0.2, 0.3, 0.8, 0.35);
   await p.evaluate(() => window.__paintShop.hold('brush', 'rainbow'));

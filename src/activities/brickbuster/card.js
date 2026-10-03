@@ -1,5 +1,5 @@
-// Brickbuster '96's card for the clubhouse. It's the first game that lives in the mansion itself
-// rather than on a computer: no page of its own and no start(), just `room`, which the mansion calls
+// Brickbuster '96's card for the clubhouse. It's the first game that lives in the clubhouse itself
+// rather than on a computer: no page of its own and no start(), just `room`, which the clubhouse calls
 // with its building kit when it opens (see room.js). Its door on the landing is `door`.
 import door from './door.js';
 

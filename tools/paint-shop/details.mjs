@@ -19,9 +19,9 @@ const ctx = await browser.newContext({ viewport: { width: 960, height: 640 } });
 const p = await ctx.newPage();
 p.on('pageerror', e => console.log('page error:', e.message));
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
-await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
+await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 5 && window.__clubhouse.settled(), null, { timeout: 30000 });
 await p.evaluate(() => document.querySelector('#ok')?.click());
-const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
 const ROOM = 'room:paint-shop';
 const shot = async (name, wait = 500) => { await p.waitForTimeout(wait); await p.screenshot({ path: join(out, `detail-${name}.png`) }); console.log(`detail-${name}`); };
 const look = async (place, x, z, y, lx, ly, lz) => {
@@ -30,7 +30,7 @@ const look = async (place, x, z, y, lx, ly, lz) => {
   await p.waitForTimeout(200);
 };
 const press = (x, y) => p.evaluate(async ([x, y]) => {
-  const c = document.querySelector('#mansion #view');
+  const c = document.querySelector('#clubhouse #view');
   const ev = type => c.dispatchEvent(new PointerEvent(type, { pointerId: 5, pointerType: 'mouse', button: 0, clientX: x * innerWidth, clientY: y * innerHeight, bubbles: true }));
   ev('pointerdown'); await new Promise(ok => requestAnimationFrame(ok)); await new Promise(ok => requestAnimationFrame(ok)); ev('pointerup');
 }, [x, y]);
@@ -55,7 +55,7 @@ await look(ROOM, 2.2, -0.9, -0.6, 3.3, 0.35, -1.4); await shot('plaque');
 await look(ROOM, 2.4, 2.6, -0.4, 2.4, 0.3, 3.7); await shot('tnt');
 await look(ROOM, -4.6, 4.2, 0, -3.7, 1.3, 3.0); await shot('easel-back');
 // the bucket on the crate's top and two of its sides, and the plinth's front and side
-await p.evaluate(() => { window.__paintShop.hold('bucket', 8); document.querySelector('#mansion #paint [data-to=paint]').click(); });
+await p.evaluate(() => { window.__paintShop.hold('bucket', 8); document.querySelector('#clubhouse #paint [data-to=paint]').click(); });
 await look(ROOM, -2.6, -0.9, 0.4, -2.6, 0.5, -2.4); await press(0.5, 0.5); await press(0.5, 0.75);
 await look(ROOM, -0.9, -2.0, -0.6, -2.6, 0.4, -2.4); await press(0.5, 0.5);
 await shot('crate');

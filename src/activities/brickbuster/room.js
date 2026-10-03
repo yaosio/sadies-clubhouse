@@ -2,9 +2,9 @@
 // case fills the far wall (the glass is two storeys high), the paddle is a chunky plastic character
 // with a face, the ball is a ball of yarn, and Sadie sits on a box beside it watching the ball.
 //
-// The mansion calls buildRoom(m) with its building kit (m: its shapes, its PS1 material, its
+// The clubhouse calls buildRoom(m) with its building kit (m: its shapes, its PS1 material, its
 // textures and Sadie's sprite), so nothing here imports the clubhouse. It hands back a place like any
-// room's, plus a `play` on the case: the mansion eases your view back until the whole glass fits,
+// room's, plus a `play` on the case: the clubhouse eases your view back until the whole glass fits,
 // then passes the controls on to it (steer, nudge) until you step back.
 import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ExtrudeGeometry, ShapeGeometry, BoxGeometry, PlaneGeometry, SphereGeometry,
   DoubleSide, CanvasTexture, NearestFilter } from 'three';
@@ -101,7 +101,7 @@ export async function buildRoom(m) {
   const cracksTex = tex(CW, CH, () => {}), cg = cracksTex.image.getContext('2d');
   glass.push(cplane(W, H, psx(cracksTex, { unlit: 0.95, decal: true }), [0, H / 2, Z.glass + 0.01]));
 
-  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+  await m.breathe?.();   // (the clubhouse builds it a bit at a time, so nothing stutters)
 
   // ---------- inside: the bricks, the yarn ball and the paddle ----------
   const bevelTex = tex(8, 6, g => {
@@ -166,7 +166,7 @@ export async function buildRoom(m) {
   const sadie = m.sadie(0.78, { unlit: 0.4 });
   sadie.position.copy(SADIE); scene.add(sadie);
 
-  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+  await m.breathe?.();   // (the clubhouse builds it a bit at a time, so nothing stutters)
 
   // ---------- broken: the glass gone but for a jagged edge, and glitter all over the floor ----------
   const edgeTex = tex(CW, CH, g => {
@@ -218,7 +218,7 @@ export async function buildRoom(m) {
 
   // ---------- playing ----------
   let active = false, wait = 0, dirty = false, savedAt = 0, mood = { name: 'calm', until: 0 }, pop = 0, now = 0;
-  // its sounds, through the clubhouse's sound system (stopped by the mansion when the room's put away)
+  // its sounds, through the clubhouse's sound system (stopped by the clubhouse when the room's put away)
   const sfx = soundsFor('room:' + card.id);
   let sound = null, music = null, showing = 'calm', lastTock = 0;
   const keep_ = () => { m.saves.set(KEY, save(game)); dirty = false; };
@@ -234,7 +234,7 @@ export async function buildRoom(m) {
     // where you watch from once it's broken: the middle of the room, on the floor, looking at it
     // (a corner well off the yarn ball's way out, and away from the door)
     after: { x: -3.4, z: 3.1, yaw: Math.PI + 0.5, pitch: 0.15 },
-    over: false,   // broken: the mansion steps you back to watch
+    over: false,   // broken: the clubhouse steps you back to watch
     start() {
       if (!sound) sound = makeSounds(sfx);
       sound.wake();
@@ -341,7 +341,7 @@ export async function buildRoom(m) {
   function finished() { place.holding = null; doneAt = 0; putSignUp(); }
 
   // ---------- out in the hall: the yarn ball loose for ever, and Sadie chasing it ----------
-  // (loose.js has how; here they're drawn in the hall, which the mansion lends as m.hall: docs/clubhouse/rooms/kit.md)
+  // (loose.js has how; here they're drawn in the hall, which the clubhouse lends as m.hall: docs/clubhouse/rooms/kit.md)
   const hall = m.hall, loose = hall?.shape ? makeLoose(hall.shape, Math.floor(Math.random() * 1e6) + 1) : null;
   let hallBall = null, hallCat = null, outOfHall = [], giveSadieBack = null;
   // Sadie's sounds while she plays (sounds/sadie.js: rare and soft, never two close together),
@@ -378,7 +378,7 @@ export async function buildRoom(m) {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie],
     uses: game.broken ? [] : [{ pos: new Vector3(0, FY + 1.6, CZ - Z.glass), reach: 8.5, label: play.label, play }],
     holding: null,   // a door being held open (the yarn ball and Sadie on their way out)
-    // (the mansion puts the room away when you're far off, never mid-game or while the ball's getting
+    // (the clubhouse puts the room away when you're far off, never mid-game or while the ball's getting
     // out; the yarn ball and Sadie leave the hall with it, and come back when it's built again; her sign
     // stays on the landing's door)
     busy: () => active || (escape && escape !== 'gone') || (run && run !== 'gone') || !!doneAt || flights.length > 0 || falling.length > 0,

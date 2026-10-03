@@ -1,4 +1,4 @@
-// Building bits shared by every place in the mansion: quick shapes, walls with a hole for a door,
+// Building bits shared by every place in the clubhouse: quick shapes, walls with a hole for a door,
 // and doorways (a door's frame, its two leaves that swing open, and the see-through box behind the
 // hole where the place on the other side shows).
 import {
@@ -59,7 +59,7 @@ export function wallGeometry(w, h, hw = 0, hh = 0) {
 // One side of a doorway, put into a place's scene: at `pos` (the middle of its threshold), facing
 // `yaw` (the way you face walking out of it into this place is yaw + PI), w x h.
 // leaves: [left, right] for double doors, or [one] for one door hinged on the `hinge` side (-1 left,
-// 1 right, as you face it); each a texture, or { front, back } when its two faces differ. Returns what the mansion needs to draw it and walk
+// 1 right, as you face it); each a texture, or { front, back } when its two faces differ. Returns what the clubhouse needs to draw it and walk
 // through it. Both sides of a doorway show the same real door: it swings into one of the two places,
 // so on one side it swings away from you (`swing` 1, the default) and on the other towards you (-1).
 export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xffd23a }) {

@@ -3,7 +3,7 @@
 // file). Never throws (private mode, tests running in Node, a full browser...).
 //
 //   saveBox(id)      an activity's own saves, named `sadies-clubhouse.<id>.<name>` (a room in the
-//                    mansion gets its box in its kit, `m.saves`): get(name, d), set(name, v),
+//                    clubhouse gets its box in its kit, `m.saves`): get(name, d), set(name, v),
 //                    remove(name), putAside(name). A save that can't be read is put aside (kept
 //                    as `<its key>.unreadable`), never wiped: a room that can't read an old save
 //                    calls putAside(name) before starting fresh, so it can still be rescued.

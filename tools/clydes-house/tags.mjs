@@ -20,11 +20,11 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 5 && window.__clubhouse.settled(), null, { timeout: 30000 });
   await p.evaluate(() => document.querySelector('#ok')?.click());
-  await p.evaluate(() => window.__mansion.put('room:clydes-house', 'machine'));
+  await p.evaluate(() => window.__clubhouse.put('room:clydes-house', 'machine'));
   await p.waitForTimeout(300);
-  if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+  if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('KeyE');
   await p.waitForFunction(() => window.__clydesHouse?.state().phase === 'ready', null, { timeout: 60000 });
   await p.evaluate(() => window.__clydesHouse.speed(8));
   await p.waitForFunction(() => !window.__clydesHouse.state().lines, null, { timeout: 60000 });

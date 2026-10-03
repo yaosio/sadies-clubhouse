@@ -1,11 +1,11 @@
-// Sadie's mansion (the clubhouse) in a real (hidden) browser, as a phone and as a desktop: run by
+// Sadie's clubhouse (the clubhouse) in a real (hidden) browser, as a phone and as a desktop: run by
 // tools/check.mjs (never on its own) with the built page, every time (it takes under a minute).
 //
 // It opens the page at the gate with Sadie's letter (the first time only), walks, goes in through the
 // front door (seeing the hall through it first), climbs the spiral stairs to the landings, and checks
-// every door on them leads to its own room, and every activity on a computer plays there (the mansion
+// every door on them leads to its own room, and every activity on a computer plays there (the clubhouse
 // must leave the page completely) and comes back with ESC BACK, or from an address that went straight
-// in. It checks the rooms are built after the mansion opens (and how quick each is), and that a room
+// in. It checks the rooms are built after the clubhouse opens (and how quick each is), and that a room
 // put away is built again as you walk up to its door, with nothing piling up. The main theme plays,
 // fades out in a room that keeps it out and comes back; the pause menu's MUSIC button goes SOFT, OFF
 // and ON. It pauses, each activity's START OVER erases only its own saves, and in the test version it
@@ -35,15 +35,15 @@ export default async function ({ browser, page, check, outDir }) {
     p.on('pageerror', e => errors.push(e.message));
     p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
     const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
-    const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
-    const up = () => p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
+    const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
+    const up = () => p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
     const walk = ms => walkFor(p, ms);
 
     await p.goto(page);
     const opened = await up();
     await p.waitForTimeout(500);
     await shot('1-letter');
-    check(`${device}: the mansion opens and draws`, opened, errors[0]);
+    check(`${device}: the clubhouse opens and draws`, opened, errors[0]);
     if (!opened) { await ctx.close(); return; }
     check(`${device}: ...at the gate, with Sadie's letter`, (await M('where')).place === 'outside' && await M('mode') === 'letter' && await p.isVisible('#letter'));
     await p.click('#ok');
@@ -57,9 +57,9 @@ export default async function ({ browser, page, check, outDir }) {
     if (opts.hasTouch) {
       // (held for 700 ms of the game's own time, as W is: a slow computer walks no less far)
       const stick = steps => p.evaluate(steps => {
-        const c = document.querySelector('#mansion #view'), r = document.querySelector('#mansion #stick').getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+        const c = document.querySelector('#clubhouse #view'), r = document.querySelector('#clubhouse #stick').getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
         for (const [type, dy] of steps) c.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: 'touch', clientX: x, clientY: y + dy, bubbles: true }));
-        return window.__mansion.played();
+        return window.__clubhouse.played();
       }, steps);
       const t0 = await stick([['pointerdown', 0], ['pointermove', -45]]);
       await rest(p, 700, t0);
@@ -69,14 +69,14 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ${opts.hasTouch ? 'the thumb stick' : 'W'} walks you up the path`, after.z - before.z > 0.8, `moved ${(after.z - before.z).toFixed(2)} m`);
     if (opts.hasTouch) {
       // dragging anywhere else, even on the left side, only looks around: the stick stays put
-      const r0 = await p.evaluate(() => JSON.stringify(document.querySelector('#mansion #stick').getBoundingClientRect()));
+      const r0 = await p.evaluate(() => JSON.stringify(document.querySelector('#clubhouse #stick').getBoundingClientRect()));
       const w0 = await M('where');
       await p.evaluate(async () => {
-        const c = document.querySelector('#mansion #view'), x = 90, y = 300;
+        const c = document.querySelector('#clubhouse #view'), x = 90, y = 300;
         const ev = (type, dx) => c.dispatchEvent(new PointerEvent(type, { pointerId: 8, pointerType: 'touch', clientX: x + dx, clientY: y, bubbles: true }));
         ev('pointerdown', 0); ev('pointermove', 60); await new Promise(ok => setTimeout(ok, 300)); ev('pointerup', 60);
       });
-      const w1 = await M('where'), r1 = await p.evaluate(() => JSON.stringify(document.querySelector('#mansion #stick').getBoundingClientRect()));
+      const w1 = await M('where'), r1 = await p.evaluate(() => JSON.stringify(document.querySelector('#clubhouse #stick').getBoundingClientRect()));
       check(`${device}: dragging away from the stick turns the view, and the stick stays in its corner`,
         Math.abs(w1.yaw - w0.yaw) > 0.1 && Math.hypot(w1.x - w0.x, w1.z - w0.z) < 0.01 && r0 === r1);
     }
@@ -108,21 +108,21 @@ export default async function ({ browser, page, check, outDir }) {
     for (const [yaw, pitch] of [[0.7, 0.6], [2.4, -0.7], [-1.9, 0.5]]) { await M('turnTo', yaw, pitch); await p.waitForTimeout(80); tipped = Math.max(tipped, await M('tilt')); }
     check(`${device}: looking up or down while turning keeps the view upright`, tipped < 1e-3, `leans ${tipped.toFixed(3)}`);
 
-    // the mansion opens before the rooms are built (all but a building outside the gate, which you can
+    // the clubhouse opens before the rooms are built (all but a building outside the gate, which you can
     // see from the lane); the rest are built one at a time while you stand about
     const sp = await M('speed');
     const outsideRooms = await M('outsideRooms');
-    check(`${device}: the mansion opens without waiting for the rooms`, sp.atFirst.every(n => outsideRooms.includes(n)), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
-    const settled = await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 20000 }).then(() => true, () => false);
+    check(`${device}: the clubhouse opens without waiting for the rooms`, sp.atFirst.every(n => outsideRooms.includes(n)), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
+    const settled = await p.waitForFunction(() => window.__clubhouse.settled(), null, { timeout: 20000 }).then(() => true, () => false);
     const sp2 = await M('speed'), slow = Object.entries(sp2.places).filter(([, ms]) => ms > SLOW);
     check(`${device}: ...and the rooms are built while you stand about`, settled, (await M('built')).join(', '));
     // the main theme: playing (you've pressed something by now), fading out in a room that keeps it out
     // (`hush: true`, the Music Room so far) and back in once you've left it
-    const playing = () => p.waitForFunction(() => { const m = window.__mansion.music(); return m.playing && m.notes > 0 && m.level > 0.05; }, null, { timeout: 8000 }).then(() => true, () => false);
+    const playing = () => p.waitForFunction(() => { const m = window.__clubhouse.music(); return m.playing && m.notes > 0 && m.level > 0.05; }, null, { timeout: 8000 }).then(() => true, () => false);
     check(`${device}: the main theme plays`, await playing(), JSON.stringify(await M('music')));
     const quiet = (await M('quiet'))[0];
     if (quiet) await M('faceDoor', quiet, 'door', 2);
-    const hushed = await p.waitForFunction(() => { const m = window.__mansion.music(); return !m.playing && m.level < 0.01; }, null, { timeout: 8000 }).then(() => true, () => false);
+    const hushed = await p.waitForFunction(() => { const m = window.__clubhouse.music(); return !m.playing && m.level < 0.01; }, null, { timeout: 8000 }).then(() => true, () => false);
     check(`${device}: ...and fades out in a room that keeps it out (${quiet})`, !!quiet && hushed, JSON.stringify(await M('music')));
     await M('faceDoor', 'hall', first.id, 1.3);
     check(`${device}: ...and back in once you've left`, await playing(), JSON.stringify(await M('music')));
@@ -165,7 +165,7 @@ export default async function ({ browser, page, check, outDir }) {
     // stand on whichever is nearest your feet (only checked once: it's the same on any screen)
     if (device === 'desktop') {
       const lv = await p.evaluate(() => {
-        const o = window.__mansion.outside(), f = (x, z, y) => o.floor(x, z, y);
+        const o = window.__clubhouse.outside(), f = (x, z, y) => o.floor(x, z, y);
         const gone = [
           o.surface((x, z) => Math.abs(x) < 3 && Math.abs(z + 31) < 1 ? 3 : null),   // a bridge 3 m up, across the lane
           o.block(-1, 1, -31.5, -30.5, 0, 1),                                         // a crate under it
@@ -216,7 +216,7 @@ export default async function ({ browser, page, check, outDir }) {
     // (built again and showing through its open door, or already walked through it: a shut door
     // can't be walked through, so being in the room means it opened. On a slow computer the walk
     // can carry you in before the check looks.)
-    const rebuilt = await until(p, n => window.__mansion.looking() === n || window.__mansion.where().place === n, 'room:' + spare.id, 5000)
+    const rebuilt = await until(p, n => window.__clubhouse.looking() === n || window.__clubhouse.where().place === n, 'room:' + spare.id, 5000)
       && (await M('built')).includes('room:' + spare.id);
     await shot('4c-built-again');
     check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:' + spare.id) }));
@@ -234,7 +234,7 @@ export default async function ({ browser, page, check, outDir }) {
       else if ((await M('sound')).owners[n]) leftOver.push(`${n} left sounds behind`);
     }
     // (a room's test hook (`window.__<room>`) goes with it, or it keeps the whole room's state alive)
-    const hooksLeft = (await M('built')).length ? [] : await p.evaluate(() => Object.keys(window).filter(k => k.startsWith('__') && k !== '__mansion'));
+    const hooksLeft = (await M('built')).length ? [] : await p.evaluate(() => Object.keys(window).filter(k => k.startsWith('__') && k !== '__clubhouse'));
     check(`${device}: a room's test hook is taken away when it's put away`, !hooksLeft.length, hooksLeft.join(', '));
     // (and nothing it had waiting to go off later starts up again once it's put away)
     await p.waitForTimeout(2000);
@@ -342,21 +342,21 @@ export default async function ({ browser, page, check, outDir }) {
     }
     check(`${device}: every building outside leads to its own room (${buildings.length})`, buildings.length >= 1 && !wrongOut.length, wrongOut.join(', '));
 
-    // every activity on a computer: played there (the mansion leaves the page completely), ESC BACK
+    // every activity on a computer: played there (the clubhouse leaves the page completely), ESC BACK
     // comes back to that computer, and so does the Escape key when it came in straight by address
     for (const c of computers) {
       await M('build', 'room:' + c.id); await M('put', 'room:' + c.id, 'computer');
       await p.waitForTimeout(300);
       const offer = await M('target');
       await pressUse(p, opts);
-      const inside = await p.waitForFunction(() => !document.getElementById('mansion') && !window.__mansion && document.querySelector('#clubBack[data-ready]'), null, { timeout: 10000 }).then(() => true, () => false);
+      const inside = await p.waitForFunction(() => !document.getElementById('clubhouse') && !window.__clubhouse && document.querySelector('#clubBack[data-ready]'), null, { timeout: 10000 }).then(() => true, () => false);
       await p.waitForTimeout(1500);
       await shot('6-played-' + c.id);
-      check(`${device}: ${c.name}: at its computer, it offers to play, and using it starts it with the mansion gone from the page`, !!offer && inside, `offered ${JSON.stringify(offer)}, title ${JSON.stringify(await p.title())}`);
+      check(`${device}: ${c.name}: at its computer, it offers to play, and using it starts it with the clubhouse gone from the page`, !!offer && inside, `offered ${JSON.stringify(offer)}, title ${JSON.stringify(await p.title())}`);
       await p.click('#clubBack', { timeout: 3000 }).catch(() => {});
       const home = await up();
       await p.waitForTimeout(500);
-      check(`${device}: ${c.name}: ESC BACK comes back to the mansion, at its computer`, home && (await M('where')).place === 'room:' + c.id && await M('mode') === 'play');
+      check(`${device}: ${c.name}: ESC BACK comes back to the clubhouse, at its computer`, home && (await M('where')).place === 'room:' + c.id && await M('mode') === 'play');
       await p.goto(page + '#' + c.id); await p.reload();   // (only the address's # changing doesn't load the page again)
       await p.waitForFunction(() => document.querySelector('#clubBack[data-ready]'), null, { timeout: 8000 }).catch(() => {});
       await p.keyboard.press('Escape');
@@ -374,7 +374,7 @@ export default async function ({ browser, page, check, outDir }) {
     // the volume buttons: MUSIC, SOUNDS, VOICES, each ON, SOFT, OFF (remembered), and ON again
     const tap = async b => { await p.click('#vol-' + b); return [await p.textContent('#vol-' + b), await p.evaluate(k => JSON.parse(localStorage.getItem(k)), 'mansion.' + b), (await M('sound')).levels[b]]; };
     const soft = await tap('music'), offNow = await tap('music');
-    const silent = await p.waitForFunction(() => window.__mansion.music().level < 0.01, null, { timeout: 6000 }).then(() => true, () => false);
+    const silent = await p.waitForFunction(() => window.__clubhouse.music().level < 0.01, null, { timeout: 6000 }).then(() => true, () => false);
     const onAgain = await tap('music');
     check(`${device}: the pause menu's MUSIC button goes SOFT, OFF (the theme stops) and ON again, and remembers`, soft[0] === 'MUSIC: SOFT' && soft[2] === 0.45 && offNow[0] === 'MUSIC: OFF'
       && offNow[2] === 0 && silent && onAgain[0] === 'MUSIC: ON' && offNow[1] === 'off' && onAgain[1] === 'on', `${soft[0]}, ${offNow[0]}, ${onAgain[0]}`);
@@ -442,10 +442,10 @@ export default async function ({ browser, page, check, outDir }) {
     await up();
     check(`${device}: YES starts the invitation over: Sadie's letter is back`, await M('mode') === 'letter');
     // every save written while walking round (and playing every computer's activity) belongs to someone: a card's
-    // `keeps` or the mansion's own, so the start-over buttons can always find it
+    // `keeps` or the clubhouse's own, so the start-over buttons can always find it
     const keeps = await allKeeps(), keys = await p.evaluate(() => Object.keys(localStorage));
     const stray = keys.filter(k => !keeps.some(s => k.startsWith(s)));
-    check(`${device}: every save belongs to an activity's card or the mansion`, keys.length && !stray.length, stray.join(', ') || `${keys.length} saves`);
+    check(`${device}: every save belongs to an activity's card or the clubhouse`, keys.length && !stray.length, stray.join(', ') || `${keys.length} saves`);
     const fonts = await p.evaluate(async () => { await document.fonts.ready; return ['Silkscreen', 'Patrick Hand'].map(f => [f, document.fonts.check(`16px "${f}"`) && [...document.fonts].some(x => x.family.replace(/['"]/g, '') === f && x.status === 'loaded')]); });
     check(`${device}: the lettering is the game's own fonts, loaded from its own files`, fonts.every(([, ok]) => ok), JSON.stringify(fonts));
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
@@ -461,12 +461,12 @@ export default async function ({ browser, page, check, outDir }) {
   await ctx.route(url => url.pathname.endsWith('/game/' + files[`src/activities/${spare.id}/room.js`]), r => { asked++; return cut ? r.abort() : r.continue(); });
   const p = await ctx.newPage(), errors = [];
   p.on('pageerror', e => errors.push(e.message));
-  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
   await p.goto(page);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10, null, { timeout: 15000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 15000 });
   const failed = await M('build', cutOff);
   const rooms = (await M('places')).filter(n => n.startsWith('room:')).length;
-  await p.waitForFunction(n => window.__mansion.built().length >= n, rooms - 1, { timeout: 20000 }).catch(() => {});
+  await p.waitForFunction(n => window.__clubhouse.built().length >= n, rooms - 1, { timeout: 20000 }).catch(() => {});
   const others = (await M('built')).filter(n => n !== cutOff).length;
   check('a room whose file won\'t load keeps its door shut, and the other rooms still build', !failed && !(await M('built')).includes(cutOff) && others >= rooms - 1 && asked > 0,
     `${spare.id} built: ${failed}, ${others} of ${rooms - 1} other rooms built`);

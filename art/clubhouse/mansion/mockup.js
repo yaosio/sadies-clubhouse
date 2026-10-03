@@ -1,7 +1,7 @@
-// Mock-up of Sadie's mansion (not the game): the outside, Sadie's invitation, the entrance hall
+// Mock-up of Sadie's clubhouse (not the game): the outside, Sadie's invitation, the entrance hall
 // (the bottom of the cat-tree trunk) and the first landing, in the clubhouse's crappy late-90s 3D.
 // Textures are drawn right here on little canvases; Sadie's sprite is the clubhouse's.
-// Built into one page by art/mansion/build.mjs; pictures taken by art/mansion/shots.mjs.
+// Built into one page by art/clubhouse/build.mjs; pictures taken by art/clubhouse/shots.mjs.
 import {
   Scene, Mesh, Group, Color, Vector2, Vector3, PlaneGeometry, BoxGeometry, CylinderGeometry, SphereGeometry,
   ConeGeometry, CircleGeometry, RingGeometry, TorusGeometry, TubeGeometry, CatmullRomCurve3, Shape, ShapeGeometry,

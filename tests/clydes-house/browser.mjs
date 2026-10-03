@@ -1,6 +1,6 @@
 // Clyde's house in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page. It's built into the mansion (outside the gate), so these
-// run whenever the mansion changes too.
+// (never on its own) with the built page. It's built into the clubhouse (outside the gate), so these
+// run whenever the clubhouse changes too.
 //
 // It walks out along the lane to the house, sees in through its front door and walks through it,
 // steps up to the Good Morning Machine (hearing Clyde's hello, sped up), puts junk in the gap and
@@ -21,7 +21,7 @@ export default async function ({ browser, page, check, outDir }) {
     const ready = () => until(() => { const s = window.__clydesHouse.state(); return s.phase === 'ready' && !s.lines; });
     // a finger (or the mouse) pressing the screen at (fx, fy) of the way across and down, and moving by dx pixels
     const press = (fx, fy, dx = 0) => p.evaluate(async ([fx, fy, dx, touch]) => {
-      const c = document.querySelector('#mansion #view'), x = innerWidth * fx, y = innerHeight * fy;
+      const c = document.querySelector('#clubhouse #view'), x = innerWidth * fx, y = innerHeight * fy;
       const ev = (type, d) => c.dispatchEvent(new PointerEvent(type, { pointerId: 9, pointerType: touch ? 'touch' : 'mouse', clientX: x + d, clientY: y, bubbles: true }));
       ev('pointerdown', 0); if (dx) for (let i = 1; i <= 6; i++) { ev('pointermove', dx * i / 6); await new Promise(ok => setTimeout(ok, 20)); }
       ev('pointerup', dx);
@@ -50,7 +50,7 @@ export default async function ({ browser, page, check, outDir }) {
     const pull = () => opts.hasTouch ? p.keyboard.press('Space') : p.keyboard.press('Space');
 
     await p.goto(page);
-    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); await ctx.close(); return; }
+    if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); await ctx.close(); return; }
     await p.click('#ok');
 
     // out along the lane, to the house, and in through its front door
@@ -117,11 +117,11 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: the treats and the finale are kept after a reload`, s.treats === ROUNDS.length && s.finale);
 
     // the weather machine, beside the house: each lever changes the weather outside, and Sadie reacts
-    // (the weather itself is the world's: the mansion's; the levers, their labels and jingles are the machine's)
-    await p.evaluate(() => { window.__wx = () => { const m = window.__weather.state(), w = window.__mansion.weather(); return { ...w, ...m, sadie: w.sounds }; }; });
+    // (the weather itself is the world's: the clubhouse's; the levers, their labels and jingles are the machine's)
+    await p.evaluate(() => { window.__wx = () => { const m = window.__weather.state(), w = window.__clubhouse.weather(); return { ...w, ...m, sadie: w.sounds }; }; });
     const Wx = () => p.evaluate(() => window.__wx());
     const { levers } = await p.evaluate(() => window.__weather.machine), front = (await p.evaluate(() => window.__weather.machine)).z;
-    await p.evaluate(() => window.__mansion.weatherSpeed(6));
+    await p.evaluate(() => window.__clubhouse.weatherSpeed(6));
     const lever = async k => { await M('put', 'outside', { x: levers[k], z: front + 1.3, y: 0, yaw: 0, pitch: -0.25 }); await p.waitForTimeout(300); };
     await lever('rain');
     check(`${device}: facing the rain lever, it offers to pull it`, /PULL THE RAIN LEVER/.test(await M('target') || ''), await M('target'));
@@ -138,9 +138,9 @@ export default async function ({ browser, page, check, outDir }) {
     await use();
     check(`${device}: ...and pulling it again clears the sky`, await until(() => { const w = window.__wx(); return w.now === 'clear' && w.clouds === 0 && !w.rain && w.sun === 0.5; }, null, 5000), JSON.stringify(await Wx()));
     await lever('snow'); await use();
-    await p.evaluate(() => window.__mansion.weatherSpeed(60));
+    await p.evaluate(() => window.__clubhouse.weatherSpeed(60));
     check(`${device}: snow falls and settles on the ground, and there's snow on Sadie's head`, await until(() => { const w = window.__wx(); return w.snow > 100 && w.settled > 0.9 && w.wearing.join() === 'snow'; }, null, 8000), JSON.stringify(await Wx()));
-    await p.evaluate(() => window.__mansion.weatherSpeed(6));
+    await p.evaluate(() => window.__clubhouse.weatherSpeed(6));
     await lever('sun'); await use();
     check(`${device}: a second sun comes up, brighter, snow melting, Sadie in sunglasses`, await until(() => { const w = window.__wx(); return w.now === 'sun' && w.sun2 && w.sun > 0.9 && !w.snow && w.wearing.join() === 'sun'; }, null, 5000), JSON.stringify(await Wx()));
     await lever('cats'); await use();
@@ -150,13 +150,13 @@ export default async function ({ browser, page, check, outDir }) {
     w = await Wx();
     check(`${device}: every change had its own jingle`, ['rainIn', 'clearIn', 'snowIn', 'sunIn', 'catsIn'].every(k => w.sounds.includes(k)), w.sounds.join());
     await p.reload(); await up();
-    await p.evaluate(() => { window.__wx = () => ({ ...window.__mansion.weather(), ...window.__weather.state() }); });
+    await p.evaluate(() => { window.__wx = () => ({ ...window.__clubhouse.weather(), ...window.__weather.state() }); });
     w = await Wx();
     check(`${device}: the weather's kept after a reload`, w.now === 'cats' && w.levers.cats > 0.9 && w.clouds > 0.9, JSON.stringify(w));
     // a weather saved where it was before it was the world's (Clyde's own saves) is brought in, once
     await p.evaluate(() => { localStorage.removeItem('mansion.weather'); localStorage.setItem('sadies-clubhouse.clydes-house.weather', '"snow"'); });
     await p.reload(); await up();
-    await p.evaluate(() => { window.__wx = () => ({ ...window.__mansion.weather(), ...window.__weather.state() }); });
+    await p.evaluate(() => { window.__wx = () => ({ ...window.__clubhouse.weather(), ...window.__weather.state() }); });
     w = await Wx();
     check(`${device}: an old weather save is brought in, straight away, and let go`, w.now === 'snow' && w.settled > 0.9 && await p.evaluate(() => localStorage.getItem('sadies-clubhouse.clydes-house.weather') === null), JSON.stringify(w));
     check(`${device}: no errors on the page`, !errors.length, errors[0]);

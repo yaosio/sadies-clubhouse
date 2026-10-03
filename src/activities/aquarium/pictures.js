@@ -1,6 +1,6 @@
 // The aquarium's little pictures, drawn when the room is built: the fish, and Sadie in her diving
 // suit (her own sprite, with a fishbowl helmet, an air tank and flippers). `tex` and `C` are the
-// mansion's (a canvas drawing made into a texture, and its palette).
+// clubhouse's (a canvas drawing made into a texture, and its palette).
 export const px = (g, c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 export const dot = (x, y) => BAYER[(y % 4) * 4 + (x % 4)] / 16;   // the ordered dither's threshold at a pixel

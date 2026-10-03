@@ -19,9 +19,9 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 5 && window.__clubhouse.settled(), null, { timeout: 30000 });
   await p.evaluate(() => document.querySelector('#ok')?.click());
-  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
   const shot = async (name, wait = 600) => { await p.waitForTimeout(wait); await p.screenshot({ path: join(out, `${device}-${name}.png`) }); console.log(`${device}-${name}`); };
   const look = async (place, x, z, y, lx, ly, lz) => {
     const dx = lx - x, dz = lz - z;
@@ -38,7 +38,7 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   await look('room:clydes-house', 0, -1, 0, 4.6, 2, 0.5); await shot('7-right-wall');
   await M('put', 'room:clydes-house', 'machine');
   await p.waitForTimeout(300);
-  if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+  if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('KeyE');
   await shot('8-machine', 1200);
   await p.evaluate(() => window.__clydesHouse.speed(6));
   await shot('9-hello', 1500);

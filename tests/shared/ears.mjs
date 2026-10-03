@@ -2,7 +2,7 @@
 // still somewhere, doing nothing, the game must stay calm. Run by tools/check.mjs with no code of a
 // room's own: in every room (a door on a landing, a building outside the gate, a spot in the grounds: whatever
 // has a room), after its own checks, and outside at the
-// gate and in the hall (after the mansion's). For LISTEN seconds of the game's time it counts every
+// gate and in the hall (after the clubhouse's). For LISTEN seconds of the game's time it counts every
 // sound played, by anyone (what you'd hear there, wherever it comes from), and fails on
 //   - the same sound more than SAME times (a tick, a drip, a hum made of repeats),
 //   - more than ALL sounds in all (a busy, never-quiet place),
@@ -40,9 +40,9 @@ async function open(browser, page) {
   const ctx = await browser.newContext(DESKTOP);
   const p = await ctx.newPage();
   await p.goto(page);
-  const ok = await p.waitForFunction(() => window.__mansion?.frames() > 10 && window.__mansion.settled(), null, { timeout: 30000 }).then(() => true, () => false);
+  const ok = await p.waitForFunction(() => window.__clubhouse?.frames() > 10 && window.__clubhouse.settled(), null, { timeout: 30000 }).then(() => true, () => false);
   if (ok) { await p.click('#ok').catch(() => {}); await p.keyboard.press('Shift'); }   // (a press wakes the sound)
-  return { ctx, p, ok, M: (f, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [f, a]) };
+  return { ctx, p, ok, M: (f, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [f, a]) };
 }
 
 // in a room (wherever its door is), a couple of metres in from its door
@@ -56,7 +56,7 @@ export async function roomEars({ browser, page, card, check }) {
 // outside at the gate (where the game opens), and in the hall in front of a door
 export async function houseEars({ browser, page, cards, check }) {
   const { ctx, p, ok, M } = await open(browser, page);
-  if (!ok) check('the mansion opens, to listen', false);
+  if (!ok) check('the clubhouse opens, to listen', false);
   else {
     judge(check, 'outside at the gate', await listen(p, M)); await looks(p, check, 'outside at the gate');
     const door = cards.find(c => c.slot !== undefined)?.id;

@@ -13,11 +13,11 @@ changing an activity's tests or `tests/shared/browser.mjs`.
 ## Writing a browser check (`tests/shared/browser.mjs`)
 What every room's browser checks start with:
 - The phone and the desktop side by side (`bothDevices`), and the page's errors collected.
-- The moves every check makes: `M` (the clubhouse's hook for the checks, `window.__mansion`), `up`,
+- The moves every check makes: `M` (the clubhouse's hook for the checks, `window.__clubhouse`), `up`,
   `walk`, `rest`, `use`, `modeIs` and `shot`.
 
 ## Game time, not the clock
-- `walk` and `rest` count in the game's own time (`window.__mansion.played()`), not the clock's. On a
+- `walk` and `rest` count in the game's own time (`window.__clubhouse.played()`), not the clock's. On a
   slower computer, like GitHub's, the game runs fewer frames and falls behind the clock, and a walk
   timed by the clock stops short of a door.
 - A check that waits for something to happen in the game should use them, or `until(fn, arg, ms)`,

@@ -20,9 +20,9 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 20000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10 && window.__clubhouse.settled(), null, { timeout: 20000 });
   await p.click('#ok');
-  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+  const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
   const S = (fn, ...a) => p.evaluate(([f, a]) => window.__space[f](...a), [fn, a]);
   const shot = async name => { await p.screenshot({ path: join(out, `${device}-${name}.png`) }); console.log(`dist/shots/space-adventure/${device}-${name}.png`); };
   await M('faceDoor', 'hall', 'space-adventure', 2.6); await p.waitForTimeout(800); await shot('0-door');

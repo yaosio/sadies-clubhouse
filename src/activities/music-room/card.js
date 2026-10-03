@@ -1,5 +1,5 @@
-// The music room's card for the clubhouse. Like Brickbuster '96, it lives in the mansion itself
-// rather than on a computer: no page of its own and no start(), just `room`, which the mansion calls
+// The music room's card for the clubhouse. Like Brickbuster '96, it lives in the clubhouse itself
+// rather than on a computer: no page of its own and no start(), just `room`, which the clubhouse calls
 // with its building kit when it opens (see room.js). Its door on the landing is `door`.
 import door from './door.js';
 

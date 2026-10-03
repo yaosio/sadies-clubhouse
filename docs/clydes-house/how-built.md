@@ -39,7 +39,7 @@ being far off and put away. Read before changing its code. Its checks and pictur
   `house.js`): the cabinet, dish, wind cups, funnel and puff, the forecast and the levers (`act`
   uses it puts in the outside's `uses`, which set the world's weather). `window.__weather` for the
   checks (`state()`: the levers, labels and jingles; `pull(kind)`; `machine`); the weather itself
-  is `__mansion.weather()`.
+  is `__clubhouse.weather()`.
 - `weather-art.js`: the weather machine's pictures: the enamel, the signs and lever plates, the
   forecast screen (drawn again when it changes), the puff.
 

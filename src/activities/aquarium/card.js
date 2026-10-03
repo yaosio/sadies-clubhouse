@@ -1,5 +1,5 @@
-// The aquarium's card for the clubhouse. Like Brickbuster '96 it lives in the mansion itself, not
-// on a computer: no page and no start(), just `room`, which the mansion calls with its building kit
+// The aquarium's card for the clubhouse. Like Brickbuster '96 it lives in the clubhouse itself, not
+// on a computer: no page and no start(), just `room`, which the clubhouse calls with its building kit
 // when it opens (see room.js). Its door on the landing is `door`. It saves what you've found in the
 // ocean and where you left the boat (`keeps`, for the pause menu's start-over buttons).
 import door from './door.js';
