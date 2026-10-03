@@ -7,7 +7,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch, quietFonts, DEVICES } from '../browser.mjs';
+import { launch, DEVICES } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/paint-shop');
 mkdirSync(out, { recursive: true });
@@ -19,7 +19,6 @@ const ROOM = 'room:paint-shop';
 for (const [device, opts] of Object.entries(DEVICES)) {
   if (only && only !== device) continue;
   const ctx = await browser.newContext(opts);
-  await quietFonts(ctx);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.log('console:', m.text()); });

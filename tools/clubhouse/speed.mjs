@@ -6,7 +6,7 @@
 // frame's work takes standing in each place (typical and worst), and how many frames a second.
 //   node tools/clubhouse/speed.mjs
 import { serve } from '../serve.mjs';
-import { launch, quietFonts } from '../browser.mjs';
+import { launch } from '../browser.mjs';
 
 
 const server = await serve();
@@ -18,7 +18,6 @@ await p.addInitScript(() => {
   const raf = window.requestAnimationFrame.bind(window); window.__frames = [];
   window.requestAnimationFrame = cb => raf(t => { const a = performance.now(); cb(t); window.__frames.push([t, performance.now() - a]); });
 });
-await quietFonts(p);
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
 await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5, null, { timeout: 30000 });
 await p.waitForFunction(() => window.__mansion.settled(), null, { timeout: 30000 });

@@ -31,7 +31,6 @@ export async function looks(p, check, where) {
 // an activity started straight from its address (on a computer: not in the mansion)
 export async function computerLooks({ browser, page, card, check }) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const p = await ctx.newPage();
   await p.goto(page + '#' + card.id);
   await p.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {});

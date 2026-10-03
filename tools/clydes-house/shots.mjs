@@ -5,7 +5,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch, quietFonts, DEVICES } from '../browser.mjs';
+import { launch, DEVICES } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clydes-house');
 mkdirSync(out, { recursive: true });
@@ -16,7 +16,6 @@ const browser = await launch();
 for (const [device, opts] of Object.entries(DEVICES)) {
   if (only && only !== device) continue;
   const ctx = await browser.newContext(opts);
-  await quietFonts(ctx);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(`http://127.0.0.1:${server.address().port}/`);

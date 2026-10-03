@@ -26,7 +26,7 @@ win over any feature idea) and its pages.
 | The outside, or the town | `docs/clubhouse/outside/README.md`, `town.md` |
 | The clubhouse itself: walking, doorways, the hall | folder `docs/clubhouse/world/` (its README says which page) |
 | How the clubhouse is drawn (materials, flicker) | `docs/clubhouse/world/drawing.md`, `docs/clubhouse/look/README.md` |
-| The page shell (opening an activity, ESC BACK) | `docs/clubhouse/world/shell.md` |
+| The page shell (opening an activity, ESC BACK, fonts) | `docs/clubhouse/world/shell.md` |
 | A check, the build, a tool, or GitHub's checks | folder `docs/clubhouse/checks/` (its README says which page) |
 | The docs themselves | `tools/docs.mjs`, `docs/clubhouse/decisions/checks.md` |
 | Undoing or changing a big choice | folder `docs/clubhouse/decisions/`, and update it |

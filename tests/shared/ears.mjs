@@ -36,7 +36,6 @@ function judge(check, where, { heard, held }) {
 
 async function open(browser, page) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const p = await ctx.newPage();
   await p.goto(page);
   const ok = await p.waitForFunction(() => window.__mansion?.frames() > 10 && window.__mansion.settled(), null, { timeout: 30000 }).then(() => true, () => false);

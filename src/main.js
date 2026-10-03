@@ -48,7 +48,6 @@ async function enter(card) {
   style.textContent = card.styles + BACK_STYLE;
   document.head.appendChild(style);
   document.body.insertAdjacentHTML('afterbegin', card.page +
-    `<link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">` +
     `<button id="clubBack" aria-label="Back to the clubhouse"><kbd>ESC</kbd>BACK</button>`);
   document.title = document.title.replace("Sadie's Clubhouse", card.name);
   document.getElementById('clubBack').addEventListener('click', leave);

@@ -14,11 +14,9 @@
 <!-- phones must not "boost" small text to make it easier to read: every box of words here is
      sized for its text, and boosted text spills out and gets cut off -->
 <style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- the mansion's lettering, asked for straight away (the same address as src/clubhouse/mansion.html's,
-     so it's already here when the mansion puts it in) -->
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Patrick+Hand&display=swap">
+<!-- the game's fonts are files of its own, not Google's (tools/fonts/get.mjs): the rules for them, and the
+     mansion's lettering asked for straight away (tools/build.mjs fills this in) -->
+<!--@fonts-->
 <!-- the game files needed to open the mansion, all asked for at once (tools/build.mjs fills this in) -->
 <!--@preload-->
 </head>

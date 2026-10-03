@@ -51,7 +51,6 @@ export default async function ({ browser, page, check, root, hashOf, outDir, pre
   async function open(device, opts, save) {
     const ctx = await browser.newContext(opts);
     // the web font can't be fetched from here; answer with nothing rather than log a network error
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     // the save goes in before the game starts, once; after that the game's own saves take over
     if (save) await ctx.addInitScript(([k, s]) => { try { if (!sessionStorage.getItem('check.planted')) { localStorage.setItem(k, s); sessionStorage.setItem('check.planted', '1'); } } catch { /* a frame with no storage of its own */ } }, [SAVE_KEY, save]);
     const p = await ctx.newPage();

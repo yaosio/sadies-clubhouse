@@ -4,7 +4,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch, quietFonts } from '../browser.mjs';
+import { launch } from '../browser.mjs';
 
 const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(root, 'dist/shots/aquarium/sail');
 mkdirSync(out, { recursive: true });
@@ -13,7 +13,6 @@ const browser = await launch();
 const device = process.argv[2] || 'desktop';
 const opts = device === 'phone' ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : { viewport: { width: 1280, height: 800 } };
 const ctx = await browser.newContext(opts);
-await quietFonts(ctx);
 const p = await ctx.newPage();
 p.on('pageerror', e => console.log('page error:', e.message));
 p.on('console', m => { if (m.type() === 'error') console.log('console:', m.text()); });

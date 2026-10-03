@@ -16,8 +16,6 @@ export default async function ({ browser, page, check, outDir }) {
   // the phone and the desktop at the same time (each in its own browser window)
   await Promise.all(DEVICES.map(async ([device, opts]) => {
     const ctx = await browser.newContext(opts);
-    // the web fonts can't be fetched from here; answer with nothing rather than log a network error
-    await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     const p = await ctx.newPage();
     const errors = [];
     p.on('pageerror', e => errors.push(e.message));

@@ -248,6 +248,13 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
 }
 
 // ---------- the room checker: every activity's card (tests/clubhouse/cards.mjs) ----------
+// nothing in the game asks anyone else's server for anything (its fonts are files of its own,
+// tools/fonts/get.mjs), so it works offline and nobody is told who's playing
+{
+  const hits = [], walk = d => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.(js|html|css)$/.test(f) && /fonts\.(googleapis|gstatic)\.com/.test(readFileSync(p, 'utf8'))) hits.push(p.replace(/^.*\/src\//, 'src/')); } };
+  walk(new URL('../../src', import.meta.url).pathname);
+  check('the game asks nobody else for its fonts', !hits.length, hits.join(', '));
+}
 await checkCards(check);
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');
