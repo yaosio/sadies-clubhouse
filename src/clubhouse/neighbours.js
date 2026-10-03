@@ -1,5 +1,5 @@
 // What a room is lent of the places next door: never the whole hall or the whole outside, only what
-// ROOMS.md and OUTSIDE.md say it may use. Each is a narrow view of the real place, and reading
+// docs/clubhouse/rooms/kit.md and docs/clubhouse/outside/plots.md say it may use. Each is a narrow view of the real place, and reading
 // anything else from it (or from the kit) is an error straight away, so a room can't come to lean on
 // something nobody promised it (the checks play every room, and any page error fails them).
 //
@@ -12,7 +12,7 @@ export function strict(what, o) {
   return new Proxy(Object.freeze(o), {
     get(t, k) {
       if (k in t || typeof k === 'symbol' || QUIET.has(k)) return t[k];
-      throw new Error(`a room asked for ${what}.${k}, which it isn't lent (ROOMS.md, OUTSIDE.md list what is)`);
+      throw new Error(`a room asked for ${what}.${k}, which it isn't lent (docs/clubhouse/rooms/kit.md and docs/clubhouse/outside/plots.md list what is)`);
     },
   });
 }

@@ -1,5 +1,5 @@
 # Still mock-up 2 of the 90s style (the approved one): Sadie + a landed jelly piece inside a
-# home-made DOS-game interface. See docs/dropper-world/ART_STYLE.md for the rules this follows.
+# home-made DOS-game interface. See docs/dropper-world/look.md for the rules this follows.
 # Drawn at 320x240 with a small palette and ordered dithering, then scaled up with hard pixels.
 # Run: pip install pillow, then python3 art/90s-style/mockup-2.py
 import math

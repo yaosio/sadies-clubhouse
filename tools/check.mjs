@@ -6,7 +6,7 @@
 //
 // It starts with the code checker (ESLint, `npm run lint`, a few seconds, every time): it finds
 // mistakes like a misspelt name or a leftover that's never used, without running anything. Then
-// tools/docs.mjs: the docs every change reads are still short, and every page they name is there.
+// tools/docs.mjs: the docs are small, listed, true to their pointers and shaped alike.
 //   npm run check -- --preview     build and check the test version (the one for the test page)
 //   npm run check -- --retest      run everything even if it already passed on this exact code
 //   npm run check -- --live <file> the live game page, saved (with its game/source-*.json beside it): an activity whose code is exactly
@@ -188,7 +188,7 @@ for (const a of toCheck) {
 
 // ---------- the code checker (a few seconds, so always) ----------
 if (lint) check('code checker (npm run lint)', run('code checker', 'npx', ['eslint', '.']));
-check('the docs every change reads (tools/docs.mjs)', run('the docs every change reads', 'node', ['tools/docs.mjs']));
+check('the docs (tools/docs.mjs)', run('the docs', 'node', ['tools/docs.mjs']));
 
 // ---------- 1. each activity's headless tests (unless they passed on this exact code already) ----------
 if (!quick) {

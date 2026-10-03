@@ -25,7 +25,7 @@ import { LOTS, GROUNDS } from '../../src/clubhouse/outside.js';
 import { activityIds } from '../../tools/activities.mjs';
 
 const root = new URL('../..', import.meta.url).pathname;
-// every field a card can have (docs/clubhouse/ROOMS.md)
+// every field a card can have (docs/clubhouse/rooms/card.md)
 const FIELDS = ['id', 'name', 'page', 'styles', 'start', 'room', 'door', 'slot', 'lot', 'grounds', 'doorstep', 'box', 'keeps'];
 const PLACES = { slot: SLOTS.length, lot: LOTS.length, grounds: GROUNDS.length };
 // saves from before there was a clubhouse (Dropper World's): never renamed, or everyone's would be lost

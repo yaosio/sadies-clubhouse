@@ -49,13 +49,13 @@ export function bothDevices(browser, outDir, fn) {
 }
 
 // Wait for the mansion to open and every room to be built. It gets slower with every room: past 8 s
-// it says so (docs/clubhouse/DECISIONS.md, known limits: the plan for when it does).
+// it says so (docs/clubhouse/decisions/known-limits.md, known limits: the plan for when it does).
 export async function up(p) {
   const t = Date.now();
   const ok = await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 15000 }).then(() => true, () => false);
   const secs = (Date.now() - t) / 1000;
   if (ok && secs > 8) {
-    const say = `the mansion took ${secs.toFixed(1)} s to build every room (the checks give up at 15): time for checks that don't wait for every room (docs/clubhouse/DECISIONS.md)`;
+    const say = `the mansion took ${secs.toFixed(1)} s to build every room (the checks give up at 15): time for checks that don't wait for every room (docs/clubhouse/decisions/known-limits.md)`;
     console.log(process.env.CI ? `::warning title=many rooms::${say}` : `(slow: ${say})`);
   }
   return ok;

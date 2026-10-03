@@ -1,30 +1,10 @@
 # The Hedge Maze
 
 A block of clipped hedge in the grounds beside Sadie's clubhouse, on the right as you walk up
-(`src/activities/hedge-maze/`). The owner asked for it on 2026-10-01: not on a plot along the lane
-and not in place of any house, just next to the clubhouse, with a little path to it off the path up
-to the front door. It's in the grounds' first spot (`grounds` 0: `GROUNDS` in
-`src/clubhouse/outside.js`), which runs from the front garden back to the backyard.
-
-**Outside** it's a hedge block with a leafy arch and a green garden gate at each end. The front
-one's sign says HEDGE MAZE / ENTRANCE; the backyard one's says MAZE EXIT / NO ENTRY!!, which nobody
-minds. A path turns off the main path just before the porch (through a gap in the garden hedges, by
-the last lantern on the left) to the front gate, and one runs from the backyard's path to the back
-gate. Both stop just short of their gates (running on under them, they flickered).
-
-**Inside** it's much bigger than the block: corridors of hedge under an open sky, with soft music.
-It's out of doors, so the world's weather comes here too (its place says `sky`): clouds, dimmer or
-brighter light, and rain, snow or cats falling round you.
-It's made in front of you as you walk. After 5 to 8 corners, the next corner you turn is the end: a
-short stretch with a garden gate at the end of it, which lets you out into **the backyard**, behind
-the clubhouse.
-
-**The clubhouse** shows over the hedges, off to one side, the way it would beside the real block (a
-little further off: it's bigger inside). It's a picture of the real house, taken once as the maze is
-built, so it's never out of date when the house changes.
-
-**Sadie** is in it the way she'd most like to be: not in the maze at all, but asleep on the bench in
-the sun in the backyard, where the maze lets you out (built with the backyard, in `outside.js`).
+(`src/activities/hedge-maze/`), in the grounds' first spot (`grounds` 0: `GROUNDS` in
+`src/clubhouse/outside.js`), which runs from the front garden back to the backyard. Inside it's a
+maze much bigger than the block, made in front of you as you walk, that lets you out into the
+backyard, where Sadie naps on the bench.
 
 ## Design pillars (these win over any feature idea)
 
@@ -45,61 +25,13 @@ the sun in the backyard, where the maze lets you out (built with the backyard, i
   as it plays, so it never loops; every note dies away by itself, and there's a quiet moment between
   pieces. No other sounds.
 
-## How it works
+## Its pages
 
-- `card.js`: in the grounds (`grounds: 0`), not on the landing or the lane. No saves (`keeps`):
-  it's new every time anyway.
-- `grow.js`: the maze as plain numbers (the tests run it). Square cells 3 m across on a grid; a
-  corridor is a run of cells that ends by turning one way, both ways (the other a dead end) or
-  stopping dead. Only the corridor you're in, the ones it turns into and the ones those turn into
-  are made. The way through starts heading in from the gate (`fwd`) and only ever turns sideways or
-  back to heading on, so it can't cross itself; each corner on it counts one, and after K (5 to 8,
-  picked for each maze) the next corner is the end. Dead ends only head sideways or back, so they're
-  never in its way.
-  - Each gate is a doorway out: `doors.door` (the front gate) and `doors.back` (the backyard's).
-    When the end's made, the backyard's door moves there, as soon as you can see neither where it is
-    nor where it's going (`sees`: a line across the grid that only crosses open sides).
-  - Leaving by a gate (`leave`), the bit you can see from it, to its first corner, is kept just as it
-    was and the rest of that maze is forgotten (`reset`); a new maze grows past the corner when you
-    come back. If the other door was in that maze (you went in the front and out the back), it's put
-    somewhere fresh.
-  - Each door's maze is in a region of its own, 1200 m apart, so they never meet; three regions are
-    used over and over.
-  - `ahead(x, z)`: the next step on the way through, for the checks.
-- `room.js`: draws the maze. Every time it changes, what should be there (a stretch of hedge on each
-  shut side of each cell, a post at each corner, a gate where there's a gate) is compared with what
-  is, and the difference added or taken away; the shapes are made once and shared. A gate with no
-  door at it shows a shut gate. The grass is one big square per region, centred on its gate (in
-  whole tiles, so it never seems to move); the sky follows you (from outside, it's round each gate).
-  It notices you coming in and going out by a door (`ears()`), and tells the maze.
-  The clubhouse over the hedges: as it's built, it takes a picture of the outside's `house` group
-  with the kit's `snapshot` (from the block's side of the house, 28 m off, at eye height, wide enough
-  for all of it), and hangs it 70 m off, facing you, drawn after the grass and before the hedges.
-  Inside, it's turned the way the door nearest you turns things (so it's on your left as you come
-  in the front, as the house is outside), easing round if that changes; from outside, there's one
-  beyond each gate. `tools/hedge-maze/look.mjs` takes pictures from inside, looking all round.
-- `block.js`: the hedge block outside, its arches, gates, signs and paths. Its two gates are its
-  `doors` (`door` and `back`), joined by the mansion to the room's two doors of the same names.
-- `art.js`: the hedge, the gates and the signs.
-- `music.js`: `makeComposer` writes the music a piece at a time (each its own key, mode, speed, beats
-  a bar and instruments: a harp, a bell, a little flute): a wandering tune that rests often, a few
-  soft chord notes under it, home at the end, then 6 to 11 seconds of quiet. `makeMusic` plays it
-  on the browser's own oscillators through the toolbox's band (`src/shared/band.js`, a music line on `src/shared/sound.js`), starting as you come
-  in and fading as you leave. The clubhouse's theme makes way for it by itself.
-
-## Checks
-
-- `tests/hedge-maze/run.mjs` (headless, seeded): hundreds of mazes from each gate, each found
-  through by walking every corridor in turn, with K + 1 corners on the way; every hedge where it
-  should be; what's made stays made; the backyard's door at the end; leaving by a gate keeps its view
-  and the maze past it is new (and its end is the backyard's gate again); the doors' mazes never
-  meet; the end can't be seen until you're nearly there; and an hour of music (in key, soft, short
-  notes, no flurries, quiet between pieces, never the same eight notes twice).
-- `tests/hedge-maze/browser.mjs`: the gate opening onto the maze, walking in (its music on), finding
-  the way through and out into the backyard, turning round and back in where you came out, a new
-  maze out to the backyard again, and walking round the side of the house to the backyard.
-  Screenshots in `dist/check/hedge-maze/`.
-
-## Parked ideas
-
-None yet.
+- `playing.md`: the block outside, the maze inside, the clubhouse over the hedges and Sadie, as the
+  player sees them. Read before changing what the player meets.
+- `how-built.md`: which file does what (card, drawing, block, art, music) and its checks. Read
+  before changing any of its code.
+- `growing.md`: how `grow.js` makes the maze, its doors, leaving and coming back. Read before
+  changing how the maze grows.
+- `parked.md`: parked ideas (don't start unless asked).
+- `history.md`: when the owner asked for it and where. Only read before undoing a choice.
