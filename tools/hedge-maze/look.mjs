@@ -5,7 +5,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch } from '../browser.mjs';
+import { launch, DEVICES } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/hedge-maze');
 mkdirSync(out, { recursive: true });
@@ -13,7 +13,7 @@ mkdirSync(out, { recursive: true });
 const steps = Number(process.argv[2] || 4);
 const server = await serve();
 const browser = await launch();
-const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+const p = await browser.newPage(DEVICES.desktop);
 p.on('pageerror', e => console.log('page error:', e.message));
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
 await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });

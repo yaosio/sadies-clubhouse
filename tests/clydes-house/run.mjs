@@ -11,12 +11,9 @@ import { ALL } from '../../src/activities/clydes-house/sounds/index.js';
 import card from '../../src/activities/clydes-house/card.js';
 import { REACT } from '../../src/activities/clydes-house/reactions.js';
 import * as WX from '../../src/activities/clydes-house/weather.js';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 const fill = (M, right = true) => { for (const g of missing(M)) { M.gaps[g].pick = right ? M.gaps[g].parts.indexOf(g) : M.gaps[g].parts.findIndex(p => p !== g); } };
 
 // 1. the card: a house on the first plot outside the gate, not a door on the landing
@@ -118,5 +115,4 @@ for (const [name, make] of Object.entries(ALL)) {
     a.slice(-5).every(v => Math.abs(v) < 0.02) && Math.abs(a[0]) < 0.05, `peak ${peak.toFixed(2)}, ${(a.length / RATE).toFixed(2)} s`);
 }
 
-console.log(failed ? `\n${failed} FAILED` : '\nall passed');
-process.exit(failed ? 1 : 0);
+finish();

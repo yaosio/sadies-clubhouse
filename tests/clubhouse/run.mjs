@@ -12,12 +12,9 @@ import { ALL as SADIE_SAYS, RATE } from '../../src/clubhouse/weather/sounds.js';
 import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, onLeave, forget, reloading } from '../../src/shared/storage.js';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 
 // an hour of the theme from a seed: every note (with its time), every bar, and the pieces
 function hour(seed, secs = 3600) {
@@ -263,5 +260,4 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
 }
 await checkCards(check);
 
-console.log(failed ? `\n${failed} failed` : '\nall passed');
-process.exit(failed ? 1 : 0);
+finish('failed', 'all passed');

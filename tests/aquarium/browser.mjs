@@ -11,7 +11,7 @@
 // trip comes up where the boat was left. Screenshots in dist/check/aquarium/. Any error on the page
 // is a failure.
 import { join } from 'node:path';
-import { bothDevices } from '../shared/browser.mjs';
+import { bothDevices, pressUse } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
   await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, until: untilGame }) => {
@@ -49,7 +49,7 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(300);
     const stood = await M('where');
     await p.evaluate(() => window.__aquarium.hold(true));
-    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+    await pressUse(p, opts);
     await p.waitForTimeout(500);
     let s = await A();
     await shot('4-tapped');
@@ -96,7 +96,7 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(400);
     await shot('7-duck');
     const pick = await M('target'), heard = (await A()).sounds;
-    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+    await pressUse(p, opts);
     await p.waitForTimeout(400);
     s = await A();
     check(`${device}: ...by the rubber duck it offers to pick it up; it's found, with a sound, and the sign says so`, pick === 'PICK UP THE RUBBER DUCK' && s.found.includes('duck') && s.sounds > heard && s.lastSound === 'find-duck' && s.sign === 'GOT THE RUBBER DUCK!', `${pick} / ${s.sign}`);
@@ -112,7 +112,7 @@ export default async function ({ browser, page, check, outDir }) {
     await sailTo(-60, 120, 0.5);
     await p.waitForTimeout(300);
     await p.evaluate(() => window.__aquarium.hold(true));
-    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+    await pressUse(p, opts);
     const outSwap = await same('9-swap-home');
     check(`${device}: going home: down at the seabed the ocean becomes the tank again, and nothing on the screen changes`, outSwap.was === 'sea' && outSwap.now === 'room' && outSwap.diff < 0.002, `${(outSwap.diff * 100).toFixed(2)}% of the picture changed`);
     const back = await until(() => window.__mansion.mode() === 'play' && !window.__aquarium.state().diving, 12000);
@@ -129,7 +129,7 @@ export default async function ({ browser, page, check, outDir }) {
     // the next trip comes up where the boat was left
     await M('put', 'room:aquarium', 'glass');
     await p.waitForTimeout(300);
-    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+    await pressUse(p, opts);
     const again = await until(() => window.__mansion.mode() === 'play' && window.__aquarium.state().where === 'sea', 15000);
     s = await A();
     check(`${device}: the next trip comes up where you left the boat`, again && Math.hypot(s.boatAt.x + 60, s.boatAt.z - 120) < 0.5 && s.found.includes('duck'));

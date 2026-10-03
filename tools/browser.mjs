@@ -4,6 +4,7 @@
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { PHONE, DESKTOP } from '../tests/shared/devices.mjs';
 
 const require = createRequire(import.meta.url);
 export const chromium = (() => {
@@ -18,7 +19,4 @@ export const chromium = (() => {
 export const launch = (more = []) => chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', ...more] });
 
 // the screens the tools look at things on
-export const DEVICES = {
-  desktop: { viewport: { width: 1280, height: 800 } },
-  phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
-};
+export const DEVICES = { desktop: DESKTOP, phone: PHONE };

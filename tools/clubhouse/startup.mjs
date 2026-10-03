@@ -5,7 +5,7 @@
 // from the internet, so each one fetched in a row adds a wait)
 //   node tools/clubhouse/startup.mjs [--runs 5] [--delay 100] [--phone]
 import { serve } from '../serve.mjs';
-import { launch } from '../browser.mjs';
+import { launch, DEVICES } from '../browser.mjs';
 
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i < 0 ? d : Number(process.argv[i + 1]); };
@@ -16,7 +16,7 @@ const browser = await launch();
 const wait = ms => new Promise(ok => setTimeout(ok, ms));
 const times = [];
 for (let i = 0; i < RUNS; i++) {
-  const ctx = await browser.newContext(PHONE ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } : { viewport: { width: 1280, height: 800 } });
+  const ctx = await browser.newContext(PHONE ? { ...DEVICES.phone, deviceScaleFactor: 1 } : DEVICES.desktop);
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   const fetched = [];

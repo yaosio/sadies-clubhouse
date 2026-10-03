@@ -12,6 +12,7 @@
 import { readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
+import { DEVICES } from '../shared/browser.mjs';
 
 const SAVE_KEY = 'sadies-dropper-world.save';
 
@@ -42,11 +43,6 @@ export default async function ({ browser, page, check, root, hashOf, outDir, pre
   // how much of the face in the dashboard is drawn (not the plain sky behind it), 0 to 1
   const faceDrawn = p => p.evaluate(() => { const d = document.getElementById('face').getContext('2d').getImageData(0, 0, 26, 26).data; let n = 0;
     for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 0x57) + Math.abs(d[i + 1] - 0xc8) + Math.abs(d[i + 2] - 0xff) > 30) n++; return n / 676; });
-
-  const DEVICES = [
-    ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
-    ['desktop', { viewport: { width: 1280, height: 800 } }],
-  ];
 
   async function open(device, opts, save) {
     const ctx = await browser.newContext(opts);

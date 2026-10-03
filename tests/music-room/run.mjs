@@ -12,12 +12,9 @@ import { chime, TUBES } from '../../src/activities/music-room/sounds/chimes.js';
 import { makeSadie, stepSadie, goNow, KEYS, TIMING } from '../../src/activities/music-room/sadie.js';
 import { makeTape, press, heard, stepTape, sadieTake, saveTape, LONGEST } from '../../src/activities/music-room/tape.js';
 import { keyboardNote, noteAt, barOf, WHITE_KEYS, BLACK_KEYS, KEYS_PIC } from '../../src/activities/music-room/layout.js';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 
 // 1. the sounds: every one is 8-bit, not silent, soft (never at full blast: the owner can't stand
 // harsh noise), and fades right down to nothing, with no click at the start
@@ -138,4 +135,4 @@ function check(name, ok, detail) {
   check('both tapes are kept', back.sadie.length === 2 && makeTape({ mine: 'junk', sadie: [{ at: 'x' }] }).mine.length === 0);
 }
 
-process.exit(failed ? 1 : 0);
+finish();

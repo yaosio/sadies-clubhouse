@@ -12,12 +12,9 @@ import { crackLines, pileSlots, heapZone } from '../../src/activities/brickbuste
 import { makeLoose, release, stepLoose, floorBelow, R as LR } from '../../src/activities/brickbuster/loose.js';
 import { makeTune, RANGE as TR, BPM } from '../../src/activities/brickbuster/music/tune.js';
 import { SHAPES as TS } from '../../src/activities/brickbuster/music/player.js';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 const DT = 1 / 60;
 
 // A pretend player: `skill` 1 follows the ball perfectly (aiming off-centre now and then, to get a
@@ -255,5 +252,4 @@ function play(seed, skill, secs, until) {
   check('...and it never plays the same round twice in twenty minutes', !repeats, `${repeats} repeats`);
 }
 
-console.log(failed ? `\n${failed} failed` : '\nall passed');
-process.exit(failed ? 1 : 0);
+finish('failed', 'all passed');

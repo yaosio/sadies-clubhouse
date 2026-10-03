@@ -10,12 +10,9 @@ import card from '../../src/activities/space-adventure/card.js';
 import { T, LINES, lineAt, AFTER, planetSize, PLANET_FROM, entry, shipAt, sadieAt, heightAt, shore, GROUND, SKIDS, SEAT, EYE, DASH, LOCK_Z, RD, readSave } from '../../src/activities/space-adventure/trip.js';
 import { tripSong, radioSong, LANDING } from '../../src/activities/space-adventure/music/song.js';
 import { INSTRUMENTS, RATE, soundKey } from '../../src/activities/space-adventure/music/synth.js';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 
 // 1. the card: a room in the mansion, behind the sixth door, with its own door picture
 check('the card is a room in the mansion', card.id === 'space-adventure' && typeof card.room === 'function' && !card.start && !card.page);
@@ -109,5 +106,4 @@ for (const n of made.values()) {
 check('every note is soft, starts and ends at nothing (no clicks)', bad === 0 && clicks === 0 && peak < 0.9, `${made.size} sounds, loudest ${peak.toFixed(2)}`);
 check('made at 22 kHz', RATE === 22050);
 
-console.log(failed ? `\n${failed} FAILED` : '\nall passed');
-process.exit(failed ? 1 : 0);
+finish();

@@ -7,12 +7,9 @@
 // presses FIT IT!, waits for the win and the certificate, goes on to the next sentence, and opens
 // README.TXT. Screenshots in dist/check/typefitter/. Any error on the page is a failure.
 import { join } from 'node:path';
+import { DEVICES } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
-  const DEVICES = [
-    ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
-    ['desktop', { viewport: { width: 1280, height: 800 } }],
-  ];
   // the phone and the desktop at the same time (each in its own browser window)
   await Promise.all(DEVICES.map(async ([device, opts]) => {
     const ctx = await browser.newContext(opts);

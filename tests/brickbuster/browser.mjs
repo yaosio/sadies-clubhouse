@@ -9,7 +9,7 @@
 // breaks it (the shatter, the heap, the yarn ball's escape, the sign on the door), finds it still
 // broken after a reload, and in the test version starts it over from the pause menu. Screenshots in dist/check/brickbuster/.
 // Any error on the page is a failure.
-import { bothDevices } from '../shared/browser.mjs';
+import { bothDevices, pressPause } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
   await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs, until }) => {
@@ -182,7 +182,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: put away and built again, it's still broken, with the ball and Sadie back in the hall`, gone.ok && !gone.meshes && s.broken === 'bottom' && s.pile === 80 && s.sign && s.hall?.shown && !s.hall.napping);
 
     // the pause menu can start it over (after asking)
-    if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
+    await pressPause(p, opts);
     await p.waitForTimeout(200);
     await p.click('#resets button:has-text("BRICKBUSTER")');
     await p.click('#sureYes');

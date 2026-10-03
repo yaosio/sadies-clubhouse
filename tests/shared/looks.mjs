@@ -4,6 +4,8 @@
 // gate, in the hall) and on every activity started straight from its address (a computer's). It
 // takes a picture of what you see and fails if it's nearly all one colour, or has hardly any colours
 // at all. It can't tell a picture that's drawn wrong; only one that's missing.
+import { DESKTOP } from './devices.mjs';
+
 const MOST = 0.85, FEWEST = 12;
 
 // what share of the picture its commonest colour covers, and how many colours it has (each counted
@@ -30,7 +32,7 @@ export async function looks(p, check, where) {
 
 // an activity started straight from its address (on a computer: not in the mansion)
 export async function computerLooks({ browser, page, card, check }) {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await browser.newContext(DESKTOP);
   const p = await ctx.newPage();
   await p.goto(page + '#' + card.id);
   await p.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {});

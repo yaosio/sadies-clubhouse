@@ -12,6 +12,7 @@
 // there it also checks something is drawn (tests/shared/looks.mjs).
 import { rest } from './browser.mjs';
 import { looks } from './looks.mjs';
+import { DESKTOP } from './devices.mjs';
 
 const LISTEN = 30, SAME = 4, ALL = 12;
 
@@ -35,7 +36,7 @@ function judge(check, where, { heard, held }) {
 }
 
 async function open(browser, page) {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await browser.newContext(DESKTOP);
   const p = await ctx.newPage();
   await p.goto(page);
   const ok = await p.waitForFunction(() => window.__mansion?.frames() > 10 && window.__mansion.settled(), null, { timeout: 30000 }).then(() => true, () => false);

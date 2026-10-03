@@ -6,12 +6,12 @@
 // frame's work takes standing in each place (typical and worst), and how many frames a second.
 //   node tools/clubhouse/speed.mjs
 import { serve } from '../serve.mjs';
-import { launch } from '../browser.mjs';
+import { launch, DEVICES } from '../browser.mjs';
 
 
 const server = await serve();
 const browser = await launch(['--enable-precise-memory-info']);
-const p = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+const p = await browser.newPage(DEVICES.desktop);
 p.on('pageerror', e => console.log('page error:', e.message));
 // time every frame's work from outside the game, as tools/dropper-world/profile.mjs does
 await p.addInitScript(() => {

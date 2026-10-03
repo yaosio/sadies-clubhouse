@@ -14,8 +14,9 @@
 // error on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { walk as walkFor, rest, until } from '../shared/browser.mjs';
+import { walk as walkFor, rest, until, DEVICES, pressUse, pressPause } from '../shared/browser.mjs';
 import { allKeeps, allCards } from './cards.mjs';
+import { DESKTOP } from '../shared/devices.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 const LEAK_MB = 3;   // (how much the page's memory may grow over two more rounds of putting every room away and building it again)
@@ -27,10 +28,6 @@ export default async function ({ browser, page, check, outDir }) {
   const cards = await allCards(), landed = cards.filter(c => Number.isInteger(c.slot)).sort((a, b) => a.slot - b.slot);
   const [beside, first] = [landed[0], landed[1] || landed[0]], spare = landed.filter(c => c.room).at(-1), computers = landed.filter(c => c.start);
   const saver = cards.find(c => c.keeps && c.room), junk = saver.keeps[0];
-  const DEVICES = [
-    ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
-    ['desktop', { viewport: { width: 1280, height: 800 } }],
-  ];
   // the phone and the desktop at the same time (each in its own browser window)
   await Promise.all(DEVICES.map(async ([device, opts]) => {
     const ctx = await browser.newContext(opts);
@@ -339,7 +336,7 @@ export default async function ({ browser, page, check, outDir }) {
       await M('build', 'room:' + c.id); await M('put', 'room:' + c.id, 'computer');
       await p.waitForTimeout(300);
       const offer = await M('target');
-      if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('KeyE');
+      await pressUse(p, opts);
       const inside = await p.waitForFunction(() => !document.getElementById('mansion') && !window.__mansion && document.querySelector('#clubBack[data-ready]'), null, { timeout: 10000 }).then(() => true, () => false);
       await p.waitForTimeout(1500);
       await shot('6-played-' + c.id);
@@ -357,7 +354,7 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('7-back');
 
     // pausing, and starting the letter over (only once you say you're sure)
-    if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
+    await pressPause(p, opts);
     await p.waitForTimeout(200);
     await shot('8-paused');
     check(`${device}: ${opts.hasTouch ? 'the pause button' : 'Escape'} pauses`, await M('mode') === 'menu' && await p.isVisible('#menu'));
@@ -381,7 +378,7 @@ export default async function ({ browser, page, check, outDir }) {
     const marks = cards.flatMap(c => (c.keeps || []).map(k => k + 'zz-check')), wrongly = [];
     for (const c of cards.filter(c => c.keeps)) {
       await p.evaluate(ks => ks.forEach(k => localStorage.setItem(k, '1')), marks);
-      if (await M('mode') !== 'menu') { if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape'); await p.waitForTimeout(200); }
+      if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
       await p.evaluate(name => [...document.querySelectorAll('#resets button')].find(b => b.textContent === name)?.click(), c.name.toUpperCase());
       await p.click('#sureYes', { timeout: 3000 }).catch(() => wrongly.push(`${c.id} has no start-over button`));
       await up();
@@ -392,7 +389,7 @@ export default async function ({ browser, page, check, outDir }) {
     }
     await p.evaluate(ks => ks.forEach(k => localStorage.removeItem(k)), marks);
     check(`${device}: each activity's START OVER erases its own saves and nobody else's (${cards.filter(c => c.keeps).length})`, !wrongly.length, wrongly.join(', '));
-    if (await M('mode') !== 'menu') { if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape'); await p.waitForTimeout(200); }
+    if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
     // your saves: how much room they take, SAVE A BACKUP (a file with every save) and LOAD A BACKUP
     // (only once you say yes: every save goes back as it was in the file)
     check(`${device}: the pause menu says how much the saves take`, /SAVES: [\d.]+ [KM]B OF/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
@@ -420,13 +417,13 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and puts every save back as it was`, loaded[0] === '"on"' && loaded[1] === null, JSON.stringify(loaded));
     // nearly full: the pause menu says so
     await p.evaluate(k => localStorage.setItem(k + 'junk', 'x'.repeat(4.2e6)), junk);
-    if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
+    await pressPause(p, opts);
     await p.waitForTimeout(200);
     check(`${device}: ...and warns when the saves are nearly full`, /NEARLY FULL/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
     await p.evaluate(k => localStorage.removeItem(k + 'junk'), junk);
     await p.click('#resume');
     check(`${device}: RESUME carries on`, await M('mode') === 'play');
-    if (opts.hasTouch) await p.tap('#mansion #pause'); else await p.keyboard.press('Escape');
+    await pressPause(p, opts);
     await p.waitForTimeout(200);
     await p.click('#resets button:has-text("INVITATION")');
     await p.click('#sureYes');
@@ -446,7 +443,7 @@ export default async function ({ browser, page, check, outDir }) {
   // a room whose file won't come (the network hiccuped): its door stays shut, the rest carry on, and
   // it's fetched again once the network's back
   const files = JSON.parse(readFileSync(join(new URL('../..', import.meta.url).pathname, 'dist/game-files.json'), 'utf8'));
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await browser.newContext(DESKTOP);
   let cut = true, asked = 0;
   const cutOff = 'room:' + spare.id;
   await ctx.route(url => url.pathname.endsWith('/game/' + files[`src/activities/${spare.id}/room.js`]), r => { asked++; return cut ? r.abort() : r.continue(); });

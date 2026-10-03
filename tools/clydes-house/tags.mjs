@@ -6,7 +6,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch } from '../browser.mjs';
+import { launch, DEVICES as SHARED } from '../browser.mjs';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/clydes-house');
 mkdirSync(out, { recursive: true });
@@ -14,7 +14,7 @@ mkdirSync(out, { recursive: true });
 const part = process.argv[2] || 'floppy';
 const server = await serve();
 const browser = await launch();
-const DEVICES = { desktop: { viewport: { width: 1920, height: 1080 } }, laptop: { viewport: { width: 1280, height: 800 } }, phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } };
+const DEVICES = { desktop: { viewport: { width: 1920, height: 1080 } }, laptop: SHARED.desktop, phone: SHARED.phone };
 for (const [device, opts] of Object.entries(DEVICES)) {
   const ctx = await browser.newContext(opts);
   const p = await ctx.newPage();

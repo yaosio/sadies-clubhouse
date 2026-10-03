@@ -5,7 +5,7 @@
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { launch } from '../browser.mjs';
+import { launch, DEVICES } from '../browser.mjs';
 
 const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(root, 'dist/shots/space-adventure');
 mkdirSync(out, { recursive: true });
@@ -14,7 +14,7 @@ const TIMES = args.filter(a => /^[\d.]+$/.test(a)).map(Number);
 const times = TIMES.length ? TIMES : [3, 20, 45, 60, 65, 70, 73, 76, 80, 85, 91, 98, 103, 107.2];
 const server = await serve();
 const browser = await launch(['--autoplay-policy=no-user-gesture-required']);
-for (const [device, opts] of [['desktop', { viewport: { width: 1280, height: 800 } }], ['phone', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }]]) {
+for (const [device, opts] of Object.entries(DEVICES)) {
   if (only && only !== device) continue;
   const ctx = await browser.newContext(opts);
   const p = await ctx.newPage();

@@ -5,12 +5,9 @@
 import { makeMeter, boxFor, FEWEST, MOST, HEARTS, FIT_SCORES } from '../../src/activities/typefitter/love.js';
 import { SAYS, reaction, SENTENCES } from '../../src/activities/typefitter/says.js';
 import { jpegCrush } from '../../src/activities/typefitter/scan.js';
+import { checker } from '../shared/check.mjs';
 
-let failed = 0;
-function check(name, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  (' + detail + ')' : ''}`);
-  if (!ok) failed++;
-}
+const { check, finish } = checker();
 function seeded(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
 
 // 1. the meter always fills, somewhere from the 4th to the 10th change, and never before its goal
@@ -85,5 +82,4 @@ function seeded(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147
   check('the JPEG crusher changes the picture, but not beyond recognition', avg > 0.3 && avg < 25, `average change ${avg.toFixed(1)} of 255`);
 }
 
-console.log(failed ? `${failed} check(s) failed` : 'all checks passed');
-process.exit(failed ? 1 : 0);
+finish('check(s) failed', 'all checks passed');
