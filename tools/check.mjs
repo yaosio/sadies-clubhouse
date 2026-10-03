@@ -11,7 +11,7 @@
 //   npm run check -- --retest      run everything even if it already passed on this exact code
 //   npm run check -- --live <file> the live game page, saved (with its game/source-*.json beside it): an activity whose code is exactly
 //                                  what that page was built from counts as having passed its tests
-//   npm run check -- --only a,b    just those activities ('clubhouse': the mansion's own checks)
+//   npm run check -- --only a,b    just those activities ('clubhouse': the clubhouse's own checks)
 //   npm run check -- --plan        just print which activities still need checking (for GitHub)
 //   npm run check -- --no-lint     skip the code checker (GitHub runs it once for the whole change)
 //
@@ -23,7 +23,7 @@
 //     (src/activities/<activity>/), its tests, the shared toolbox (src/shared/) and what everything
 //     runs on (package.json, package-lock.json, .nvmrc);
 //   - its browser checks (tests/<activity>/browser.mjs) depend on those plus its own tools
-//     (tools/<activity>/), the clubhouse's shell (the files directly in src/; not the mansion in
+//     (tools/<activity>/), the clubhouse's shell (the files directly in src/; not the clubhouse in
 //     src/clubhouse/, which an activity on a computer never needs, unlike a game that lives in its
 //     room, like Brickbuster) and the build and check tools (and GitHub's own steps for them).
 // Once either has passed on exactly those files it isn't run again until one of them changes. This
@@ -32,8 +32,9 @@
 // published after passing, and it carries a copy of its project. So with --live (the page read before
 // publishing anyway), an activity whose code the change doesn't touch skips its tests.
 //
-// The browser checks always build the page, then walk round Sadie's mansion, the clubhouse
-// (tests/clubhouse/browser.mjs: about half a minute). It has every activity's door, so it runs again
+// The browser checks always build the page, then walk round Sadie's clubhouse
+// (tests/clubhouse/browser.mjs: about three minutes). It visits every room (the house's doors and the
+// buildings outside; an activity played only at a computer has no room), so it runs again
 // after any change to anything in the page. Each check plays the phone and the desktop side by side.
 // Screenshots go in dist/check/clubhouse/ and dist/check/<activity>/ to look at.
 //
@@ -58,7 +59,7 @@ const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
 const quick = args.includes('--quick'), preview = args.includes('--preview'), retest = args.includes('--retest'), lint = !args.includes('--no-lint');
 const valueOf = flag => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
-// --only a,b (or a+b): just those activities ('clubhouse' for the mansion), as GitHub does on each computer
+// --only a,b (or a+b): just those activities ('clubhouse' for the clubhouse), as GitHub does on each computer
 const only = valueOf('--only')?.split(/[,+]/), wanted = a => !only || only.includes(a);
 const outDir = join(root, 'dist/check');
 
@@ -90,14 +91,14 @@ function hashOf(paths) {
 }
 const ACTIVITIES = activityIds(root).filter(wanted);
 // what an activity's tests depend on, and what its browser checks depend on besides
-// (the mansion's own headless tests: its music's, and that every sound in the game goes through the
+// (the clubhouse's own headless tests: its music's, and that every sound in the game goes through the
 // sound director, so they depend on all of src/)
 // what everything runs on: the tools' exact versions and Node's (a change there could change any result)
 const BASE = ['package.json', 'package-lock.json', '.nvmrc'];
 // the build and check tools every browser check runs through, and GitHub's own steps for them
 const TOOLS = ['tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs', 'tools/source.mjs', '.github/workflows/check.yml'];
 const testPaths = a => a === 'clubhouse' ? [...BASE, 'src', 'tests/clubhouse', 'tools/activities.mjs'] : [...BASE, 'src/shared', `src/activities/${a}`, `tests/${a}`];
-// (a game that lives in its mansion room, its card having a `room`, depends on the mansion too)
+// (a game that lives in its room in the clubhouse, its card having a `room`, depends on the clubhouse too)
 const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
 const pagePaths = a => [`tools/${a}`, `tests/saves/${a}`, ...TOOLS, ...(inMansion(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
@@ -164,7 +165,7 @@ if (args.includes('--plan')) {
   const todo = [...ACTIVITIES, 'clubhouse'].filter(a => wanted(a) && (retest || need(a)));
   // One computer each, up to COMPUTERS of them (GitHub runs about 20 at once, and each takes most of
   // a minute to set up). Past that, they're shared out by how long each took last time, the longest
-  // first, each to the computer with least to do; the mansion and an activity that makes something
+  // first, each to the computer with least to do; the clubhouse and an activity that makes something
   // first (its prepare(), kept between runs) always get one of their own.
   const COMPUTERS = 16, alone = a => a === 'clubhouse' || /export (async )?function prepare/.test(readIf(join(root, 'tests', a, 'browser.mjs')));
   let groups = todo.map(a => [a]);
@@ -271,8 +272,8 @@ async function browserChecks(name, hash, suite, extra = {}) {
     try { await oldSaves({ browser: watched, page, card, check: roomCheck, root, skip: kept ? [kept] : [] }); }
     catch (e) { check(`${name}: its old saves were checked`, false, e.message.split('\n')[0]); }
   }
-  // standing still in it is kind to the ears (tests/shared/ears.mjs): every room in the mansion, and
-  // after the mansion's own, outside at the gate and in the hall; and what you see there (or on a
+  // standing still in it is kind to the ears (tests/shared/ears.mjs): every room in the clubhouse, and
+  // after the clubhouse's own, outside at the gate and in the hall; and what you see there (or on a
   // computer, as it starts) is drawn, not one colour (tests/shared/looks.mjs)
   try {
     if (card?.room) await roomEars({ browser: watched, page, card, check: roomCheck });
@@ -285,7 +286,7 @@ async function browserChecks(name, hash, suite, extra = {}) {
   took(t);
 }
 
-// The mansion first. It has every activity's door, so any change to anything in the page runs it
+// The clubhouse first. It visits every room, so any change to anything in the page runs it
 // again (only exactly the same page, already passed, skips it). It times how long each room takes
 // to build, so anything still being made in the background (Dropper World's full board) is finished
 // first: a busy computer makes those times jumpy (a room once took 241 ms against a 200 ms limit

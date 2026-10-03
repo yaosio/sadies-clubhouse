@@ -28,8 +28,11 @@ the way out then, so nothing erased comes back.
 
 ## The pause menu's YOUR SAVES
 It says how full the browser's room for saves (about 5 MB for everything) is, warns when it's nearly
-full or a save didn't fit, and saves or loads a backup file of every save (loading asks first, and is
-all or nothing).
+full or a save didn't fit, and saves or loads a backup file of every save. Loading looks the file over first
+(`inspectBackup`) and turns it away, changing nothing, if it's too big (over 6 MB), isn't a backup,
+is from a newer version, has no saves in it or has any save that can't be read. Then it asks, saying
+the file's date and how many saves it holds. Loading is all or nothing and never wipes a save put
+aside as unreadable.
 
 ## Checked
 The clubhouse's checks put every room away and build it again three times over, and fail if any save

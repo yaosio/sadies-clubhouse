@@ -30,7 +30,7 @@ import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway } from './build.js';
 import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
-import { store, saveBox, saveRoom, backup, loadBackup, forget, reloading } from '../shared/storage.js';
+import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading } from '../shared/storage.js';
 import { makeTheme } from './music/theme.js';
 import { makeWeather } from './weather/sky.js';
 import { arcade } from './play/arcade.js';
@@ -751,12 +751,12 @@ export async function open(cards, enter) {
   on($('#backupFile'), 'change', async () => {
     const f = $('#backupFile').files[0];
     if (!f) return;
+    if (f.size > 6e6) { showSaves("THAT FILE'S TOO BIG TO BE A BACKUP."); return; }
     const text = await f.text().catch(() => '');
-    let ok = false;
-    try { ok = JSON.parse(text)?.format?.startsWith('sadies-clubhouse-backup'); } catch {}
-    if (!ok) { showSaves("THAT'S NOT A CLUBHOUSE BACKUP."); return; }
+    const seen = inspectBackup(text, ALL);
+    if (seen.error) { showSaves(seen.error + '.'); return; }
     undoing = () => { const why = loadBackup(text, ALL); if (why) { ask(false); showSaves(why + '.'); return false; } };
-    $('#sureAsk').innerHTML = "PUT THIS BACKUP BACK?<br>WHAT'S SAVED NOW IS REPLACED.";
+    $('#sureAsk').innerHTML = `PUT THIS BACKUP BACK?${seen.made ? `<br>MADE ${seen.made}, ${seen.saves.length} SAVES.` : ''}<br>WHAT'S SAVED NOW IS REPLACED.`;
     showSaves(); ask(true, 'YES, LOAD IT', $('#backups'));
   });
 
