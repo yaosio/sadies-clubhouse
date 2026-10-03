@@ -194,7 +194,7 @@ export async function buildRoom(m) {
     return { m: f, y, v: speed * (i % 2 ? 1 : -1), phase: i * 1.7, lim: TW - w / 2 - 0.15 };
   });
   const scuba = scubaSadie(tex, C, T.sadie.image), scubaBlink = scubaSadie(tex, C, T.sadie.image, T.nap.image);
-  const sadie = new Mesh(keep(new PlaneGeometry(1.0, 0.91)), psx(scuba, { tint: 0xe8f6ff }));
+  const sadie = m.sadie(1.0, { awake: scuba, asleep: scubaBlink, shape: 0.91, tint: 0xe8f6ff, centred: true, unlit: 0 });
   scene.add(sadie); faces.push(sadie);
   const bubble = tex(4, 4, g => { px(g, '#dff6ff', 1, 0, 2, 1); px(g, '#dff6ff', 0, 1, 1, 2); px(g, '#dff6ff', 3, 1, 1, 2); px(g, '#dff6ff', 1, 3, 2, 1); px(g, C.white, 1, 1, 1, 1); });
   const bubbles = Array.from({ length: 16 }, (_, i) => {
@@ -303,7 +303,7 @@ export async function buildRoom(m) {
       ocean.take(f.id, t);
       saved.found = ocean.found.slice(); save();
       sounds.find(f.id);
-      if (f.id !== 'mountain' && reefOpen(saved.found)) setTimeout(() => sounds.reef(), 1600);   // (the fifth: the reef sinks)
+      if (f.id !== 'mountain' && reefOpen(saved.found)) m.after(1.6, () => sounds.reef());   // (the fifth: the reef sinks)
     };
   }
 
@@ -328,8 +328,8 @@ export async function buildRoom(m) {
     tester = next(); uses.push(tester);
   }
 
-  let blinkAt = 3, blinkOff = 0, dir = 1, lastX = 0, lastYaw = null;
-  const P = 0.35;
+  let dir = 1, lastX = 0, lastYaw = null;
+  const P = m.walker;
   const roomFloor = (x, z) => {
     if (Math.abs(x) > RW - P || Math.abs(z) > RD - P) return null;
     if (z > GZ - 0.2 - P && Math.abs(x) < TW + 0.2 + P) return null;        // the tank
@@ -365,8 +365,7 @@ export async function buildRoom(m) {
       sadie.position.set(s.x, s.y, s.z);
       const facing = glare > 0 ? 1 : dir;   // (when you tap, she turns to face you, and glares)
       sadie.scale.x = facing; sadie.rotation.z = Math.sin(t * 1.3) * 0.08;
-      if (t > blinkAt) { sadie.material.uniforms.map.value = scubaBlink; blinkOff = t + 0.15; blinkAt = t + 2.5 + Math.random() * 3; }
-      if (blinkOff && t > blinkOff) { sadie.material.uniforms.map.value = scuba; blinkOff = 0; }
+      sadie.userData.blink(dt);
       alarm.visible = glare > 0; alarm.position.set(s.x + 0.15, s.y + 0.65, s.z);
       for (const b of bubbles) {
         b.k += dt * (b.fromSadie ? 0.35 : 0.28);

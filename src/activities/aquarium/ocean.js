@@ -153,8 +153,8 @@ export function buildOcean(m, copyOf) {
     peak(0.55, MT * 0.55, 6, -0.7, -0.25, 0);
   }
   findMesh.mountain = mountain;
-  const sadie = new Mesh(keep(new PlaneGeometry(0.62, 0.56)), psx(T.sadie, { unlit: 0.25 }));
-  sadie.geometry.translate(0, 0.28, 0); sea.add(sadie); faces.push(sadie);
+  const sadie = m.sadie(0.62, { unlit: 0.25 });
+  sea.add(sadie); faces.push(sadie);
   // once all six are found, she holds up a sign over her head about the full game (it's lost
   // shareware: there is no full game)
   const placard = new Group(); placard.visible = false; placard.position.set(0, 0.2, 0); sea.add(placard); faces.push(placard);

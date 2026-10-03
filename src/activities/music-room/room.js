@@ -166,7 +166,7 @@ export async function buildRoom(m) {
   box(0.04, 0.04, 0.06, gold, [SIGN.x, SIGN.y + 0.2, RD - 0.04]);
 
   // ---------- Sadie, and the notes that float up off whatever's played ----------
-  const sadie = mesh(new PlaneGeometry(0.78, 0.63, 1, 1).translate(0, 0.315, 0), psx(T.sadie, { unlit: 0.35 }), CUSHION.toArray());
+  const sadie = m.sadie(0.78); sadie.position.copy(CUSHION); scene.add(sadie);
   const notes = [];
   for (let i = 0; i < 10; i++) {
     const n = mesh(new PlaneGeometry(0.16, 0.19, 1, 1).translate(0, 0.095, 0), psx(A.notes[i % 3], { unlit: 0.6 }));
@@ -398,11 +398,11 @@ export async function buildRoom(m) {
     } else sadie.position.copy(to);
     const napping = S.mode === 'nap';
     sadie.scale.set(napping ? 1.1 : 1, napping ? 0.75 : 1, 1);
-    sadie.material.uniforms.map.value = napping || (S.mode === 'cushion' && (now % 5.3) < 0.15) ? T.nap : T.sadie;
+    if (napping) sadie.userData.set(true); else if (S.mode === 'cushion') sadie.userData.blink(dt); else sadie.userData.set(false);
   }
 
   // ---------- the place ----------
-  const P = 0.35;
+  const P = m.walker;
   const near = (x, z, cx, cz, r) => Math.hypot(x - cx, z - cz) < r + P;
   let chimedAt = -Infinity, swing = 0;
   const place = {

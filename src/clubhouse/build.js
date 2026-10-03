@@ -7,6 +7,9 @@ import {
 } from 'three';
 import { psx, keep, doorwayMat } from './look.js';
 
+// how far round you the walls and furniture keep you (every place's floor works it into its edges)
+export const WALKER = 0.35;
+
 export function kit(scene) {
   const add = (m, pos, rot) => { if (pos) m.position.set(...pos); if (rot) m.rotation.set(...rot); scene.add(m); return m; };
   const g = x => keep(x);

@@ -65,7 +65,7 @@ export function buildHangout(m, P, T) {
   // Sadie, on a cushion by the radio, in her space helmet; and her speech bubble
   cyl(0.45, 0.5, 0.18, 10, psx(T.velvet, { rx: 3, tint: 0xff8ec8 }), [CUSHION.x, 0.09, CUSHION.z]);
   const helmet = P.helmet, blink = P.helmetBlink(T.nap.image);
-  const sadie = new Mesh(keep(new PlaneGeometry(0.86, 0.75, 1, 1).translate(0, 0.37, 0)), psx(helmet, { unlit: 0.35 }));
+  const sadie = m.sadie(0.86, { awake: helmet, asleep: blink, shape: 0.75 / 0.86 });
   sadie.position.set(CUSHION.x, 0.17, CUSHION.z); room.add(sadie);
   const bubble = new Mesh(keep(new PlaneGeometry(1.1, 0.41)), psx(P.bubble, { unlit: 0.8 }));
   bubble.position.set(CUSHION.x - 0.2, 1.3, CUSHION.z); room.add(bubble);
@@ -87,7 +87,7 @@ export function buildHangout(m, P, T) {
   m.kit(room).cone(0.12, 0.22, 8, psx(null, { tint: 0xe83a3a }), [-3.3, 0.66, 4.6]);
 
   // the floor you can walk on: the room, less the table, the button's stand and Sadie's cushion
-  const P2 = 0.35;
+  const P2 = m.walker;
   const floor = (x, z) => {
     if (Math.abs(x) > HW - P2 || z < BACK + P2 - 0.01 || z > FRONT - P2) return null;
     if (Math.abs(x - RADIO.x) < 0.5 + P2 && Math.abs(z - RADIO.z) < 0.3 + P2) return null;
@@ -100,7 +100,7 @@ export function buildHangout(m, P, T) {
     mobile.rotation.y = t * 0.15;
     // Sadie bobs along while the radio plays, and blinks now and then
     sadie.rotation.z = playing ? Math.sin(t * Math.PI * 112 / 60) * 0.06 : 0;
-    sadie.material.uniforms.map.value = (t % 4.3) < 0.15 ? blink : helmet;
+    sadie.userData.blink(dt);
     bubble.position.y = 1.3 + Math.sin(t * 1.5) * 0.03;
     for (const o of notes) {
       o.k += dt * 0.35; if (o.k > 1) o.k -= 1;

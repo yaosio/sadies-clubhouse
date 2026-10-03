@@ -51,7 +51,7 @@ export async function buildRoom(m) {
     land: { sun: 0.75, bulb: 0.3, lamp: [0, RH - 0.3, 0] },
     hangout: { sun: 0.25, bulb: 0.85, lamp: [0, 3.0, 1.0] },
   };
-  const P = 0.35;
+  const P = m.walker;
   const cockpitFloor = (x, z) => {
     if (z < -RD + P - 0.01 || z > DASH.z0 - P) return null;
     return Math.abs(x) < RW - P - (z > 0.4 - P ? 0.5 : 0) ? 0 : null;
