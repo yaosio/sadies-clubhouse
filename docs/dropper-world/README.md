@@ -1,18 +1,9 @@
 # Sadie's Dropper World
 
-The clubhouse's first activity (`src/activities/dropper-world/`), on the computer in its room.
-
-A cozy physics toy. A mole up in the sky (in a propeller beanie) drops squishy jelly pieces on
-anything it thinks should be underground: the barn, and anyone who looks restless. Sadie (the
-owner's late cat, drawn from a photo) climbs the piles to eat bundles of hay (she thought she was a
-cow), and every so often drags her barn back up out of the pile. The hay comes from the mole: it
-digs it up, flings it away in disgust, and the hay floats, just like the mole (it's not the hat).
-Friends turn up because of what happens in the world, then move into the barn: the first is
-Chooter, a black lab/pitbull mix next door who hears all the thudding, can't stand it, and bursts
-in. He gets the zoomies and fetches the ball you throw him from the toy box. The player watches,
-taps anyone to see what they're thinking, and throws Chooter his ball. The tower can grow forever:
-once it's big, the weight of everything above melts the deepest pieces into candy bedrock. It's a
-toy, not a game to win.
+The clubhouse's first activity (`src/activities/dropper-world/`), on the computer in its room. A cozy
+physics toy: a mole up in the sky drops squishy jelly pieces, Sadie climbs the piles to eat hay,
+and friends turn up and move into her barn. The tower can grow forever. It's a toy, not a game to
+win. Who's in it and what the player does: `playing.md`.
 
 ## Design pillars (these win over any feature idea)
 
@@ -29,17 +20,43 @@ toy, not a game to win.
   sometimes the hardware pushes back: slowing down is fine, stuttering isn't.
 - One feature at a time. Make sure it's fun before the next.
 
-## Its other pages
+## Its pages
 
-- `ARCHITECTURE.md`: the map of its code (read before changing anything in it).
-- `TUNING.md`: the numbers that make it feel right, and what its tests expect.
-- `CHARACTERS.md`: who Sadie, Chooter and the mole are and why they do what they do, and how
-  feelings, offers and activities turn that into behavior (read before changing how anyone behaves).
-- `ART_STYLE.md`: its 90s look, going in step by step (read before changing how anything looks).
+- `playing.md`: the game as the player sees it (read first if you're new to it).
+- `parked.md`: ideas not to start unless the owner asks.
+- `look.md`: its 90s look and how far it's got (read before changing how anything looks).
+- `look-interface.md`: the frame, dashboard and keys, planned and as built.
 
-## Parked ideas (don't start unless asked)
+**The code** (`how-built/`):
+- `how-built/layers.md`: the three layers and the rule that keeps `core/` headless (read first).
+- `how-built/frame.md`: card, page, boot, game loop, config (screen layout, start-up, the loop).
+- `how-built/core.md`: the world, pile, fossils, bedrock, barn, hay, toys, debug.
+- `how-built/physics.md`: piece types and the soft-body solver's files.
+- `how-built/minds.md`: the files for feelings, offers, thinking, Sadie, Chooter and the mole.
+- `how-built/render.md`: the camera, chunky pixels and drawing.
+- `how-built/ui-input.md`: dashboard, help, toy box, dev sheet, touch and keys.
+- `how-built/saving.md`: saving and loading (read before adding anything to the save).
+- `how-built/events.md`: its events and the order of each tick.
+- `how-built/common-changes.md`: recipes: new piece type, behavior, friend, debug button...
+- `how-built/checks.md`: its tests and tools.
 
-Sadie batting pieces around, upgrading Sadie's barn, more friends after Chooter, friends building
-things out of dropped pieces, sky zones with different physics, unlocking piece types, prestige by
-melting the tower, a desktop-toy version, other ideas for the dashboard (it shows one
-character's thoughts at a time, and only their strongest feeling).
+**The numbers** (`tuning/`, read before changing a number or when a test's numbers move):
+- `tuning/world-solver.md`: board, solver, sleeping, game loop.
+- `tuning/materials.md`: each piece type's material numbers.
+- `tuning/supply-mole.md`: the supply, where the mole drops, how it tires.
+- `tuning/fossils.md`: when buried pieces turn to fossils.
+- `tuning/bedrock.md`: when and how fossils melt into bedrock.
+- `tuning/barn.md`: the barn and Sadie's trips home.
+- `tuning/hay.md`: digging, flinging and floating hay.
+- `tuning/chooter.md`: Chooter's arrival, speeds, play, zoomies, ball, tiredness.
+- `tuning/chooter-teasing.md`: Chooter stealing Sadie's hay.
+- `tuning/sadie.md`: Sadie's reach, speeds, pacing and moods.
+- `tuning/toys-surface.md`: the ball, and what counts as ground.
+- `tuning/debug.md`: the dev sheet's Debug tab.
+- `tuning/tests-world.md`: what the physics, pile, debug and bedrock tests expect.
+- `tuning/tests-characters.md`: what the play, barn, Chooter, saving, thoughts, mole tests expect.
+
+**The characters** (`characters/`, read before changing how anyone behaves):
+- `characters/minds.md`: how feelings, offers and activities make behavior; adding an interaction.
+- `characters/sadie.md`, `characters/chooter.md`, `characters/mole.md`: who they are and why they
+  do things.

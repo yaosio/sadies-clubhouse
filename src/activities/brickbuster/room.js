@@ -351,7 +351,7 @@ export async function buildRoom(m) {
   function finished() { place.holding = null; doneAt = 0; putSignUp(); }
 
   // ---------- out in the hall: the yarn ball loose for ever, and Sadie chasing it ----------
-  // (loose.js has how; here they're drawn in the hall, which the mansion lends as m.hall: ROOMS.md)
+  // (loose.js has how; here they're drawn in the hall, which the mansion lends as m.hall: docs/clubhouse/rooms/kit.md)
   const hall = m.hall, loose = hall?.shape ? makeLoose(hall.shape, Math.floor(Math.random() * 1e6) + 1) : null;
   let hallBall = null, hallCat = null, outOfHall = [], giveSadieBack = null;
   // Sadie's sounds while she plays (sounds/sadie.js: rare and soft, never two close together),

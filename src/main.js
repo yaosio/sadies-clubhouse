@@ -1,6 +1,6 @@
 // The clubhouse: the shell every activity runs in. It knows each activity only by its card
 // (src/activities/<name>/card.js: id, name, where it is, and page, styles and start for one on a
-// computer, or room for a game that lives in its room or building: docs/clubhouse/ROOMS.md),
+// computer, or room for a game that lives in its room or building: docs/clubhouse/rooms/card.md),
 // and runs one at a time.
 //
 // The build finds the activities by their folders, so adding one never changes this file. The page

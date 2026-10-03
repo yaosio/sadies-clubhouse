@@ -1,11 +1,11 @@
 # Sadie's Clubhouse
 
 A lost 90s shareware activity center. Sadie is the owner's late cat, and this is her clubhouse:
-she's decided to share it with all her friends. It's her mansion, in crappy late-90s 3D. You start
+she's decided to share it with all her friends. It's her clubhouse, in crappy late-90s 3D. You start
 at the front gate (the first time, Sadie's letter invites you in), walk in through the front door,
 up the spiral staircase round a giant scratching post, and through an activity's door into its
 room (or, outside the gate, along the lane to a house of its own, or beside the house, into the hedge maze), where you play it at the computer (or, for a game that lives in its room, right there in it). Normal game controls: WASD and the mouse, or a thumb stick
-on a phone. It's a real, recognizable mansion a cat has clearly taken over.
+on a phone. It's a real, recognizable house a cat has clearly taken over.
 
 Sadie is in every activity, but not always in the same way: in one she's a living character with
 moods, in another a badly scanned photo who's very sure of herself.
@@ -22,20 +22,20 @@ The owner doesn't code and installs nothing. Claude does all the building (how: 
 | **The Music Room** | A room full of instruments you play right where they stand (a toy piano, drums, a fish xylophone, a synth, a theremin, a tape deck), and Sadie, who now and then walks across one. | `docs/music-room/` |
 | **The aquarium** | A room with a big fish tank where Sadie swims in a diving suit. Don't tap on the glass (you can, though): it takes you out into a whole ocean, in a little sailboat, to find six things for the cabinet, with a mountain looming over it all that turns out to be tiny. | `docs/aquarium/` |
 | **Space Adventure** | A room that's a spaceship's cockpit: walk in and you're strapped in for Sadie's slow, philosophical trip down to a planet (sad synthwave, a landing by the sea), which she finds disappointing. Afterwards it's her space room, with a radio and a button to go again. | `docs/space-adventure/` |
-| **The Hedge Maze** | Not in the mansion: a hedge block beside it, much bigger inside, made in front of you as you walk. After 5 to 8 turns, the next turn is the end, which lets you out into the backyard, where Sadie naps on a bench in the sun. It's sneaky: even going in from the backyard, the end lets you out into the backyard, and walking back in, it's a new maze past the first corner. | `docs/hedge-maze/` |
-| **Clyde's House** | Not in the mansion: the first house outside the front gate, down a little path off the lane. Claude (a little orange spark who overthinks everything) built the Good Morning Machine, a ten-step contraption to give Sadie one treat; you fill its missing pieces from a box of mostly junk and pull the lever. Beside it, Clyde's Weather Machine: four levers (rain, snow, a second sun, cats) that change the weather outside, and Sadie reacts. | `docs/clydes-house/` |
-| **Chooter's Paint Shop** | Not in the mansion: across the path from Clyde's House. Chooter (the dog from Dropper World) runs it, wagging and covered in your paint. You paint the room itself, as you walk about: the walls, floor, ceiling and the things in it (a plaster Sadie, a wooden fish, an easel), with pots of loud paint, a brush, roller, spray can, bucket, stamps, and dynamite to blow the paint off. Sadie wanders in and leaves paw prints. | `docs/paint-shop/` |
+| **The Hedge Maze** | Not in the house: a hedge block beside it, much bigger inside, made in front of you as you walk. After 5 to 8 turns, the next turn is the end, which lets you out into the backyard, where Sadie naps on a bench in the sun. It's sneaky: even going in from the backyard, the end lets you out into the backyard, and walking back in, it's a new maze past the first corner. | `docs/hedge-maze/` |
+| **Clyde's House** | Not in the house: the first house outside the front gate, down a little path off the lane. Claude (a little orange spark who overthinks everything) built the Good Morning Machine, a ten-step contraption to give Sadie one treat; you fill its missing pieces from a box of mostly junk and pull the lever. Beside it, Clyde's Weather Machine: four levers (rain, snow, a second sun, cats) that change the weather outside, and Sadie reacts. | `docs/clydes-house/` |
+| **Chooter's Paint Shop** | Not in the house: across the path from Clyde's House. Chooter (the dog from Dropper World) runs it, wagging and covered in your paint. You paint the room itself, as you walk about: the walls, floor, ceiling and the things in it (a plaster Sadie, a wooden fish, an easel), with pots of loud paint, a brush, roller, spray can, bucket, stamps, and dynamite to blow the paint off. Sadie wanders in and leaves paw prints. | `docs/paint-shop/` |
 
 Each activity's docs start with its `README.md`: what it is, its own design rules (they win over
 any feature idea for it), and its parked ideas. You only need to read the one you're working on.
 
 ## What every activity shares
 
-- **It's a lost 90s program.** The look everything shares, and the mansion's: `docs/clubhouse/ART_STYLE.md`.
+- **It's a lost 90s program.** The look everything shares, and the clubhouse's: `docs/clubhouse/look/README.md`.
 - **Sadie's in it** somehow.
 - **Its own rules.** Each activity has its own design pillars, and nothing carries over from
   another activity unless the owner says so.
-- **The clubhouse's music and sound.** A soft main theme plays round the mansion, composed as it
+- **The clubhouse's music and sound.** A soft main theme plays round the clubhouse, composed as it
   plays so it never repeats; it fades out whenever an activity's own music plays. Every sound goes
   through one sound system with the kind-to-the-ears rules built in, and the pause menu's MUSIC,
   SOUNDS and VOICES buttons turn each SOFT or OFF.
@@ -63,7 +63,8 @@ any feature idea for it), and its parked ideas. You only need to read the one yo
 ```
 README.md                  this page: the clubhouse
 CLAUDE.md                  how Claude works on it (building, checking, publishing)
-docs/clubhouse/            how the clubhouse is built, and the look everything shares
+docs/TASKS.md              which docs to read for which job
+docs/clubhouse/            how the clubhouse is built, the rulebook, and the look everything shares
 docs/<activity>/           each activity's own docs, starting with its README.md
 src/  tests/  tools/       the code, its checks and tools: see docs/clubhouse/ARCHITECTURE.md
 art/                       mock-ups, and the scripts that draw pictures
