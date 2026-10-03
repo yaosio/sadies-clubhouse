@@ -16,7 +16,9 @@ big tower, a profile or a timing. What the tests expect:
     the screen with none of the old modern bits left, tapping Sadie and the mole (the dashboard
     shows them, faces drawn), Chooter peeking in, the dev sheet, a full board loaded from a save
     and reloaded, and how smooth that board is on a phone 4x slower (on its own, after the rest,
-    so nothing skews it).
+    so nothing skews it). The slow phone fails only below a loose floor: the game keeping under 15%
+    of its speed (41% on Claude's machine); GitHub shows the number as a notice on the run, to
+    tighten the floor once a few runs are known.
   - Its `prepare()` makes the full board; `tools/check.mjs` starts it before the headless tests so
     it's ready by the time it's needed.
   - Fails on any page error; screenshots in `dist/check/dropper-world/`.
