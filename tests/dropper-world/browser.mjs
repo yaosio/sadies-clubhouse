@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { DEVICES } from '../shared/browser.mjs';
 
 const SAVE_KEY = 'sadies-dropper-world.save';
+const SLOW_FLOOR = 0.15;   // (a full board on a phone 4x slower must keep this share of game speed: 41% measured on Claude's own machine; loose on purpose, tightened once GitHub's numbers are known)
 
 // ---------- a full board to load (remade only when the game's code changes) ----------
 // tools/check.mjs starts this before the headless tests, so the board (about a minute and a half of
@@ -164,16 +165,22 @@ export default async function ({ browser, page, check, root, hashOf, outDir, pre
     await p.context().close();
   }));
 
-  // how smooth a full board is on a slow phone (reported, not a pass/fail)
+  // how smooth a full board is on a slow phone: reported, and it fails only below a loose floor (the game
+  // running at under SLOW_FLOOR of its speed, as a phone 4x slower must keep up: a busy computer jitters)
   {
     const p = await open('phone', DEVICES[0][1], board);
     await p.evaluate(() => localStorage.setItem('jellystack.perf', 'true')); await p.reload();
     const cdp = await p.context().newCDPSession(p);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await p.waitForFunction(() => typeof window.__jellyDebug === 'function', null, { timeout: 15000 });   // (the page has only just reloaded)
+    const gameT0 = (await p.evaluate(() => window.__jellyDebug())).time, realT0 = Date.now();
     await wait(p, 15000);
+    const speed = ((await p.evaluate(() => window.__jellyDebug())).time - gameT0) / ((Date.now() - realT0) / 1000);
     const stats = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('#perfList dt')].map(d => [d.textContent, d.nextElementSibling.textContent])));
     await shot(p, 'phone-6-slow-phone-stats');
     console.log(`INFO  full board on a phone 4x slower than this machine (rough, a hidden browser draws slower than a real one): ${Object.entries(stats).map(([k, v]) => k + ' ' + v).join(', ')}`);
+    if (process.env.CI) console.log(`::notice title=slow phone::the full board ran at ${Math.round(speed * 100)}% of its speed on a phone 4x slower`);
+    check(`slow phone: the game keeps at least ${SLOW_FLOOR * 100}% of its speed`, speed >= SLOW_FLOOR, `${Math.round(speed * 100)}%`);
     check('slow phone: no errors on the page', !p.errors.length, p.errors.slice(0, 3).join(' | '));
     await p.context().close();
   }
