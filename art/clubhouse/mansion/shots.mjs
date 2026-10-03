@@ -1,5 +1,5 @@
-// Pictures of the mansion mock-up, every view as a computer and a phone: art/mansion/*.png
-//   node art/mansion/build.mjs && node art/mansion/shots.mjs
+// Pictures of the clubhouse mock-up, every view as a computer and a phone: art/clubhouse/*.png
+//   node art/clubhouse/build.mjs && node art/clubhouse/shots.mjs
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -12,7 +12,7 @@ let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(join(spawnSync('npm', ['root', '-g']).stdout.toString().trim(), 'playwright'))); }
 
-const page = readFileSync(join(root, 'dist/mansion/mockup.html'));
+const page = readFileSync(join(root, 'dist/clubhouse/mockup.html'));
 const server = createServer((q, s) => { s.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); s.end('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">' + page); });
 await new Promise(ok => server.listen(0, '127.0.0.1', ok));
 const url = `http://127.0.0.1:${server.address().port}/`;
@@ -25,10 +25,10 @@ for (const [device, vp] of [['computer', { width: 1100, height: 820 }], ['phone'
   for (const view of ['outside', 'invite', 'hall', 'landing']) {
     if (only && only !== view) continue;
     await p.goto(url + '?' + view + '#' + view + '-' + device);
-    await p.waitForFunction(() => window.__mansionReady, null, { timeout: 30000 });
+    await p.waitForFunction(() => window.__clubhouseReady, null, { timeout: 30000 });
     await p.waitForTimeout(600);
     await p.locator('#stage').screenshot({ path: join(here, `${view}-${device}.png`) });
-    console.log(`art/mansion/${view}-${device}.png`);
+    console.log(`art/clubhouse/${view}-${device}.png`);
   }
   await p.close();
 }

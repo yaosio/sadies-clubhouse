@@ -1,4 +1,4 @@
-// Pictures of the mansion from its main spots, as a desktop and a phone, from the built page
+// Pictures of the clubhouse from its main spots, as a desktop and a phone, from the built page
 // (npm run build first): dist/shots/clubhouse/*.png
 //   node tools/clubhouse/shots.mjs            every spot
 //   node tools/clubhouse/shots.mjs hall door  only the spots whose names have these in them
@@ -39,13 +39,13 @@ for (const [device, opts] of [['desktop', DEVICES.desktop], ['phone', { ...DEVIC
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('page error:', e.message));
   await p.goto(url);
-  await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 5 && window.__mansion.settled(), null, { timeout: 30000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 5 && window.__clubhouse.settled(), null, { timeout: 30000 });
   for (const [name, go] of SPOTS) {
     if (only.length && !only.some(o => name.includes(o))) continue;
-    if (go) await p.evaluate(`(${go})(window.__mansion); document.querySelector('#letter').hidden = true;`);
+    if (go) await p.evaluate(`(${go})(window.__clubhouse); document.querySelector('#letter').hidden = true;`);
     await p.waitForTimeout(go ? 1200 : 1500);
     await p.screenshot({ path: join(out, `${device}-${name}.png`) });
-    console.log(`dist/shots/clubhouse/${device}-${name}.png  ${JSON.stringify(await p.evaluate(() => ({ ...window.__mansion.where(), through: window.__mansion.looking(), use: window.__mansion.target() })))}`);
+    console.log(`dist/shots/clubhouse/${device}-${name}.png  ${JSON.stringify(await p.evaluate(() => ({ ...window.__clubhouse.where(), through: window.__clubhouse.looking(), use: window.__clubhouse.target() })))}`);
   }
   await ctx.close();
 }

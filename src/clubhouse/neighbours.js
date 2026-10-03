@@ -17,7 +17,7 @@ export function strict(what, o) {
   });
 }
 
-// the real place behind a view (for the mansion's own use: snapshot)
+// the real place behind a view (for the clubhouse's own use: snapshot)
 const behind = new WeakMap();
 export const realPlace = p => behind.get(p) || p;
 
@@ -50,7 +50,7 @@ export function hallView(hall) {
 }
 
 // The outside, for a building on it: what's solid there and what to walk on (`block`, `blockRound`,
-// `surface`), and the mansion's own house (`house`: for a picture of it).
+// `surface`), and the clubhouse's own house (`house`: for a picture of it).
 export function outsideView(outside) {
   return lend(outside, 'outside', {
     block: outside.block, blockRound: outside.blockRound, surface: outside.surface, house: outside.house,

@@ -6,8 +6,8 @@ how the house, the hall, the grounds or the lane look. Built in `src/clubhouse/`
 
 The clubhouse is Sadie's house and the world round it: activities behind doors in the house, and
 buildings in her grounds and along the lane outside the gate. The owner okayed the look. The approved
-mock-up: `art/mansion/` (`mockup.js` is the 3D scene, `page.js` the page around it;
-`node art/mansion/build.mjs && node art/mansion/shots.mjs` builds it and takes the pictures),
+mock-up: `art/clubhouse/` (`mockup.js` is the 3D scene, `page.js` the page around it;
+`node art/clubhouse/build.mjs && node art/clubhouse/shots.mjs` builds it and takes the pictures),
 published at https://claude.ai/artifact/VNmFkn6rgQdKq8aW2z3BgF.
 
 ## Crappy late-90s 3D

@@ -1,5 +1,5 @@
 // Brickbuster '96 in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page. It lives in the mansion, so these run whenever the mansion
+// (never on its own) with the built page. It lives in the clubhouse, so these run whenever the clubhouse
 // changes too.
 //
 // It walks through Brickbuster's door on the landing into its room, steps up to the case (the view
@@ -16,7 +16,7 @@ export default async function ({ browser, page, check, outDir }) {
     const B = () => p.evaluate(() => window.__brickbuster.state());
     // a finger sliding across the screen (dx pixels), or the mouse moving
     const slide = dx => p.evaluate(async dx => {
-      const c = document.querySelector('#mansion #view'), y = innerHeight * 0.6, x0 = innerWidth / 2 - dx / 2;
+      const c = document.querySelector('#clubhouse #view'), y = innerHeight * 0.6, x0 = innerWidth / 2 - dx / 2;
       const ev = (type, x) => c.dispatchEvent(new PointerEvent(type, { pointerId: 9, pointerType: 'touch', clientX: x, clientY: y, bubbles: true }));
       ev('pointerdown', x0);
       for (let i = 1; i <= 10; i++) { ev('pointermove', x0 + dx * i / 10); await new Promise(ok => setTimeout(ok, 20)); }
@@ -24,7 +24,7 @@ export default async function ({ browser, page, check, outDir }) {
     }, dx);
 
     await p.goto(page);
-    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); await ctx.close(); return; }
+    if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); await ctx.close(); return; }
     await p.click('#ok');
 
     // through its door on the landing, into the room
@@ -82,14 +82,14 @@ export default async function ({ browser, page, check, outDir }) {
     await p.evaluate(() => window.__brickbuster.catchBall());
 
     // stepping back: the game stops where it was
-    if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape');
+    if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('Escape');
     const back = await modeIs('play');
     const b1 = (await B()).ball; await p.waitForTimeout(400); const b2 = (await B()).ball;
     await shot('4-stepped-back');
     check(`${device}: ${opts.hasTouch ? 'STEP BACK' : 'Escape'} steps back to where you stood`, back && Math.hypot((await M('where')).x - stood.x, (await M('where')).z - stood.z) < 0.05);
     check(`${device}: ...and the game waits, the ball where it was`, !(await B()).active && b1.x === b2.x && b1.y === b2.y);
     check(`${device}: ...the arcade music stops, and the theme comes back`, !(await B()).music.playing
-      && await until(() => window.__mansion.music().playing, null, 12000));
+      && await until(() => window.__clubhouse.music().playing, null, 12000));
 
     // the cracks are still there after a reload
     await p.reload(); await up();
@@ -173,9 +173,9 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(800);
     await shot('7-out-of-order');
     check(`${device}: it's still broken next time: bricks on the heap, sign on the door`, s.broken === 'bottom' && s.pile === 80 && s.sign && !s.sadie && s.escape === 'gone');
-    // put away when you're far off (the mansion does it after a while three doors away) and built
+    // put away when you're far off (the clubhouse does it after a while three doors away) and built
     // again as you come back: the yarn ball and Sadie leave the hall with it, and come back with it
-    const gone = await p.evaluate(() => { const ok = window.__mansion.putAway('room:brickbuster'); return { ok, meshes: window.__mansion.built().includes('room:brickbuster') }; });
+    const gone = await p.evaluate(() => { const ok = window.__clubhouse.putAway('room:brickbuster'); return { ok, meshes: window.__clubhouse.built().includes('room:brickbuster') }; });
     await M('build', 'room:brickbuster');
     await p.waitForTimeout(300);
     s = await B();

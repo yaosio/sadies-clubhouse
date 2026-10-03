@@ -1,6 +1,6 @@
 // Mock-up of the music room (not the game): a room full of instruments you play right where they
 // stand, and Sadie now and then walking across one, in the clubhouse's crappy late-90s 3D. The
-// PS1 material and the little canvas drawing tools are the mansion mock-up's (art/mansion/).
+// PS1 material and the little canvas drawing tools are the clubhouse mock-up's (art/clubhouse/).
 // Built into one page by art/music-room/build.mjs; pictures taken by art/music-room/shots.mjs.
 import {
   Scene, Mesh, Group, Color, Vector2, Vector3, PlaneGeometry, BoxGeometry, CylinderGeometry, SphereGeometry,

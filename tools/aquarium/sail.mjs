@@ -17,9 +17,9 @@ const p = await ctx.newPage();
 p.on('pageerror', e => console.log('page error:', e.message));
 p.on('console', m => { if (m.type() === 'error') console.log('console:', m.text()); });
 await p.goto(`http://127.0.0.1:${server.address().port}/`);
-await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 10 && window.__mansion.settled(), null, { timeout: 30000 });
+await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10 && window.__clubhouse.settled(), null, { timeout: 30000 });
 await p.click('#ok');
-const M = (fn, ...a) => p.evaluate(([f, a]) => window.__mansion[f](...a), [fn, a]);
+const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
 const A = () => p.evaluate(() => window.__aquarium.state());
 const shot = async name => { await p.screenshot({ path: join(out, `${device}-${name}.png`) }); console.log('shot', name, JSON.stringify(await A())); };
 await M('put', 'room:aquarium', 'glass');
@@ -45,6 +45,6 @@ for (const s of [...spots.slice(1), spots[0]]) {
 }
 await p.waitForTimeout(3000); await shot('m-open');
 await p.keyboard.press('KeyE');
-await p.waitForFunction(() => window.__mansion.mode() === 'play' && !window.__aquarium.state().diving, null, { timeout: 20000 });
+await p.waitForFunction(() => window.__clubhouse.mode() === 'play' && !window.__aquarium.state().diving, null, { timeout: 20000 });
 await M('put', 'room:aquarium', 'cabinet'); await p.waitForTimeout(500); await shot('z-cabinet');
 await browser.close(); server.close();

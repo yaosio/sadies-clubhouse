@@ -1,4 +1,4 @@
-// Sadie's mansion: the clubhouse you walk around. You start at the front gate (the first time, Sadie's
+// Sadie's clubhouse: the clubhouse you walk around. You start at the front gate (the first time, Sadie's
 // letter invites you in), walk through the front door into the entrance hall (the bottom of the cat
 // tree), up the stairs to the landings where the activities have their doors, and into a room; or
 // out along the lane, or round the house, to a building of its own.
@@ -13,7 +13,7 @@
 // stick and dragging on a phone. E (or the button on a phone) uses what you're looking at. Esc or the
 // pause button pauses; the pause menu can also start things over, and save or load a backup.
 //
-// Starting an activity takes the whole mansion out of the page before the activity goes in. When
+// Starting an activity takes the whole clubhouse out of the page before the activity goes in. When
 // you come back (the page reloads), you're standing at that activity's computer.
 //
 // Some games live in their room instead of on a computer (Brickbuster '96): their card has a `room`
@@ -39,8 +39,8 @@ import { arcade } from './play/arcade.js';
 import { painting } from './play/paint.js';
 import { setVolume, youAreIn, closeSounds, paused as soundsPaused, soundState, LEVELS, BUSES } from '../shared/sound.js';
 import P from './pictures.js';
-import page from './mansion.html';
-import styles from './mansion.css';
+import page from './clubhouse.html';
+import styles from './clubhouse.css';
 
 const EYE = 1.6, SPEED = 3.2, TURN = 2.2, STICK = 40;   // STICK: how far the thumb stick's knob goes, in screen pixels
 // things that happen once, remembered in the browser (the pause menu can undo each)
@@ -53,7 +53,7 @@ export async function open(cards, enter) {
   style.textContent = styles;
   document.head.appendChild(style);
   document.body.insertAdjacentHTML('afterbegin', page);
-  const root = document.getElementById('mansion');
+  const root = document.getElementById('clubhouse');
   const $ = s => root.querySelector(s);
   const off = new AbortController(), on = (el, ev, fn, o) => el.addEventListener(ev, fn, { signal: off.signal, ...o });
   const touchy = matchMedia('(pointer: coarse)').matches;
@@ -64,7 +64,7 @@ export async function open(cards, enter) {
 
   // ---------- the places, and the doorways between them ----------
   // Only the garden and the hall (and the buildings outside you can see from the gate, below) are
-  // built before the mansion opens; the rest of the buildings outside straight after. Each room is built later, one at a time: while you stand
+  // built before the clubhouse opens; the rest of the buildings outside straight after. Each room is built later, one at a time: while you stand
   // still, or as you walk up to its door (which stays shut until it's ready). A room that's far away
   // (three doors or more, for a while) is put away again, if it can be: its things go back to the
   // graphics card, and it's built again from its save as you come near. So the house can have any
@@ -102,7 +102,7 @@ export async function open(cards, enter) {
     places = [outside, hall, ...slots.filter(r => r.place).map(r => r.place)];
   }
   // Building a room: one at a time (so each one's things are known, to put away later), from the
-  // mansion's building kit if it's a game that lives in its room. A room's code is a file of its own,
+  // clubhouse's building kit if it's a game that lives in its room. A room's code is a file of its own,
   // fetched the first time it's built: if that fails (the network hiccuped) or the room won't build,
   // its door stays shut and it's tried again a little later, a few times (`again`), and nothing else waits on it.
   let queue = Promise.resolve();
@@ -581,8 +581,8 @@ export async function open(cards, enter) {
   // ---------- ways of playing (src/clubhouse/play/) ----------
   // Each kind of control a place can ask for is a file of its own there, which any place, inside or
   // out, can use: stepping up to a game in its room (a use with `play`), painting (a place with a
-  // `brush`). This is all they're lent: they never touch the rest of the mansion. A new kind of control
-  // goes there too, not in this file (tests/clubhouse/run.mjs checks the mansion names no room).
+  // `brush`). This is all they're lent: they never touch the rest of the clubhouse. A new kind of control
+  // goes there too, not in this file (tests/clubhouse/run.mjs checks the clubhouse names no room).
   const you = {
     $, canvas, cam, touchy, on, me, held, drag, EYE, KEYS, pointAt, middle,
     get mode() { return mode; }, set mode(m) { mode = m; },
@@ -855,13 +855,13 @@ export async function open(cards, enter) {
     if (document.pointerLockElement) document.exitPointerLock();
     for (const t of throughs) t.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();
-    delete window.__mansion;
+    delete window.__clubhouse;
   }
 
   // for the checks (tests/clubhouse/browser.mjs): where you are, and a way to stand somewhere
   // (a check going to a room that isn't built yet: built first)
   const later = (name, then) => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => w ? then() : false) : false; };
-  window.__mansion = {
+  window.__clubhouse = {
     frames: () => frames,
     played: () => played,   // (seconds the game has run: slower than the clock when frames are slow)
     mode: () => mode,
@@ -879,7 +879,7 @@ export async function open(cards, enter) {
     // stand at one of a place's spots (or at {x, z, yaw, y}), and look straight ahead
     put(name, spot) {
       const w = places.find(p => p.name === name);
-      if (!w) return later(name, () => window.__mansion.put(name, spot));
+      if (!w) return later(name, () => window.__clubhouse.put(name, spot));
       place(w, typeof spot === 'string' ? w.spots[spot] : spot); return true;
     },
     // the rooms built so far, whether they're all built, building one now (and waiting for that), and
@@ -899,7 +899,7 @@ export async function open(cards, enter) {
     // how far off a building outside the gate becomes a plain block (and which are, right now)
     farHouse: metres => { FAR_HOUSE = metres; farHouses(); },
     houses: () => slots.filter(r => r.house?.group).map(r => ({ name: r.name, far: !r.house.group.visible })),
-    // how quick the mansion is: ms to the first picture, ms to build each place, and what's held on
+    // how quick the clubhouse is: ms to the first picture, ms to build each place, and what's held on
     // the graphics card (and in the kit's list of things to hand back)
     speed: () => ({ ...speed, places: { ...speed.places }, bits: { ...speed.bits }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
       textures: renderer.info.memory.textures, kept: made().length, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e5) / 10 : null }),
@@ -931,7 +931,7 @@ export async function open(cards, enter) {
     // stand in front of a doorway in this place, facing it (d metres out)
     faceDoor(name, door, d = 2) {
       const w = places.find(p => p.name === name), dd = w?.doors[door];
-      if (!w) return later(name, () => window.__mansion.faceDoor(name, door, d));
+      if (!w) return later(name, () => window.__clubhouse.faceDoor(name, door, d));
       if (!dd) return false;
       place(w, { x: dd.pos.x + dd.normal.x * d, z: dd.pos.z + dd.normal.z * d, y: dd.pos.y, yaw: dd.yaw, pitch: 0 }); return true;
     },

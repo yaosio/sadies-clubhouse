@@ -4,13 +4,13 @@
 // and runs one at a time.
 //
 // The build finds the activities by their folders, so adding one never changes this file. The page
-// opens in Sadie's mansion (src/clubhouse/), with a room per activity; using an activity's computer
-// takes the mansion out and puts the activity in. An address naming an activity after the # (#dropper-world)
+// opens in Sadie's clubhouse (src/clubhouse/), with a room per activity; using an activity's computer
+// takes the clubhouse out and puts the activity in. An address naming an activity after the # (#dropper-world)
 // goes straight into it. Every activity gets an ESC BACK key in its top left corner (Escape does the
 // same, unless the activity used it for something, like closing a panel): it reloads the page into
 // the clubhouse, so an activity never has to tidy up after itself (it saves when the page goes away).
 //
-// The mansion and every activity's code are files of their own, fetched when they're needed (the
+// The clubhouse and every activity's code are files of their own, fetched when they're needed (the
 // build splits them). If one won't come (the network hiccuped), it's tried again a few times, and if
 // it still won't, the page says so instead of staying blank.
 import cards from 'activities';
@@ -60,9 +60,9 @@ async function enter(card) {
 const wanted = cards.find(c => c.id === location.hash.slice(1) && c.start);   // (a game that lives in its room has no page of its own)
 if (wanted) enter(wanted);
 else {
-  // The buildings outside (on the lane, or in the grounds) are built before the mansion opens, as you
-  // can see them from the gate: their code is asked for now, alongside the mansion's, not one after
-  // another once it's here. (If one doesn't come, the mansion asks again when it builds it.)
+  // The buildings outside (on the lane, or in the grounds) are built before the clubhouse opens, as you
+  // can see them from the gate: their code is asked for now, alongside the clubhouse's, not one after
+  // another once it's here. (If one doesn't come, the clubhouse asks again when it builds it.)
   for (const c of cards) if (c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds))) c.room().catch(() => {});
-  fetchPiece(() => import('./clubhouse/mansion.js')).then(mansion => mansion.open(cards, enter));
+  fetchPiece(() => import('./clubhouse/clubhouse.js')).then(clubhouse => clubhouse.open(cards, enter));
 }

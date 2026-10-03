@@ -53,4 +53,4 @@ const first = location.hash.slice(1).split('-');
 if (SAYS[first[0]]) view = first[0];
 if (first[1] === 'phone') device = 'phone';
 show();
-window.__mansionReady = true;
+window.__clubhouseReady = true;

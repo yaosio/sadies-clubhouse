@@ -11,7 +11,7 @@
 //                                     (tools/dropper-world/profile.mjs builds it this way)
 //
 // The game is split into files, fetched as they're needed: the clubhouse (main-*.js, with every
-// activity's card), and in chunk-*.js files the mansion, each room or activity's own code, and the
+// activity's card), and in chunk-*.js files the clubhouse, each room or activity's own code, and the
 // bits several of them share (three.js). dist/game-files.json says which is which. Walking up to a door fetches that room's file, so the page
 // never grows with the number of rooms. Every file's name carries a fingerprint of what's in it, so
 // a browser never mixes an old file with a new page.
@@ -114,16 +114,16 @@ writeFileSync(join(root, 'dist/game-files.json'), JSON.stringify(outputs, null, 
 const gameKB = game.reduce((n, f) => n + statSync(join(root, 'dist/game', f)).size, 0) / 1024;
 const biggest = Math.max(...game.map(f => statSync(join(root, 'dist/game', f)).size)) / 1024;
 let html = readFileSync(join(root, 'src/index.html'), 'utf8');
-// Every file the page needs before the mansion's first picture is asked for at once, at the top of the
-// page (`modulepreload`): the clubhouse, the mansion, and everything they bring in (three.js). Left to
+// Every file the page needs before the clubhouse's first picture is asked for at once, at the top of the
+// page (`modulepreload`): the clubhouse, and everything they bring in (three.js). Left to
 // itself, a browser only finds each one once the one before it has come, a wait for each in a row.
-const out = result.metafile.outputs, mansionFile = Object.keys(out).find(f => out[f].entryPoint?.endsWith('src/clubhouse/mansion.js'));
+const out = result.metafile.outputs, clubhouseFile = Object.keys(out).find(f => out[f].entryPoint?.endsWith('src/clubhouse/clubhouse.js'));
 const needs = new Set(), need = f => {
   if (!f || needs.has(f)) return;
   needs.add(f);
   for (const i of out[f].imports) if (i.kind === 'import-statement') need(i.path);
 };
-need(Object.keys(out).find(f => out[f].entryPoint?.endsWith('src/main.js'))); need(mansionFile);
+need(Object.keys(out).find(f => out[f].entryPoint?.endsWith('src/main.js'))); need(clubhouseFile);
 
 const files = {};
 for (const p of EMBED) collect(p, files);
@@ -140,7 +140,7 @@ const put = (marker, text) => {
 };
 put('/*@script*/', js);
 put('<!--@preload-->', [...needs].map(f => `<link rel="modulepreload" href="./game/${f.split('/').pop()}">`).join('\n'));
-// the rules for every font (a font is only fetched once something uses it), and the mansion's own two
+// the rules for every font (a font is only fetched once something uses it), and the clubhouse's own two
 // asked for straight away
 put('<!--@fonts-->', `<style>${readFileSync(join(FONTS, 'fonts.css'), 'utf8').replace(/\/\*.*?\*\//g, '').trim()}</style>\n` +
   ['silkscreen-n400', 'silkscreen-n700', 'patrick-hand-n400'].map(n => `<link rel="preload" as="font" type="font/woff2" crossorigin href="./game/font-${n}.woff2">`).join('\n'));

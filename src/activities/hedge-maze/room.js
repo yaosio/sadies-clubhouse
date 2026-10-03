@@ -2,7 +2,7 @@
 // walk (grow.js decides where they go; this draws them), with a garden gate at each way out. Soft
 // music plays while you're in it (music.js).
 //
-// The mansion calls buildRoom(m) with its building kit, the outside and this activity's spot in the
+// The clubhouse calls buildRoom(m) with its building kit, the outside and this activity's spot in the
 // grounds (its card has `grounds`), so the hedge block outside is built here too (block.js). Its two
 // gates outside lead to the maze's two doors: `door` (the front arch) and `back` (the backyard's).
 // The backyard's door moves (always where the maze's end is, and only while nobody can see it), so
@@ -22,7 +22,7 @@ const GROUND = 800;                     // the grass under each door's maze (the
 export async function buildRoom(m) {
   const { T, psx, keep, doorway, skyMat, card } = m, P = m.walker;   // (P: how far round you the hedges keep you)
   const A = drawArt(m);
-  // (built again after being put away, the block outside is still there: the mansion hands it back)
+  // (built again after being put away, the block outside is still there: the clubhouse hands it back)
   const house = m.house || (m.outside && m.ground ? buildBlock(m, A) : null);
   await m.breathe?.();
   const scene = new Scene(); scene.background = new Color(0x2a60e0);

@@ -1,5 +1,5 @@
-// The mansion's look: the PS1 material everything is drawn with, the see-through doorway material,
-// and every texture, drawn right here on little canvases when the mansion opens.
+// The clubhouse's look: the PS1 material everything is drawn with, the see-through doorway material,
+// and every texture, drawn right here on little canvases when the clubhouse opens.
 //
 // The PS1 look is all in psx(): corners snap to the pixel grid (the jitter), light is worked out
 // per corner, and colours are cut down to a few levels with an ordered dither between them.
@@ -10,7 +10,7 @@ import {
   Mesh, PlaneGeometry,
 } from 'three';
 
-// the drawing size in pixels (the mansion keeps it up to date) and each place's light
+// the drawing size in pixels (the clubhouse keeps it up to date) and each place's light
 export const res = new Vector2(320, 240);
 const env = { sun: { value: 0.45 }, bulb: { value: 0 }, lamp: { value: new Vector3(0, 5, 0) } };
 export function light({ sun, bulb, lamp }) { env.sun.value = sun; env.bulb.value = bulb; env.lamp.value.set(...lamp); }
@@ -55,7 +55,7 @@ void main(){
 }`;
 
 let WHITE = null;
-const kept = new Set();   // everything to hand back to the graphics card when the mansion closes
+const kept = new Set();   // everything to hand back to the graphics card when the clubhouse closes
 export const keep = x => (kept.add(x), x);
 export const made = () => [...kept];
 // (a room put away has handed its things back already: they're off the list)
@@ -206,7 +206,7 @@ export const C = {
 };
 const hex = n => '#' + n.toString(16).padStart(6, '0');
 
-// Every texture the mansion uses. sadie, sadieNap: her sprite (the clubhouse's), awake and asleep.
+// Every texture the clubhouse uses. sadie, sadieNap: her sprite (the clubhouse's), awake and asleep.
 export function drawTextures(sadie, sadieNap) {
   WHITE = tex(1, 1, g => rect(g, '#fff', 0, 0, 1, 1));
   const T = {};

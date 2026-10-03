@@ -30,7 +30,7 @@ export async function looks(p, check, where) {
     s.error || `${Math.round(s.most * 100)}% one colour, ${s.colours} colours`);
 }
 
-// an activity started straight from its address (on a computer: not in the mansion)
+// an activity started straight from its address (on a computer: not in the clubhouse)
 export async function computerLooks({ browser, page, card, check }) {
   const ctx = await browser.newContext(DESKTOP);
   const p = await ctx.newPage();

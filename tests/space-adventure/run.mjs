@@ -14,8 +14,8 @@ import { checker } from '../shared/check.mjs';
 
 const { check, finish } = checker();
 
-// 1. the card: a room in the mansion, behind the sixth door, with its own door picture
-check('the card is a room in the mansion', card.id === 'space-adventure' && typeof card.room === 'function' && !card.start && !card.page);
+// 1. the card: a room in the clubhouse, behind the sixth door, with its own door picture
+check('the card is a room in the clubhouse', card.id === 'space-adventure' && typeof card.room === 'function' && !card.start && !card.page);
 const png = Buffer.from(card.door.split(',')[1] || '', 'base64');
 const w = png.length > 24 ? png.readUInt32BE(16) : 0, h = png.length > 24 ? png.readUInt32BE(20) : 0;
 check('its door is a 40 x 64 picture, like every door', card.door.startsWith('data:image/png;base64,') && w === 40 && h === 64, `${w} x ${h}`);

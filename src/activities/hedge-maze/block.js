@@ -4,8 +4,8 @@
 // each: off the main path just before the porch, and off the backyard's path. Inside it's much
 // bigger than this (room.js).
 //
-// Built into the outside's own scene, in a group of its own (the mansion hands the room this place and
-// its spot in the grounds); each gate is a doorway into the maze, like every door in the mansion.
+// Built into the outside's own scene, in a group of its own (the clubhouse hands the room this place and
+// its spot in the grounds); each gate is a doorway into the maze, like every door in the clubhouse.
 import { Group, Mesh, TorusGeometry, DoubleSide } from 'three';
 
 export const DW = 1.6, DH = 2.3, TRIM = 0x2a5a2a;   // the gates, and their frames' colour

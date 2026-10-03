@@ -1,4 +1,4 @@
-// The weather machine's pictures, drawn on little canvases when the mansion opens: the machine's
+// The weather machine's pictures, drawn on little canvases when the clubhouse opens: the machine's
 // enamel and its signs, a plate under each lever, the forecast screen (drawn again as the weather
 // changes), and the puff out of its funnel. (The weather's own pictures are the world's: src/clubhouse/weather/.)
 import { NAMES, FORECAST } from './weather.js';

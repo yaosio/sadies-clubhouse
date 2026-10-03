@@ -18,7 +18,7 @@ export function buildSpace(m, P) {
   const facing = (mesh, [a, b, c], d) => { mesh.position.set(a * d, b * d, c * d); mesh.lookAt(space.position.x, space.position.y, space.position.z); mesh.position.set(a * d, b * d, c * d); return mesh; };
 
   // the stars: dots on a big sphere all round you, a few coloured, a few bigger (drawn with the
-  // mansion's own material, like everything else, so seeing them the first time never stutters)
+  // clubhouse's own material, like everything else, so seeing them the first time never stutters)
   behind(new Mesh(keep(new SphereGeometry(FAR * 1.2, 24, 16)), psx(P.stars, { unlit: 1, side: BackSide })), -20);
   // far-off things: a pink cloud of gas, and a galaxy
   const flat = (pic, w, h, d, o = {}) => behind(new Mesh(keep(new PlaneGeometry(w, h)), psx(pic, { unlit: 1, ...o })), -19);

@@ -1,6 +1,6 @@
 // Chooter's Paint Shop in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page. It's built into the mansion (outside the gate), so these
-// run whenever the mansion changes too.
+// (never on its own) with the built page. It's built into the clubhouse (outside the gate), so these
+// run whenever the clubhouse changes too.
 //
 // It walks out along the lane to the shop and in through its door, dips the brush in a pot on the
 // counter and takes a tool off the pegboard (E, or the USE button on a phone), sees the YOU'RE HOLDING
@@ -25,7 +25,7 @@ export default async function ({ browser, page, check, outDir }) {
     };
     // a press on the screen from (x0, y0) to (x1, y1) (fractions of the way across and down), a frame a step
     const drag = (x0, y0, x1 = x0, y1 = y0, steps = 1) => p.evaluate(async ([x0, y0, x1, y1, steps, touch]) => {
-      const c = document.querySelector('#mansion #view'), W = innerWidth, H = innerHeight, frame = () => new Promise(ok => requestAnimationFrame(ok));
+      const c = document.querySelector('#clubhouse #view'), W = innerWidth, H = innerHeight, frame = () => new Promise(ok => requestAnimationFrame(ok));
       const ev = (type, k) => c.dispatchEvent(new PointerEvent(type, { pointerId: 5, pointerType: touch ? 'touch' : 'mouse', button: 0, clientX: (x0 + (x1 - x0) * k) * W, clientY: (y0 + (y1 - y0) * k) * H, bubbles: true }));
       ev('pointerdown', 0);
       for (let i = 1; i <= steps; i++) { await frame(); ev('pointermove', i / steps); }
@@ -34,7 +34,7 @@ export default async function ({ browser, page, check, outDir }) {
     }, [x0, y0, x1, y1, steps, !!opts.hasTouch]);
 
     await p.goto(page);
-    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); return; }
+    if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); return; }
     await p.click('#ok');
 
     // out of the gate, across the path from Clyde's, and in
@@ -50,16 +50,16 @@ export default async function ({ browser, page, check, outDir }) {
     // dipping the brush in a pot, and taking a tool off the pegboard
     await face(-0.75, -2.9, -0.75, 1.16, -3.95);
     check(`${device}: looking at a pot on the counter, it offers a dip`, await M('target') === 'DIP IN YELLOW', await M('target'));
-    check(`${device}: ...and says so on screen, with the colour (on a phone too)`, await p.isVisible('#mansion #useHint')
-      && /DIP IN YELLOW/.test(await p.textContent('#mansion #useHint')) && await p.isVisible('#mansion #useHint canvas'));
+    check(`${device}: ...and says so on screen, with the colour (on a phone too)`, await p.isVisible('#clubhouse #useHint')
+      && /DIP IN YELLOW/.test(await p.textContent('#clubhouse #useHint')) && await p.isVisible('#clubhouse #useHint canvas'));
     await use(); await p.waitForTimeout(150);
     let s = await S();
     check(`${device}: ...and dipping in it, you're holding yellow (plip)`, s.holding.paint === 3 && s.heard.includes('plip'), JSON.stringify(s.holding));
     await face(-3.6, -0.92, -4.9, 1.6, -0.92);
     check(`${device}: on the pegboard, the spray can`, await M('target') === 'TAKE THE SPRAY CAN', await M('target'));
     const clash = await p.evaluate(() => {
-      const r = s => document.querySelector(s).getBoundingClientRect(), a = r('#mansion #useHint');
-      return ['#mansion #paint', '#mansion #use', '#mansion #holding'].filter(s => !document.querySelector(s).hidden).filter(s => {
+      const r = s => document.querySelector(s).getBoundingClientRect(), a = r('#clubhouse #useHint');
+      return ['#clubhouse #paint', '#clubhouse #use', '#clubhouse #holding'].filter(s => !document.querySelector(s).hidden).filter(s => {
         const b = r(s); return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
       });
     });
@@ -67,23 +67,23 @@ export default async function ({ browser, page, check, outDir }) {
     await use(); await p.waitForTimeout(150);
     s = await S();
     check(`${device}: ...taking it, you hold it (tok)`, s.holding.tool === 'spray' && s.heard.includes('tok'));
-    const box = await p.textContent('#mansion #holding');
+    const box = await p.textContent('#clubhouse #holding');
     check(`${device}: the YOU'RE HOLDING box says the spray can, in yellow, and how to paint`,
-      await p.isVisible('#mansion #holding') && /SPRAY CAN/.test(box) && /YELLOW/.test(box) && /ANYTHING TO SPRAY/.test(box), box);
+      await p.isVisible('#clubhouse #holding') && /SPRAY CAN/.test(box) && /YELLOW/.test(box) && /ANYTHING TO SPRAY/.test(box), box);
     check(`${device}: ...and picking it up leaves you looking, and says how to start painting`,
-      !await M('painting') && /THEN (TAP|CLICK) ANYTHING/.test(await p.textContent('#mansion #holding p')));
+      !await M('painting') && /THEN (TAP|CLICK) ANYTHING/.test(await p.textContent('#clubhouse #holding p')));
 
     // painting the right wall (nothing on it): the LOOK and PAINT buttons, then a stroke (no sound at all)
     await face(1, 2.5, 5, 1.8, 2.5);
-    const on = () => p.$$eval('#mansion #paint button', bs => bs.filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.textContent).join());
-    check(`${device}: there are LOOK and PAINT buttons, LOOK on`, await p.isVisible('#mansion #paint') && await on() === 'LOOK', await on());
-    await p.click('#mansion #paint [data-to=paint]');
+    const on = () => p.$$eval('#clubhouse #paint button', bs => bs.filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.textContent).join());
+    check(`${device}: there are LOOK and PAINT buttons, LOOK on`, await p.isVisible('#clubhouse #paint') && await on() === 'LOOK', await on());
+    await p.click('#clubhouse #paint [data-to=paint]');
     check(`${device}: ...PAINT turns painting on, and only it is lit`, await M('painting') && await on() === 'PAINT', await on());
-    await p.click('#mansion #paint [data-to=paint]');
+    await p.click('#clubhouse #paint [data-to=paint]');
     check(`${device}: ...tapping PAINT again leaves it on`, await M('painting') && await on() === 'PAINT');
-    await p.click('#mansion #paint [data-to=look]');
+    await p.click('#clubhouse #paint [data-to=look]');
     check(`${device}: ...LOOK stops painting`, !await M('painting') && await on() === 'LOOK');
-    await p.click('#mansion #paint [data-to=paint]');
+    await p.click('#clubhouse #paint [data-to=paint]');
     check(`${device}: ...and PAINT turns it back on`, await M('painting'));
     await p.evaluate(() => window.__paintShop.hold('brush', 1));
     const played = (await S()).played;

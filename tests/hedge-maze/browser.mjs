@@ -1,6 +1,6 @@
 // The hedge maze in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page. It's built into the mansion, so these run whenever the
-// mansion changes too.
+// (never on its own) with the built page. It's built into the clubhouse, so these run whenever the
+// clubhouse changes too.
 //
 // It finds the hedge block beside the house, sees the maze through its front gate, walks in (the
 // maze's music starts and the clubhouse's theme makes way), finds its way through, turning corner
@@ -17,7 +17,7 @@ export default async function ({ browser, page, check, outDir }) {
   await bothDevices(browser, outDir, async ({ device, p, errors, shot, M, up, walk }) => {
     const Z = () => p.evaluate(() => window.__maze.state());
     await p.goto(page);
-    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); return; }
+    if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); return; }
     await p.click('#ok');
 
     // the hedge block outside, its front gate opening onto the maze

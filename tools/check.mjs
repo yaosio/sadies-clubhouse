@@ -99,8 +99,8 @@ const BASE = ['package.json', 'package-lock.json', '.nvmrc'];
 const TOOLS = ['tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs', 'tools/source.mjs', '.github/workflows/check.yml'];
 const testPaths = a => a === 'clubhouse' ? [...BASE, 'src', 'tests/clubhouse', 'tools/activities.mjs'] : [...BASE, 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its room in the clubhouse, its card having a `room`, depends on the clubhouse too)
-const inMansion = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, `tests/saves/${a}`, ...TOOLS, ...(inMansion(a) ? ['src/clubhouse'] : []),
+const inClubhouse = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
+const pagePaths = a => [`tools/${a}`, `tests/saves/${a}`, ...TOOLS, ...(inClubhouse(a) ? ['src/clubhouse'] : []),
   ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);

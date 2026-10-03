@@ -12,7 +12,7 @@
 // lines.js. Stepping up to the machine is like playing an instrument in the music room: every key
 // and every press goes to it until you step back.
 //
-// The mansion calls buildRoom(m) with its building kit, and with the outside and this activity's
+// The clubhouse calls buildRoom(m) with its building kit, and with the outside and this activity's
 // plot on it (its card has a `lot`), so the house outside is built here too (house.js).
 import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, BoxGeometry, SphereGeometry, TorusGeometry, ConeGeometry, DoubleSide } from 'three';
 import { drawArt } from './art.js';
@@ -50,13 +50,13 @@ const SPOT = {
 export async function buildRoom(m) {
   const { T, psx, keep, kit, wallGeometry, doorway, card } = m;
   const A = drawArt(m);
-  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+  await m.breathe?.();   // (the clubhouse builds it a bit at a time, so nothing stutters)
   const scene = new Scene(); scene.background = new Color(0x0a0628);
   const { add, box, plane, cyl } = kit(scene);
   const mesh = (geo, mat, pos, rot, parent = scene) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
   const sprite = (t, w, h, pos, o = {}) => mesh(new PlaneGeometry(w, h).translate(0, o.bottom ? h / 2 : 0, 0), psx(t, { unlit: o.unlit ?? 0.25, side: o.side }), pos, null, o.parent);
   const tint = (c, o = {}) => psx(null, { tint: c, ...o });
-  // (built again after being put away, the house outside is still there: the mansion hands it back)
+  // (built again after being put away, the house outside is still there: the clubhouse hands it back)
   const house = m.house || (m.outside && m.lot ? buildHouse(m, A) : null);
 
   // ---------- the room ----------
@@ -87,7 +87,7 @@ export async function buildRoom(m) {
   // by the door, more notes
   plane(0.6, 0.6, psx(A.notes, { decal: true }), [1.9, 1.8, RD - 0.05], [0, Math.PI, 0], 2);
 
-  await m.breathe?.();   // (the mansion builds it a bit at a time, so nothing stutters)
+  await m.breathe?.();   // (the clubhouse builds it a bit at a time, so nothing stutters)
 
   // ---------- the machine ----------
   plane(6.0, 3.7, psx(A.pegboard, { rx: 6.0 / 0.25, ry: 3.7 / 0.25 }), [0, 2.28, -RD + 0.05], null, 2);
@@ -484,7 +484,7 @@ export async function buildRoom(m) {
   let blinkAt = 3, runT = 0;
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces: [sadie], house,
-    // (the mansion puts the room away when you're far off, never while the machine's going or Clyde's
+    // (the clubhouse puts the room away when you're far off, never while the machine's going or Clyde's
     // talking; the house outside stays, and the room's built again from its save as you come back)
     busy: () => tl.length > 0,
     uses: [{ pos: new Vector3(0, 2.2, MZ), reach: 7.5, label: machine.label, play: machine }],

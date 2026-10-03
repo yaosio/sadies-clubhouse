@@ -1,4 +1,4 @@
-// Clyde's house's pictures, drawn on little canvases when the mansion opens: Clyde (a little orange
+// Clyde's house's pictures, drawn on little canvases when the clubhouse opens: Clyde (a little orange
 // spark, in a few moods), the junk in the spare-parts box, the speech bubble, the house's siding,
 // door and signs, the wallpaper, the chalkboard, and the bits of the machine that are flat.
 // The speech bubble, the tags under the gaps and the treat counter are drawn again as they change.

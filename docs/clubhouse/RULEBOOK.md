@@ -6,8 +6,8 @@ Approved by the owner, 2026-10-02. Each rule says whether a check enforces it to
 
 ## 0. Names
 Sadie's house is **the clubhouse**, everywhere: in the docs, the game and what Claude says. Never
-"the mansion". (Some code names still say `mansion`: `mansion.js`, `window.__mansion`, and saves
-starting `mansion.`, which must keep that name.)
+"the mansion". (One old name is left in the code on purpose: the clubhouse's own saves start with
+`mansion.`, and must keep that name or every player's saved settings would be lost.)
 
 ## 1. One look
 - The misremembered 90s (`docs/clubhouse/look/README.md`): loud Kid Pix colours, chunky pixels,

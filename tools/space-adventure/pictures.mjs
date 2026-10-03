@@ -18,7 +18,7 @@ await page.setContent('<!doctype html><body></body>');
 await page.addScriptTag({ content: js });
 const door = await page.evaluate(() => window.door);
 await browser.close();
-writeFileSync(join(root, 'src/activities/space-adventure/door.js'), `// Space Adventure's door on the mansion's landing, as a PNG.
+writeFileSync(join(root, 'src/activities/space-adventure/door.js'), `// Space Adventure's door on the clubhouse's landing, as a PNG.
 // Drawn by art/space-adventure/door.js (node tools/space-adventure/pictures.mjs): change the drawing there and run it, never edit this file.
 export default ${JSON.stringify(door)};
 `);

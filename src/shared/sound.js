@@ -15,10 +15,10 @@
 //     VOICE_GAP seconds: after a good while it's not "again", and a room with one meow still meows)
 //   - `dist` (metres from you) fades it: all of it up to `near`, nothing past `far`
 //   - never more than MAX sounds at once (anything more is dropped, not queued)
-//   - a room's music is only heard while you're in that room (the mansion says where you are)
+//   - a room's music is only heard while you're in that room (the clubhouse says where you are)
 //   - any music playing (heard on its meter) makes the main theme fade out (otherMusic())
 //   - a room put away (or left for good) stops everything it started: closeSounds(owner)
-//   - while the pause menu is up (the mansion says: paused()), nothing new plays but music (which
+//   - while the pause menu is up (the clubhouse says: paused()), nothing new plays but music (which
 //     its own room stops or carries on as it likes), so a room needs no pause code for its sounds
 // Browsers only allow sound once something's been pressed: it wakes on the first press or key, and
 // rests while the page is out of sight. With no sound at all in the browser, it quietly does nothing,
@@ -61,7 +61,7 @@ export function setVolume(b, v) {
 }
 export const volume = b => levels[b];
 
-// Where you are (the mansion says, every frame): a room's music is only heard while you're in it,
+// Where you are (the clubhouse says, every frame): a room's music is only heard while you're in it,
 // and a sound played `at` somewhere fades the further it is from `ears` ({x, y, z}).
 export function youAreIn(owner, ears = null) {
   earsAt = ears;
@@ -86,7 +86,7 @@ export function otherMusic() {
 // The pause menu is up (or down again): while it is, only music plays.
 export function paused(on) { still = !!on; }
 
-// Everything a room started stops (it's been put away). With no owner: everything (the mansion's
+// Everything a room started stops (it's been put away). With no owner: everything (the clubhouse's
 // leaving the page).
 export function closeSounds(owner) { for (const h of [...handles]) if (owner === undefined || h.owner === owner) h.close(); }
 

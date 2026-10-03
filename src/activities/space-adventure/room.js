@@ -10,9 +10,9 @@
 // room, where she sits by a radio playing the happy version of the song, saying I LOVE SPACE!, and a
 // big red button (FUN SPACE ADVENTURE) takes you on the trip again.
 //
-// It's one place to the mansion, one scene with everything in it (the cockpit, space, the land, the
+// It's one place to the clubhouse, one scene with everything in it (the cockpit, space, the land, the
 // space room), only the parts you should see shown. `watch` (with `at`) is how you're strapped in: the
-// mansion puts you in the seat and keeps your eyes on the way ahead. The trip's timing and Sadie's
+// clubhouse puts you in the seat and keeps your eyes on the way ahead. The trip's timing and Sadie's
 // words are in trip.js; the pieces in cockpit.js, space.js, land.js and hangout.js; her words on
 // screen in talk.js; the music in music/.
 import { Scene, Mesh, PlaneGeometry } from 'three';
@@ -30,7 +30,7 @@ import { soundsFor, nearness } from '../../shared/sound.js';
 export async function buildRoom(m) {
   const { T: TX, C, psx, keep, tex, words, doorway, card, leaf } = m;
   const scene = new Scene();
-  // (a breath between the big parts: the mansion builds it a bit at a time, so nothing stutters)
+  // (a breath between the big parts: the clubhouse builds it a bit at a time, so nothing stutters)
   const breathe = m.breathe || (async () => {});
   const cockpit = buildCockpit(m, cockpitPics(tex, C, words)); await breathe();
   const space = buildSpace(m, spacePics(tex, C)); await breathe();
@@ -157,7 +157,7 @@ export async function buildRoom(m) {
     // do, and is meant to start in quiet), the whole trip, and the space room while its radio's on (it
     // plays as you arrive). With the radio off, the theme comes back.
     hush: () => stage === 'cockpit' || !!trip || radioOn,
-    // (the mansion puts it away when you're far off, and builds it again from its save as you come back)
+    // (the clubhouse puts it away when you're far off, and builds it again from its save as you come back)
     putAway() { music.close(); },   // (its talk box goes with its layer of the page)
     update(t, dt = 0) {
       const paused = !!m.paused?.();

@@ -1,5 +1,5 @@
 // How long the game takes to start (npm run build first): opens the built page as a desktop a few
-// times and prints how long it took from asking for the page to the mansion's first picture (the
+// times and prints how long it took from asking for the page to the clubhouse's first picture (the
 // middle of the runs, and each run). Every file the page asks for (the game files, the fonts) can be
 // held up as a real connection would (`--delay <ms>`, 100 by default: the game page's files come
 // from the internet, so each one fetched in a row adds a wait)
@@ -23,7 +23,7 @@ for (let i = 0; i < RUNS; i++) {
   await p.route(/127\.0\.0\.1/, async r => { await wait(DELAY); fetched.push([r.request().url().split('/').pop(), performance.now()]); return r.continue(); });
   const t0 = performance.now();
   await p.goto(`http://127.0.0.1:${server.address().port}/`, { waitUntil: 'commit' });
-  const at = await p.waitForFunction(() => window.__mansion && window.__mansion.frames() > 0 && performance.now(), null, { timeout: 60000, polling: 'raf' });
+  const at = await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 0 && performance.now(), null, { timeout: 60000, polling: 'raf' });
   const ms = Math.round(await at.jsonValue());
   times.push(ms);
   console.log(`run ${i + 1}: first picture ${ms} ms after asking for the page; files: ${fetched.map(([f, t]) => `${f.slice(0, 18)} @${Math.round(t - t0)}`).join(', ')}`);

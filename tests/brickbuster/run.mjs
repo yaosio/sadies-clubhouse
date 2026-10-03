@@ -166,7 +166,7 @@ function play(seed, skill, secs, until) {
 
 // 10. loose in the hall: the yarn ball bounces round for ever and Sadie keeps whacking it off again
 {
-  // the hall's shape, as hall.js hands it over (a copy: these tests don't load the mansion; the
+  // the hall's shape, as hall.js hands it over (a copy: these tests don't load the clubhouse; the
   // browser checks use the real one)
   const A = 8 * Math.cos(Math.PI / 16);
   const shape = { wall: A, post: 1.16, landing: { inner: 8 - 2.3, y: 4.6, thick: 0.18, rail: 1.0 }, top: 9.2,

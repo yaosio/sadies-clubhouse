@@ -10,7 +10,7 @@ a job reads.
 ## Where things live
 ```
 src/main.js, src/index.html     the page shell every activity runs in
-src/clubhouse/                  the 3D world you walk round: the clubhouse (mansion.js), the outside
+src/clubhouse/                  the 3D world you walk round: the clubhouse (clubhouse.js), the outside
 src/activities/<name>/          one folder per activity: everything that's only its own
 src/shared/                     the toolbox: the few things more than one activity needs
 tests/<name>/  tools/<name>/    each activity's own checks and tools (tests/clubhouse/: the clubhouse's)

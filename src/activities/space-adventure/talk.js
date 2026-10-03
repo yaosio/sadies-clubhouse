@@ -1,7 +1,7 @@
 // What Sadie says comes up in a box at the bottom of the screen, typed out a letter at a time (with no
 // sound: a blip per letter would never stop), with her face in the corner. And the black the screen
 // goes when she flies at you. Both sit on the room's own layer of the page (the kit's `overlay`: just
-// over the 3D view, under the mansion's pause menu, and gone when the room's put away).
+// over the 3D view, under the clubhouse's pause menu, and gone when the room's put away).
 import { portrait } from './pictures.js';
 
 const CSS = `

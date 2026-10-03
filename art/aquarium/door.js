@@ -1,4 +1,4 @@
-// The aquarium's door on the mansion's landing (40 x 64, like every activity's door), drawn in code.
+// The aquarium's door on the clubhouse's landing (40 x 64, like every activity's door), drawn in code.
 // tools/aquarium/pictures.mjs draws it in a browser and writes src/activities/aquarium/door.js
 // (run it after changing the drawing: node tools/aquarium/pictures.mjs). The mock-up uses it too.
 import { words, C } from '../../src/clubhouse/look.js';

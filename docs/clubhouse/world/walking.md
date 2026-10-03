@@ -30,7 +30,7 @@ level while you walk with the thumb stick.
   and backups (`docs/clubhouse/rooms/saves.md`); and CREDITS (`credits.js`): whatever the game uses
   that someone else made (three.js, the fonts) and its licence. A new one is added there (a check
   fails if a font isn't, and if three.js's notice goes missing from the build).
-- `window.__mansion`, for the checks.
+- `window.__clubhouse`, for the checks.
 
 ## The ways of playing (`play/`)
 Each is lent only what it needs (`you`: the view, the controls held, the mode, `glideTo`).

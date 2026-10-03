@@ -25,7 +25,7 @@ const UNDERWATER = 0x1a4ab0;
 export function buildOcean(m, copyOf) {
   const { T, C, psx, keep, tex, words, kit } = m;
   const scene = new Scene(); scene.background = new Color(UNDERWATER);
-  const faces = [];   // (flat things that turn to face you: turned here, not by the mansion, since the sea moves about)
+  const faces = [];   // (flat things that turn to face you: turned here, not by the clubhouse, since the sea moves about)
   const sea = new Group(); scene.add(sea);
   const { plane, cyl } = kit(sea);
   const solid = (tint, o = {}) => psx(null, { tint, ...o });

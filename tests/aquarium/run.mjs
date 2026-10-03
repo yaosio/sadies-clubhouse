@@ -15,8 +15,8 @@ import { checker } from '../shared/check.mjs';
 
 const { check, finish } = checker();
 
-// 1. the card: a room in the mansion, behind the fifth door, with its own door picture
-check('the card is a room in the mansion', card.id === 'aquarium' && typeof card.room === 'function' && !card.start && !card.page);
+// 1. the card: a room in the clubhouse, behind the fifth door, with its own door picture
+check('the card is a room in the clubhouse', card.id === 'aquarium' && typeof card.room === 'function' && !card.start && !card.page);
 const png = Buffer.from(card.door.split(',')[1] || '', 'base64');
 const w = png.length > 24 ? png.readUInt32BE(16) : 0, h = png.length > 24 ? png.readUInt32BE(20) : 0;
 check('its door is a 40 x 64 picture, like every door', card.door.startsWith('data:image/png;base64,') && w === 40 && h === 64, `${w} x ${h}`);
@@ -61,7 +61,7 @@ check('you start in open water, outside the reef, facing the mountain', sailable
 check("every find can be picked up from somewhere the boat can be", SPOTS.every(s => { for (let a = 0; a < 6.3; a += 0.3) { const d = (s.r + s.reach) / 2; if (sailable(s.x + Math.sin(a) * d, s.z + Math.cos(a) * d, ['bottle', 'hat', 'duck', 'floppy', 'coconut'])) return true; } return false; }));
 
 // 7. a whole trip: a boat that just steers at the nearest thing still to find (sliding along
-// whatever's in the way, like the mansion's walking) picks all six up, the reef opening after the
+// whatever's in the way, like the clubhouse's walking) picks all six up, the reef opening after the
 // fifth, in under five minutes of sailing
 {
   let x = START.x, z = START.z, t = 0, found = [], openedAt = null;

@@ -7,9 +7,9 @@
 // AQUARIUM (on the boat's dashboard) does the same the other way. What you find out there turns up
 // in the OCEAN FINDS cabinet on the right wall.
 //
-// The room and the ocean are the same place to the mansion: while you're out at sea this place's
+// The room and the ocean are the same place to the clubhouse: while you're out at sea this place's
 // scene, floor, things to use and light are the ocean's (and it's quicker to get about, and you can
-// see further). The mansion calls buildRoom(m) with its building kit (its shapes, its PS1 material,
+// see further). The clubhouse calls buildRoom(m) with its building kit (its shapes, its PS1 material,
 // its textures and Sadie's sprite), so nothing here imports the clubhouse. The room itself is
 // silent; the ocean's few sounds are in sounds/.
 import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, BoxGeometry, DoubleSide } from 'three';
@@ -202,7 +202,7 @@ export async function buildRoom(m) {
   let knockT = 0;
 
   // ---------- the ocean, and what you've found in it ----------
-  // (a breath either side of the ocean, the biggest part: the mansion builds it a bit at a time)
+  // (a breath either side of the ocean, the biggest part: the clubhouse builds it a bit at a time)
   await m.breathe?.();
   const ocean = buildOcean(m, floorBits);
   await m.breathe?.();
@@ -332,7 +332,7 @@ export async function buildRoom(m) {
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces, uses,
     light: roomLight,
-    // (the mansion puts the aquarium away when you're far off, and builds it again from its save as
+    // (the clubhouse puts the aquarium away when you're far off, and builds it again from its save as
     // you come back: both its scenes go back to the graphics card, and its sounds stop for good)
     scenes: [scene, ocean.scene],
     spots: {

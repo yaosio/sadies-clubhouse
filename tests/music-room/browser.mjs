@@ -1,5 +1,5 @@
 // The music room in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page. It lives in the mansion, so these run whenever the mansion
+// (never on its own) with the built page. It lives in the clubhouse, so these run whenever the clubhouse
 // changes too.
 //
 // It walks through the music room's door on the landing, steps up to the toy piano (keys, and on a
@@ -16,17 +16,17 @@ export default async function ({ browser, page, check, outDir }) {
     const R = () => p.evaluate(() => window.__musicRoom.state());
     const fits = [];   // (what each instrument's hint did on this screen)
     const stepUpTo = async spot => { await M('put', 'room:music-room', spot); await p.waitForTimeout(250); await use(); const ok = await modeIs('arcade'); await p.waitForTimeout(300); fits.push(await hintFits(p)); return ok; };
-    const stepBack = async () => { if (opts.hasTouch) await p.tap('#mansion #use'); else await p.keyboard.press('Escape'); return modeIs('play'); };
+    const stepBack = async () => { if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('Escape'); return modeIs('play'); };
     // a finger (or the mouse) pressing the screen at (fx, fy) of the way across and down, for `ms`
     const press = (fx, fy, ms = 120) => p.evaluate(async ([fx, fy, ms, touch]) => {
-      const c = document.querySelector('#mansion #view'), x = innerWidth * fx, y = innerHeight * fy;
+      const c = document.querySelector('#clubhouse #view'), x = innerWidth * fx, y = innerHeight * fy;
       const ev = type => c.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: touch ? 'touch' : 'mouse', clientX: x, clientY: y, bubbles: true }));
       ev('pointerdown'); await new Promise(ok => setTimeout(ok, ms)); ev('pointerup');
     }, [fx, fy, ms, !!opts.hasTouch]);
     const played = async () => (await R()).sounds;
 
     await p.goto(page);
-    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); await ctx.close(); return; }
+    if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); await ctx.close(); return; }
     await p.click('#ok');
 
     // through its door on the landing, into the room
@@ -85,7 +85,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: stepping up to the theremin`, await stepUpTo('theremin'));
     await p.waitForTimeout(700);
     const held = p.evaluate(async touch => {
-      const c = document.querySelector('#mansion #view'), ev = (type, x) => c.dispatchEvent(new PointerEvent(type, { pointerId: 8, pointerType: touch ? 'touch' : 'mouse', clientX: x, clientY: innerHeight * 0.45, bubbles: true }));
+      const c = document.querySelector('#clubhouse #view'), ev = (type, x) => c.dispatchEvent(new PointerEvent(type, { pointerId: 8, pointerType: touch ? 'touch' : 'mouse', clientX: x, clientY: innerHeight * 0.45, bubbles: true }));
       ev('pointerdown', innerWidth * 0.3);
       for (let i = 0; i < 10; i++) { ev('pointermove', innerWidth * (0.3 + i * 0.04)); await new Promise(ok => setTimeout(ok, 40)); }
       const on = window.__musicRoom.state().theremin;

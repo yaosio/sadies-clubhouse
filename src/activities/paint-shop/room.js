@@ -7,11 +7,11 @@
 // twice). Now and then Sadie comes in through her cat flap, having stepped in the paint, and walks
 // across the floor leaving paw prints.
 //
-// You paint as you walk about: the mansion hands this place every press (the place's `brush`), as a
+// You paint as you walk about: the clubhouse hands this place every press (the place's `brush`), as a
 // line out into the room, and surfaces.js finds where it lands and paints there. Everything you paint
 // is kept (sadies-clubhouse.paint-shop.paint), a while after you stop and when the room's put away.
 //
-// The mansion calls buildRoom(m) with its building kit, and with the outside and this activity's
+// The clubhouse calls buildRoom(m) with its building kit, and with the outside and this activity's
 // plot on it (its card has a `lot`), so the shop outside is built here too (house.js).
 import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, BoxGeometry, CylinderGeometry, SphereGeometry, ConeGeometry, TorusGeometry, DoubleSide } from 'three';
 import { drawArt, PAINT_CSS } from './art.js';
@@ -47,7 +47,7 @@ export async function buildRoom(m) {
   const { add, box, plane, cyl } = kit(scene);
   const mesh = (geo, mat, pos, rot, parent = scene) => { const o = new Mesh(keep(geo), mat); if (pos) o.position.set(...pos); if (rot) o.rotation.set(...rot); parent.add(o); return o; };
   const tint = (c, o = {}) => psx(null, { tint: c, ...o });
-  // (built again after being put away, the shop outside is still there: the mansion hands it back)
+  // (built again after being put away, the shop outside is still there: the clubhouse hands it back)
   const house = m.house || (m.outside && m.lot ? buildHouse(m, A) : null);
   const S = makeSurfaces(m);
 
@@ -186,7 +186,7 @@ export async function buildRoom(m) {
   S.load(m.saves.get(PAINT_KEY, null));
   let clock = 0, saveAt = 0;
   const ears = () => m.ears?.();
-  let picks = 0;   // (how many times you've picked something up: the mansion flashes the YOU'RE HOLDING box each time)
+  let picks = 0;   // (how many times you've picked something up: the clubhouse flashes the YOU'RE HOLDING box each time)
   function hold(t, paint, sound) {
     held.tool = t; held.paint = paint; picks++;
     m.saves.set(HOLD_KEY, { tool: t, paint });
@@ -220,7 +220,7 @@ export async function buildRoom(m) {
     p.last = h;
     later();
   }
-  // what you're holding, for the mansion's YOU'RE HOLDING box: the tool and its picture, the paint
+  // what you're holding, for the clubhouse's YOU'RE HOLDING box: the tool and its picture, the paint
   // (none for a stamp or the dynamite, which bring their own), and what pressing does with it
   const VERB = { brush: 'PAINT', spray: 'SPRAY', fill: 'FILL', stamp: 'STAMP', boom: 'BLOW THE PAINT OFF' };
   const brushLook = () => {

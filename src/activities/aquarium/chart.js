@@ -2,7 +2,7 @@
 // the mountain, where you can sail, how big the mountain looks from where you are, and what's saved.
 // The approved map: https://claude.ai/artifact/TBpQYmZUAqKcFqyk3gRfk3
 //
-// Sea coordinates are metres, with the mountain in the middle at (0, 0), north at -z (the mansion's
+// Sea coordinates are metres, with the mountain in the middle at (0, 0), north at -z (the clubhouse's
 // yaw 0 faces -z too). The sea is a disc SEA_R across; its surface is sea height 0.
 
 export const SEA_R = 260;          // how far out you can sail (past it, the boat slides along the edge)

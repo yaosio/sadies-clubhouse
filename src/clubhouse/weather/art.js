@@ -1,4 +1,4 @@
-// The weather's pictures, drawn on little canvases when the mansion opens: the cloud cover and the
+// The weather's pictures, drawn on little canvases when the clubhouse opens: the cloud cover and the
 // snow on the ground, the falling cats, and what Sadie wears on the gatepost (an umbrella, a heap of
 // snow, sunglasses) and says.
 import { tex, words, C } from '../look.js';

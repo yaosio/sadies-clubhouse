@@ -1,7 +1,7 @@
-// The aquarium room mock-up: a room in Sadie's mansion with a big fish tank along the back wall.
+// The aquarium room mock-up: a room in Sadie's clubhouse with a big fish tank along the back wall.
 // Sadie swims in it in a little diving suit, with the fish. A sign taped to the glass says not to
 // tap on it, and a cabinet on the side wall is where things found in the ocean will go.
-// Built from the mansion's own pieces (its PS1 material, textures, font and shapes), so it looks
+// Built from the clubhouse's own pieces (its PS1 material, textures, font and shapes), so it looks
 // like it belongs. Walkable: WASD or the thumb stick, drag to look.
 import { WebGLRenderer, PerspectiveCamera, Scene, Color, Mesh, Group, PlaneGeometry, BoxGeometry, DoubleSide, LinearSRGBColorSpace } from 'three';
 import { res, light, drawTextures, loadImage, psx, keep, tex, words, C, doorBack } from '../../src/clubhouse/look.js';

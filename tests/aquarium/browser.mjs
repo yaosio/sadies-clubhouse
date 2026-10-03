@@ -1,5 +1,5 @@
 // The aquarium in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
-// (never on its own) with the built page. It lives in the mansion, so these run whenever the mansion
+// (never on its own) with the built page. It lives in the clubhouse, so these run whenever the clubhouse
 // changes too.
 //
 // It finds the aquarium's door on the landing, walks through it into the room, stands at the glass
@@ -19,7 +19,7 @@ export default async function ({ browser, page, check, outDir }) {
     const until = (fn, ms) => untilGame(fn, null, ms);   // (in the game's time)
 
     await p.goto(page);
-    if (!await up()) { check(`${device}: the mansion opens`, false, errors[0]); await ctx.close(); return; }
+    if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); await ctx.close(); return; }
     await p.click('#ok');
 
     // its door on the landing, then through it into the room
@@ -38,7 +38,7 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(300);
     await shot('3-glass');
     const offer = await M('target');
-    const button = opts.hasTouch ? await p.textContent('#mansion #use') : null;
+    const button = opts.hasTouch ? await p.textContent('#clubhouse #use') : null;
     check(`${device}: at the glass, looking at it, it offers to tap it`, offer === 'TAP THE GLASS' && (!opts.hasTouch || button === 'TAP GLASS'), `${offer}${button ? ' / ' + button : ''}`);
     await M('put', 'room:aquarium', { x: 0, z: -2, yaw: 0, y: 0 });
     await p.waitForTimeout(200);
@@ -55,7 +55,7 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('4-tapped');
     check(`${device}: tapping the glass: Sadie glares, and your view starts to move`, s.taps === 1 && s.glaring && s.diving && (await M('mode')) === 'gliding');
     // the swap: the picture just before it and just after must be the same
-    const canvas = p.locator('#mansion #view');
+    const canvas = p.locator('#clubhouse #view');
     const same = async (what) => {
       await until(() => window.__aquarium.state().held === 'before', 9000);
       await p.waitForTimeout(250);
@@ -76,11 +76,11 @@ export default async function ({ browser, page, check, outDir }) {
     };
     const inSwap = await same('5-swap-in');
     check(`${device}: ...down at the sand the room becomes the ocean, and nothing on the screen changes`, inSwap.was === 'room' && inSwap.now === 'sea' && inSwap.diff < 0.002, `${(inSwap.diff * 100).toFixed(2)}% of the picture changed`);
-    const atSea = await until(() => window.__mansion.mode() === 'play' && !window.__aquarium.state().diving, 12000);
+    const atSea = await until(() => window.__clubhouse.mode() === 'play' && !window.__aquarium.state().diving, 12000);
     await p.waitForTimeout(400);
     await shot('6-at-sea');
     s = await A();
-    const home = await M('target'), homeButton = opts.hasTouch ? await p.textContent('#mansion #use') : null;
+    const home = await M('target'), homeButton = opts.hasTouch ? await p.textContent('#clubhouse #use') : null;
     check(`${device}: ...you come up in the boat, where it starts, with the sign and the button home`, atSea && s.where === 'sea' && Math.hypot(s.boatAt.x - 19, s.boatAt.z - 197) < 0.5 && s.sign === 'FINDS 0 OF 6' && home === 'BACK TO AQUARIUM' && (!opts.hasTouch || homeButton === 'GO HOME'), `${home} / ${s.sign}`);
 
     // sailing: quick
@@ -115,7 +115,7 @@ export default async function ({ browser, page, check, outDir }) {
     await pressUse(p, opts);
     const outSwap = await same('9-swap-home');
     check(`${device}: going home: down at the seabed the ocean becomes the tank again, and nothing on the screen changes`, outSwap.was === 'sea' && outSwap.now === 'room' && outSwap.diff < 0.002, `${(outSwap.diff * 100).toFixed(2)}% of the picture changed`);
-    const back = await until(() => window.__mansion.mode() === 'play' && !window.__aquarium.state().diving, 12000);
+    const back = await until(() => window.__clubhouse.mode() === 'play' && !window.__aquarium.state().diving, 12000);
     const at = await M('where');
     s = await A();
     check(`${device}: ...and comes back out where you stood, the boat's spot saved`, back && s.where === 'room' && Math.hypot(at.x - stood.x, at.z - stood.z) < 0.01 && Math.abs(at.y) < 0.01 && Math.hypot(s.boat.x + 60, s.boat.z - 120) < 0.5, `${at.x.toFixed(2)}, ${at.z.toFixed(2)}, y ${at.y.toFixed(2)}`);
@@ -130,7 +130,7 @@ export default async function ({ browser, page, check, outDir }) {
     await M('put', 'room:aquarium', 'glass');
     await p.waitForTimeout(300);
     await pressUse(p, opts);
-    const again = await until(() => window.__mansion.mode() === 'play' && window.__aquarium.state().where === 'sea', 15000);
+    const again = await until(() => window.__clubhouse.mode() === 'play' && window.__aquarium.state().where === 'sea', 15000);
     s = await A();
     check(`${device}: the next trip comes up where you left the boat`, again && Math.hypot(s.boatAt.x + 60, s.boatAt.z - 120) < 0.5 && s.found.includes('duck'));
 

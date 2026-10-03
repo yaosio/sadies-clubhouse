@@ -1,5 +1,5 @@
 // Clyde's house's headless checks: the Good Morning Machine's rules (machine.js), everything Clyde
-// says (lines.js: it has to fit the speech bubble, in letters the mansion's font has), and every
+// says (lines.js: it has to fit the speech bubble, in letters the clubhouse's font has), and every
 // sound (sounds/). Run in Node, seeded, in well under a second.
 //
 //   node tests/clydes-house/run.mjs
@@ -69,13 +69,13 @@ check('...and says what it keeps in the browser', card.keeps.every(k => k.starts
   check('...and a broken save just starts it over', odd.round === 0 && odd.treats === 0 && missing(odd).length === 1);
 }
 
-// 5. everything Clyde says fits the bubble, in letters the mansion's font has
+// 5. everything Clyde says fits the bubble, in letters the clubhouse's font has
 {
   const all = [...L.HELLO, ...L.HELLO_AGAIN, L.PEEK, ...Object.values(L.HOWTO), ...L.NEXT.flat(), ...Object.values(L.FINALE), ...L.AGAIN, ...Object.values(L.FAIL), ...L.TRY_AGAIN, ...L.DUCK, L.BUSY];
   const long = all.filter(l => wrap(l, LINE).length > 4 || wrap(l, LINE).some(w => w.length > LINE));
   check(`all ${all.length} of Clyde's lines fit the speech bubble (four lines of ${LINE} letters)`, !long.length, long[0]);
   const odd = all.filter(l => /[^A-Z0-9 .,!'()\-$:?/&*\n]/.test(l));
-  check('...in letters the mansion\'s font has (no lower case, no double quotes)', !odd.length, odd[0]);
+  check('...in letters the clubhouse\'s font has (no lower case, no double quotes)', !odd.length, odd[0]);
   check('Clyde has something to say about every bit of junk, and about an empty gap', JUNK.every(j => L.FAIL[j]) && L.FAIL[null]);
   check('...and a line for every round Clyde improves it', L.NEXT.length === ROUNDS.length - 1 && [1, 2, 3, 4].every(n => L.HOWTO[n]));
   check('every part\'s name fits its tag', Object.values(NAMES).every(n => n.length <= 14));
@@ -100,7 +100,7 @@ check('...and says what it keeps in the browser', card.keeps.every(k => k.starts
   const all = ['clear', ...WX.KINDS];
   check('every weather has a forecast', all.every(k => WX.FORECAST[k]?.length === 2));
   const words = all.flatMap(k => WX.FORECAST[k]).concat(Object.values(WX.NAMES));
-  check('the forecasts fit the screen (18 letters), in letters the mansion\'s font has', all.every(k => WX.FORECAST[k].every(l => l.length <= 18)) && words.every(l => !/[^A-Z0-9 .,!'()\-$:?/&*]/.test(l)), words.find(l => l.length > 18));
+  check('the forecasts fit the screen (18 letters), in letters the clubhouse\'s font has', all.every(k => WX.FORECAST[k].every(l => l.length <= 18)) && words.every(l => !/[^A-Z0-9 .,!'()\-$:?/&*]/.test(l)), words.find(l => l.length > 18));
   check('every weather has its own soft jingle', all.every(k => ALL[k + 'In']));
 }
 

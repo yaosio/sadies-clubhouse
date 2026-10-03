@@ -4,8 +4,8 @@
 // a sign by the lane, and Clyde by the front door, who waves when you come up the path. Beside it,
 // Clyde's Weather Machine (weather-machine.js).
 //
-// Built into the outside's own scene, in a group of its own (the mansion hands the room this place and the plot); the
-// front door is a doorway into the room, like every door in the mansion.
+// Built into the outside's own scene, in a group of its own (the clubhouse hands the room this place and the plot); the
+// front door is a doorway into the room, like every door in the clubhouse.
 import { Group, Mesh, PlaneGeometry, BoxGeometry, ConeGeometry, DoubleSide } from 'three';
 import { buildWeather } from './weather-machine.js';
 
@@ -13,7 +13,7 @@ export const DW = 1.3, DH = 2.3;   // the front door
 
 export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
-  // (all in one group, so the mansion can swap it for a plain stand-in when you're far off)
+  // (all in one group, so the clubhouse can swap it for a plain stand-in when you're far off)
   const scene = new Group(); outside.add(scene);
   const { add, box, plane, ball } = kit(scene);
   const hx = lot.x, hz = lot.z, W = 5.4, D = 5, H1 = 3.6;
