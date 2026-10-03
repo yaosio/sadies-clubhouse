@@ -486,12 +486,12 @@ export async function buildRoom(m) {
   };
 
   // for the checks (tests/music-room/browser.mjs)
-  window.__musicRoom = {
+  m.checks('__musicRoom', {
     state: () => ({ playing, sadie: { mode: S.mode, inst: S.inst, walks: S.walks, wait: S.wait }, sounds: sound ? sound.played : 0, heard: sound ? sound.log.slice() : [],
       lit: { piano: [...lit.piano], synth: [...lit.synth] }, welcome, volume: VOLUMES[volumeAt][0], voice, lcd,
       tape: { state: tape.state, which: tape.which, mine: tape.mine.length, sadie: tape.sadie.length }, theremin: glow.visible, sadieAt: sadie.position.toArray() }),
     // send Sadie off to an instrument right now (as if she'd decided to)
     sadieNow(inst) { goNow(S, world(), inst); },
-  };
+  });
   return place;
 }

@@ -25,6 +25,9 @@ from the clubhouse.
 - `overlay(css)`: a layer of the page of its own, just over the 3D view and under the pause menu,
   with those styles, gone when the room's put away.
 - `testing`: it's the test version.
+- `checks(name, hook)`: puts a test hook for the browser checks on the page as `window[name]` (`__<room>`),
+  and takes it away when the room's put away. Never assign `window.__x` directly: it would keep a
+  put-away room's whole state alive (the room checker fails it).
 - `weather` (for whatever makes weather): `docs/clubhouse/outside/weather.md`.
 
 ## What it's lent next door

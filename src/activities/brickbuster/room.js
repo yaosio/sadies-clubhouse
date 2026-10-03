@@ -490,7 +490,7 @@ export async function buildRoom(m) {
   else edges.visible = shardsOnFloor.visible = false;
 
   // for the checks (tests/brickbuster/browser.mjs)
-  window.__brickbuster = {
+  m.checks('__brickbuster', {
     state: () => ({ active, serving: game.serving, score: game.score, paddle: game.paddle, ball: { ...game.ball },
       bricks: game.bricks.filter(k => k.alive).length, pile: piled.filter(Boolean).length, broken: game.broken,
       cracks: { top: game.cracks.top.length, bottom: game.cracks.bottom.length },
@@ -513,7 +513,7 @@ export async function buildRoom(m) {
       }
       keep_();
     },
-  };
+  });
   return place;
 }
 

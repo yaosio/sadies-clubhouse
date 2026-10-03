@@ -112,13 +112,13 @@ export function buildWeather(m, group) {
   }
 
   // for the checks (tests/clydes-house/browser.mjs)
-  globalThis.__weather = {
+  m.checks('__weather', {
     state: () => ({
       now: weather.now(), levers: Object.fromEntries(KINDS.map(k => [k, +levers[k].at.toFixed(2)])),
       sounds: sounds ? sounds.log.slice() : [], labels: uses.map(u => u.label),
     }),
     pull,
     machine: { x: MX, z: FRONT, levers: Object.fromEntries(KINDS.map(k => [k, levers[k].x])) },
-  };
+  });
   return { update, pull, uses };
 }

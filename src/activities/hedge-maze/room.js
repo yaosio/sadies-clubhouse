@@ -221,10 +221,10 @@ export async function buildRoom(m) {
     },
   };
   // for the checks: where the doors are, the maze you're in, and the next step on the way through
-  window.__maze = {
+  m.checks('__maze', {
     state: () => ({ inside, K: mz.live?.K ?? null, end: mz.live?.end ?? null, doors: { ...mz.doors }, played: music.played(), playing: music.playing,
       at: Object.fromEntries(Object.entries(doors).map(([k, d]) => [k, { x: d.pos.x, z: d.pos.z }])), cells: mz.cells.size, shown: shown.size }),
     ahead: (x, z) => mz.ahead(x, z),
-  };
+  });
   return place;
 }
