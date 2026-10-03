@@ -39,13 +39,13 @@ Every activity has a `card.js` (`rooms/card.md`); the room checker checks it.
 ## What the shared systems do for a room
 | System | Where | What it gets for free | Pages |
 |---|---|---|---|
-| Building kit | `mansion.js` hands it to `buildRoom` | Anything added reaches every room | `rooms/kit.md` |
-| Building and putting away | `mansion.js` | Built near you a bite at a time, put away when far, its file fetched when needed | `world/building-rooms.md` |
+| Building kit | `clubhouse.js` hands it to `buildRoom` | Anything added reaches every room | `rooms/kit.md` |
+| Building and putting away | `clubhouse.js` | Built near you a bite at a time, put away when far, its file fetched when needed | `world/building-rooms.md` |
 | Sound | `src/shared/sound.js` | Volumes, the kind-to-the-ears rules, stopped when put away | `sound/` |
 | Saves | `src/shared/storage.js` | Start-over, backups, nearly-full warning, unreadable saves put aside | `rooms/saves.md` |
 | Outside | `outside.js` | Its plot or spot, levels, its house kept while its room's put away | `outside/` |
 | Weather | `src/clubhouse/weather/` | Sunlight, clouds, rain, snow, cats, wherever it's seen from | `outside/weather.md` |
-| Pause | `mansion.js` | Sounds held; controls stopped | `world/walking.md` |
+| Pause | `clubhouse.js` | Sounds held; controls stopped | `world/walking.md` |
 
 ## Where to read more
 `docs/TASKS.md`: your job, and the exact files it reads. Folders (each has a `README.md`):

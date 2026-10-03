@@ -28,3 +28,10 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
   happens. Plan: `up()` waits for just the clubhouse, the room's own check walks up to its door
   (which builds it), and the every-room loops walk to each room. `up()` warns (on GitHub too) once
   it takes over 8 s: that's when to do it.
+- **The game page carries a copy of the whole project** (source, docs, tests) for anyone to unpack.
+  It's about 2 MB now and the page limit is 16 MB: at around 70 rooms it no longer fits. Plan: leave
+  the docs and tests out of the copy (or split it into several files fetched by the unpack tool).
+  Do it when the copy passes 8 MB.
+- **The computer activities' pages are in the first download** (Dropper World, TypeFitter), though
+  most visits never open them. Plan: fetch each when its computer is used, like a room's code. Do it
+  when the first download passes 1.5 MB (it's 1.4 MB now).

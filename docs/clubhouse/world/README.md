@@ -1,7 +1,7 @@
 # The clubhouse's world and the page shell
 
 How Sadie's clubhouse is built as a 3D world you walk round (`src/clubhouse/`, its main file
-`mansion.js`), and the page shell every activity runs in (`src/main.js`), a page per part. Read only
+`clubhouse.js`), and the page shell every activity runs in (`src/main.js`), a page per part. Read only
 the part your change touches. The outside has its own folder: `docs/clubhouse/outside/README.md`.
 
 - `shell.md`: the page shell: opening the clubhouse or an activity, ESC BACK, the test version's

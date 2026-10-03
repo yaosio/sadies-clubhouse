@@ -2,7 +2,7 @@
 
 How you play things in a room. Each kind of control is a file of its own in `src/clubhouse/play/`
 (`arcade.js` for a use with `play`, `paint.js` for a `brush`). A new kind of control goes there, as
-something any place can use, never in `mansion.js` or a room. Read when changing how you play
+something any place can use, never in `clubhouse.js` or a room. Read when changing how you play
 something. How the clubhouse passes keys and presses on: `docs/clubhouse/world/walking.md`.
 
 ## A thing you use: `act`

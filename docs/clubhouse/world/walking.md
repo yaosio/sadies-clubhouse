@@ -1,9 +1,10 @@
 # Walking, controls and the pause menu
 
-You, the controls, and the rest of `mansion.js`. Read when changing how you walk, look, use things,
+You, the controls, and the rest of `clubhouse.js`. Read when changing how you walk, look, use things,
 or the pause menu. Ways of playing a thing in a room: `docs/clubhouse/rooms/controls.md`.
 
 ## You and the controls
+The keys, mouse and stick are in `src/clubhouse/controls.js`; what they do next is in `clubhouse.js`.
 - Walking, the eye following steps smoothly.
 - WASD or the arrows; the mouse, locked to the view after a click, or dragging if the browser won't
   lock it.
@@ -17,7 +18,7 @@ At most 68 degrees tall, looking at most 43 degrees up or down (more made the wa
 view had tipped over), dragging up and down slower than sideways, and your gaze drifting back to
 level while you walk with the thumb stick.
 
-## The rest of `mansion.js`
+## The rest of `clubhouse.js`
 - The doorways (`places-and-doorways.md`).
 - Using the computer: you lean in until the screen fills the view, then the clubhouse leaves the
   page and the activity comes in. It notes which one in `sessionStorage`, so coming back puts you at
