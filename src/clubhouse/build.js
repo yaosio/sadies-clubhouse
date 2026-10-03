@@ -20,6 +20,25 @@ export function kit(scene) {
     cyl: (r1, r2, h, n, mat, pos, rot, open) => add(new Mesh(g(new CylinderGeometry(r1, r2, h, n, 2, open)), mat), pos, rot),
     ball: (r, mat, pos, sy = 1) => { const m = add(new Mesh(g(new SphereGeometry(r, 8, 6)), mat), pos); m.scale.y = sy; return m; },
     cone: (r, h, n, mat, pos, rot) => add(new Mesh(g(new ConeGeometry(r, h, n, 2)), mat), pos, rot),
+    // a room's four papered walls (the door's, `doorAt` -1 for the front or 1 for the back, has a
+    // hole in it for the doorway) with the wainscot and its gold rail all the way round, in two
+    // pieces either side of the door. `wainscot(w)` makes the material for a piece `w` wide;
+    // `wholeWainscot` adds one along the wall facing the door too.
+    shell({ w, d, h, paper, wainscot, doorAt = -1, wholeWainscot = false }) {
+      const door = doorAt < 0 ? 0 : 1;
+      add(new Mesh(g(wallGeometry(2 * w, h, door ? 0 : 1.5, door ? 0 : 2.45)), paper), [0, 0, -d]);
+      add(new Mesh(g(wallGeometry(2 * w, h, door ? 1.5 : 0, door ? 2.45 : 0)), paper), [0, 0, d], [0, Math.PI, 0]);
+      add(new Mesh(g(wallGeometry(2 * d, h)), paper), [-w, 0, 0], [0, Math.PI / 2, 0]);
+      add(new Mesh(g(wallGeometry(2 * d, h)), paper), [w, 0, 0], [0, -Math.PI / 2, 0]);
+      const sw = w - 0.9, side = sw / 2 + 0.9, rail = psx(null, { tint: 0xffd23a, decal: true });
+      const front = doorAt < 0 ? -d + 0.04 : d - 0.04, frontYaw = doorAt < 0 ? 0 : Math.PI, back = -front, backYaw = doorAt < 0 ? Math.PI : 0;
+      const pieces = [[sw, [-side, 0.55, front], frontYaw], [sw, [side, 0.55, front], frontYaw], [2 * d, [-w + 0.04, 0.55, 0], Math.PI / 2], [2 * d, [w - 0.04, 0.55, 0], -Math.PI / 2]];
+      if (wholeWainscot) pieces.splice(2, 0, [2 * w, [0, 0.55, back], backYaw]);
+      for (const [pw, pos, rot] of pieces) {
+        add(new Mesh(g(new PlaneGeometry(pw, 1.1, 2, 2)), wainscot(pw)), pos, [0, rot, 0]);
+        add(new Mesh(g(new PlaneGeometry(pw, 0.1, 2, 2)), rail), [pos[0], 1.12, pos[2]], [0, rot, 0]);
+      }
+    },
   };
 }
 

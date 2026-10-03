@@ -12,6 +12,7 @@ from the clubhouse.
   and standing on the spot it's put at; `.userData.blink(dt)` (call it every update) blinks her now and
   then, at random, and `.userData.set(asleep)` holds her awake or asleep. For her in a helmet or scuba
   gear, pass those pictures as `awake` and `asleep`, with their own `shape` (height over width).
+- `shell({ w, d, h, paper, wainscot, doorAt, wholeWainscot })` (on `kit(scene)`): the four papered walls with the doorway hole, and the wainscot and gold rail all the way round.
 - `walker`: how far round you the walls and furniture keep you (`P` in every floor).
 - `breathe()`: a pause between big parts while building (`docs/clubhouse/world/building-rooms.md`).
 - `card` (its card), its door's `leaf`, its door's picture (`doorImage`).

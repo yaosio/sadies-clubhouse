@@ -22,22 +22,14 @@ import { soundsFor } from '../../shared/sound.js';
 import { px, dot, oval, fishPics, scubaSadie, findPics } from './pictures.js';
 
 export async function buildRoom(m) {
-  const { T, C, psx, keep, tex, words, kit, wallGeometry, doorway, card, leaf } = m;
+  const { T, C, psx, keep, tex, words, kit, doorway, card, leaf } = m;
   const scene = new Scene(); scene.background = new Color(0x0a0628);
-  const { add, box, plane, cyl, ball, cone } = kit(scene);
+  const { box, plane, cyl, ball, cone, shell } = kit(scene);
   const faces = [], swayers = [];
 
   // ---------- the room: sea-blue wallpaper, the wainscot and its rail, a rug with waves, the door ----------
   const paper = psx(T.damask, { rx: 1 / 1.3, ry: 1 / 1.3, tint: 0xa8e0ff });
-  add(new Mesh(wallGeometry(2 * RW, RH, 1.5, 2.45), paper), [0, 0, -RD]);
-  add(new Mesh(wallGeometry(2 * RW, RH), paper), [0, 0, RD], [0, Math.PI, 0]);
-  add(new Mesh(wallGeometry(2 * RD, RH), paper), [-RW, 0, 0], [0, Math.PI / 2, 0]);
-  add(new Mesh(wallGeometry(2 * RD, RH), paper), [RW, 0, 0], [0, -Math.PI / 2, 0]);
-  const side = (RW - 0.9) / 2 + 0.9, sw = RW - 0.9;
-  for (const [w, pos, rot] of [[sw, [-side, 0.55, -RD + 0.04], 0], [sw, [side, 0.55, -RD + 0.04], 0], [2 * RD, [-RW + 0.04, 0.55, 0], Math.PI / 2], [2 * RD, [RW - 0.04, 0.55, 0], -Math.PI / 2]]) {
-    plane(w, 1.1, psx(T.wainscot, { rx: w / 0.9, decal: true, tint: 0x9ad0ff }), pos, [0, rot, 0], 2);
-    plane(w, 0.1, psx(null, { tint: 0xffd23a, decal: true }), [pos[0], 1.12, pos[2]], [0, rot, 0], 2);
-  }
+  shell({ w: RW, d: RD, h: RH, paper, wainscot: w => psx(T.wainscot, { rx: w / 0.9, decal: true, tint: 0x9ad0ff }) });
   plane(2 * RW, 2 * RD, psx(T.wood, { rx: 2 * RW / 1.2, ry: 2 * RD / 1.2 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 8).renderOrder = -2;
   plane(2 * RW, 2 * RD, psx(null, { tint: 0xd8f4ff }), [0, RH, 0], [Math.PI / 2, 0, 0], 6);
   const rug = tex(32, 32, g => {
