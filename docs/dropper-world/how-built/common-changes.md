@@ -50,5 +50,5 @@ player.
 
 It goes in `core/`, is driven from `update()` in `core/game.js`, and gets drawn by something in
 `render/`. If it should survive closing the page, add it to `snapshot()` and `restore()` in
-`core/save.js` (and the save test). When the save's format changes, bump `SAVE_VERSION` and teach
-`restore()` to read the old version: a format change must never lose anyone's tower.
+`core/save.js` (and the save test). When the save's format changes, bump `SAVE_VERSION` and add the
+step from the old version to `UPGRADES` in `core/save.js`: a format change must never lose anyone's tower.

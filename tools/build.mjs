@@ -30,7 +30,9 @@ import { activityIds } from './activities.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const preview = process.argv.includes('--preview'), readable = process.argv.includes('--readable');
-const EMBED = ['README.md', 'CLAUDE.md', '.gitignore', 'package.json', 'docs', 'src', 'tests', 'tools'];
+// (everything a checkout needs to be checked and built the same: the lockfile, Node's version, the
+// linter's settings and GitHub's checks too, so `--live` can tell what's unchanged and an unpacked page is whole)
+const EMBED = ['README.md', 'CLAUDE.md', '.gitignore', '.nvmrc', 'package.json', 'package-lock.json', 'eslint.config.js', '.github', 'docs', 'src', 'tests', 'tools'];
 
 function collect(p, out) {
   const full = join(root, p);

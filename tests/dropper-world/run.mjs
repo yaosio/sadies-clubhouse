@@ -369,6 +369,9 @@ if (wanted(9)) {
     `longest stuck in the pile ${longest} frames, fastest rise ${(maxRise * 60).toFixed(1)} blocks/s, deepest overlap ${penetration(world.pieces).toFixed(2)} px`);
   let threw = false; try { restore({ v: 999, pieces: [] }); } catch (e) { threw = true; }
   check('a save from a different version is refused, not half-loaded', threw);
+  { const { upgrade } = await import('../../src/activities/dropper-world/core/save.js');
+    const up = upgrade({ v: 1, a: 1 }, { 1: o => ({ ...o, v: 2, b: 2 }), 2: o => ({ ...o, v: 3 }) }, 3);
+    check('an older save is upgraded step by step to the current version (the way a format change keeps the tower)', up.v === 3 && up.b === 2 && upgrade(null) === null && upgrade({ v: 999 }).v === 999); }
   clearTower();
   check('"Clear tower" empties the board but Sadie keeps Chooter', world.pieces.filter(p => !p.fixed).length === 0 && chooter.met);
   const { tuning, DEFAULTS } = await import('../../src/activities/dropper-world/config.js');

@@ -11,24 +11,33 @@
 // sample has yet (its saves changed, or it has none), it's written as a new sample, to be committed
 // with the change (never on GitHub). So the shape a version saved in is kept before the next
 // version can change it, and every later version is checked against all of them.
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
+const SAMPLE_MAX = 50e3, TOTAL_MAX = 500e3;   // bytes: one sample, and all of an activity's
 const dirOf = (root, id) => join(root, 'tests/saves', id);
 const ownKey = (keeps, k) => keeps.some(p => k.startsWith(p)) && !k.endsWith('.unreadable');
 
-// the shape of a save: its keys, and for each the outline of what's in it (objects' fields, the
-// first item of a list, the kind of each value), never the values themselves
+// the shape of a save: its keys, and for each the outline of what's in it (objects' fields, every
+// item of a list put together, the kind of each value), never the values themselves. A `null` is
+// kept as 'null', which matches anything (a mole holding a piece or not isn't a different format).
+const bothObjects = (a, b) => a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b);
+const merge = (a, b) => a === undefined || a === 'null' ? b : b === undefined || b === 'null' ? a : bothObjects(a, b)
+  ? Object.fromEntries([...new Set([...Object.keys(a), ...Object.keys(b)])].sort().map(k => [k, merge(a[k], b[k])])) : a;
 function outline(v) {
-  if (Array.isArray(v)) return v.length ? [outline(v[0])] : [];
+  if (Array.isArray(v)) return v.length ? [v.map(outline).reduce(merge)] : [];
   if (v && typeof v === 'object') return Object.fromEntries(Object.keys(v).sort().map(k => [k, outline(v[k])]));
   return v === null ? 'null' : typeof v;
 }
 function shapeOf(saves, keeps) {
   const read = s => { try { return outline(JSON.parse(s)); } catch { return 'text'; } };
-  return JSON.stringify(Object.keys(saves).filter(k => ownKey(keeps, k)).sort().map(k => [k, read(saves[k])]));
+  return Object.fromEntries(Object.keys(saves).filter(k => ownKey(keeps, k)).sort().map(k => [k, read(saves[k])]));
 }
+// Is everything in shape `a` already in shape `b`? (a save with less in it just now, an empty list,
+// isn't a new format; a key or kind of value `b` has never seen is)
+const covered = (a, b) => a === undefined || a === 'null' || b === 'null' || (bothObjects(a, b) ? Object.keys(a).every(k => covered(a[k], b[k]))
+  : Array.isArray(a) ? Array.isArray(b) && (!a.length || !b.length || covered(a[0], b[0])) : a === b);
 
 // After its checks: the fullest set of saves any page of them had (`dumps`: every page's saves, as
 // each window closed), kept as a new sample if no sample has its shape. The sample carries the
@@ -36,12 +45,13 @@ function shapeOf(saves, keeps) {
 export function keepSample({ root, id, keeps, dumps }) {
   if (!keeps.length) return null;
   const own = d => Object.keys(d).filter(k => ownKey(keeps, k)).length;
-  const best = dumps.filter(own).sort((a, b) => own(b) - own(a) || JSON.stringify(b).length - JSON.stringify(a).length)[0];
+  // (the one with the most saves of its own, then the smallest: a sample is for its shape, not its size)
+  const best = dumps.filter(own).sort((a, b) => own(b) - own(a) || JSON.stringify(a).length - JSON.stringify(b).length)[0];
   if (!best) return null;
   const sample = Object.fromEntries(Object.entries(best).filter(([k]) => ownKey(keeps, k) || k.startsWith('mansion.')));
   const dir = dirOf(root, id), shape = shapeOf(sample, keeps);
   const have = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.json')) : [];
-  if (have.some(f => shapeOf(JSON.parse(readFileSync(join(dir, f), 'utf8')), keeps) === shape)) return null;
+  if (have.some(f => covered(shape, shapeOf(JSON.parse(readFileSync(join(dir, f), 'utf8')), keeps)))) return null;
   const commit = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root }).stdout?.toString().trim() || 'unknown';
   const name = `${new Date().toISOString().slice(0, 10)}-${commit}.json`;
   mkdirSync(dir, { recursive: true });
@@ -54,6 +64,11 @@ export function keepSample({ root, id, keeps, dumps }) {
 export async function oldSaves({ browser, page, card, check, root, skip = [] }) {
   const id = card.id, keeps = card.keeps || [], dir = dirOf(root, id);
   if (!keeps.length || !existsSync(dir)) return;
+  // samples stay small: they ship in the project copy and every check loads each one
+  const sizes = readdirSync(dir).filter(f => f.endsWith('.json')).map(f => [f, statSync(join(dir, f)).size]);
+  const big = sizes.filter(([, n]) => n > SAMPLE_MAX), total = sizes.reduce((n, [, b]) => n + b, 0);
+  check('its old-saves samples stay small', !big.length && total <= TOTAL_MAX,
+    big.length ? `${big.map(([f, n]) => `${f} is ${Math.round(n / 1024)} KB`).join(', ')} (over ${SAMPLE_MAX / 1024} KB: trim it to a few pieces of each kind)` : total > TOTAL_MAX ? `${Math.round(total / 1024)} KB in all, over ${TOTAL_MAX / 1024} KB` : `${sizes.length} samples, ${Math.round(total / 1024)} KB`);
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json') && !skip.includes(f)).sort()) {
     const saves = JSON.parse(readFileSync(join(dir, f), 'utf8'));
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });

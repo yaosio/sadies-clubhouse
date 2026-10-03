@@ -4,8 +4,8 @@ How the game is saved and loaded, and what comes back. Read before adding anythi
 changing its format. Adding something new to it: `common-changes.md`. How the clubhouse keeps
 saves: `docs/clubhouse/rooms/saves.md`.
 
-When the format changes, bump `SAVE_VERSION` and teach `restore()` to read the old version too:
-never lose anyone's tower.
+When the format changes, bump `SAVE_VERSION` and add the step that turns the old version into the new
+one to `UPGRADES` in `core/save.js` (`restore()` runs every step in turn): never lose anyone's tower.
 
 ## The files
 
