@@ -37,6 +37,8 @@ Found from the cards, so a new room is checked with no new test:
 - Its music is not heard once you've left, nothing is left once it's put away, nothing starts up after.
 - Put away and built again three times over with nothing piling up (on the graphics card or the
   page), its save unchanged, and each rebuild as quick as a first build.
+- The same loop forces a memory clean-up each round: memory may not grow by more than 3 MB over the
+  last two rounds, and no listener may be left on the window or the page.
 
 ## The pause menu and saves
 - The MUSIC, SOUNDS and VOICES buttons (SOFT, OFF, ON, remembered).

@@ -18,6 +18,7 @@ import { walk as walkFor, rest, until } from '../shared/browser.mjs';
 import { allKeeps, allCards } from './cards.mjs';
 
 const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
+const LEAK_MB = 3;   // (how much the page's memory may grow over two more rounds of putting every room away and building it again)
 
 export default async function ({ browser, page, check, outDir }) {
   // It names no room: it picks them from the cards, so renaming or adding one never breaks it.
@@ -257,17 +258,35 @@ export default async function ({ browser, page, check, outDir }) {
     const saves = () => p.evaluate(() => JSON.stringify(Object.keys(localStorage).filter(k => !k.startsWith('mansion.')).sort().map(k => [k, localStorage.getItem(k)])));
     for (const n of all) await M('build', n);   // (the ones put away just now)
     const saved0 = await saves();
-    const refused = [], kept = [], onPage = [];
+    const refused = [], kept = [], onPage = [], heap = [], listeners = [];
+    // (what's left in the page's memory after clearing out the garbage, and how many things listen on
+    // the window and the document: a room that adds one each time it's built, or never lets go of
+    // its things, shows as steady growth)
+    const cdp = await ctx.newCDPSession(p);
+    const memory = async () => {
+      await cdp.send('HeapProfiler.collectGarbage');
+      const used = (await cdp.send('Runtime.getHeapUsage')).usedSize;
+      let n = 0;
+      for (const target of ['window', 'document']) {
+        const { result } = await cdp.send('Runtime.evaluate', { expression: target });
+        n += (await cdp.send('DOMDebugger.getEventListeners', { objectId: result.objectId })).listeners.length;
+      }
+      return [used, n];
+    };
     for (let round = 0; round < 3; round++) {
       for (const n of all) { if (!(await M('putAway', n))) refused.push(n); await M('build', n); }
       kept.push((await M('speed')).kept);
       onPage.push(await p.evaluate(() => document.querySelectorAll('*').length));
+      const [used, n] = await memory(); heap.push(used); listeners.push(n);
     }
     const saved1 = await saves(), sp3 = await M('speed');
     await M('onlyDoors', false);
     // (the first time round, a room outside the gate keeps its house's pictures from its first build)
     check(`${device}: ...every room can be put away and built again, over and over`, !refused.length && kept[1] === kept[0] && kept[2] === kept[0], `${[...new Set(refused)].join(', ') || 'all of them'}; things kept each time round: ${kept.join(', ')}`);
     check(`${device}: ...and leaves no copies behind on the page`, onPage[1] === onPage[0] && onPage[2] === onPage[0], `things on the page each time round: ${onPage.join(', ')}`);
+    const growth = heap[2] - heap[0];
+    check(`${device}: ...and leaks nothing: no growing memory (under ${LEAK_MB} MB over two more rounds) and no listeners left on the window or page`, growth < LEAK_MB * 1e6 && listeners[2] === listeners[0],
+      `memory ${heap.map(h => (h / 1e6).toFixed(1)).join(', ')} MB, listeners ${listeners.join(', ')}`);
     check(`${device}: ...and every room's save is just as it was`, saved1 === saved0, saved1 === saved0 ? '' : `before ${saved0.slice(0, 300)} after ${saved1.slice(0, 300)}`);
     const slowAgain = all.filter(n => sp3.places[n] > SLOW || sp3.bits[n] > BIT);
     check(`${device}: ...and each is as quick to build again (under ${SLOW} ms, no bit over ${BIT} ms)`, !slowAgain.length, all.map(n => `${n.replace('room:', '')} ${sp3.places[n]}/${sp3.bits[n]}`).join(', '));
