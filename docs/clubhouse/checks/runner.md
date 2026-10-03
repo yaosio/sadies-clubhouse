@@ -9,7 +9,7 @@ is skipped, the flags, or how GitHub runs the checks.
   playing the phone and the desktop side by side.
 - It prints how long each stage took, and each note of a pass says how long it took.
 - An activity whose browser checks or headless tests take over 180 s is pointed out (a warning on
-  GitHub), so slow checks are looked at before they slow every change down.
+  GitHub too), so slow checks are looked at before they slow every change down.
 
 ## What is skipped when
 - Each activity is skipped when it already passed on exactly the same files (remembered in `dist/`).
@@ -20,8 +20,8 @@ is skipped, the flags, or how GitHub runs the checks.
   `tests/shared/`, the build and check tools (`tools/build.mjs`, `check.mjs`, `serve.mjs`,
   `browser.mjs`, `activities.mjs`, `source.mjs`) and `.github/workflows/check.yml`.
 - Nothing else can change what a check finds. Everything else (the docs, the other tools, the code
-  checker's rules) is covered by the code checker and the docs check, which GitHub runs on every
-  pull request whatever it changes. So the check at merge is quick.
+  checker's rules) is covered by the code checker and the docs check, which `npm run check` runs every
+  time whatever changed. So the check at merge is quick.
 - The clubhouse's browser checks run again on any change in `src/`: that's what catches one room
   breaking or slowing another (a room's own checks only run when its own files change). Never narrow
   what they depend on without a cross-room check in their place.
@@ -50,19 +50,16 @@ is skipped, the flags, or how GitHub runs the checks.
   hidden browser draws on the processor) and checks that let the game run for a moment fail.
 
 ## `.github/workflows/check.yml`
-The same checks on GitHub, on every pull request and on `main`.
+The same checks on GitHub's computers, run only by hand (the Actions page's "Run workflow"): the
+repository is private, so they cost minutes, and on every push they used the free month up in two
+days (2026-10-03). Nothing waits on them; `npm run check` here is the check.
 - `plan` runs the code checker and the docs check (on every pull request, whatever it changes) and
   works out which activities haven't passed on exactly their code. What passed is remembered
   between runs.
-- On `main` after a merge, what the pull request's last green run had passed counts too, since
-  `main` can't see what a pull request remembered. So the merge run only checks what the merge
-  changed, usually nothing.
 - Each of those activities gets a computer of its own running `npm run check -- --only <activity>`,
   all at once. Past 16, the clubhouse and the biggest activity keep one each and the rest share
   (`--only a+b`), shared out by how long each took last time.
 - `remember` saves what passed and gives the one tick or cross.
 - A full retest takes about as long as the slowest activity rather than all of them in a row.
 - Screenshots of a failure are kept with the run for a week.
-- Every Monday it checks all of `main` again from scratch (`--retest`), since a pass is otherwise
-  trusted until the code changes even if GitHub's computers have changed underneath. A red weekly run
-  shows on the repository's Actions page, worth a look when starting new work.
+- Started on a Monday's schedule (it no longer is) it checked everything from scratch (`--retest`).

@@ -89,5 +89,5 @@ const out = { file_path: join(to, 'index.html'), files, capabilities: { download
 writeFileSync(join(to, 'publish.json'), JSON.stringify(out, null, 1));
 console.log(`\n${game.length} game files, ${old.length} old ones removed, built at ${head.slice(0, 7)}; what to pass to the Artifact tool is in ${join(to, 'publish.json')}`);
 console.log(preview ? 'publish it to the test page: https://claude.ai/artifact/N7uvNgLxdePKW72SsM3NFX'
-  : `publish it to the game page, https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB, once GitHub's check on ${head.slice(0, 7)} is green`);
+  : `publish it to the game page, https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB, once \`npm run check -- --live <the saved page>\` passes on ${head.slice(0, 7)}`);
 if (wrong) stop();

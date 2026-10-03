@@ -10,7 +10,8 @@ Why the checks and tools work as they do. Read before undoing one of these; add 
 | Browser checks wait in game time or for the thing itself, never a clock-timed pause | Slower computers (GitHub's) run fewer frames and fall behind the clock |
 | `package-lock.json` is committed | Every tool at an exact version, so builds are repeatable |
 | No auto-formatter | Only Claude writes the code; reformatting every file gains little and clashes with work in progress |
-| The real game is published once GitHub's check on main is green, without running the checks again | GitHub already checked exactly that code, as the real build; running it again took ten minutes |
+| The real game is published once `npm run check -- --live` passes on main's latest commit | GitHub's checks are off (below); `--live` skips what the live page already passed, so it's quick |
+| GitHub's checks (and the Safari look) run only when started by hand; Claude's `npm run check` before every push, merge and publish is the check (2026-10-03) | The repository is private, so GitHub's computers cost minutes, and a run on every push used the owner's free month up in two days; the owner wants none used |
 | Every card is checked against the clubhouse's rules (`tests/clubhouse/cards.mjs`) | A misplaced or misspelt card shows up as a plain reason, not a broken game |
 | Each kind of control (a way of playing) is a file of its own in `src/clubhouse/play/`, lent only what it needs; the clubhouse just passes it keys, presses and frames | They used to be written into `mansion.js` one by one, so it grew with every new kind of play, inside or out |
 | The shared code (the clubhouse, outside, shell, toolbox) never names an activity, and a check fails if it does | Reviews noted controls piling up in the clubhouse but only listed it as a limit; a check catches it the day it happens |
