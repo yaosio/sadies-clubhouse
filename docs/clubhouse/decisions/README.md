@@ -7,6 +7,7 @@ made (or one is changed, saying when and why).
 - `how-built.md`: how it's built: folders, places, rooms, doors, the weather.
 - `sound-look-saves.md`: sound, the look, and saves.
 - `checks.md`: the checks and tools, and the docs layout.
+- `fatal-only.md`: checks test fatal errors only (2026-10-03), and what was dropped on purpose.
 - `known-limits.md`: things that are fine today but will need work as the game grows. Go through
   them in every review. Each review also asks of every shared file (the clubhouse, the outside, the
   toolbox): is there anything here only one room uses, or that grows with every new kind of room? A

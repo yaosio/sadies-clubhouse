@@ -1,32 +1,30 @@
-// Sadie's clubhouse (the clubhouse) in a real (hidden) browser, as a phone and as a desktop: run by
-// tools/check.mjs (never on its own) with the built page, every time (it takes under a minute).
+// Sadie's clubhouse in a real (hidden) browser, as a phone and as a desktop: run by tools/check.mjs
+// (never on its own) with the built page, every time. Fatal errors only (docs/clubhouse/checks/fatal-only.md):
 //
 // It opens the page at the gate with Sadie's letter (the first time only), walks, goes in through the
-// front door (seeing the hall through it first), climbs the spiral stairs to the landings, and checks
-// every door on them leads to its own room, and every activity on a computer plays there (the clubhouse
-// must leave the page completely) and comes back with ESC BACK, or from an address that went straight
-// in. It checks the rooms are built after the clubhouse opens (and how quick each is), and that a room
-// put away is built again as you walk up to its door, with nothing piling up. The main theme plays,
-// fades out in a room that keeps it out and comes back; the pause menu's MUSIC button goes SOFT, OFF
-// and ON. It pauses, each activity's START OVER erases only its own saves, and in the test version it
-// starts the letter over. A room's code is a file of its own: when that file won't come, the room's
-// door stays shut and it's fetched again later. It names no room: it picks them from the cards. Any
-// error on the page, or anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
+// front door, climbs the spiral stairs to both landings, and checks every door leads to its own room,
+// every building outside leads to its own room, and every activity on a computer plays there (the
+// clubhouse must leave the page completely) and comes back with ESC BACK. Rooms are built after the
+// clubhouse opens; a room put away is built again as you walk up to its door; every room put away and
+// built again over and over leaves nothing behind (no leak). A place that throws doesn't freeze the
+// game. It pauses, each activity's START OVER erases only its own saves, a backup saves and loads, and
+// every save belongs to an activity's card. A room whose file won't come keeps its door shut and is
+// fetched again later. It names no room: it picks them from the cards. Any error on the page, or
+// anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { walk as walkFor, rest, until, DEVICES, pressUse, pressPause } from '../shared/browser.mjs';
 import { allKeeps, allCards } from './cards.mjs';
 import { DESKTOP } from '../shared/devices.mjs';
 
-const SLOW = 1500, BIT = 200, PROGRAMS = 8;   // (ms to build a place, the longest bit of it, and kinds of drawing: see below)
 const LEAK_MB = 3;   // (how much the page's memory may grow over two more rounds of putting every room away and building it again)
 
 export default async function ({ browser, page, check, outDir }) {
   // It names no room: it picks them from the cards, so renaming or adding one never breaks it.
-  // (`beside`, `first`: the first two doors up the stairs; `spare`: the last room on the landings that
-  // lives in its room, for putting away; `computers`: every activity played at a computer)
+  // (`spare`: the last room on the landings that lives in its room, for putting away; `computers`:
+  // every activity played at a computer)
   const cards = await allCards(), landed = cards.filter(c => Number.isInteger(c.slot)).sort((a, b) => a.slot - b.slot);
-  const [beside, first] = [landed[0], landed[1] || landed[0]], spare = landed.filter(c => c.room).at(-1), computers = landed.filter(c => c.start);
+  const spare = landed.filter(c => c.room).at(-1), computers = landed.filter(c => c.start);
   const saver = cards.find(c => c.keeps && c.room), junk = saver.keeps[0];
   // the phone and the desktop at the same time (each in its own browser window)
   await Promise.all(DEVICES.map(async ([device, opts]) => {
@@ -67,19 +65,6 @@ export default async function ({ browser, page, check, outDir }) {
     } else await walk(700);
     const after = await M('where');
     check(`${device}: ${opts.hasTouch ? 'the thumb stick' : 'W'} walks you up the path`, after.z - before.z > 0.8, `moved ${(after.z - before.z).toFixed(2)} m`);
-    if (opts.hasTouch) {
-      // dragging anywhere else, even on the left side, only looks around: the stick stays put
-      const r0 = await p.evaluate(() => JSON.stringify(document.querySelector('#clubhouse #stick').getBoundingClientRect()));
-      const w0 = await M('where');
-      await p.evaluate(async () => {
-        const c = document.querySelector('#clubhouse #view'), x = 90, y = 300;
-        const ev = (type, dx) => c.dispatchEvent(new PointerEvent(type, { pointerId: 8, pointerType: 'touch', clientX: x + dx, clientY: y, bubbles: true }));
-        ev('pointerdown', 0); ev('pointermove', 60); await new Promise(ok => setTimeout(ok, 300)); ev('pointerup', 60);
-      });
-      const w1 = await M('where'), r1 = await p.evaluate(() => JSON.stringify(document.querySelector('#clubhouse #stick').getBoundingClientRect()));
-      check(`${device}: dragging away from the stick turns the view, and the stick stays in its corner`,
-        Math.abs(w1.yaw - w0.yaw) > 0.1 && Math.hypot(w1.x - w0.x, w1.z - w0.z) < 0.01 && r0 === r1);
-    }
 
     // in through the front door: it opens as you come up, and the hall shows through it
     await M('faceDoor', 'outside', 'front', 2.4);
@@ -90,23 +75,6 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(700);   // through, and about a metre on: still inside the door's swing
     await shot('4-hall');
     check(`${device}: ...and walking through it takes you into the hall (no loading)`, (await M('where')).place === 'hall');
-    check(`${device}: ...and the door stays open while you're still in its swing`, await M('lastDoorOpen') > 0.9, `open ${(await M('lastDoorOpen'))?.toFixed(2)}`);
-
-    // stepping through a doorway a little at a time, you come out exactly as far past it as you
-    // stepped (no jump: even a few centimetres shows as a stutter)
-    await M('faceDoor', 'outside', 'front', 0.5);
-    let past = null;
-    for (let i = 0; i < 60 && past === null; i++) {
-      await M('step', 0.013);
-      const w = await M('where');
-      if (w.place === 'hall') past = w.z - (await M('doorAt', 'hall', 'front')).z;
-    }
-    check(`${device}: stepping through a doorway doesn't jump you forward`, past !== null && past > 0 && past <= 0.0131, `came out ${past?.toFixed(4)} m past it`);
-
-    // looking up and down while turning never tips the view over
-    let tipped = 0;
-    for (const [yaw, pitch] of [[0.7, 0.6], [2.4, -0.7], [-1.9, 0.5]]) { await M('turnTo', yaw, pitch); await p.waitForTimeout(80); tipped = Math.max(tipped, await M('tilt')); }
-    check(`${device}: looking up or down while turning keeps the view upright`, tipped < 1e-3, `leans ${tipped.toFixed(3)}`);
 
     // the clubhouse opens before the rooms are built (all but a building outside the gate, which you can
     // see from the lane); the rest are built one at a time while you stand about
@@ -114,42 +82,7 @@ export default async function ({ browser, page, check, outDir }) {
     const outsideRooms = await M('outsideRooms');
     check(`${device}: the clubhouse opens without waiting for the rooms`, sp.atFirst.every(n => outsideRooms.includes(n)), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
     const settled = await p.waitForFunction(() => window.__clubhouse.settled(), null, { timeout: 20000 }).then(() => true, () => false);
-    const sp2 = await M('speed'), slow = Object.entries(sp2.places).filter(([, ms]) => ms > SLOW);
     check(`${device}: ...and the rooms are built while you stand about`, settled, (await M('built')).join(', '));
-    // the main theme: playing (you've pressed something by now), fading out in a room that keeps it out
-    // (`hush: true`, the Music Room so far) and back in once you've left it
-    const playing = () => p.waitForFunction(() => { const m = window.__clubhouse.music(); return m.playing && m.notes > 0 && m.level > 0.05; }, null, { timeout: 8000 }).then(() => true, () => false);
-    check(`${device}: the main theme plays`, await playing(), JSON.stringify(await M('music')));
-    const quiet = (await M('quiet'))[0];
-    if (quiet) await M('faceDoor', quiet, 'door', 2);
-    const hushed = await p.waitForFunction(() => { const m = window.__clubhouse.music(); return !m.playing && m.level < 0.01; }, null, { timeout: 8000 }).then(() => true, () => false);
-    check(`${device}: ...and fades out in a room that keeps it out (${quiet})`, !!quiet && hushed, JSON.stringify(await M('music')));
-    await M('faceDoor', 'hall', first.id, 1.3);
-    check(`${device}: ...and back in once you've left`, await playing(), JSON.stringify(await M('music')));
-    // how quick each place is to build (a slow one makes a hiccup as you walk up to its door), and
-    // how many kinds of drawing the graphics card has had to learn (each new kind: a hiccup the first
-    // time it's seen). Headless drawing is slow, so these are generous.
-    check(`${device}: every place builds in under ${SLOW} ms`, !slow.length, Object.entries(sp2.places).map(([k, ms]) => `${k.replace('room:', '')} ${ms}`).join(', '));
-    // (a room builds a bit at a time, so the game's never held up for long: the longest bit. Not
-    // counting the ones built before the first picture, the buildings outside: nothing's playing
-    // yet, and how long that takes is the start-up's, timed by tools/clubhouse/startup.mjs. The
-    // Hedge Maze's first build takes its one picture of the house then, the first time anything
-    // draws the house, which took 300 to 400 ms on GitHub's slower computers. Built again, every
-    // room, those too, is held to the limit below.)
-    const bits = Object.entries(sp2.bits).filter(([k]) => k.startsWith('room:') && !sp.atFirst.includes(k)), long = bits.filter(([, ms]) => ms > BIT);
-    check(`${device}: ...a bit at a time, never holding the game up more than ${BIT} ms`, !long.length, bits.map(([k, ms]) => `${k.replace('room:', '')} ${ms}`).join(', '));
-    check(`${device}: ...and every place draws with the same few materials`, sp2.programs <= PROGRAMS, `${sp2.programs} kinds so far`);
-
-    // a building outside the gate far off is drawn as a plain block (none is that far yet: here the
-    // distance is made short, standing at the gate)
-    await M('put', 'outside', 'start');
-    await M('farHouse', 5); await p.waitForTimeout(300);
-    await shot('4a-far-house');
-    const far = await M('houses');
-    await M('farHouse', 90); await p.waitForTimeout(300);
-    const near = await M('houses');
-    check(`${device}: a building outside the gate is a plain block when far off, and itself close up`, far.length && far.every(h => h.far) && near.every(h => !h.far), JSON.stringify(far));
-
     // up the spiral stairs to the landing, keeping to the middle of the steps
     await M('put', 'hall', 'stairs');
     for (let i = 0; i < 40; i++) {
@@ -161,24 +94,6 @@ export default async function ({ browser, page, check, outDir }) {
     }
     const top = await M('where');
     check(`${device}: the stairs go up to the first landing`, top.y > 4.5, `at ${top.y.toFixed(2)} m`);
-    // the outside's ground can have levels: a bridge over the lane, something solid under it, and you
-    // stand on whichever is nearest your feet (only checked once: it's the same on any screen)
-    if (device === 'desktop') {
-      const lv = await p.evaluate(() => {
-        const o = window.__clubhouse.outside(), f = (x, z, y) => o.floor(x, z, y);
-        const gone = [
-          o.surface((x, z) => Math.abs(x) < 3 && Math.abs(z + 31) < 1 ? 3 : null),   // a bridge 3 m up, across the lane
-          o.block(-1, 1, -31.5, -30.5, 0, 1),                                         // a crate under it
-          o.block(2, 3, -31.5, -30.5, 2.8, 3.1)];                                     // a lamp post's top, sticking up through the bridge
-        const got = { under: f(0, -31, 0), onTop: f(0, -31, 3), beside: f(2.5, -31, 0), lampOnTop: f(2.5, -31, 3), lane: f(10, -31, 0), off: f(10, -31, 3) };
-        for (const g of gone) g();
-        got.after = f(0, -31, 0);   // (and taken away again, it's plain ground)
-        return got;
-      });
-      check(`${device}: outside, the ground can have levels: a bridge over the lane, a crate under it`,
-        lv.under === null && lv.onTop === 3 && lv.beside === 0 && lv.lampOnTop === null && lv.lane === 0 && lv.off === null && lv.after === 0, JSON.stringify(lv));
-    }
-
     // ...and on round again to the second landing, and off the stairs onto it
     for (let i = 0; i < 60; i++) {
       const w = await M('where');
@@ -191,18 +106,6 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(1500);
     const up2 = await M('where'), r2 = Math.hypot(up2.x, up2.z);
     check(`${device}: ...and round again to the second landing, and off the stairs onto it`, up2.y > 9.1 && r2 > 6, `at ${up2.y.toFixed(2)} m, ${r2.toFixed(1)} m from the middle`);
-
-    // two doors open side by side on the landing both show what's through them (neither goes black)
-    await M('faceDoor', 'hall', first.id, 1.3);
-    await M('faceDoor', 'hall', first.id, 2.4);
-    await M('turnTo', (await M('where')).yaw - 0.45);
-    await M('holdOpen', 'hall', first.id);
-    await M('holdOpen', 'room:' + beside.id, 'door');
-    await p.waitForTimeout(700);
-    await shot('4b-two-doors');
-    const both = await M('showing');
-    await M('holdOpen', 'hall', null); await M('holdOpen', 'room:' + beside.id, null);
-    check(`${device}: two open doors side by side both show their rooms`, both >= 2, `${both} showing`);
 
     // a room far off can be put away (its things handed back), and walking up to its door builds it
     // again: the door opens once it's ready, and nothing piles up
@@ -222,25 +125,6 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:' + spare.id) }));
     const k2 = (await M('speed')).kept;
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
-    // Every room keeps the sound rules (src/shared/sound.js): none of its music is heard once you've
-    // left it, and once it's put away nothing it started is left (no sounds, no lines).
-    const leftOver = [];
-    for (const n of (await M('places')).filter(n => n.startsWith('room:'))) {
-      await M('build', n); await M('faceDoor', n, 'door', 2); await p.waitForTimeout(1200);
-      await M('faceDoor', 'hall', first.id, 1.3); await p.waitForTimeout(600);
-      const o = (await M('sound')).owners[n];
-      if (o?.music) leftOver.push(`${n} music still heard`);
-      if (!(await M('putAway', n))) leftOver.push(`${n} wouldn't be put away`);
-      else if ((await M('sound')).owners[n]) leftOver.push(`${n} left sounds behind`);
-    }
-    // (a room's test hook (`window.__<room>`) goes with it, or it keeps the whole room's state alive)
-    const hooksLeft = (await M('built')).length ? [] : await p.evaluate(() => Object.keys(window).filter(k => k.startsWith('__') && k !== '__clubhouse'));
-    check(`${device}: a room's test hook is taken away when it's put away`, !hooksLeft.length, hooksLeft.join(', '));
-    // (and nothing it had waiting to go off later starts up again once it's put away)
-    await p.waitForTimeout(2000);
-    const owners = (await M('sound')).owners;
-    for (const n of (await M('places')).filter(n => n.startsWith('room:'))) if (owners[n] && !(await M('built')).includes(n)) leftOver.push(`${n} made sounds after it was put away`);
-    check(`${device}: every room keeps the sound rules: its music isn't heard once you've left, and it leaves nothing playing when put away`, !leftOver.length, leftOver.join(', '));
     // one place's mistake in a frame doesn't stop the game: it carries on (and says so once, not an error)
     await M('sabotage', 'hall', true);
     const f0 = await M('frames'); await p.waitForTimeout(600);
@@ -276,7 +160,7 @@ export default async function ({ browser, page, check, outDir }) {
       onPage.push(await p.evaluate(() => document.querySelectorAll('*').length));
       const [used, n] = await memory(); heap.push(used); listeners.push(n);
     }
-    const saved1 = await saves(), sp3 = await M('speed');
+    const saved1 = await saves();
     await M('onlyDoors', false);
     // (the first time round, a room outside the gate keeps its house's pictures from its first build)
     check(`${device}: ...every room can be put away and built again, over and over`, !refused.length && kept[1] === kept[0] && kept[2] === kept[0], `${[...new Set(refused)].join(', ') || 'all of them'}; things kept each time round: ${kept.join(', ')}`);
@@ -285,40 +169,6 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and leaks nothing: no growing memory (under ${LEAK_MB} MB over two more rounds) and no listeners left on the window or page`, growth < LEAK_MB * 1e6 && listeners[2] === listeners[0],
       `memory ${heap.map(h => (h / 1e6).toFixed(1)).join(', ')} MB, listeners ${listeners.join(', ')}`);
     check(`${device}: ...and every room's save is just as it was`, saved1 === saved0, saved1 === saved0 ? '' : `before ${saved0.slice(0, 300)} after ${saved1.slice(0, 300)}`);
-    const slowAgain = all.filter(n => sp3.places[n] > SLOW || sp3.bits[n] > BIT);
-    check(`${device}: ...and each is as quick to build again (under ${SLOW} ms, no bit over ${BIT} ms)`, !slowAgain.length, all.map(n => `${n.replace('room:', '')} ${sp3.places[n]}/${sp3.bits[n]}`).join(', '));
-
-    // the weather is the world's: it comes over every place out of doors (one with a `sky`), and what
-    // falls, falls round you in whichever one you're in
-    for (const n of await M('places')) await M('build', n);
-    await M('weatherSpeed', 20); await M('setWeather', 'clear'); await rest(p, 400);
-    const outdoors = await M('outdoors'), clear = {};
-    for (const n of outdoors) clear[n] = await M('sunlight', n);
-    await M('setWeather', 'rain'); await rest(p, 600);
-    const rained = [];
-    for (const n of outdoors) {
-      await M('put', n, 'start'); await rest(p, 300);
-      const w = await M('weather'), sun = await M('sunlight', n);
-      if (!(sun < clear[n] * 0.5 && w.clouds > 0.9 && w.seen === n && w.rain > 100)) rained.push(`${n}: sun ${clear[n]} to ${sun}, ${JSON.stringify(w)}`);
-    }
-    // ...and in one seen through a doorway from outside (a building out of doors, like the maze),
-    // while you stay out there
-    for (const n of outdoors.filter(n => n !== 'outside')) {
-      if (!(await M('faceDoor', 'outside', n.replace('room:', ''), 2))) { rained.push(`${n}: no door to it from outside`); continue; }
-      await rest(p, 800);
-      const w = await M('weather');
-      if (!(w.each[n]?.rain > 100 && w.each.outside?.rain > 100)) rained.push(`${n} through its door from outside: ${JSON.stringify(w.each)}`);
-    }
-    await M('setWeather', 'clear'); await rest(p, 600);
-    // Sadie on the gatepost mews when the rain comes (heard out there; it failed silently once)
-    await M('put', 'outside', 'start'); await M('setWeather', 'clear'); await rest(p, 300);
-    const mewsBefore = (await M('sound')).owners.outside?.counts?.mew ?? 0;
-    await M('setWeather', 'rain'); await rest(p, 1800);
-    const mews = ((await M('sound')).owners.outside?.counts?.mew ?? 0) - mewsBefore;
-    await M('setWeather', 'clear'); await rest(p, 300);
-    check(`${device}: Sadie on the gatepost mews when the rain comes`, mews >= 1, `${mews} mews`);
-    check(`${device}: the weather comes over every place out of doors (${outdoors.join(', ')}), and rain falls round you in each, and in one seen through its door`, outdoors.length >= 2 && !rained.length, rained.join(' | '));
-    await M('weatherSpeed', 1);
 
     // every door on the landings leads to its own room
     const wrong = [];
@@ -371,16 +221,7 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('8-paused');
     check(`${device}: ${opts.hasTouch ? 'the pause button' : 'Escape'} pauses`, await M('mode') === 'menu' && await p.isVisible('#menu'));
     check(`${device}: ...with the start-over buttons`, await p.isVisible('#resets button:has-text("INVITATION")'));
-    // the volume buttons: MUSIC, SOUNDS, VOICES, each ON, SOFT, OFF (remembered), and ON again
-    const tap = async b => { await p.click('#vol-' + b); return [await p.textContent('#vol-' + b), await p.evaluate(k => JSON.parse(localStorage.getItem(k)), 'mansion.' + b), (await M('sound')).levels[b]]; };
-    const soft = await tap('music'), offNow = await tap('music');
-    const silent = await p.waitForFunction(() => window.__clubhouse.music().level < 0.01, null, { timeout: 6000 }).then(() => true, () => false);
-    const onAgain = await tap('music');
-    check(`${device}: the pause menu's MUSIC button goes SOFT, OFF (the theme stops) and ON again, and remembers`, soft[0] === 'MUSIC: SOFT' && soft[2] === 0.45 && offNow[0] === 'MUSIC: OFF'
-      && offNow[2] === 0 && silent && onAgain[0] === 'MUSIC: ON' && offNow[1] === 'off' && onAgain[1] === 'on', `${soft[0]}, ${offNow[0]}, ${onAgain[0]}`);
-    const others = [];
-    for (const b of ['sounds', 'voices']) { const r = [await tap(b), await tap(b), await tap(b)]; others.push(r.map(x => x[0] + ' ' + x[2]).join(', '), r[1][2] === 0 && r[2][2] === 1 && r[2][1] === 'on'); }
-    check(`${device}: ...and so do SOUNDS and VOICES`, others[1] && others[3], others.filter(x => typeof x === 'string').join('; '));
+    await p.evaluate(() => localStorage.setItem('mansion.music', '"on"'));   // (the backup below has one setting to put back)
     await p.click('#resets button:has-text("INVITATION")');
     await shot('9-sure');
     check(`${device}: a start-over button asks first`, await p.isVisible('#sureYes') && !(await p.isVisible('#resets')));
@@ -404,14 +245,6 @@ export default async function ({ browser, page, check, outDir }) {
     if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
     // your saves: how much room they take, SAVE A BACKUP (a file with every save) and LOAD A BACKUP
     // (only once you say yes: every save goes back as it was in the file)
-    check(`${device}: the pause menu says how much the saves take`, /SAVES: [\d.]+ [KM]B OF/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
-    // CREDITS: what the game uses that someone else made, opened and shut from the pause menu
-    await p.click('#creditsBtn');
-    const credited = await p.evaluate(() => [document.querySelector('#credits').hidden, document.querySelector('#credits').textContent]);
-    await shot('8a-credits');
-    check(`${device}: the pause menu's CREDITS names three.js and every font, with their licences`, !credited[0] && ['three.js', 'Silkscreen', 'Comic Neue', 'MIT', 'Open Font License'].every(w => credited[1].includes(w)), credited[1].slice(0, 120));
-    await p.click('#creditsBtn');
-    check(`${device}: ...and shuts again`, await p.evaluate(() => document.querySelector('#credits').hidden));
     const download = await Promise.all([p.waitForEvent('download', { timeout: 8000 }), p.click('#saveBackup')]).then(([d]) => d.path(), () => null);
     const file = download ? readFileSync(download, 'utf8') : '{}', made = JSON.parse(file);
     const savedNow = await p.evaluate(() => Object.keys(localStorage).length);
@@ -427,12 +260,8 @@ export default async function ({ browser, page, check, outDir }) {
     await up();
     const loaded = await p.evaluate(k => [localStorage.getItem('mansion.music'), localStorage.getItem(k + 'extra')], junk);
     check(`${device}: ...and puts every save back as it was`, loaded[0] === '"on"' && loaded[1] === null, JSON.stringify(loaded));
-    // nearly full: the pause menu says so
-    await p.evaluate(k => localStorage.setItem(k + 'junk', 'x'.repeat(4.2e6)), junk);
     await pressPause(p, opts);
     await p.waitForTimeout(200);
-    check(`${device}: ...and warns when the saves are nearly full`, /NEARLY FULL/.test(await p.textContent('#saveNote')), await p.textContent('#saveNote'));
-    await p.evaluate(k => localStorage.removeItem(k + 'junk'), junk);
     await p.click('#resume');
     check(`${device}: RESUME carries on`, await M('mode') === 'play');
     await pressPause(p, opts);
@@ -446,8 +275,6 @@ export default async function ({ browser, page, check, outDir }) {
     const keeps = await allKeeps(), keys = await p.evaluate(() => Object.keys(localStorage));
     const stray = keys.filter(k => !keeps.some(s => k.startsWith(s)));
     check(`${device}: every save belongs to an activity's card or the clubhouse`, keys.length && !stray.length, stray.join(', ') || `${keys.length} saves`);
-    const fonts = await p.evaluate(async () => { await document.fonts.ready; return ['Silkscreen', 'Patrick Hand'].map(f => [f, document.fonts.check(`16px "${f}"`) && [...document.fonts].some(x => x.family.replace(/['"]/g, '') === f && x.status === 'loaded')]); });
-    check(`${device}: the lettering is the game's own fonts, loaded from its own files`, fonts.every(([, ok]) => ok), JSON.stringify(fonts));
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }));

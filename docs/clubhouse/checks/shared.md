@@ -1,8 +1,8 @@
 # Checks every room gets
 
-Three checks that need no code in an activity: every room, a new one included, gets them. Read this
-when changing one of them. They live in `tests/shared/` and `tests/saves/`, and `tools/check.mjs`
-runs them after each activity's browser checks.
+One check that needs no code in an activity: every room, a new one included, gets it. Read this
+when changing it. It lives in `tests/shared/` and `tests/saves/`, and `tools/check.mjs` runs it after
+each activity's browser checks.
 
 ## Old saves still load (`tests/shared/saves.mjs`, `tests/saves/`)
 - After each activity's browser checks, `tools/check.mjs` opens the game on every sample of that
@@ -22,16 +22,7 @@ runs them after each activity's browser checks.
   one included, is checked against all of them.
 - It can't tell a save that loads but quietly ignores what it no longer understands.
 
-## Kind to the ears (`tests/shared/ears.mjs`)
-- After each clubhouse room's browser checks (and outside at the gate and in the hall, after the
-  clubhouse's), `tools/check.mjs` stands still there for 30 s of game time.
-- It counts every sound played by anyone (the sound system counts them by name, `soundState()`).
-- It fails on one sound more than 4 times, more than 12 in all, or a line held on that isn't music.
-- Music is left to the music checks; a sound that only comes when you do something isn't heard
-  standing still.
-
-## Something is drawn (`tests/shared/looks.mjs`)
-- Wherever the ears check stands (every clubhouse room, the gate, the hall), and on every activity
-  started from its address, a picture of what you see fails if one colour covers more than 85% of it
-  or it has fewer than 12 colours: a room drawn black, a page that never drew.
-- It can't tell a picture drawn wrong, only one that's missing.
+## Dropped on purpose (2026-10-03)
+The calm-sounds check (`ears.mjs`: 30 s standing still in every room) and the something-is-drawn check
+(`looks.mjs`) were removed: only fatal errors are tested now, and those two cost about six of the
+sixteen minutes of a full check. Don't bring them back without the owner's say: `docs/clubhouse/decisions/fatal-only.md`.
