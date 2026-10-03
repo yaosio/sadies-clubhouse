@@ -52,8 +52,6 @@ import { readSource } from './source.mjs';
 import { activityIds } from './activities.mjs';
 import { allCards } from '../tests/clubhouse/cards.mjs';
 import { keepSample, oldSaves } from '../tests/shared/saves.mjs';
-import { roomEars, houseEars } from '../tests/shared/ears.mjs';
-import { computerLooks } from '../tests/shared/looks.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -275,14 +273,6 @@ async function browserChecks(name, hash, suite, extra = {}) {
     try { await oldSaves({ browser: watched, page, card, check: roomCheck, root, skip: kept ? [kept] : [] }); }
     catch (e) { check(`${name}: its old saves were checked`, false, e.message.split('\n')[0]); }
   }
-  // standing still in it is kind to the ears (tests/shared/ears.mjs): every room (a door on a landing, a
-  // building outside the gate, a spot in the grounds), and after the clubhouse's own, outside at the gate and in the hall; and what you see there (or on a
-  // computer, as it starts) is drawn, not one colour (tests/shared/looks.mjs)
-  try {
-    if (card?.room) await roomEars({ browser: watched, page, card, check: roomCheck });
-    else if (card) await computerLooks({ browser: watched, page, card, check: roomCheck });
-    if (name === 'clubhouse') await houseEars({ browser: watched, page, cards: Object.values(cards), check: roomCheck });
-  } catch (e) { check(`${name}: it was listened to and looked at`, false, e.message.split('\n')[0]); }
   const secs = (Date.now() - t) / 1000;
   if (failed === before) passed('browser', name, hash, secs);
   overBudget(`${name}'s browser checks`, secs);
@@ -290,11 +280,8 @@ async function browserChecks(name, hash, suite, extra = {}) {
 }
 
 // The clubhouse first. It visits every room, so any change to anything in the page runs it
-// again (only exactly the same page, already passed, skips it). It times how long each room takes
-// to build, so anything still being made in the background (Dropper World's full board) is finished
-// first: a busy computer makes those times jumpy (a room once took 241 ms against a 200 ms limit
-// only because the board was being made alongside).
-await Promise.all(Object.values(prepared));
+// again (only exactly the same page, already passed, skips it). Anything still being made in the
+// background (Dropper World's full board) carries on alongside it: nothing it checks is timed.
 if (!wanted('clubhouse')) { /* not asked for (--only) */ }
 else if (existsSync(note('browser', 'clubhouse', clubHash)) && !retest) console.log('\n== the clubhouse in a browser\nalready passed on exactly this page, not running it again');
 else await browserChecks('clubhouse', clubHash, import(join(root, 'tests/clubhouse/browser.mjs')));

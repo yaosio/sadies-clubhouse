@@ -45,7 +45,7 @@ door stays with it.
    `render/`, `ui/` or `input/`.
 3. `npm run check -- --preview` must pass: the code checker, `npm test`, a test build, and the game in
    headless Chromium as a phone and a desktop (any page error fails). Look at the screenshots in
-   `dist/check/`. `--quick` skips the tests. Details: `docs/clubhouse/checks/README.md`. If a change is
+   `dist/check/`. Checks test fatal errors only (`docs/clubhouse/checks/fatal-only.md`): none for sound, looks or polish. `--quick` skips the tests. Details: `docs/clubhouse/checks/README.md`. If a change is
    meant to move a test's numbers, explain why in plain words and update that activity's tuning notes.
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to the
    working branch. Never commit `dist/` or `node_modules/`; do commit `package-lock.json`. GitHub

@@ -60,7 +60,7 @@ save (whether you've been on the trip) as you come back.
   white at the swap; the way down never touches the ground or jumps, and lands on the beach with the
   sea beside it; Sadie's hops; the music builds to touchdown, has no long held notes or hi-hats, and
   every note is soft and click-free.
-- `tests/space-adventure/browser.mjs`: the door, the cockpit through it, walking in and being
-  strapped in, Sadie talking, the music, pausing, the swap, landing, the black, the space room with
-  the radio, the button, and the door afterwards.
+- `tests/space-adventure/browser.mjs`: fatal errors only: the door, the cockpit through it, walking
+  in and being strapped in, pausing, the swap, landing, the black, the space room, the button, and
+  the door afterwards (Sadie's lines, the music and the radio are not checked in the browser).
 - `tools/space-adventure/trip.mjs [phone|desktop] [times...]` takes pictures along the trip.

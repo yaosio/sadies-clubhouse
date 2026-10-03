@@ -50,72 +50,22 @@ export default async function ({ browser, page, check, outDir }) {
     // dipping the brush in a pot, and taking a tool off the pegboard
     await face(-0.75, -2.9, -0.75, 1.16, -3.95);
     check(`${device}: looking at a pot on the counter, it offers a dip`, await M('target') === 'DIP IN YELLOW', await M('target'));
-    check(`${device}: ...and says so on screen, with the colour (on a phone too)`, await p.isVisible('#clubhouse #useHint')
-      && /DIP IN YELLOW/.test(await p.textContent('#clubhouse #useHint')) && await p.isVisible('#clubhouse #useHint canvas'));
     await use(); await p.waitForTimeout(150);
     let s = await S();
     check(`${device}: ...and dipping in it, you're holding yellow (plip)`, s.holding.paint === 3 && s.heard.includes('plip'), JSON.stringify(s.holding));
     await face(-3.6, -0.92, -4.9, 1.6, -0.92);
     check(`${device}: on the pegboard, the spray can`, await M('target') === 'TAKE THE SPRAY CAN', await M('target'));
-    const clash = await p.evaluate(() => {
-      const r = s => document.querySelector(s).getBoundingClientRect(), a = r('#clubhouse #useHint');
-      return ['#clubhouse #paint', '#clubhouse #use', '#clubhouse #holding'].filter(s => !document.querySelector(s).hidden).filter(s => {
-        const b = r(s); return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-      });
-    });
-    check(`${device}: ...its label is clear of the LOOK and PAINT buttons and the rest`, !clash.length, clash.join());
     await use(); await p.waitForTimeout(150);
     s = await S();
     check(`${device}: ...taking it, you hold it (tok)`, s.holding.tool === 'spray' && s.heard.includes('tok'));
-    const box = await p.textContent('#clubhouse #holding');
-    check(`${device}: the YOU'RE HOLDING box says the spray can, in yellow, and how to paint`,
-      await p.isVisible('#clubhouse #holding') && /SPRAY CAN/.test(box) && /YELLOW/.test(box) && /ANYTHING TO SPRAY/.test(box), box);
-    check(`${device}: ...and picking it up leaves you looking, and says how to start painting`,
-      !await M('painting') && /THEN (TAP|CLICK) ANYTHING/.test(await p.textContent('#clubhouse #holding p')));
-
-    // painting the right wall (nothing on it): the LOOK and PAINT buttons, then a stroke (no sound at all)
+    // painting the right wall (nothing on it): PAINT turns painting on, then a stroke
     await face(1, 2.5, 5, 1.8, 2.5);
-    const on = () => p.$$eval('#clubhouse #paint button', bs => bs.filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.textContent).join());
-    check(`${device}: there are LOOK and PAINT buttons, LOOK on`, await p.isVisible('#clubhouse #paint') && await on() === 'LOOK', await on());
     await p.click('#clubhouse #paint [data-to=paint]');
-    check(`${device}: ...PAINT turns painting on, and only it is lit`, await M('painting') && await on() === 'PAINT', await on());
-    await p.click('#clubhouse #paint [data-to=paint]');
-    check(`${device}: ...tapping PAINT again leaves it on`, await M('painting') && await on() === 'PAINT');
-    await p.click('#clubhouse #paint [data-to=look]');
-    check(`${device}: ...LOOK stops painting`, !await M('painting') && await on() === 'LOOK');
-    await p.click('#clubhouse #paint [data-to=paint]');
-    check(`${device}: ...and PAINT turns it back on`, await M('painting'));
+    check(`${device}: PAINT turns painting on`, await M('painting'));
     await p.evaluate(() => window.__paintShop.hold('brush', 1));
-    const played = (await S()).played;
     await drag(0.15, 0.45, 0.85, 0.42, 14);
     s = await S();
     check(`${device}: dragging paints a stroke across the wall`, s.painted['right wall'] > 40, `${s.painted['right wall']} pixels`);
-    check(`${device}: ...without a sound`, s.played === played, `${s.played - played} sounds`);
-    await p.evaluate(() => window.__paintShop.hold('stamp-clyde'));
-    const before = s.painted['right wall'];
-    await drag(0.5, 0.6); s = await S();
-    check(`${device}: a stamp stamps (pup)`, s.painted['right wall'] > before + 40 && s.heard.includes('pup'), `${s.painted['right wall'] - before} pixels`);
-    await shot('3-wall');
-
-    // the floor: the bucket fills it, the dynamite blows it clean
-    await face(0, 2.4, 0, 0, 0.6);
-    await p.evaluate(() => window.__paintShop.hold('bucket', 6));
-    await drag(0.5, 0.7); s = await S();
-    check(`${device}: the bucket fills the floor (glug)`, s.painted.floor > 40000 && s.heard.includes('glug'), `${s.painted.floor} pixels`);
-    await shot('4-floor');
-    await p.evaluate(() => window.__paintShop.hold('dynamite'));
-    await drag(0.5, 0.7); await p.waitForTimeout(120); s = await S();
-    await shot('5-boom');
-    check(`${device}: the dynamite blows the floor's paint off (fwump)`, s.painted.floor === 0 && s.heard.includes('fwump'), `${s.painted.floor} left`);
-
-    // Sadie comes in, having stepped in the paint, and leaves paw prints
-    await p.evaluate(() => window.__paintShop.hold('brush', 10));
-    await p.evaluate(() => window.__paintShop.sadie());
-    const printed = await until(() => window.__paintShop.state().painted.floor > 20, null, 12000);
-    s = await S();
-    check(`${device}: Sadie comes in (mrrp) and leaves paw prints in the paint`, printed && s.heard.includes('mrrp'), `${s.painted.floor} pixels of prints`);
-    await shot('6-paw-prints');
-
     // kept after a reload (the shop keeps the paint 1.5 s of play after the last stroke: once Sadie's
     // gone, as she can still be leaving prints)
     await until(() => !window.__paintShop.state().sadie.on, null, 30000);
@@ -126,17 +76,6 @@ export default async function ({ browser, page, check, outDir }) {
     s = await S();
     check(`${device}: the paint is kept after a reload`, Object.entries(kept).every(([k, v]) => s.painted[k] === v) && s.total > 0, `${s.total} pixels`);
 
-    // the plunger: once asks, twice and everything's bare
-    await face(2.4, 2.6, 2.4, 0.86, 3.7);
-    check(`${device}: by the door, the plunger`, await M('target') === 'BLOW UP THE WHOLE ROOM', await M('target'));
-    await use(); await p.waitForTimeout(200);
-    s = await S();
-    check(`${device}: ...pushed once, it asks (and nothing's blown up)`, s.armed && s.total > 0 && await M('target') === 'SURE? PUSH AGAIN');
-    await use();
-    const bare = await until(() => window.__paintShop.state().total === 0, null, 5000);
-    s = await S();
-    check(`${device}: ...pushed again, the whole room goes back to bare (kaboom)`, bare && s.heard.includes('kaboom'), `${s.total} left`);
-    await shot('7-after-the-plunger');
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
   });
 }

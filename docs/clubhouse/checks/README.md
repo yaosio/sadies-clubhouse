@@ -10,14 +10,15 @@ them), then each activity's browser checks, each played as a phone and a desktop
 prints how long each stage took. It's the only check: GitHub's copy runs only when started by hand.
 
 ## The files
+- `fatal-only.md`: read first: what a check here is for (fatal errors only), and what was dropped.
 - `activity.md`: read when you're writing or changing an activity's own tests, `tests/run.mjs`, or
   how a browser check is written (`tests/shared/browser.mjs`).
 - `clubhouse-headless.md`: read when changing the main theme's checks, the AudioContext rule, the
   rule that shared code names no activity, the room checker (`cards.mjs`) or the save director's checks.
 - `clubhouse-browser.md`: read when changing `tests/clubhouse/browser.mjs`, the clubhouse's browser
-  checks (walking, doors, rooms, sound rules, pause menu, saves).
-- `shared.md`: read when changing the checks every room gets with no code of its own: old saves,
-  kind to the ears, something is drawn.
+  checks (walking, doors, rooms, put away and built again, pause menu, saves).
+- `shared.md`: read when changing the checks every room gets with no code of its own: old saves
+  still load.
 - `runner.md`: read when changing `tools/check.mjs` (what's skipped when, the flags) or
   `.github/workflows/check.yml` (GitHub's plan and remember, run by hand only).
 - `safari.md`: read when changing the by-hand look at the game in Safari's engine (WebKit).

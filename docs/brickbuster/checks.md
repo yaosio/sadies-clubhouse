@@ -13,13 +13,12 @@ Its tests and its picture tool. Read before changing what's checked, or when a c
   none on thin air), the ball loose in the hall for 90 minutes, and Sadie's sounds while she plays
   (now and then, never two close together, never more than 5 a minute, never the same twice
   running). About 20 seconds.
-- **`tests/brickbuster/browser.mjs`**: phone and desktop: through its door, stepping up (the
-  arcade music playing, the theme faded out; stopping when you step back, the theme coming back),
-  the paddle by keys, mouse and finger, a crack (sound and wince), stepping back (the game waits),
-  the crack kept after a reload, breaking it (shatter, stepped back, the heap, the sad paddle, the
-  ball hitting the poster and going out the door, Sadie after it, the sign), still broken after a
-  reload, Sadie's meow heard in the hall but not from her room (and the ball silent), fixed by the
-  pause menu's start-over button.
+- **`tests/brickbuster/browser.mjs`**: phone and desktop, fatal errors only: through its door,
+  stepping up, the paddle by keys, mouse and finger, a crack, stepping back, the crack kept after a
+  reload, breaking it (stepped back to watch and let go once the ball's out, the heap, the sad
+  paddle), still broken after a reload and after being put away and built again, fixed by the pause
+  menu's start-over button (the music, the winces, Sadie's sounds in the hall and the poster
+  are not checked in the browser).
 - **`tools/brickbuster/shots.mjs`**: pictures of the room and the game from the built page:
   `dist/shots/brickbuster/`.
 

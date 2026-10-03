@@ -11,8 +11,23 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { serve } from './serve.mjs';
 import { allCards } from '../tests/clubhouse/cards.mjs';
-import { picture } from '../tests/shared/looks.mjs';
 import { DEVICES } from '../tests/shared/browser.mjs';
+
+// what share of the picture its commonest colour covers, and how many colours it has (each counted
+// roughly, 16 shades a channel, and only if it covers at least 1 in 2000 of the picture)
+async function picture(p) {
+  const png = (await p.screenshot()).toString('base64');
+  return p.evaluate(async png => {
+    const img = new Image(); img.src = 'data:image/png;base64,' + png; await img.decode();
+    const w = 320, h = Math.round(img.height * w / img.width), c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h);
+    const d = g.getImageData(0, 0, w, h).data, n = new Map();
+    for (let i = 0; i < d.length; i += 4) { const k = (d[i] >> 4) << 8 | (d[i + 1] >> 4) << 4 | d[i + 2] >> 4; n.set(k, (n.get(k) || 0) + 1); }
+    const all = w * h, counts = [...n.values()];
+    return { most: Math.max(...counts) / all, colours: counts.filter(v => v >= all / 2000).length };
+  }, png);
+}
 
 const root = join(new URL('.', import.meta.url).pathname, '..'), out = join(root, 'dist/check/webkit');
 mkdirSync(out, { recursive: true });

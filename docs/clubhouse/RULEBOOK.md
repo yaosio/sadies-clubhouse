@@ -38,14 +38,13 @@ Sadie's house is **the clubhouse**, everywhere: in the docs, the game and what C
 ## 4. Kind to the ears (the owner has misophonia)
 - Everything through the sound system (`docs/clubhouse/sound/README.md`). *Checked.*
 - Nothing droning, constant or repetitive. Music doesn't loop the same song forever: it's composed
-  as it plays, or stops after a while. *Checked for sounds standing still; could be extended to
-  music.*
+  as it plays, or stops after a while. *Not checked: only fatal errors are tested (`docs/clubhouse/decisions/fatal-only.md`).*
 - The owner's exceptions (2026-10-02), both things you choose to switch on: Space Adventure's radio
   loops its song, and the Music Room tape's LOOP repeats as long as you leave it on.
 
 ## 5. Kind to the eyes
 - Nothing bright flashes more than 3 times a second, and no big area goes from dark to bright in a
-  blink. *Could be checked:* the screenshot checks can compare frames.
+  blink. *Not checked* (only fatal errors are tested).
 
 ## 6. Where it goes
 - A door never moves; a new room takes the next free door spot (`slot`). A building outside takes

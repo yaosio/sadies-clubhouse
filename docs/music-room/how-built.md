@@ -38,7 +38,6 @@ built again.
 - `tests/music-room/run.mjs`: headless. Every sound (8-bit, soft, no click, fading to nothing),
   which key plays what, three hours of Sadie (how often, how many notes, never on what you're
   playing, never while SHH or while you're out), the tape deck. A few seconds.
-- `tests/music-room/browser.mjs`: phone and desktop. Through its door, the piano (keys, a tap), the
-  drums, the synth's sounds and demo, the theremin (only while held), recording and playing back a
-  tune, the sign and Sadie sulking, Sadie across the piano (and on her tape), her hopping off the
-  xylophone, the dial, the chimes, kept after a reload.
+- `tests/music-room/browser.mjs`: phone and desktop, fatal errors only. Through its door, the piano
+  (keys, a tap), recording and playing back a tune, the dial, kept after a reload (the other
+  instruments, the sign, Sadie's walks and the chimes are not played: `docs/clubhouse/decisions/fatal-only.md`).

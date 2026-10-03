@@ -41,7 +41,7 @@ outside), easing round if that changes; from outside, there's one beyond each ga
   view and the maze past it is new (and its end is the backyard's gate again); the doors' mazes
   never meet; the end can't be seen until you're nearly there; and an hour of music (in key, soft,
   short notes, no flurries, quiet between pieces, never the same eight notes twice).
-- `tests/hedge-maze/browser.mjs`: the gate opening onto the maze, walking in (its music on), finding
+- `tests/hedge-maze/browser.mjs`: the gate opening onto the maze, walking in, finding
   the way through and out into the backyard, turning round and back in where you came out, a new
   maze out to the backyard again, and walking round the side of the house to the backyard.
   Screenshots in `dist/check/hedge-maze/`.
