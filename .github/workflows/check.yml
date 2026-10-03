@@ -29,6 +29,10 @@ permissions:
   actions: read
   pull-requests: read
 
+# (GitHub's own steps, checkout and the rest, run on Node 24 rather than the Node 20 GitHub is retiring)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 # a newer push to the same pull request stops the older run
 concurrency:
   group: check-${{ github.event_name }}-${{ github.ref }}
