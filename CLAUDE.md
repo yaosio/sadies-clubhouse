@@ -51,6 +51,9 @@ door stays with it.
    working branch. Never commit `dist/` or `node_modules/`; do commit `package-lock.json`. GitHub
    runs no checks (they cost minutes; `.github/workflows/` run only by hand), so before a merge, bring
    in the latest `main` and `npm run check` must pass on exactly that.
+   **Docs-only changes** (no code, no game files; Yaosio, 2026-10-03, because the full check keeps
+   getting longer as the game grows): the quick checks are enough (`node tools/docs.mjs`, lint); skip
+   the full run. Anything touching game code still gets the full check on the latest `main`.
 5. Publish that build to the test page (below) and give the owner the link. Build it again after
    committing (`npm run build -- --preview`): its label names the commit it was built at.
 6. When the owner says to (or the change is behind the scenes and needs no in-game check), open a pull
