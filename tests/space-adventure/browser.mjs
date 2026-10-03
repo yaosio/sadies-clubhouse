@@ -30,10 +30,6 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(650);
     let s = await S();
     check(`${device}: its door leads into the cockpit, and nothing's started yet`, (await M('where')).place === ROOM && s.stage === 'cockpit' && s.t === null && !s.watching);
-    // the main theme makes way as you step in, and stays away the whole trip, until the radio's on
-    // (watched every frame from here to the space room)
-    check(`${device}: stepping into the cockpit, the clubhouse's theme goes quiet at once`, !(await M('music')).playing, JSON.stringify(await M('music')));
-    await p.evaluate(() => { window.__themeHeard = []; const w = () => { if (!window.__themeHeard) return; const m = window.__clubhouse.music(); if (m.playing) window.__themeHeard.push(JSON.stringify(window.__space.state().t)); requestAnimationFrame(w); }; w(); });
     await p.waitForTimeout(300);
     await shot('2-cockpit');
 
@@ -45,12 +41,6 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(600);   // (trying to get up)
     const seat = await M('where');
     check(`${device}: ...in the pilot's seat, and you can't walk off`, Math.abs(seat.x) < 0.05 && Math.abs(seat.z - 0.45) < 0.1 && Math.abs(seat.yaw - Math.PI) < 0.05, `${seat.x.toFixed(2)}, ${seat.z.toFixed(2)}`);
-    check(`${device}: no thumb stick while you're strapped in`, !opts.hasTouch || await p.isHidden('#clubhouse #stick'));
-    await until(() => window.__space.state().line, 4000);
-    s = await S();
-    check(`${device}: Sadie hops up onto the dashboard and starts talking`, !!s.sadie && s.sadie[1] > 0.9 && s.line === "Oh, it's you. Sit down. We're leaving." && await p.isVisible('#saTalk'));
-    // (its first notes come a moment after she starts talking: waited for, as a slow computer gets there later)
-    check(`${device}: the music starts`, s.played > 0 || await until(() => window.__space.state().played > 0, 3000));
     await p.waitForTimeout(1200);
     await shot('3-trip');
 
@@ -70,18 +60,12 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(700);
     s = await S();
     await shot('4-landed');
-    check(`${device}: landed, she says it's just land and water`, s.line === "But you've seen this already. It's just land and water.");
     await p.evaluate(() => window.__space.jump(106.9));
     check(`${device}: she flies at you, and it goes black`, await until(() => { const b = document.getElementById('saBlack'); return b && !b.hidden && Number(b.style.opacity) > 0.95; }, 3000));
     await shot('5-black');
     check(`${device}: the black clears in her space room, and you can walk again`, await until(() => { const s = window.__space.state(); return s.stage === 'hangout' && !s.watching && s.t === null; }, 6000));
     s = await S();
-    check(`${device}: she says "I love space!", and the radio plays`, s.line === 'I love space!' && s.radio && s.done);
-    // (the sound director hears the radio, so the clubhouse's theme makes way for it by itself)
-    const theme = await p.waitForFunction(() => { const m = window.__clubhouse.music(); return m.other && !m.playing; }, null, { timeout: 4000 }).then(() => true, () => false);
-    check(`${device}: ...and the clubhouse's theme makes way for the radio`, theme, JSON.stringify(await M('music')));
-    const heard = await p.evaluate(() => { const h = window.__themeHeard; window.__themeHeard = null; return h; });
-    check(`${device}: ...and it never came back in between, not on the trip, not in the black before the radio`, !heard.length, heard.slice(0, 5).join(', '));
+    check(`${device}: the trip is done and remembered`, s.done);
     const at = await M('where');
     check(`${device}: ...and you're standing just inside the door`, at.place === ROOM && Math.abs(at.z - (-2.2)) < 0.2);
     await p.waitForTimeout(400);

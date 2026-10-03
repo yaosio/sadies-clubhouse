@@ -7,9 +7,9 @@ change by eye.
 
 - `tests/clydes-house/run.mjs`: the rules, the weather machine's rules, the lines fitting the
   bubble, every bit of junk reacting its own way, every sound soft and short.
-- `tests/clydes-house/browser.mjs`: walking out to the house and in, junk in a gap, the four rounds
-  and the finale, every sound played, the phone's taps and swipe, kept after a reload; then each
-  weather lever outside, Sadie's reactions, the jingles, and the weather kept after a reload.
+- `tests/clydes-house/browser.mjs`: fatal errors only: walking out to the house and in, junk in a
+  gap, the first round (the other three and the finale are in the headless tests), the phone's
+  taps, and the treat kept after a reload. The weather levers are not played in the browser.
 
 ## Picture tools
 

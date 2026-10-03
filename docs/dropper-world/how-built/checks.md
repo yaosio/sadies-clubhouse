@@ -7,18 +7,15 @@ big tower, a profile or a timing. What the tests expect:
 ## Tests
 
 - `tests/dropper-world/run.mjs`: Dropper World's headless checks: the real simulation in Node,
-  seeded. Each numbered section runs in its own process, several at once, longest first: about 60 s
-  in all on Claude's cloud machine (4 processors), most of it the bedrock and Chooter sections
-  (`--section=N` runs one).
+  seeded. Each numbered section runs in its own process. By default only the sections that catch a
+  crash or broken numbers run (`FATAL` in the file: the pile, two minutes of play, saving and
+  loading: about 15 s); `--all` runs every section, the tuning ones too (the bedrock and Chooter
+  ones take most of the time), and `--section=N` runs one.
 - `tests/dropper-world/browser.mjs`: Dropper World in headless Chromium as a phone and a desktop,
   side by side (run by `tools/check.mjs`).
-  - It checks: new game (the mole digging up the first hay), the frame giving the board most of
-    the screen with none of the old modern bits left, tapping Sadie and the mole (the dashboard
-    shows them, faces drawn), Chooter peeking in, the dev sheet, a full board loaded from a save
-    and reloaded, and how smooth that board is on a phone 4x slower (on its own, after the rest,
-    so nothing skews it). The slow phone fails only below a loose floor: the game keeping under 15%
-    of its speed (41% on Claude's machine); GitHub shows the number as a notice on the run, to
-    tighten the floor once a few runs are known.
+  - It checks (fatal errors only): a new game starts and the mole drops pieces, and a full board
+    loaded from a save and reloaded keeps the board. The frame, the dashboard, the dev sheet and the
+    slow-phone measurement are not run.
   - Its `prepare()` makes the full board; `tools/check.mjs` starts it before the headless tests so
     it's ready by the time it's needed.
   - Fails on any page error; screenshots in `dist/check/dropper-world/`.

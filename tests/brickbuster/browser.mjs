@@ -45,9 +45,6 @@ export default async function ({ browser, page, check, outDir }) {
     let s = await B();
     check(`${device}: stepping up starts the game, the view eased back to fit the case`, playing && s.active && (await M('where')).z < stood.z - 0.3);
     check(`${device}: ...and the yarn ball is sent off by itself`, !s.serving);
-    const theme = await M('music');
-    check(`${device}: its arcade music plays, and the clubhouse's theme fades out for it`, s.music?.playing && s.music.notes > 0 && !theme.playing && theme.level < 0.05,
-      `${s.music?.notes} notes, theme at ${theme.level}`);
     await p.evaluate(() => window.__brickbuster.catchBall());   // (so it can't miss on its own while we check other things)
 
     // the paddle: keys and the mouse on a desktop, a finger on a phone
@@ -76,21 +73,13 @@ export default async function ({ browser, page, check, outDir }) {
     s = await B();
     await shot('3-cracked');
     check(`${device}: missing cracks the bottom of the glass, with a crack sound`, s.cracks.bottom === before + 1 && s.sounds > played0 && since(s).some(h => /^crack/.test(h)), `cracks ${s.cracks.bottom}, heard ${since(s).join(' ')}`);
-    check(`${device}: ...and the paddle winces`, s.face === 'wince', s.face);
     // (back on the paddle: left to itself, the ball is sent off again and, with nobody moving the
     // paddle, misses again before a slow computer has stepped back, and breaks the glass)
     await p.evaluate(() => window.__brickbuster.catchBall());
 
     // stepping back: the game stops where it was
     if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('Escape');
-    const back = await modeIs('play');
-    const b1 = (await B()).ball; await p.waitForTimeout(400); const b2 = (await B()).ball;
-    await shot('4-stepped-back');
-    check(`${device}: ${opts.hasTouch ? 'STEP BACK' : 'Escape'} steps back to where you stood`, back && Math.hypot((await M('where')).x - stood.x, (await M('where')).z - stood.z) < 0.05);
-    check(`${device}: ...and the game waits, the ball where it was`, !(await B()).active && b1.x === b2.x && b1.y === b2.y);
-    check(`${device}: ...the arcade music stops, and the theme comes back`, !(await B()).music.playing
-      && await until(() => window.__clubhouse.music().playing, null, 12000));
-
+    await modeIs('play');
     // the cracks are still there after a reload
     await p.reload(); await up();
     s = await B();
@@ -113,65 +102,16 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('5-shattered');
     check(`${device}: the third crack breaks the glass, with the big shatter`, s.broken === 'bottom' && s.heard.includes('shatter') && !s.heard.includes('crack3'), `broken ${s.broken}, heard ${s.heard.slice(-4).join(' ')}`);
     check(`${device}: ...and you're stepped back to watch`, await modeIs('play'));
-    let held = false, muted = false, watched = 0, off = 0, walked = 0;
-    const at0 = await M('where');
-    if (!opts.hasTouch) await p.keyboard.down('KeyW');
-    for (let i = 0; i < 60 && (await B()).escape !== 'gone'; i++) {
-      await p.waitForTimeout(250);
-      const e = await B(), w = await M('where');
-      held ||= e.doorHeld; muted ||= e.lastSound === 'mute';
-      if (e.watched && i > 3) {   // (after a second: the view's had time to turn to it)
-        watched++;
-        const want = Math.atan2(-(e.yarn[0] - w.x), -(e.yarn[2] - w.z)), d = Math.abs(Math.atan2(Math.sin(want - w.yaw), Math.cos(want - w.yaw)));
-        off = Math.max(off, d);
-        walked = Math.max(walked, Math.hypot(w.x - at0.x, w.z - at0.z));
-      }
-    }
-    if (!opts.hasTouch) await p.keyboard.up('KeyW');
-    check(`${device}: your view follows the yarn ball round the room, and you can't walk off`, watched > 4 && off < 0.6 && walked < 0.05, `${watched} looks, at most ${off.toFixed(2)} off it, walked ${walked.toFixed(2)} m`);
-    check(`${device}: ...and it lets you go once the ball's out`, !(await B()).watched);
+    check(`${device}: ...and it lets you go once the ball's out`, await until(() => { const e = window.__brickbuster.state(); return e.escape === 'gone' && !e.watched; }, null, 30000));
     // (Sadie gone after it and the door shut behind her, or as long as that could take)
     await until(() => { const s = window.__brickbuster.state(); return !s.sadie && s.sign && !s.doorHeld; }, null, 15000);
     await p.waitForTimeout(300);
     s = await B();
     await shot('6-left-broken');
     check(`${device}: every brick lands on the heap, and the paddle's lying there sad`, s.bricks === 0 && s.pile === 80 && /sad|sigh/.test(s.face), `${s.pile} on the heap, face ${s.face}`);
-    check(`${device}: the yarn ball hits the poster (squeak) and goes out the door, which opens for it`, s.escape === 'gone' && muted && held && s.lastSound === 'mute');
-    check(`${device}: ...Sadie goes after it, and the door gets her OUT OF ORDER sign`, !s.sadie && s.sign && !s.doorHeld);
     check(`${device}: ...and the case doesn't offer to play any more`, await M('target') === null);
-    // out in the hall: the ball's loose, Sadie's after it, and her napping box is empty
-    await p.waitForTimeout(1500);
-    s = await B();
-    const r0 = Math.hypot(s.hall?.ball[0] ?? 99, s.hall?.ball[2] ?? 99);
-    check(`${device}: the yarn ball's loose in the hall, and Sadie's out there after it`, s.hall && s.hall.shown && !s.hall.napping && r0 < 7.8, s.hall && `ball ${r0.toFixed(1)} m from the middle, ${s.hall.ball[1].toFixed(1)} m up`);
-    await M('put', 'hall', 'start');
-    await p.waitForTimeout(300);
-    await shot('6b-hall');
-    // Sadie's sounds: heard in the hall (unless she's right across it), never from another room;
-    // and nothing the ball does makes a sound
-    // (how many of her sounds that one call made, counted in the same moment: she chatters by
-    // herself in the hall too, and one of those landing between two looks isn't this meow)
-    // (a voice never says the same thing twice running, so each ask is a sound she didn't just make:
-    // she may have meowed by herself a moment ago)
-    const said = () => p.evaluate(() => {
-      const s = window.__brickbuster.state(), lastVoice = s.heard.filter(k => k.startsWith('sadie-')).pop() || '';
-      const name = ['meow', 'chirp', 'trill'].find(v => !lastVoice.startsWith('sadie-' + v));
-      const n = () => window.__brickbuster.state().sounds;
-      const n0 = n(); window.__brickbuster.sadieSays(name); return n() - n0;
-    });
-    const w0 = await M('where'), c0 = (await B()).hall.cat, far = Math.hypot(c0[0] - w0.x, c0[1] + 0.3 - w0.y - 1.6, c0[2] - w0.z);
-    const inHall = await said();
-    await M('put', 'room:brickbuster', 'case'); await p.waitForTimeout(200);
-    const inRoom = await said();
-    check(`${device}: Sadie's sounds are heard in the hall, and not from her room`, (far > 15 || inHall === 1) && inRoom === 0, `${far.toFixed(1)} m off, heard ${inHall} in the hall, ${inRoom} in her room`);
-    check(`${device}: ...and the yarn ball itself stays silent`, (await B()).heard.slice((await B()).heard.lastIndexOf('mute') + 1).every(k => k.startsWith('sadie-')), (await B()).heard.slice(-6).join(' '));
     await p.reload(); await up();
     s = await B();
-    const h1 = s.hall; await p.waitForTimeout(2500); const h2 = (await B()).hall;
-    check(`${device}: ...and it still is next time, moving`, h1 && h2 && h2.shown && !h2.napping && (Math.hypot(h2.ball[0] - h1.ball[0], h2.ball[2] - h1.ball[2]) > 0.05 || Math.hypot(h2.cat[0] - h1.cat[0], h2.cat[2] - h1.cat[2]) > 0.05 || h2.whacks > h1.whacks));
-    await M('faceDoor', 'hall', 'brickbuster', 2.4);
-    await p.waitForTimeout(800);
-    await shot('7-out-of-order');
     check(`${device}: it's still broken next time: bricks on the heap, sign on the door`, s.broken === 'bottom' && s.pile === 80 && s.sign && !s.sadie && s.escape === 'gone');
     // put away when you're far off (the clubhouse does it after a while three doors away) and built
     // again as you come back: the yarn ball and Sadie leave the hall with it, and come back with it

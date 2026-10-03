@@ -39,8 +39,4 @@ So a new room just plays through its handle (music on a music line) and keeps ev
 ## Checked
 - The clubhouse's headless test fails if anything else makes an AudioContext or plays straight to
   the speakers.
-- Its browser test visits every room and fails if any of its music is still heard after you've left,
-  or anything of it is left once it's put away.
-- Standing still for 30 s in every room, outside at the gate and in the hall (`tests/shared/ears.mjs`,
-  no code of a room's own), it fails on the same sound more than 4 times, more than 12 sounds in all,
-  or anything but music held on: a drone or a tick slipping in.
+- Nothing checks how calm or loud a room's sounds are in play any more (`docs/clubhouse/decisions/fatal-only.md`).

@@ -48,10 +48,9 @@ you hold it paints a stroke), and shows the buttons, the YOU'RE HOLDING box and 
   in its patch and on its side, a box taking paint on every side, stamps the right way up, keeping
   and getting back any paint exactly, the worst case fitting in the browser, the pots and tools,
   every sound soft and short, no sound for painting.
-- `tests/paint-shop/browser.mjs`: in through the door, dipping and taking with E or USE, the hint
-  saying what you'd pick up with its colour, the YOU'RE HOLDING box, still on LOOK after picking
-  up, the LOOK and PAINT buttons, a silent stroke, a stamp, the bucket, the dynamite, Sadie's
-  prints, kept after a reload, the plunger asking then blowing up everything.
+- `tests/paint-shop/browser.mjs`: fatal errors only: in through the door, dipping and taking with E
+  or USE, PAINT turning painting on, a stroke, kept after a reload (the hints, the stamp, bucket,
+  dynamite, Sadie's prints and the plunger are not played in the browser).
 - Pictures: `node tools/paint-shop/shots.mjs [desktop|phone]` (after a build) saves the shop,
   inside, and a round of painting in `dist/shots/paint-shop/`; `node tools/paint-shop/details.mjs`
   saves close-ups of the little things (the signs, Chooter's cap, the easel's back, a crate painted

@@ -2,8 +2,7 @@
 // (never on its own) with the built page. It's built into the clubhouse, so these run whenever the
 // clubhouse changes too.
 //
-// It finds the hedge block beside the house, sees the maze through its front gate, walks in (the
-// maze's music starts and the clubhouse's theme makes way), finds its way through, turning corner
+// It finds the hedge block beside the house, sees the maze through its front gate, walks in, finds its way through, turning corner
 // after corner (5 to 8, then the corner onto the end), and out of the end into the backyard. Turning
 // round, the gate it came out of shows the same bit of maze; walking back in, it's a new maze past the
 // first corner, and its end lets it out into the backyard again. And you can walk round the side of
@@ -31,8 +30,6 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: walking through it, you're in the maze`, (await M('where')).place === ROOM && z.inside);
     await p.waitForTimeout(1500);
     await shot('2-inside');
-    const sound = (await M('sound')).owners[ROOM];
-    check(`${device}: the maze's music plays (and only in the maze)`, z.playing && sound?.music >= 1, JSON.stringify(sound));
 
     // finding the way through: a step at a time towards the next cell on the way, through the end's gate
     async function through() {

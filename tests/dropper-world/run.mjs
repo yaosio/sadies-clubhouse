@@ -1,6 +1,7 @@
 // Headless checks for the simulation. Runs the real game code in Node, no browser needed:
 //
-//   node tests/dropper-world/run.mjs                 all of them
+//   node tests/dropper-world/run.mjs                 the sections that guard against a fatal error (FATAL below)
+//   node tests/dropper-world/run.mjs --all           every section (the tuning ones too: Chooter, hay, barn, bedrock...)
 //   node tests/dropper-world/run.mjs --section=14    just one numbered section (below)
 //
 // The simulation (src/activities/dropper-world/core) never touches the screen, which is what makes this possible.
@@ -15,11 +16,15 @@ import { cpus } from 'node:os';
 import { checker } from '../shared/check.mjs';
 
 const only = process.argv.find(a => a.startsWith('--section='));
+// Fatal errors only (docs/clubhouse/checks/fatal-only.md): by default just the sections that catch a crash or
+// broken numbers (the pile, two minutes of play, saving and loading). The rest guard how it plays (the
+// mole, Chooter, hay, the barn, thoughts, bedrock...): `--all`, or `--section=N`, runs them by hand.
+const FATAL = [1, 4, 9];
 const wanted = n => only && +only.slice(10) === n;
 
 if (!only) {
   const me = new URL(import.meta.url).pathname;
-  const sections = [...readFileSync(me, 'utf8').matchAll(/^\/\/ (\d+)\. (.*)$/gm)].map(m => ({ n: +m[1], title: m[2] }));
+  const sections = [...readFileSync(me, 'utf8').matchAll(/^\/\/ (\d+)\. (.*)$/gm)].map(m => ({ n: +m[1], title: m[2] })).filter(s => process.argv.includes('--all') || FATAL.includes(s.n));
   // the long ones first, longest first, so none of them ends up last and alone (about how many
   // seconds each takes on Claude's cloud machine: 14 50, 7 45, 10 18, 1 13, 13 12, 8 12, 12 9, 5 7)
   const LONG = [14, 7, 10, 1, 13, 8, 12, 5];
