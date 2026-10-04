@@ -23,6 +23,7 @@ calm-sounds check).
   stamp, bucket, dynamite, plunger and Sadie's prints (Paint Shop), Brickbuster's music, winces and
   hall sounds, Space Adventure's talk, music and radio, Dropper World's thoughts, dashboard, dev
   sheet and its tuning sections (hay, barn, Chooter, thoughts, bedrock: `--all` runs them).
+- **Trimmed 2026-10-04 (shorter walks, Claude's choice, the owner said yes):** the aquarium's picture-matches-across-the-swap check, reef, boat speed and far-end-of-room offer, and the hedge maze's second walk through (a new maze each time is a pleasure, not a trap; the first walk and the way out stay).
 
 ## What the break-it audit (review/test-value-audit-2026-10-03) found, and was left alone
 Walls not being solid, the pause menu's volume buttons not really turning things down, only W being
