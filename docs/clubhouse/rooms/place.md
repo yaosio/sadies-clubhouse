@@ -29,7 +29,7 @@ Like any room:
   into a seat).
 
 ## When a room goes wrong
-One place's mistake doesn't stop the game: if a place's `update` (or `putAway`) throws, it's said once
+One place's mistake doesn't stop the game: if a place's `update` (or `putAway`) throws, it's said (an update's once; a putAway's every time)
 in the console and the game carries on without it that frame. A room that fails to build has what it
 started taken away (sounds, boxes on the page, test hooks, what it made), so the retry doesn't pile a
 copy on top.

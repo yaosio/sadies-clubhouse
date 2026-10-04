@@ -2,29 +2,31 @@
 
 The rules every place in Sadie's Clubhouse follows. Read before designing a new activity or
 building, and check the idea against it. It points at the detailed pages rather than repeating them.
-Approved by the owner, 2026-10-02. Each rule says whether a check enforces it today, or could.
+Approved by the owner, 2026-10-02. Each rule says whether a check enforces it today. They are
+guidelines, not walls: the owner can change any of them (2026-10-03), and Claude says so before
+breaking or changing one, never quietly.
 
 ## 0. Names
 Sadie's house is **the clubhouse**, everywhere: in the docs, the game and what Claude says. Never
-"the mansion". (One old name is left in the code on purpose: the clubhouse's own saves start with
-`mansion.`, and must keep that name or every player's saved settings would be lost.)
+"the mansion". (Old names are left in the code on purpose: file and element names like `mansion.js` and
+`#mansion`, and the clubhouse's own saves starting `mansion.`, which must keep that name or every
+player's saved settings would be lost.)
 
 ## 1. One look
 - The misremembered 90s (`docs/clubhouse/look/README.md`): loud Kid Pix colours, chunky pixels,
   dithering, flat sprite characters that turn to face you. Built from the kit's textures and palette
   (`T`, `C`, `psx`).
-- **One scale.** You see from 1.6 m. Doors are 2.4 m tall (today 2.3 to 2.45). Sadie is one size
+- **One scale.** You see from 1.6 m. Doors are 2.4 m tall (today 2.3 to 2.45, except the 3.0 m front door). Sadie is one size
   everywhere she's a sprite (today 0.55 to 0.9 m) unless being a different size is the joke.
-  *Could be checked:* the kit hands out the door and Sadie, so their size can't drift.
+  *Not checked* (only fatal errors are tested).
 - Rooms can be bigger inside than outside. No loading screens.
 
 ## 2. Same controls everywhere
 - Walk: WASD and mouse, or the thumb stick. Use: E, or the USE button. Leave a game: ESC, or BACK.
 - A room never invents its own key or gesture; a new way of playing is a file in
-  `src/clubhouse/play/` any place can use (`docs/clubhouse/rooms/controls.md`). *Checked in part*
-  (the room checker knows the kinds).
+  `src/clubhouse/play/` any place can use (`docs/clubhouse/rooms/controls.md`). *Not checked.*
 - **Phones are equal:** every action has a button; every hint fits a 360 px wide screen; nothing
-  needs hover or a keyboard. *Could be checked:* measure every hint and label on a phone.
+  needs hover or a keyboard. *Not checked* (only fatal errors are tested).
 
 ## 3. Every place has an owner, a toy and a door
 - **An owner:** inside the fence it's Sadie's; outside the gate it belongs to somebody else. The
@@ -32,6 +34,8 @@ Sadie's house is **the clubhouse**, everywhere: in the docs, the game and what C
 - **Something to play with** within a few steps of walking in.
 - **An easy, obvious exit:** the way you came in is always in reach, and the pause menu always gets
   you out. Anything that holds you (a cutscene, a trip) says how long, or can be left.
+  The owner's exception (2026-10-04): Space Adventure's trip is meant to trap you. Once you walk
+  in you're strapped in for the whole trip, with no way out, on purpose.
 - **Sadie's in it** somehow (not always the same way). An exception is said in the activity's
   README.
 
@@ -49,16 +53,16 @@ Sadie's house is **the clubhouse**, everywhere: in the docs, the game and what C
 ## 6. Where it goes
 - A door never moves; a new room takes the next free door spot (`slot`). A building outside takes
   the next plot along the lane (`lot`) or a grounds spot (`grounds`); those never move either.
-  *Checked.* (`docs/clubhouse/rooms/card.md`)
+  *Checked that each spot stays where it is* (not which room has which). (`docs/clubhouse/rooms/card.md`)
 - The town grows a building at a time, packed close, next to what's there
   (`docs/clubhouse/outside/town.md`).
 - Shared code names no room; a room imports only its own folder and the toolbox. *Checked.*
 
 ## 7. Small and fast
-- A room's save stays small (a target: under 200 KB) and old saves always load. *Checked (old
-  saves).* (`docs/clubhouse/rooms/saves.md`)
-- A room hands back everything it made when it's put away. *Could be checked:* walk every room twice
-  and compare the memory.
+- A room's save stays small (a target: under 200 KB) and old saves always load. *Old saves loading is
+  checked; the size isn't (Dropper World's full board is a little over, about 206 KB).* (`docs/clubhouse/rooms/saves.md`)
+- A room hands back everything it made when it's put away. *Checked:* every room is put away and built
+  again several times, and the memory and listeners are compared.
 
 ## 8. Docs
 - Each activity's docs have the same shape and one topic per small file (`docs/TASKS.md` says which

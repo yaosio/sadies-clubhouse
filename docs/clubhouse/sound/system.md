@@ -8,7 +8,7 @@ whole page. Read before adding or changing any sound.
   `handle.play(key, make, { loud, bus, rate, hold, gap, at })` (the samples made the first time, then
   kept).
 - `handle.line(bus)` (`{ ctx, out }`) is for music it streams note by note (or a held note).
-- A room wraps its handle (`Object.create(handle)`, its sounds by name on top), never changes it: the
+- A room wraps its handle (`wrap(handle, more)`, its sounds by name on top), never changes it: the
   handle can't be added to or have its own `play` replaced (trying is an error, which the checks
   catch).
 - Sounds that belong to a building's house rather than its room (they carry on while the room's put

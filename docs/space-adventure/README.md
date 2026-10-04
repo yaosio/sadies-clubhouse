@@ -8,7 +8,8 @@ trip again.
 
 ## Design pillars (the owner's rules; these win over any feature idea)
 
-- It's a trip you watch, not a game: once you're in the seat, nothing you do changes it.
+- It's a trip you watch, not a game: once you're in the seat, nothing you do changes it, and there's no way out until it's over. That
+  is on purpose (the owner, 2026-10-04: people are meant to be trapped in the spaceship scene).
 - Sadie talks the entire time. Never just a few lines.
 - No loading screens and no cuts: space becomes the land while there's nothing but cloud out of the
   window (the same trick as the aquarium's dive).

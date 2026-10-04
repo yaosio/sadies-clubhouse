@@ -25,7 +25,7 @@ plaster Sadie on a plinth to paint (SADIE).
 Mint walls splattered in every colour, a pink and yellow striped awning, the sign (CHOOTER'S PAINT
 SHOP), two windows full of paint cans, a blue door with an OPEN sign, a sandwich board (TODAY: PAINT
 THE WALLS / ALSO FLOOR AND CAT?), and a giant paint can (1 TON) up on a stand in the middle of the
-roof, high above the sign, tipping forward and pouring pink onto it. Walk out of the gate and across
+roof, high above the sign, tipping to one side and pouring pink onto it. Walk out of the gate and across
 the path from Clyde's House, and in through the shop door.
 
 ## What's saved

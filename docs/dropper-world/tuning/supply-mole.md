@@ -29,7 +29,7 @@ tired). Full: it naps (no pieces) until tiredness is down to 40%.
 ## A sense of scale
 
 On this cloud computer, in Node: once settled, 120 pieces take about 1.6 ms a step, 220 about 2.3
-ms, 370 about 5 ms (30% of each second at 60 steps). The mole drops about 37 pieces a minute on its
+ms, 370 about 5 ms (30% of each second at 60 steps). The mole drops about 34 pieces a minute on its
 own, so on a device like that it starts slowing down somewhere past 10–15 minutes of building.
 Raining 400 pieces in a headless browser here wore it out in about 17 s. With bedrock, a long game
 stays around 400 pieces and 3–4 ms a step however long it runs.
