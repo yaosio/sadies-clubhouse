@@ -19,10 +19,14 @@ import { DESKTOP } from '../shared/devices.mjs';
 
 const LEAK_MB = 3;   // (how much the page's memory may grow over two more rounds of putting every room away and building it again)
 
-export default async function ({ browser, page, check, outDir }) {
+export default async function ({ browser, page, check, outDir, touched = null }) {
   // It names no room: it picks them from the cards, so renaming or adding one never breaks it.
   // (`spare`: the last room on the landings that lives in its room, for putting away; `computers`:
   // every activity played at a computer)
+  // `touched` (--since-main: the rooms that differ from main, which passed everything) narrows the loops over
+  // every room to those rooms; the clubhouse's own checks, every room being built and any error on the page
+  // still run in full. Null: all of them.
+  const mine = c => !touched || touched.has(c.id);
   const cards = await allCards(), landed = cards.filter(c => Number.isInteger(c.slot)).sort((a, b) => a.slot - b.slot);
   const spare = landed.filter(c => c.room).at(-1), computers = landed.filter(c => c.start);
   const saver = cards.find(c => c.keeps && c.room), junk = saver.keeps[0];
@@ -133,7 +137,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: a place that fails in a frame doesn't freeze the game`, carried, `frames ${f0} then ${await M('frames')}`);
     // every room can be put away and built again, twice over, with nothing piling up (and no copies
     // of anything it puts on the screen)
-    const all = (await M('places')).filter(n => n.startsWith('room:'));
+    const all = (await M('places')).filter(n => n.startsWith('room:') && (!touched || touched.has(n.slice(5))));
     // (and nothing on the page, and none of its saves, changes: built again from its save, it's the
     // same room; each rebuild is as quick as the first build)
     const saves = () => p.evaluate(() => JSON.stringify(Object.keys(localStorage).filter(k => !k.startsWith('mansion.')).sort().map(k => [k, localStorage.getItem(k)])));
@@ -172,7 +176,7 @@ export default async function ({ browser, page, check, outDir }) {
 
     // every door on the landings leads to its own room
     const wrong = [];
-    for (const c of landed) {
+    for (const c of landed.filter(mine)) {
       await M('faceDoor', 'hall', c.id, 1.3); await walk(1200);
       const at = (await M('where')).place;
       if (at !== 'room:' + c.id) wrong.push(`${c.id}'s door took you to ${at}`);
@@ -182,7 +186,7 @@ export default async function ({ browser, page, check, outDir }) {
 
     // ...and so does every building outside (a plot round the town square, a spot in the grounds): walk in through
     // its door, or its arch, from outside, and you're in its room
-    const buildings = cards.filter(c => c.room && (c.lot !== undefined || c.grounds !== undefined)), wrongOut = [];
+    const buildings = cards.filter(c => mine(c) && c.room && (c.lot !== undefined || c.grounds !== undefined)), wrongOut = [];
     for (const c of buildings) {
       await M('build', 'room:' + c.id);
       if (!(await M('faceDoor', 'outside', c.id, 1.3))) { wrongOut.push(`${c.id}: no door to it from outside`); continue; }
@@ -190,11 +194,11 @@ export default async function ({ browser, page, check, outDir }) {
       const at = (await M('where')).place;
       if (at !== 'room:' + c.id) wrongOut.push(`${c.id}'s door took you to ${at}`);
     }
-    check(`${device}: every building outside leads to its own room (${buildings.length})`, buildings.length >= 1 && !wrongOut.length, wrongOut.join(', '));
+    check(`${device}: every building outside leads to its own room (${buildings.length})`, (touched || buildings.length >= 1) && !wrongOut.length, wrongOut.join(', '));
 
     // every activity on a computer: played there (the clubhouse leaves the page completely), ESC BACK
     // comes back to that computer, and so does the Escape key when it came in straight by address
-    for (const c of computers) {
+    for (const c of computers.filter(mine)) {
       await M('build', 'room:' + c.id); await M('put', 'room:' + c.id, 'computer');
       await p.waitForTimeout(300);
       const offer = await M('target');
@@ -229,7 +233,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and NO keeps it`, await p.isVisible('#resets') && !(await p.isVisible('#sure')) && await p.evaluate(() => localStorage.getItem('mansion.invited') !== null));
     // each activity's start-over button erases its own saves (all of its card's `keeps`) and nobody else's
     const marks = cards.flatMap(c => (c.keeps || []).map(k => k + 'zz-check')), wrongly = [];
-    for (const c of cards.filter(c => c.keeps)) {
+    for (const c of cards.filter(c => c.keeps && mine(c))) {
       await p.evaluate(ks => ks.forEach(k => localStorage.setItem(k, '1')), marks);
       if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
       await p.evaluate(name => [...document.querySelectorAll('#resets button')].find(b => b.textContent === name)?.click(), c.name.toUpperCase());

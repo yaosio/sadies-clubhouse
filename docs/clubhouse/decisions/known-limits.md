@@ -33,12 +33,17 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
 - **The computer activities' pages are in the first download** (Dropper World, TypeFitter), though
   most visits never open them. Plan: fetch each when its computer is used, like a room's code. Do it
   when the first download passes 1.5 MB (it's 1.4 MB now).
-- **The full check grows by about a minute with every room** (about 15 s of fixed cost, since every
-  room's browser run loads the page twice, as a phone and a desktop, plus its own walk). 7 min 18 s at
-  11 browser runs (2026-10-04). Running them side by side on one computer was tried again
-  2026-10-04 (3 at once): each ran about 1.7 times slower and an aquarium check failed, so it only
-  gains about a third and isn't safe. Plan: only the changed places plus one quick walk through every
-  room (the full run for merges), and shorter walks in the slow rooms.
+- **The full check grows by about 35 s with every room** (a room's own walk, about 25 s, plus its share
+  of the clubhouse's every-room loops; 6 min 23 s at 11 rooms, 2026-10-04). Running them side by side
+  on one computer was tried 2026-10-04 (3 at once): each ran about 1.7 times slower and an aquarium
+  check failed, so it isn't safe. So the check at merge is `npm run check -- --since-main` (Claude's
+  choice, 2026-10-04): it checks only what differs from `main`, which already passed everything, so a
+  change inside one room costs that room's walk plus a fixed 47 s clubhouse run, however many rooms
+  there are (65 s for a one-room change at 11 rooms, against 6 min 23 s). A change to the shared
+  toolbox, the clubhouse's shell or the check tools still runs everything, and that full run grows with
+  the rooms. It trusts that `main` passed (a docs-only merge can't change what's checked), so run
+  `npm run check -- --retest` every review round. Still open: shorter walks in the slow rooms (hedge
+  maze, aquarium, 47 s each).
 - **Code files have no size limit** (the owner: no hard limit, and splitting isn't very necessary,
   2026-10-04). A big file only costs Claude reading time. Split one when it gets in the way, not by
   rule; the biggest are `clubhouse.js` (58 KB), `look.js` and `outside.js` (22 KB, next to split).

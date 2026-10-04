@@ -51,7 +51,8 @@ door stays with it.
 4. Commit with a plain-English message saying what changed and what to look for in-game. Push to the
    working branch. Never commit `dist/` or `node_modules/`; do commit `package-lock.json`. GitHub
    runs no checks (they cost minutes; `.github/workflows/` run only by hand), so before a merge, bring
-   in the latest `main` and `npm run check` must pass on exactly that.
+   in the latest `main` and `npm run check -- --since-main` must pass on exactly that (it checks only
+   what differs from `main`; a full `npm run check -- --retest` every review round).
    **Docs-only changes** (no code, no game files; Yaosio, 2026-10-03, because the full check keeps
    getting longer as the game grows): the quick checks are enough (`node tools/docs.mjs`, lint); skip
    the full run. Anything touching game code still gets the full check on the latest `main`.

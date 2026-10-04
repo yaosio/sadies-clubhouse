@@ -29,6 +29,15 @@ is skipped, the flags, or how GitHub runs the checks.
 ## Flags
 - `--quick` skips the tests, `--preview` checks the test version, `--retest` runs everything
   regardless.
+- `--since-main` is the check at merge: `main` already passed everything, so whatever has exactly main's
+  code counts as passed (no notes from an earlier run needed, so it works in a fresh session). Only
+  the activities that differ are checked, and the clubhouse's loops over every room (put away and
+  built again, doors, computers, START OVER) cover only those; its own walking, pausing and saves,
+  every room being built and any page error still run. If the shell differs from main (files in `src/`
+  beyond the activities, `src/shared/`, `src/clubhouse/`, `tests/shared/`, `tests/clubhouse/` or the
+  check tools) everything runs as usual. A clubhouse run that looked at only some rooms is not noted
+  as passed. Needs `git fetch origin main` first; `SINCE_REF=<ref>` compares with another commit.
+  A full `--retest` each review round covers the trust it puts in main.
 - `--live <file>` (the live game page, saved) also counts an activity's tests as passed when its
   files are exactly what that page was built from, since it only goes live after passing.
 - `--only a,b` (or `a+b`) checks just those activities (`clubhouse`: the clubhouse's own).
