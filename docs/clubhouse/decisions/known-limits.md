@@ -35,8 +35,10 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
   when the first download passes 1.5 MB (it's 1.4 MB now).
 - **The full check grows by about a minute with every room** (about 15 s of fixed cost, since every
   room's browser run loads the page twice, as a phone and a desktop, plus its own walk). 7 min 18 s at
-  11 browser runs (2026-10-04). Plan: run the rooms' browser checks side by side, then (past about 15
-  rooms) only the changed places plus one walk through every room.
+  11 browser runs (2026-10-04). Running them side by side on one computer was tried again
+  2026-10-04 (3 at once): each ran about 1.7 times slower and an aquarium check failed, so it only
+  gains about a third and isn't safe. Plan: only the changed places plus one quick walk through every
+  room (the full run for merges), and shorter walks in the slow rooms.
 - **Code files have no size limit** (the owner: no hard limit, and splitting isn't very necessary,
   2026-10-04). A big file only costs Claude reading time. Split one when it gets in the way, not by
   rule; the biggest are `clubhouse.js` (58 KB), `look.js` and `outside.js` (22 KB, next to split).
