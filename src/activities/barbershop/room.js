@@ -13,10 +13,12 @@
 import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, BoxGeometry, SphereGeometry, ConeGeometry, DoubleSide } from 'three';
 import { drawArt, MARBLES } from './art.js';
 import { buildHouse, DW, DH } from './house.js';
+import { drawHangers, HANGER } from './hangers.js';
 import { HAIR, TAIL, OUTFIT, drawLook, W as LW, H as LH } from './looks.js';
 import { makeProps } from './props.js';
 import { SHOWS } from './shows.js';
 import { makeSounds } from './sounds/index.js';
+import { makeMusic } from './sounds/player.js';
 import { soundsFor } from '../../shared/sound.js';
 
 const RW = 5, RD = 4, H = 3.6;            // the room: half its width and depth, and its height
@@ -112,6 +114,11 @@ export async function buildRoom(m) {
 
   // ---------- the wig heads, the ribbons, the clothes: each one is a use ----------
   const uses = [];
+  const arrows = [];   // the bobbing arrow over each thing you can use: { m, y, kind, i }
+  const arrow = (x, y, z, kind, i) => {
+    const o = new Mesh(keep(new PlaneGeometry(0.17, 0.19)), psx(A.arrow[0], { unlit: 1 }));
+    o.position.set(x, y, z); scene.add(o); arrows.push({ o, y, kind, i, ph: arrows.length * 0.7 });
+  };
   const skin = tint(0xf0d0b0);
   const choose = (kind, i) => {
     if (show) { say('ONE SECOND, DARLING.', 'marbles'); return; }
@@ -123,7 +130,7 @@ export async function buildRoom(m) {
   const labelFor = (kind, list, i) => `${kind}: ${list[i].name}`;
   // the wig shelf on the left wall: a head wearing each hairdo
   box(0.45, 0.06, 3.0, tint(0x9a5a2a), [-RW + 0.22, 1.35, -1.75]);
-  plane(0.9, 0.24, psx(A.signWigs, { unlit: 0.5 }), [-RW + 0.05, 2.15, -1.75], [0, Math.PI / 2, 0], 1);
+  plane(0.9, 0.24, psx(A.signWigs, { unlit: 0.5 }), [-RW + 0.05, 2.5, -1.75], [0, Math.PI / 2, 0], 1);
   HAIR.forEach((h, i) => {
     const z = -3.0 + i * 0.5, g = new Group(); g.position.set(-RW + 0.28, 1.38, z); scene.add(g);
     mesh(new SphereGeometry(0.11, 8, 6), skin, [0, 0.12, 0], null, g);
@@ -134,32 +141,35 @@ export async function buildRoom(m) {
     else if (i === 4) for (const s of [-1, 1]) mesh(new SphereGeometry(0.06, 6, 5), c, [0, 0.15, s * 0.14], null, g);
     else if (i === 5) mesh(new SphereGeometry(0.17, 8, 6), c, [0, 0.2, 0], null, g);
     uses.push({ pos: new Vector3(-RW + 0.28, 1.55, z), reach: 2.4, label: labelFor('HAIR', HAIR, i), button: 'PICK', swatch: h.color, act: () => choose('hair', i) });
+    arrow(-RW + 0.28, 1.97, z, 'hair', i);
   });
   // the ribbon rack: a bar on the left wall, a tail hanging for each taildo
   cyl(0.02, 0.02, 3.0, 4, chrome, [-RW + 0.25, 1.9, 1.85], [Math.PI / 2, 0, 0]);
-  plane(1.0, 0.24, psx(A.signTails, { unlit: 0.5 }), [-RW + 0.05, 2.35, 1.85], [0, Math.PI / 2, 0], 1);
+  plane(1.0, 0.24, psx(A.signTails, { unlit: 0.5 }), [-RW + 0.05, 2.6, 1.85], [0, Math.PI / 2, 0], 1);
   TAIL.forEach((t, i) => {
     const z = 0.55 + i * 0.5, c = tint(parseInt(t.color.slice(1), 16));
     mesh(new BoxGeometry(0.1, 0.55, 0.06), c, [-RW + 0.25, 1.6, z]);
     mesh(new SphereGeometry(0.09, 6, 5), c, [-RW + 0.25, 1.3, z]);
     uses.push({ pos: new Vector3(-RW + 0.28, 1.55, z), reach: 2.4, label: labelFor('TAIL', TAIL, i), button: 'PICK', swatch: t.color, act: () => choose('tail', i) });
+    arrow(-RW + 0.28, 2.08, z, 'tail', i);
   });
+  const hangers = drawHangers(m);
   // the clothes rail across the front right: a hanger for each outfit (the first, an empty one, takes it all off)
   for (const x of [RAIL.x0, RAIL.x1]) cyl(0.04, 0.04, 1.85, 6, chrome, [x, 0.92, RAIL.z]);
   cyl(0.025, 0.025, RAIL.x1 - RAIL.x0, 5, chrome, [(RAIL.x0 + RAIL.x1) / 2, 1.85, RAIL.z], [0, 0, Math.PI / 2]);
-  for (const s of [-1, 1]) plane(1.2, 0.26, psx(A.signOutfits, { unlit: 0.5 }), [(RAIL.x0 + RAIL.x1) / 2, 2.25, RAIL.z + s * 0.03], [0, s < 0 ? Math.PI : 0, 0], 1);
+  for (const s of [-1, 1]) plane(1.2, 0.26, psx(A.signOutfits, { unlit: 0.5 }), [(RAIL.x0 + RAIL.x1) / 2, 2.5, RAIL.z + s * 0.03], [0, s < 0 ? Math.PI : 0, 0], 1);
   OUTFIT.forEach((o, i) => {
-    const x = RAIL.x0 + 0.3 + i * 0.4, c = tint(parseInt(o.color.slice(1), 16), { side: DoubleSide });
-    mesh(new SphereGeometry(0.04, 5, 4), chrome, [x, 1.78, RAIL.z]);
-    if (i) mesh(new PlaneGeometry(0.28, 0.42), c, [x, 1.5, RAIL.z]);
-    else mesh(new BoxGeometry(0.34, 0.02, 0.02), chrome, [x, 1.72, RAIL.z]);
+    const x = RAIL.x0 + 0.3 + i * 0.4;
+    // (each hangs as what it is: its own little picture)
+    mesh(new PlaneGeometry(0.42, 0.42 * HANGER.H / HANGER.W), psx(hangers[i], { unlit: 0.3, side: DoubleSide }), [x, 1.88 - 0.21 * HANGER.H / HANGER.W, RAIL.z]);
     uses.push({ pos: new Vector3(x, 1.5, RAIL.z), reach: 2.4, label: labelFor('OUTFIT', OUTFIT, i), button: 'PICK', swatch: o.color, act: () => choose('outfit', i) });
+    arrow(x, 2.0, RAIL.z, 'outfit', i);
   });
   // Marbles herself, and the rope
   const marblesUse = { pos: new Vector3(MARBLES_AT.x, 0.7, MARBLES_AT.z), reach: 2.6, label: 'ASK MARBLES TO PICK', button: 'ASK', act: () => marblesPick() };
-  uses.push(marblesUse);
+  uses.push(marblesUse); arrow(MARBLES_AT.x, 1.35, MARBLES_AT.z, 'marbles', 0);
   const ropeUse = { pos: new Vector3(STAGE.x0 - 0.25, 1.4, STAGE.z1 + 0.05), reach: 2.6, label: 'PULL THE ROPE', button: 'PULL', act: () => startShow() };
-  uses.push(ropeUse);
+  uses.push(ropeUse); arrow(STAGE.x0 - 0.25, 2.85, STAGE.z1 + 0.05, 'rope', 0);
   await m.breathe?.();
 
   // ---------- speech bubble, props ----------
@@ -167,7 +177,7 @@ export async function buildRoom(m) {
   const bubble = new Mesh(keep(new PlaneGeometry(1.5, 0.19)), psx(bubbleTex, { unlit: 1 }));
   bubble.visible = false; scene.add(bubble);
   const P = makeProps(m, A, scene);
-  const faces = [sadie, marbles, bubble, ...P.faces];
+  const faces = [sadie, marbles, bubble, ...P.faces, ...arrows.map(a => a.o)];
   let said = '', bubbleOff = 0, bubbleWho = 'marbles';
   function say(text, who = 'marbles') {
     if (text === said && who === bubbleWho) return;
@@ -192,6 +202,9 @@ export async function buildRoom(m) {
   // ---------- the shows ----------
   let madeSounds = null;
   const sounds = () => (madeSounds ||= makeSounds(soundsFor('room:' + card.id)));
+  // (the shop's own tune while you're in, a show's song during its show: sounds/player.js, on the music line)
+  let madeMusic = null, quietUntil = -1, welcomeAt = -1, welcomed = false;
+  const music = () => (madeMusic ||= makeMusic(soundsFor('room:' + card.id)));
   const S = new Vector3(SX - 0.2, STAGE.h, SZ);
   let show = null, showT = 0, clock = 0, tilt = 0, sadieOn = true;
   const fired = new Set();
@@ -209,11 +222,11 @@ export async function buildRoom(m) {
     const out = OUTFIT[pick.outfit];
     if (show) return;
     if (!out.show) { say(SHOP_TALK[Math.floor(Math.random() * SHOP_TALK.length)], 'marbles'); mood('wink', 1.2); return; }
-    show = { name: out.show, def: SHOWS[out.show] }; showT = 0; fired.clear(); c.puffsList = [];
+    show = { name: out.show, def: SHOWS[out.show], song: false }; showT = 0; fired.clear(); c.puffsList = [];
     ropeUse.label = 'SHOW ON...'; sounds().mrrp({ at: { x: home.x, z: home.z } });
   }
   function endShow() {
-    show = null; fired.clear(); c.puffsList = [];
+    show = null; fired.clear(); c.puffsList = []; music().stop(0.6); quietUntil = clock + 1.6;
     for (const o of P.all) o.visible = false;
     sadie.position.copy(home); sadie.visible = true; sadie.rotation.z = 0; sadie.userData.set(false); sadieOn = true; tilt = 0;
     marbles.position.set(MARBLES_AT.x, 0, MARBLES_AT.z); marbles.scale.setScalar(1);
@@ -234,6 +247,7 @@ export async function buildRoom(m) {
       if (showT > HOP + len + HOP) endShow();
       return;
     }
+    if (!show.song) { show.song = true; music().play(show.name, { fade: 0.2 }); }
     show.def.run(c, showT - HOP);
     sadie.position.copy(sadiePos); sadie.visible = sadieOn; sadie.rotation.z = tilt;
   }
@@ -245,6 +259,7 @@ export async function buildRoom(m) {
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces, house, uses,
     light: { sun: 0.3, bulb: 0.7, lamp: [0, H - 0.8, 0] },
+    putAway() { madeMusic?.stop(0.1); },
     spots: {
       door: { x: 0, z: RD - 1.2, yaw: 0, pitch: 0, y: 0 },
       chair: { x: CHAIR.x, z: 0.2, yaw: 0, pitch: -0.1, y: 0 },
@@ -276,6 +291,21 @@ export async function buildRoom(m) {
       // glitter on the tail: a new sparkle about once a second
       if (TAIL[pick.tail].sparkle && here && Math.floor(t * 1.1) !== sparkleAt) { sparkleAt = Math.floor(t * 1.1); redraw(t); }
       if (!m.paused()) { if (show) runShow(dt); }
+      // the music: the shop's tune round and round while you're inside (a breath of quiet after a song), nothing once you've left
+      if (here) {
+        if (!show && !music().playing && clock >= quietUntil) music().play('shop', { loop: true, fade: 2.5 });
+        if (welcomeAt < 0) welcomeAt = clock + 0.8;
+        else if (!welcomed && clock >= welcomeAt) { welcomed = true; say('PICK ANYTHING YOU LIKE!', 'marbles'); mood('grin', 1.5); }
+      } else { if (madeMusic) madeMusic.stop(0.3); quietUntil = -1; welcomeAt = -1; welcomed = false; }
+      // the bobbing arrows over what you can use: pink for what Sadie has on, the rope's only when the outfit has a show
+      const hasShow = !show && OUTFIT[pick.outfit].show;
+      for (const a of arrows) {
+        a.o.visible = !show && (a.kind !== 'rope' || !!hasShow);
+        if (!a.o.visible) continue;
+        a.o.position.y = a.y + Math.sin(t * 3 + a.ph) * 0.04;
+        const idx = a.kind in pick && pick[a.kind] === a.i ? 1 : 0;
+        if (a.idx !== idx) { a.idx = idx; a.o.material.uniforms.map.value = A.arrow[idx]; }
+      }
       // the bubble sits over whoever's talking
       const who = bubbleWho === 'sadie' ? sadie : marbles;
       if (bubble.visible) bubble.position.set(who.position.x, who.position.y + (who === sadie ? lookH + 0.1 : marblesH + 0.2), who.position.z);
@@ -286,7 +316,7 @@ export async function buildRoom(m) {
 
   // for the checks (tests/barbershop/browser.mjs)
   m.checks('__barbershop', {
-    state: () => ({ pick: { ...pick }, show: show ? show.name : null, showT, heard: [...new Set(sounds().log)], played: sounds().played, sadieShown: sadie.visible }),
+    state: () => ({ music: madeMusic?.playing ?? null, pick: { ...pick }, show: show ? show.name : null, showT, heard: [...new Set(sounds().log)], played: sounds().played, sadieShown: sadie.visible }),
     choose: (kind, i) => choose(kind, i),
     show: name => { pick.outfit = OUTFIT.findIndex(o => o.show === name); redraw(clock); startShow(); },
     pickForMe: () => marblesPick(),

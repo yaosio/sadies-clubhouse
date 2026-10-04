@@ -7,6 +7,7 @@
 import { HAIR, TAIL, OUTFIT, drawLook, W, H } from '../../src/activities/barbershop/looks.js';
 import { SHOWS } from '../../src/activities/barbershop/shows.js';
 import { ALL } from '../../src/activities/barbershop/sounds/index.js';
+import { SONGS } from '../../src/activities/barbershop/sounds/music.js';
 import { RATE } from '../../src/shared/retro.js';
 import card from '../../src/activities/barbershop/card.js';
 import { checker } from '../shared/check.mjs';
@@ -56,6 +57,13 @@ check('the hairdos and taildos have no shows of their own', [...HAIR, ...TAIL].e
 for (const [name, make] of Object.entries(ALL)) {
   const a = make();
   check(`the ${name} sound makes real numbers, not silence (${(a.length / RATE).toFixed(1)} s)`, a.length > 100 && a.every(Number.isFinite) && a.some(v => v));
+}
+
+// 5. the shop's tune and every show's song make real numbers (and every show has a song of its own)
+check('every show has a song, and the shop has its tune', Object.keys(SHOWS).every(n => typeof SONGS[n] === 'function') && typeof SONGS.shop === 'function');
+for (const [name, make] of Object.entries(SONGS)) {
+  const a = make();
+  check(`the ${name} music makes real numbers, not silence (${(a.length / RATE).toFixed(1)} s)`, a.length > 1000 && a.every(Number.isFinite) && a.some(v => v));
 }
 
 finish();

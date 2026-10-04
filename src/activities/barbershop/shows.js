@@ -5,7 +5,7 @@
 //   c.S: the middle of the stage; c.P: the props (props.js); c.sadie, c.marbles: the two sprites;
 //   c.at(dx, dy, dz): puts Sadie that far from the middle of the stage; c.marblesAt(x, y, z);
 //   c.say(text, who): a speech bubble over 'sadie' or 'marbles'; c.once(key, fn): runs fn the first time;
-//   c.play(name): a sound; c.mood('plain' | 'grin' | 'wink'): Marbles' face; c.nap(shut): Sadie's eyes.
+//   c.play(name): a sound (each show's song is the room's: music/player.js); c.mood('plain' | 'grin' | 'wink'): Marbles' face; c.nap(shut): Sadie's eyes.
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const ease = k => k * k * (3 - 2 * k);
 
@@ -51,7 +51,7 @@ export const SHOWS = {
   dance: { len: 8, run(c, t) {
     const { P, S } = c;
     const beat = t / 0.666;
-    c.once('waltz', () => { c.play('waltz'); c.say('LA LA LA', 'sadie'); });
+    c.once('la', () => c.say('LA LA LA', 'sadie'));
     c.at(Math.sin(beat * Math.PI / 1.5) * 0.7, Math.abs(Math.sin(beat * Math.PI)) * 0.07, 0);
     c.tilt(Math.sin(beat * Math.PI / 1.5) * 0.1);
     P.sparks.forEach((s, i) => {

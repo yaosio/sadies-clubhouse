@@ -20,9 +20,12 @@ its checks. Read before changing its code.
 - `props.js`: the show props, made once and kept hidden until a show uses them.
 - `art.js`: its pictures: the shop outside, wallpaper, floor, mirror, curtain, signs, Marbles in
   three moods, the little pictures the shows use.
+- `hangers.js`: the outfits as they hang on the rail (one little picture each).
 - `sounds/`: `sadie.js` (the meow song, the chirp, mrrp), `shop.js` (snip, tumble, poof, whoosh,
-  thud), `waltz.js` (the music box), `index.js` (plays them through the sound system: voices on the
-  voices bus, one sound at most every half second, snip every quarter).
+  thud), `index.js` (plays them through the sound system: voices on the voices bus, one sound at
+  most every half second, snip every quarter). The music: `music.js` writes the shop's tune and
+  each show's song as notes and makes them into samples, `player.js` plays one at a time on the
+  music line (`h.line('music')`: fades, looping for the shop's tune).
 
 ## How a look is drawn
 Sadie is the kit's flat Sadie picture (`m.sadie`). What she wears is a second see-through picture
@@ -31,13 +34,13 @@ changes (and once a second for glitter). A tail colour works on the dots of her 
 reading her picture when the room is built (`willReadFrequently`). Hats use each hairdo's height.
 
 ## Being put away
-Nothing is saved and the room has no outside state, so it needs no `putAway()`: everything it made
-is handed back by the clubhouse, and built again it's plain Sadie in the chair. The shop outside
+Nothing is saved, so `putAway()` only stops the music; everything else the room made is handed back
+by the clubhouse, and built again it's plain Sadie in the chair. The shop outside
 stays (the clubhouse hands it back as `house`). A show in progress is just gone.
 
 ## Checks and tools
 - `tests/barbershop/run.mjs`: the card, the lists, every look draws inside the picture, every show
-  runs from start to finish on stand-ins for the props, every sound makes numbers.
+  runs from start to finish on stand-ins for the props, every sound, the shop's tune and every show's song make numbers.
 - `tests/barbershop/browser.mjs`: walk in, pick a wig head, ask Marbles, pull the rope for the pop
   star's show and wait for it to end, no page errors.
 - `tools/barbershop/shots.mjs`: pictures of the shop, every look and frames of every show, into

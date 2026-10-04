@@ -92,6 +92,8 @@ export function drawArt(m) {
   A.puff = tex(16, 16, g => { for (const [cx, cy, r] of [[8, 8, 6], [4, 9, 4], [12, 9, 4], [8, 4, 4]]) for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r) rect(g, C.white, cx + x, cy + y); });
   A.star = tex(7, 7, g => { rect(g, '#ffd23f', 3, 0, 1, 7); rect(g, '#ffd23f', 0, 3, 7, 1); rect(g, C.white, 3, 3, 1, 1); });
   A.glass = tex(12, 14, g => { for (let y = -5; y <= 5; y++) for (let x = -5; x <= 5; x++) { const d = x * x + y * y; if (d <= 25) rect(g, d > 14 ? '#333' : 'rgba(191,232,255,0.9)', 6 + x, 5 + y); } rect(g, '#6a4a2a', 5, 11, 2, 3); });
+  // the bobbing arrows over everything you can use (yellow; pink once it's what Sadie has on)
+  A.arrow = ['#ffd23f', '#ff4fa3'].map(c => tex(9, 10, g => { rect(g, C.ink, 2, 0, 5, 6); rect(g, c, 3, 0, 3, 5); rect(g, C.ink, 0, 5, 9, 2); rect(g, c, 1, 5, 7, 1); rect(g, C.ink, 1, 7, 7, 1); rect(g, C.ink, 2, 8, 5, 1); rect(g, c, 2, 6, 5, 1); rect(g, c, 3, 7, 3, 1); rect(g, C.ink, 3, 9, 3, 1); }));
   A.beam = tex(4, 4, g => rect(g, '#fff6b0', 0, 0, 4, 4));
   return A;
 }
