@@ -28,7 +28,8 @@ enforce it.
 
 **Sound:** everything that makes sound plays through the sound system, `src/shared/sound.js` (never
 its own AudioContext; a check fails otherwise): `docs/clubhouse/sound/system.md`. The owner has
-misophonia: nothing droning, constant or repetitive.
+misophonia: no droning or ticking sounds, nothing loud or constant (written once, in
+`docs/clubhouse/RULEBOOK.md` section 4).
 
 Don't start a parked idea (each activity's `parked.md`) unless asked. Never move a room: a new
 activity takes the next free door, plot or spot (`docs/clubhouse/rooms/card.md`), and anything by a

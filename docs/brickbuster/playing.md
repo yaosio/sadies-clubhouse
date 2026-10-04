@@ -33,5 +33,5 @@ While you play the machine, bouncy 1996 arcade music plays (a square-wave tune o
 bass), written as it plays so it never comes round the same, and the clubhouse's main theme fades
 out for it. It gets more exciting as the glass cracks: quicker, a soft arpeggio joins in, the bass
 hops octaves. It stops (a quick fade) when you step back, pause, or the glass breaks, and carries
-on when you step up again. No drums: the owner has misophonia. It follows the pause menu's MUSIC
+on when you step up again. No drums (`docs/clubhouse/RULEBOOK.md` section 4). It follows the pause menu's MUSIC
 button (ON, SOFT, OFF).

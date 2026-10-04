@@ -1,5 +1,5 @@
 // The maze's music: a garden music box, composed as it plays so it never comes round the same way
-// twice (the owner has misophonia: nothing droning, nothing on a loop). Soft plucked and chimed
+// twice (no drone, no tick, and Claude's choice not to loop: RULEBOOK.md section 4). Soft plucked and chimed
 // notes that die away by themselves, a tune that wanders and rests, a few chord notes under it, and
 // a quiet moment between pieces. Each piece has its own key, mode, speed and instruments.
 //

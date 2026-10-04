@@ -103,8 +103,8 @@ check('the tools: brush, roller, spray can, bucket, every stamp, and the dynamit
 check('...every name fits a label (the 3x5 font, upper case)', TOOLS.every(t => /^[A-Z' ]+$/.test(t.name) && t.name.length <= 20) && POTS.every(p => /^[A-Z ]+$/.test(p.name)));
 check('you start with the brush, in red', START.tool === 'brush' && START.paint === 1);
 
-// 8. every sound: soft, short, 8-bit, fading right down to nothing, no click (the owner has
-// misophonia); and painting itself has no sound at all
+// 8. every sound: soft, short, 8-bit, fading right down to nothing, no click (RULEBOOK.md
+// section 4); and painting itself has no sound at all
 for (const [name, make] of Object.entries(ALL)) {
   const a = make(), most = name === 'kaboom' ? 1.6 : 0.6;
   let peak = 0; for (const v of a) peak = Math.max(peak, Math.abs(v));

@@ -13,7 +13,7 @@ and then as a customer.
   pegboard and the paint is in pots, in the room.
 - **A relaxed toy.** No goals, no score, nothing to get wrong. The only thing that undoes work is
   the dynamite (one surface at a time) and the plunger (asks first).
-- **Kind to the ears** (the owner has misophonia). Painting makes no sound at all. Everything else
+- **Kind to the ears** (`docs/clubhouse/RULEBOOK.md` section 4). Painting makes no sound at all. Everything else
   is one short soft blip when it happens (dip, take, stamp, glug), the dynamite is a soft low fwump,
   not a bang, and nothing loops.
 - **Kid Pix loud.** Fourteen loud paints and a rainbow, chunky pixels (about 4 cm on the walls), the

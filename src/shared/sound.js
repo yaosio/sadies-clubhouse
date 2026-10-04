@@ -1,6 +1,6 @@
 // The sound system: every sound in the clubhouse is played through here. One audio engine for the
 // whole page (a phone only has to run one), three volumes (music, sounds, voices: the pause menu's
-// buttons), and the rules that keep it kind to the ears (the owner has misophonia) in one place, so
+// buttons), and the rules that keep it kind to the ears (docs/clubhouse/RULEBOOK.md section 4) in one place, so
 // every room, and every room still to come, keeps them without doing anything.
 //
 // A room gets a handle with soundsFor(owner), `owner` being its place's name ('room:brickbuster'),

@@ -1,5 +1,5 @@
-// The sound each find makes when you pick it up, once: soft and short, never sharp or clicky (the
-// owner has misophonia). The bottle bloops, the hat goes bom-bom, the duck gives a muffled squeak,
+// The sound each find makes when you pick it up, once: soft and short, never sharp or clicky (RULEBOOK.md
+// section 4). The bottle bloops, the hat goes bom-bom, the duck gives a muffled squeak,
 // the floppy disk whirrs in a drive for a moment, the coconut knocks like hollow wood, and the
 // mountain (the last one) gets a little chime. `reef` is the gentle swell when the reef sinks.
 import { RATE, TAU, rng, hz, blank, ring, resonance, finish } from '../../../shared/retro.js';

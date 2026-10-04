@@ -15,7 +15,7 @@ Clyde's Weather Machine, which changes the weather for the whole world.
   just gets a comment and waits for you to swap it.
 - **It happens in the room, in the world**, like the music room: the machine is real 3D on the
   wall, and you play it right there.
-- **Kind to the ears** (the owner has misophonia). Every sound is a single short, soft blip when
+- **Kind to the ears** (`docs/clubhouse/RULEBOOK.md` section 4). Every sound is a single short, soft blip when
   something happens, and nothing loops, hums or rattles: no rolling marble, no whirring wheel or
   fan, no purring or crunching. The same sound can't play twice within a tenth of a second.
   Each group of sounds has its own file in `sounds/`.

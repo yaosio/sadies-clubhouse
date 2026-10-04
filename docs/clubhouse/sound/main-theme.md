@@ -5,8 +5,9 @@ quiet needs to work with it.
 
 ## What it is
 Soft music that plays while you're anywhere in the clubhouse or outside, composed as it plays so it
-never repeats. The owner asked for that, and has misophonia: no drums, no held pads or drones, every
-note dies away by itself, a quiet moment between pieces.
+never repeats (Claude's design, from the owner's early ask for no looping). Because the owner
+dislikes droning and ticking (`docs/clubhouse/RULEBOOK.md` section 4): no drums, no held pads or
+drones, every note dies away by itself, a quiet moment between pieces.
 - `compose.js` writes it with no browser (the tests run it): a piece at a time, a minute or two long,
   each with its own key, mode (major, lydian, dorian, mixolydian, aeolian), speed, 4 or 3 beats a bar
   and instruments, a form (intro, a tune it comes back to, a middle bit, an ending), chord

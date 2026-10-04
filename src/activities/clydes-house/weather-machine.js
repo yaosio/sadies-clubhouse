@@ -5,8 +5,8 @@
 //
 // The weather itself is the world's (its kit's `weather`: the clouds, the light, what falls,
 // Sadie on the gatepost, and the save): the machine just says which, and shows it (its levers, its
-// forecast, its wind cups). Only one soft jingle plays when you pull a lever (the owner can't stand
-// droning or repetitive noise).
+// forecast, its wind cups). Only one soft jingle plays when you pull a lever (no drone or tick:
+// RULEBOOK.md section 4).
 //
 // Built into the outside's scene with the house, so it stays when the room inside is put away.
 import { Mesh, Group, Vector3, PlaneGeometry, ConeGeometry, CylinderGeometry, SphereGeometry, DoubleSide } from 'three';

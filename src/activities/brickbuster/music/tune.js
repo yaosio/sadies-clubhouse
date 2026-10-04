@@ -4,7 +4,7 @@
 // glass cracks (`heat`, 0 to 1): quicker, a soft arpeggio joins in, the bass starts hopping octaves.
 // Every so often it changes chords, and now and then goes up a key, like arcade music does.
 //
-// Kind to the ears (the owner has misophonia): no drums, nothing hissing or ticking, every note
+// Kind to the ears (RULEBOOK.md section 4): no drums, nothing hissing or ticking, every note
 // short and soft-edged, the tune takes a breath at the end of each round, and it only plays while
 // you're at the machine.
 

@@ -15,7 +15,7 @@ takes you down through the tank to a small ocean, sailing a little boat to six f
   when you're standing at the glass and looking at it.
 - No loading screen: going to the ocean is one smooth move of the camera.
 - Things you find in the ocean show up in the aquarium room.
-- Quiet (the owner has misophonia). The room itself makes no sound. Out at sea: one soft sound when
+- Quiet (`docs/clubhouse/RULEBOOK.md` section 4). The room itself makes no sound. Out at sea: one soft sound when
   you pick a find up, a gentle swell when the reef sinks, and now and then a single small wave or
   the sail when you turn hard (never two sea sounds (waves, sail) within 8 s, a wave at most every 40 s, never the
   same wave twice running, and no loops at all). The test version has a SOUND TEST box on the

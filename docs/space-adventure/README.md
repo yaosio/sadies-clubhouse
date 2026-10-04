@@ -13,12 +13,12 @@ trip again.
 - Sadie talks the entire time. Never just a few lines.
 - No loading screens and no cuts: space becomes the land while there's nothing but cloud out of the
   window (the same trick as the aquarium's dive).
-- The music is requested, but the owner has misophonia: no droning or humming layers, no hi-hats
+- The music is requested, but the owner dislikes droning and ticking (`docs/clubhouse/RULEBOOK.md` section 4): no droning or humming layers, no hi-hats
   ticking away, every note fades to nothing. Sadie's words make no sound as they type out. The radio
   gets quieter as you walk away from it, and E (RADIO on a phone) turns it off.
 - The radio plays its song (a 34 s piece) on a loop for as long as it's on and you're in the room.
-  The owner decided on 2026-10-02 to keep it that way: it's an exception to the no-repeating-sounds
-  rule in `docs/clubhouse/RULEBOOK.md`, because you can switch the radio off.
+  The owner decided on 2026-10-02 to keep it that way: a loop you choose to switch on, and can
+  switch off (`docs/clubhouse/RULEBOOK.md` section 4).
 - Smooth on a phone: everything is drawn with the clubhouse's own materials (no new kinds), the land is
   one low-detail grid, and the music's notes are made a few at a time, ahead of when they're needed.
 

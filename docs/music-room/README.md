@@ -11,14 +11,14 @@ up and walks across one of the instruments, and it sounds exactly like a cat wal
   its own: you step up to an instrument and play it there.
 - **Sadie walks on them sometimes, and it sounds just like a cat walking on them.** A few slow,
   clumsy notes, a paw or two at a time, never the same walk twice.
-- **Kind to the ears** (the owner has misophonia). Nothing plays by itself for long and nothing
+- **Kind to the ears** (`docs/clubhouse/RULEBOOK.md` section 4). Nothing plays by itself for long and nothing
   repeats on its own: holding a key plays it once, the tape only loops if you press LOOP (and stops
   when you leave), Sadie's walks are rare and soft, and the wind chimes only sound when you walk
   under them, then rest. Every sound is soft, starts without a click and fades right away. A
   volume dial on the wall (it has OFF), and a sign on the door that keeps Sadie off them.
 - **The tape deck's LOOP may repeat a take for as long as you leave it on.** The owner decided
-  this on 2026-10-02: an exception to the no-repeating-sounds rule in `docs/clubhouse/RULEBOOK.md`,
-  because you choose to switch it on.
+  this on 2026-10-02: a loop you choose to switch on
+  (`docs/clubhouse/RULEBOOK.md` section 4).
 - **Sounds stay modular:** one small file per instrument in `sounds/`, never one giant sound file.
 
 ## Its pages

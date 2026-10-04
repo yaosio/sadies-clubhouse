@@ -5,8 +5,8 @@ Why sound, the look and saves work as they do. Read before undoing one of these;
 ## Sound
 | Decision | Why |
 |---|---|
-| One sound system, one audio engine; a check fails on any other | The kind-to-the-ears rules live in one place (the owner has misophonia) |
-| The main theme is composed as it plays and never repeats; no drums, drones or held notes | The owner asked for it; misophonia |
+| One sound system, one audio engine; a check fails on any other | The kind-to-the-ears rules live in one place (`docs/clubhouse/RULEBOOK.md` section 4) |
+| The main theme is composed as it plays and never repeats; no drums, drones or held notes | Claude's design, to keep it from looping; no drums or drones because the owner dislikes droning and ticking |
 | The theme makes way by itself for any other music | No room has to manage it |
 
 ## Look
