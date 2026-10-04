@@ -8,7 +8,7 @@ calm-sounds check).
 ## Dropped on purpose (don't add back without the owner's say)
 - **Sound:** the calm-sounds check (30 s standing still in every room and outside), every room's
   music and sound-effect checks in its browser test, the clubhouse's theme checks and volume
-  buttons (the sound system's own headless rules stay: they cost nothing).
+  buttons (the sound system's own headless rules stay, and so do the headless checks that a room's sounds and songs render and play: they cost almost nothing, and the wrong ones can be deleted if they get in the way).
 - **Looks:** the not-one-colour picture check, fonts, credits, the weather in every place, the far
   houses, the levels outside, two doors showing side by side.
 - **Timings:** every room built under a time limit, a bit at a time, same few materials,

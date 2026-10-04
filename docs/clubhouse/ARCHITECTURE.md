@@ -1,7 +1,7 @@
 # How the clubhouse is built
 
 Sadie's Clubhouse is Sadie's house and the world round it, like a 90s activity center: activities
-behind doors in the house, and buildings outside, in her grounds and along the lane past the gate.
+behind doors in the house, and buildings outside, in her grounds and round the town square past the gate.
 Plain ES modules in `src/`, bundled by esbuild into one page and the game files it fetches
 (`tools/build.mjs`). **Keep this page short:** it says how things fit, never one room's special cases
 (its own docs) or the details of one system (that system's folder). `docs/TASKS.md` says which pages

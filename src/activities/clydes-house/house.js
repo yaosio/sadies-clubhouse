@@ -1,7 +1,7 @@
-// Clyde's house from outside, on its plot along the lane outside the front gate: The Overthinkery,
+// Clyde's house from outside, on its plot round the town square outside the front gate: The Overthinkery,
 // a tall crooked cottage (each storey a little more off-true than the one below, since thinking goes
 // up), with terracotta tiles, a round window, a chimney that puffs out question marks, a mailbox,
-// a sign by the lane, and Clyde by the front door, who waves when you come up the path. Beside it,
+// a sign by the square, and Clyde by the front door, who waves when you come up the path. Beside it,
 // Clyde's Weather Machine (weather-machine.js).
 //
 // Built into the outside's own scene, in a group of its own (the clubhouse hands the room this place and the plot); the
@@ -61,7 +61,7 @@ export function buildHouse(m, A) {
     p.userData.phase = i / 4; place.add(p); return p;
   });
 
-  // ---------- the path from the lane, the mailbox, the sign, a bush either side ----------
+  // ---------- the path from the square, the mailbox, the sign, a bush either side ----------
   plane(1.3, 4.8, psx(T.path, { rx: 1, ry: 3, onFloor: true }), [hx, 0, hz + 2.4 + 0.02], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
   const post = psx(T.wood, { tint: 0xffe0c0 });
   box(0.08, 1.0, 0.08, post, [hx + 1.4, 0.5, hz + 3.0]);

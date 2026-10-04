@@ -2,7 +2,7 @@
 // (never on its own) with the built page. It's built into the clubhouse (outside the gate), so these
 // run whenever the clubhouse changes too.
 //
-// It walks out along the lane to the house, sees in through its front door and walks through it,
+// It walks out across the town square to the house, sees in through its front door and walks through it,
 // steps up to the Good Morning Machine (hearing Clyde's hello, sped up), puts junk in the gap and
 // pulls the lever (it stops there, and the part stays for you to swap), puts the right parts in
 // four times over (one gap, then two, three, four), sees the finale through (Sadie snubs the treat
@@ -53,7 +53,7 @@ export default async function ({ browser, page, check, outDir }) {
     if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); await ctx.close(); return; }
     await p.click('#ok');
 
-    // out along the lane, to the house, and in through its front door
+    // out across the town square, to the house, and in through its front door
     await M('faceDoor', 'outside', 'clydes-house', 3); await p.waitForTimeout(300);
     await shot('0-house');
     await M('faceDoor', 'outside', 'clydes-house', 1.3);

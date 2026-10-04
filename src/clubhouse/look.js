@@ -300,7 +300,7 @@ export function drawTextures(sadie, sadieNap) {
   });
   T.soonSign = sign(96, 32, 'MORE ROOMS', 'COMING SOON!!');
   T.wingSign = sign(72, 32, 'NEW WING', 'SOON!!');   // on the hall's wall, by the stairs
-  T.lotSign = sign(88, 32, 'NEW HOUSE', 'COMING SOON!!');   // on the next free plot along the lane outside the gate
+  T.lotSign = sign(88, 32, 'NEW HOUSE', 'COMING SOON!!');   // on the next free plot round the town square outside the gate
   // the back of the house: the back door (a cat flap fit for a lion), its sign, flowers, a patch of
   // sun on the grass, and the Zs Sadie naps out
   T.backDoor = tex(16, 40, g => {

@@ -5,7 +5,7 @@
 //   - its id is its folder's name, it has a name, and it only uses card fields the clubhouse knows
 //     (a misspelt one would just be ignored);
 //   - it's either on a computer (`start`, with its `page` and `styles`) or lives in its room (`room`);
-//   - it has exactly one place: a door on a landing (`slot`), a plot along the lane (`lot`) or a
+//   - it has exactly one place: a door on a landing (`slot`), a plot round the town square (`lot`) or a
 //     spot in the grounds (`grounds`), which exists, and no other card has taken;
 //   - and nothing placed ever moves: every door, plot and spot is still exactly where
 //     tests/clubhouse/spots.json says, in the same order (a new one goes on the end of its list, and

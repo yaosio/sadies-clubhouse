@@ -7,7 +7,7 @@ says which pages a job reads.
 - `RULEBOOK.md`: the rules every place follows. Read before designing anything new.
 - `rooms/`: how a room plugs in (card, kit, place, controls, saves, adding an activity).
 - `world/`: the clubhouse as a 3D world (doorways, building rooms, walking, the hall, how it's drawn).
-- `outside/`: the grounds, the lane, buildings outside, the weather, the town.
+- `outside/`: the grounds, the town square, buildings outside, the weather, the town.
 - `sound/`: the sound system, the sound kit and the main theme.
 - `look/`: the approved look.
 - `checks/`: the checks, the build and the tools.

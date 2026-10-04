@@ -57,7 +57,7 @@ stays outside when the room's put away (the clubhouse closes it when it leaves t
 ## Far off and put away
 
 **Far off,** the house is drawn as a plain block the colour of its walls (`house.js` hands the
-clubhouse its `group`, `body` and `farTint`); none of the lane is that far yet.
+clubhouse its `group`, `body` and `farTint`); none of the town is that far yet.
 
 **Put away when you're far off.** The clubhouse puts the room away when you've been three doors or
 more from it for a while, but never while the machine's going or Clyde's talking (`busy()`).

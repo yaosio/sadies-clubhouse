@@ -77,7 +77,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and walking through it takes you into the hall (no loading)`, (await M('where')).place === 'hall');
 
     // the clubhouse opens before the rooms are built (all but a building outside the gate, which you can
-    // see from the lane); the rest are built one at a time while you stand about
+    // see from the town square); the rest are built one at a time while you stand about
     const sp = await M('speed');
     const outsideRooms = await M('outsideRooms');
     check(`${device}: the clubhouse opens without waiting for the rooms`, sp.atFirst.every(n => outsideRooms.includes(n)), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
@@ -180,7 +180,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: every door on the landings leads to its own room (${landed.length})`, !wrong.length, wrong.join(', '));
     await shot('5-room');
 
-    // ...and so does every building outside (a plot along the lane, a spot in the grounds): walk in through
+    // ...and so does every building outside (a plot round the town square, a spot in the grounds): walk in through
     // its door, or its arch, from outside, and you're in its room
     const buildings = cards.filter(c => c.room && (c.lot !== undefined || c.grounds !== undefined)), wrongOut = [];
     for (const c of buildings) {

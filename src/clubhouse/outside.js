@@ -53,11 +53,9 @@ export function buildOutside(T, cards = []) {
   const taken = new Set(cards.filter(c => Number.isInteger(c.lot)).map(c => c.lot));
   const free = LOTS.find((_, i) => !taken.has(i));
 
-  // eslint-disable-next-line no-unused-vars -- (kept for the buildings going up along the lane)
-  const stucco = (w, h) => psx(T.stucco, { rx: w / 1.5, ry: h / 1.5 });
   // A wall's own picture with its windows painted in: `base` tiled (one tile every `tile` metres) over
   // w x h metres, and each window { t, u, y, w, h } (u: its middle across, 0-1, wrapping round; y:
-  // its middle, metres up). Painted in rather than stuck on in front: at the far end of the lane a
+  // its middle, metres up). Painted in rather than stuck on in front: at the far end of the town a
   // phone's depth is too coarse to keep a window even 15 cm in front of its wall, so they flickered
   // or vanished (or, nudged forward as decals, showed through the fence).
   function painted(base, tile, w, h, wins) {
@@ -217,9 +215,9 @@ export function buildOutside(T, cards = []) {
     k.plane(2.2, 0.8, psx(T.lotSign, { unlit: 0.3, side: DoubleSide }), [0, 1.3, -0.93], [0, 0, 0], 1);
   }
 
-  // Where you can walk: the ground (the garden, out along the lane, and the front steps), round
+  // Where you can walk: the ground (the garden, out across the town square, and the front steps), round
   // everything solid on it (you're 0.35 m round), plus anything a building adds to walk on (a bridge,
-  // a walkway over the lane...). Like the hall, it can have more than one level: wherever you are,
+  // a walkway over a path...). Like the hall, it can have more than one level: wherever you are,
   // you're on the one nearest your feet, and a step up or down is at most half a metre. What's solid
   // only gets in the way at its own height (y0 to y1), so you can walk under a bridge, or over a
   // tunnel. The rest of what's here is all at ground level for now.

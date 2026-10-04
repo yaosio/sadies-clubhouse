@@ -1,5 +1,5 @@
 // Pictures of Clyde's Weather Machine and each kind of weather (npm run build first): the machine up
-// close, then for each weather (clear, rain, snow, a second sun, cats) the lane looking back at the
+// close, then for each weather (clear, rain, snow, a second sun, cats) the square looking back at the
 // clubhouse, Sadie on the gatepost, and the view out through the front door from the hall. As a
 // desktop and a phone. Saves dist/shots/clydes-house/<device>-weather-<name>.png.
 //   node tools/clydes-house/weather.mjs [desktop|phone] [rain|snow|sun|cats|clear]

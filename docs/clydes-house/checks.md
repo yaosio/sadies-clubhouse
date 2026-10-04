@@ -14,9 +14,9 @@ change by eye.
 ## Picture tools
 
 - `node tools/clydes-house/weather.mjs [desktop|phone] [rain|snow|sun|cats|clear]` takes pictures
-  of the weather machine and of each weather from the lane, at Sadie, the sky, and from the hall.
+  of the weather machine and of each weather from the town square, at Sadie, the sky, and from the hall.
 - `node tools/clydes-house/shots.mjs [desktop|phone]` (after a build) saves the house from the
-  gate, the lane and the door, the castle from the lane, the room, and a run of the machine, in
+  gate, the square and the door, the castle from the town square, the room, and a run of the machine, in
   `dist/shots/clydes-house/`.
 - `node tools/clydes-house/junk.mjs [part]` takes two of each bit of junk reacting.
 - `node tools/clydes-house/tags.mjs [part]` puts the same part (FLOPPY DISK, the longest name,

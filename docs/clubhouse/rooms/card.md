@@ -6,7 +6,7 @@ or changing its card.
 ## The card
 An activity is a folder in `src/activities/` with a `card.js`:
 - `id` (the folder name) and `name`.
-- Where it is, one of: `slot` (a door on the landings), `lot` (a plot on the lane), `grounds` (a
+- Where it is, one of: `slot` (a door on the landings), `lot` (a plot on the town square), `grounds` (a
   spot in the grounds).
 - `keeps` if it saves anything: the start of its save keys, for the pause menu's start-over
   buttons and backups (`saves.md`).
