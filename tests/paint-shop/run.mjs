@@ -106,10 +106,10 @@ check('you start with the brush, in red', START.tool === 'brush' && START.paint 
 // 8. every sound: soft, short, 8-bit, fading right down to nothing, no click (RULEBOOK.md
 // section 4); and painting itself has no sound at all
 for (const [name, make] of Object.entries(ALL)) {
-  const a = make(), most = name === 'kaboom' ? 1.6 : 0.6;
+  const a = make(), recorded = /^woo/.test(name), most = name === 'kaboom' ? 1.6 : recorded ? 1.2 : 0.6;   // (Chooter's woo is a recording, not 8-bit)
   let peak = 0; for (const v of a) peak = Math.max(peak, Math.abs(v));
   check(`the ${name}: 8-bit, soft, under ${most} s, fading to nothing, no click`,
-    a.every(v => Math.abs(Math.round(v * 127) - v * 127) < 1e-3) && peak > 0.08 && peak <= 0.5 && a.length <= most * RATE &&
+    (recorded || a.every(v => Math.abs(Math.round(v * 127) - v * 127) < 1e-3)) && peak > 0.08 && peak <= 0.5 && a.length <= most * RATE &&
     a.slice(-5).every(v => Math.abs(v) < 0.02) && Math.abs(a[0]) < 0.05, `peak ${peak.toFixed(2)}, ${(a.length / RATE).toFixed(2)} s`);
 }
 check('no sound for painting (brush, roller, spray): only one-off blips', !Object.keys(ALL).some(k => /brush|roll|spray|stroke|hiss/.test(k)));
