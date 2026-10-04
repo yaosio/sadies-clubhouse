@@ -18,3 +18,5 @@ Speed runs 1, 2, 4 or 8 simulation steps per normal step.
 - Wear the mole out: it naps right away (no pieces) and wakes about 12 s later, if the game isn't
   struggling.
 - Clear tower also stops any rain.
+- Feel ignored: Chooter feels ignored right away (so he teases). Stop stops the rain. Start over wipes
+  the game (the sliders may keep showing the old values until reopened).

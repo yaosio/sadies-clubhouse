@@ -16,7 +16,8 @@ No saves: each visit starts on a fresh sentence. There's no score to farm.
 ## Keys
 
 - Each tool button shows the key that works it (gold when on).
-- The key bar: F1 HELP, F5 README.TXT.
+- The key bar: F1 HELP, F5 README.TXT. Space presses FIT IT! when the meter is full, and Enter is
+  OK / NEXT SENTENCE in a pop-up.
 - Escape closes a pop-up (and doesn't leave in the middle of a win).
 
 ## Sadie in TypeFitter

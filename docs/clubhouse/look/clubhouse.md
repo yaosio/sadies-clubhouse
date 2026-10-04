@@ -20,7 +20,7 @@ Grown from a real-3D test room the owner approved:
 - Few colors with dithering, lit per corner.
 - Characters stay flat pixel sprites that turn to face you.
 - Its textures are drawn when the page opens (`look.js`). Sadie's sprite and every activity's box
-  and door are drawn by `art/clubhouse/pictures.py` (run it after changing a drawing).
+  and door are drawn by a script under `art/` (each activity's `door.js` header says which) (run it after changing a drawing).
 
 ## The house
 - **A real, recognizable house a cat has clearly taken over.** The cat is in the details: turrets

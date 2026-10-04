@@ -27,7 +27,7 @@ The dashboard, windows, dev sheet, and what touches and keys do. Read before cha
 - `ui/devPanel.js`: the dev sheet, in tabs: Debug (speed, rain pieces, Sadie and Chooter buttons,
   clear tower), Physics (sliders, restore defaults), Info (perf toggle, piece count, mouse help).
   A short bottom sheet on phones that can shrink to its title bar; a right-side panel on screens
-  900 px and wider. Opened with the F12 DEV key. It tells the camera (`camState.insetB`/`insetR`)
+  900 px and wider. Opened by clicking the F12 DEV button (the F12 key itself is the browser's). It tells the camera (`camState.insetB`/`insetR`)
   how much of the board it covers.
 - `ui/perf.js`: performance overlay (the dev sheet's Info tab), including the game speed (under
   100% when the loop is dropping time to keep up), how busy the simulation keeps the mole and how

@@ -11,7 +11,7 @@ she hops up onto one instrument (the piano most, then the drums, the xylophone, 
 the one you're playing, and not the same one twice running if she can help it) and walks across it
 once: 4 to 6 slow steps, a paw on a key or two at a time (her back paws come down heavier), a
 different walk every time. Then she sits on the end (one last low note) or, now and then, lies down
-on it (one soft chord) and naps there a while. On the drums she ends up curled on the bass drum.
+on it (one soft chord) and naps there a while. On the drums she curls up on the bass drum only when she naps; otherwise she sits on the snare or the floor tom.
 Then back to her cushion, and she leaves them alone for a long time. Her walk goes on the SADIE
 LIVE! tape.
 

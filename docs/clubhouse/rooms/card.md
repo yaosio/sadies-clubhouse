@@ -13,7 +13,7 @@ An activity is a folder in `src/activities/` with a `card.js`:
 - Either `room` (a game that lives in its room) or `page`, `styles` and `start()` (an activity on
   a computer), below.
 - For a door on the landings:
-  - `door`: a picture, from `door.js`, drawn by `art/clubhouse/pictures.py`; the back of the door
+  - `door`: a picture, from `door.js`, drawn by a script under `art/` (its `door.js` header says which); the back of the door
     is the same with the sign painted over. Without one it gets a plain door with its name.
   - `box`: `front`, a picture (on its computer's screen and its poster); `side`, a colour (the
     plain computer room's walls, and the plain door's).

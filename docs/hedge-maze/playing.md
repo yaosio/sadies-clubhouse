@@ -8,7 +8,7 @@ player meets.
 It's a hedge block with a leafy arch and a green garden gate at each end. The front one's sign says
 HEDGE MAZE / ENTRANCE; the backyard one's says MAZE EXIT / NO ENTRY!!, which nobody minds. A path
 turns off the main path just before the porch (through a gap in the garden hedges, by the last
-lantern on the left) to the front gate, and one runs from the backyard's path to the back gate. Both
+lantern, on the right as you walk up) to the front gate, and one runs from the backyard's path to the back gate. Both
 stop just short of their gates (running on under them, they flickered).
 
 ## Inside

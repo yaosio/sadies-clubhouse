@@ -61,6 +61,6 @@ clubhouse its `group`, `body` and `farTint`); none of the lane is that far yet.
 
 **Put away when you're far off.** The clubhouse puts the room away when you've been three doors or
 more from it for a while, but never while the machine's going or Clyde's talking (`busy()`).
-`putAway()` closes its sounds. The house outside stays (the clubhouse hands it back as `m.house`
+the clubhouse closes its sounds when it puts the room away. The house outside stays (the clubhouse hands it back as `m.house`
 when the room's built again, and keeps it moving meanwhile). Parts put in the machine but not yet
 run are forgotten, just like on a reload.

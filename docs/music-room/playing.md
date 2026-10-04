@@ -13,7 +13,7 @@ off it). Inside, teal wallpaper with music notes and fish bones in it:
   out of tune (sharp, and it wobbles: Sadie's favourite), one key has a bite out of it. The
   songbook says FEED ME NOW.
 - **The drum kit**, really Sadie's bed: a blanket stuffed in the bass drum, fur all over the snare,
-  so everything's muffled and soft. A S D F G H and Space.
+  so everything's muffled and soft. A S D F G H, J (also the kick) and Space.
 - **The xylophone**, its bars fish, its mallets pom-poms: A to K. Slide a finger across it for a
   run up the fish.
 - **The KEYCAT 3000**, a cheap 90s keyboard laid out like the piano: 1 to 4 pick its sound (CAT, a

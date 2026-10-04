@@ -45,7 +45,7 @@ on her cheeks, and whiskers as single thin pixel lines outside the outline.
 One gummy shape per piece (not separate blocks stuck together): rounded corners, filleted inside
 corners, a bright candy color with a darker rim and a lighter center, a white shine per block, a
 bright rim light on the bottom right, and a darker outline in the piece's own color family. When
-one lands it squishes wide, with dust puffs and little "boing" marks.
+one lands it squishes wide, (dust puffs and little "boing" marks are still to come).
 
 ## The world
 

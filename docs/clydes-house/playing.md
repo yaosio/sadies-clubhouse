@@ -20,10 +20,10 @@ WIPE YOUR THOUGHTS, and Clyde stands by the door and waves (HI! COME IN!) as you
 
 Walk up to the machine and press E (PLAY on a phone): the view eases back until the whole machine
 fits (on a narrow screen, closer, following whatever's happening). A/D (or the arrows) pick a gap,
-with an arrow over it; W/S (or E) swap its part; Space (or Enter) pulls the lever; clicking a gap
+with an arrow over it; W/S (or E) swap its part (with the lever picked, W, Up or E pull it); Space (or Enter) pulls the lever; clicking a gap
 swaps it and clicking the lever pulls it. On a phone: tap a gap to swap, tap the lever, and on a
-narrow screen swipe to pick the next or previous gap along the machine. While Clyde's talking, any
-key or tap moves on to the next line. Esc (STEP BACK) steps back; a run carries on without you.
+narrow screen swipe to pick the next or previous gap along the machine. While Clyde's talking, any of the
+game's keys (A D W S E, arrows, Space, Enter) or a tap moves on to the next line. Esc (STEP BACK) steps back; a run carries on without you.
 
 ## Sounds
 

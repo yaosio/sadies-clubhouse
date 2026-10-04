@@ -28,7 +28,7 @@ expect. Read before changing any of them.
   5 s, never two chirps, trills or meows within 15 s, never more than 5 in a minute. The tests
   expect about 3 a minute (pats 1.5, chirps 0.8, trills 0.6, meows 0.2). Right next to her they
   play at 0.25 to 0.35 of full volume, fading to nothing 18 m off.
-- **The escape**: 9 hops, each 0.25 s plus its length at 8.5 m/s, about 6 seconds in all; Sadie
+- **The escape**: 9 hops, each 0.25 s plus its length at 8.5 m/s, about 8 seconds in all; Sadie
   runs at 5.5 m/s. The shatter lasts 3 seconds; shards lie on the floor 1.5 to 2.5 s.
 - **Points**: 80 for the top row down to 10 for the bottom one.
 - **What the tests expect**: a pretend player that never misses and aims for gaps gets three top

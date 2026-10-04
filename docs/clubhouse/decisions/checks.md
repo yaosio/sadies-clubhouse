@@ -5,7 +5,7 @@ Why the checks and tools work as they do. Read before undoing one of these; add 
 | Decision | Why |
 |---|---|
 | Each activity's checks are skipped when its exact code already passed | Merges stay quick |
-| On GitHub, one computer per activity, all at once | A full retest takes as long as the slowest activity, not all of them |
+| On GitHub (when run by hand), one computer per activity, all at once | A full retest takes as long as the slowest activity, not all of them |
 | Never run several activities' browser checks side by side on one computer | The hidden browser draws on the processor; games slow down and checks trip |
 | Browser checks wait in game time or for the thing itself, never a clock-timed pause | Slower computers (GitHub's) run fewer frames and fall behind the clock |
 | `package-lock.json` is committed | Every tool at an exact version, so builds are repeatable |

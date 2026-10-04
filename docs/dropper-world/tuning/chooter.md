@@ -16,7 +16,7 @@ At 60% he starts peeking in (his head, from behind whichever wall is nearer Sadi
 starts, at the top of the pile there), every 22 s at first and every 8 s near the end; you can tap
 him while his head is in. At 100% he bursts in over that wall with a leap and a bark. With the mole
 building, `node tools/dropper-world/arrival.mjs` gives a first peek at about 3:15–3:50 and an
-arrival at about 4:50–5:20 (between 165 and 185 pieces). A slow device whose mole gets tired drops
+arrival at about 4:50–5:25 (between 165 and 185 pieces). A slow device whose mole gets tired drops
 fewer pieces, so he takes longer. Once met, he stays met (saved in the browser), even after clearing
 the tower; Start over sends him back next door, from quiet.
 
@@ -28,7 +28,7 @@ the tower; Start over sends him back next door, from quiet.
 - Playing: picks a spot 1.4–3.6 blocks to one side of Sadie every 2–4.5 s and goes there; hops for
   joy or sends her a heart now and then.
 - Feelings: `energy` winds up while he's out, `tired` builds while he's out, `missing` makes him
-  greet a new friend.
+  greet a new friend, and `ignored` (see chooter-teasing.md) makes him tease.
 
 ## Zoomies
 

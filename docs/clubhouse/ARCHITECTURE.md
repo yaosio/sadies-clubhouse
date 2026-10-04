@@ -45,7 +45,7 @@ Every activity has a `card.js` (`rooms/card.md`); the room checker checks it.
 | Saves | `src/shared/storage.js` | Start-over, backups, nearly-full warning, unreadable saves put aside | `rooms/saves.md` |
 | Outside | `outside.js` | Its plot or spot, levels, its house kept while its room's put away | `outside/` |
 | Weather | `src/clubhouse/weather/` | Sunlight, clouds, rain, snow, cats, wherever it's seen from | `outside/weather.md` |
-| Pause | `clubhouse.js` | Sounds held; controls stopped | `world/walking.md` |
+| Pause | `clubhouse.js` | No new sounds but music; controls stopped | `world/walking.md` |
 
 ## Where to read more
 `docs/TASKS.md`: your job, and the exact files it reads. Folders (each has a `README.md`):
