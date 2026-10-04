@@ -1,11 +1,12 @@
-# By hand only (the Actions page's "Run workflow"; it was weekly until GitHub's minutes ran short,
-# 2026-10-03): the game in WebKit (the engine under Safari and every iPhone): does it open, draw and
+# Weekly (Mondays) and by hand (the Actions page's "Run workflow"): the game in WebKit (the engine under Safari and every iPhone): does it open, draw and
 # run without errors? The real checks (check.yml) play it in Chromium only. See tools/webkit-smoke.mjs.
 # A red run shows on the repository's Actions page, worth a look when starting new work.
 name: safari
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '43 4 * * 1'
 
 permissions:
   contents: read

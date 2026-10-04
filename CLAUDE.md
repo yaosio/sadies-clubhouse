@@ -48,7 +48,8 @@ door stays with it.
    change is written: the quick look passes (`npm run check -- --preview --quick --only
    clubhouse,<the rooms touched>`: code checker, build, and those pages open in headless Chromium with no
    page error), then commit, push, build again (`npm run build -- --preview`: its label names the commit)
-   and publish to the test page (below), saying "checks still running" with the link. Then run the full
+   and publish to the test page (below), saying "checks still running" with the link. Open a draft pull
+   request right away: that starts GitHub's copy of the checks in the background. Then run the full
    `npm run check -- --preview` (the code checker, `npm test`, a test build, and the game in headless
    Chromium as a phone and a desktop, any page error fails; look at the screenshots in `dist/check/`).
    If it finds something, fix it, push, and publish to the same link, telling the owner plainly. Say
@@ -59,7 +60,8 @@ door stays with it.
    tuning notes.
 4. Before a merge: bring in the latest `main` and `npm run check -- --since-main` must pass on exactly
    that (it checks only what differs from `main`; a full `npm run check -- --retest` every review
-   round). GitHub runs no checks (they cost minutes; `.github/workflows/` run only by hand). Never
+   round). GitHub also runs the checks on every pull request and every night
+   (free, the repository is public) but never waits for it: the local check is the gate. Never
    commit `dist/` or `node_modules/`; do commit `package-lock.json`.
    **Docs-only changes** (no code, no game files; Yaosio, 2026-10-03, because the full check keeps
    getting longer as the game grows): the quick checks are enough (`node tools/docs.mjs`, lint); skip

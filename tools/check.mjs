@@ -13,10 +13,10 @@
 //                                  what that page was built from counts as having passed its tests
 //   npm run check -- --since-main  only what differs from origin/main (which already passed): the merge check (see docs/clubhouse/checks/runner.md)
 //   npm run check -- --only a,b    just those activities ('clubhouse': the clubhouse's own checks)
-//   npm run check -- --plan        just print which activities still need checking (for GitHub's computers, run by hand)
+//   npm run check -- --plan        just print which activities still need checking (for GitHub's computers)
 //   npm run check -- --no-lint     skip the code checker (GitHub runs it once for the whole change)
 //
-// On GitHub (.github/workflows/check.yml, started by hand only, since GitHub's minutes cost money) it
+// On GitHub (.github/workflows/check.yml: pull requests, main and nightly) it
 // runs each activity that needs it on a computer of its own, all at once, remembering what passed.
 //
 // Each activity is checked on its own, so a change to one never means retesting the others:

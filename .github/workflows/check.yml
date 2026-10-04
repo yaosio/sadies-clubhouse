@@ -1,4 +1,4 @@
-# The game's checks on GitHub, started by hand only (see below): `npm run check` (docs/clubhouse/checks/README.md),
+# The game's checks on GitHub, on every pull request, on main and every night: `npm run check` (docs/clubhouse/checks/README.md),
 # split up so each activity (and the clubhouse) gets a computer of its own, all at the same time.
 #
 #   plan      the code checker (lint) and the docs are small, listed and shaped alike (tools/docs.mjs),
@@ -11,13 +11,22 @@
 #             16 of them, small ones share: `--only a+b`, shared out by how long each took last time)
 #   remember  saves what passed for next time, and is the one tick (or cross) for the whole lot
 #
-# It only runs when started by hand (the Actions page's "Run workflow"): the repository is private, so
-# GitHub's computers cost minutes, and running on every push used up the free month in two days
-# (2026-10-03). Claude's own `npm run check` before every push, merge and publish is the check now.
+# Switched back on 2026-10-04: the repository is public now, and standard GitHub computers are free and
+# unlimited for public repositories (when it was private, running on every push used up the free month
+# in two days, 2026-10-03). Nothing waits on it: the owner gets the test page after a quick look and
+# these run while he plays. Every night it also checks all of main again from scratch (`--retest`): a
+# pass is otherwise trusted until the code changes, even if the computers underneath have changed.
+# GitHub switches a schedule off after 60 days with no activity in a public repository; any push
+# keeps it on. The schedule can start late when GitHub is busy.
 name: check
 
 on:
+  pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
 
 # (reading the pull request a merge came from, and its runs' notes of what passed)
 permissions:
