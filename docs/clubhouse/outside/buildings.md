@@ -15,6 +15,12 @@ landings changes (the hall skips it).
   - `is(place)`: whether a place (like `ears().place`) is the outside;
   - `house`: the clubhouse itself (for a picture of it).
 - `lot` (its plot) or `ground` (its spot, with `joins`: where its little paths meet the outside's).
+  A plot is turned (`yaw`) to face the town square, so a house builds itself in its own terms (x across,
+  z out from its door) in a group set on the plot turned the way it faces (`userData.turn` is its yaw,
+  so things that face you inside it still do), and uses the plot's `at(x, z)` (a place in those terms,
+  as `[x, z]` on the outside), `block(x0, x1, z0, z1, y0, y1)` and `blockRound(x, z, r, y0, y1)` (what's
+  solid, in the same terms). Only the door is given in the outside's terms: `doorway` with the
+  plot's `x`, `z` and `yaw`.
 - `house`: its house, handed back when the room is built again (below).
 - `skyMat` and `snapshot` (every room's kit has these: `docs/clubhouse/rooms/kit.md`). A snapshot
   can show the real house over a building's walls.

@@ -7,8 +7,8 @@ world's code: `docs/clubhouse/outside/weather.md`.
 ## What it is
 
 Clyde's, so it stands beside his house, and outdoors, since it changes the weather for the whole
-world. On the grass left of the house (as you face it from the lane), with stepping stones from the
-lane: a mint-green enamel cabinet with far too much on top (a dish turning slowly, wind cups that
+world. On the grass beside the house, on the side away from the middle of the town square, with stepping
+stones from the square: a mint-green enamel cabinet with far too much on top (a dish turning slowly, wind cups that
 spin faster in bad weather, a funnel that puffs out a cloud each time you pull a lever), a sign
 (CLYDE'S WEATHER MACHINE / MORE WEATHER IN THE FULL VERSION!), a green screen with the forecast
 (TODAY: RAIN / FOR THE PLANTS), a note on a stake (PLEASE DO NOT PULL THE LEVERS. (THAT WAS A JOKE.

@@ -39,7 +39,7 @@ Grown from a real-3D test room the owner approved:
   leads to a separate place, so either can change without the other.
 
 ## Round the house
-- **Outside the gate, a lane** runs along the fence, with plots either side of the path for
+- **Outside the gate, a town square** (`docs/clubhouse/outside/square.md`), with plots round it for
   buildings of their own (the owner plans more). Everything outside the gate belongs to somebody
   else (the owner's rule): Sadie's things are in the house and her grounds. Each building's look is
   in its own docs. The next free plot has a NEW HOUSE COMING SOON!! stake.

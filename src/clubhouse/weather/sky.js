@@ -76,6 +76,9 @@ export function makeWeather(T, outside) {
   const wear = { rain: on(A.umbrella, 0.8, 0.56, 0.12, 0.98), snow: on(A.heap, 0.36, 0.16, 0.18, 0.66), sun: on(A.shades, 0.3, 0.1, 0.19, 0.5, 0.04) };
   const says = {};
   for (const [k, t] of Object.entries(A.says)) says[k] = on(t, t.image.width * 0.03, 0.36, -0.22, 1.0, 0.05);
+  // (when she turns to face the other way, as she does to watch the town square's birds, what she wears turns with her and what she says moves to the side behind her: town/birds.js)
+  for (const o of Object.values(wear)) o.userData.flips = true;
+  for (const o of Object.values(says)) o.userData.slides = true;
 
   // ---------- how it's going ----------
   let now = loaded(store.get(KEY, 'clear')), speed = 1, clock = 0, saying = null, sayUntil = 0, meowAt = 0, sounds = null, sun = LOOK[now].sun, clouds = 0;

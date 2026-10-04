@@ -1,7 +1,7 @@
 # Clyde's House (The Overthinkery)
 
 The first building outside Sadie's front gate (`src/activities/clydes-house/`), on the first plot
-along the lane (`lot` 0); Chooter's Paint Shop is across the path on `lot` 1, and more plots wait
+round the town square (`lot` 0); Chooter's Paint Shop is on `lot` 1, and more plots wait
 for more buildings. Clyde, a little terracotta spark of a helper, lives in The Overthinkery. Indoors
 is the Good Morning Machine, a ten-step machine to hand Sadie one treat; outside beside the house is
 Clyde's Weather Machine, which changes the weather for the whole world.

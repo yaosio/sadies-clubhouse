@@ -15,8 +15,11 @@ export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
   // (all in one group, so the clubhouse can swap it for a plain stand-in when you're far off)
   const scene = new Group(); outside.add(scene);
-  const { add, box, plane, ball } = kit(scene);
-  const hx = lot.x, hz = lot.z, W = 5.4, D = 5, H1 = 3.6;
+  // (the plot is turned to face the middle of the town square: everything in the house is built in its own
+  // terms, x across and z out from the front door, in `place`, which sits on the plot turned the way it faces)
+  const place = new Group(); place.position.set(lot.x, lot.y, lot.z); place.rotation.y = lot.yaw; place.userData.turn = lot.yaw; scene.add(place);
+  const { add, box, plane, ball } = kit(place);
+  const hx = 0, hz = 0, W = 5.4, D = 5, H1 = 3.6;
   // (it faces the gate, away from the sun, so it's lit a little from within: never drab)
   const siding = (w, h) => psx(A.siding, { rx: w / 1.6, ry: h / 1.6, unlit: 0.35 });
   const tiles = (rx, ry) => psx(A.tiles, { rx, ry, unlit: 0.3 });
@@ -27,7 +30,7 @@ export function buildHouse(m, A) {
   plane(D, H1, siding(D, H1), [hx - W / 2, H1 / 2, hz - D / 2], [0, -Math.PI / 2, 0]);
   plane(D, H1, siding(D, H1), [hx + W / 2, H1 / 2, hz - D / 2], [0, Math.PI / 2, 0]);
   plane(W, H1, siding(W, H1), [hx, H1 / 2, hz - D], [0, Math.PI, 0]);
-  const door = doorway(scene, { pos: [hx, 0, hz], yaw: 0, w: DW, h: DH, leaves: [{ front: A.door, back: A.doorBack }], hinge: -1, trim: 0xd97757 });
+  const door = doorway(scene, { pos: [lot.x, lot.y, lot.z], yaw: lot.yaw, w: DW, h: DH, leaves: [{ front: A.door, back: A.doorBack }], hinge: -1, trim: 0xd97757 });
   door.group.traverse(o => { if (o.material?.uniforms?.uUnlit && !o.material.uniforms.pic) o.material.uniforms.uUnlit.value = 0.3; });
   // the see-through box behind the door sits a hair above the grass, which runs on under the house:
   // level with it, the grass flickered through the floor of the room you see through the door
@@ -36,10 +39,10 @@ export function buildHouse(m, A) {
   box(1.9, 0.1, 0.8, tiles(2, 1), [hx, DH + 0.3, hz + 0.4]);                    // a little awning over the door
   for (const s of [-1, 1]) box(0.06, 0.3, 0.5, psx(null, { tint: 0xa8502e }), [hx + s * 0.85, DH + 0.15, hz + 0.25]);
   plane(1.0, 0.4, psx(A.mat, { onFloor: true }), [hx, 0, hz + 0.6], [-Math.PI / 2, 0, 0], 1).renderOrder = -1;
-  const roof = cone(4.1, 1.2, [hx, H1 + 0.6, hz - D / 2], tiles(6, 3), scene);
+  const roof = cone(4.1, 1.2, [hx, H1 + 0.6, hz - D / 2], tiles(6, 3), place);
 
   // ---------- the storey above, a little off-true, and the turret on it, more so ----------
-  const up = new Group(); up.position.set(hx + 0.15, H1, hz - 2.4); up.rotation.set(0, 0.1, 0.035); scene.add(up);
+  const up = new Group(); up.position.set(hx + 0.15, H1, hz - 2.4); up.rotation.set(0, 0.1, 0.035); place.add(up);
   mesh(new BoxGeometry(4.2, 2.4, 4.0, 2, 2, 2), siding(4.2, 2.4), [0, 1.2, 0], null, up);
   mesh(new PlaneGeometry(1.3, 1.3), psx(A.round, { unlit: 0.35 }), [0, 1.25, 2.08], null, up);
   cone(3.4, 1.5, [0, 3.15, 0], tiles(5, 3), up);
@@ -55,7 +58,7 @@ export function buildHouse(m, A) {
   box(0.5, 1.8, 0.5, psx(T.brick, { rx: 1, ry: 2 }), [hx + 1.9, H1 + 0.6, hz - 4.0]);
   const puffs = [A.what, A.bang, A.spark, A.what].map((t, i) => {
     const p = new Mesh(keep(new PlaneGeometry(0.4, 0.4)), psx(t, { unlit: 0.6 }));
-    p.userData.phase = i / 4; scene.add(p); return p;
+    p.userData.phase = i / 4; place.add(p); return p;
   });
 
   // ---------- the path from the lane, the mailbox, the sign, a bush either side ----------
@@ -67,25 +70,26 @@ export function buildHouse(m, A) {
   for (const s of [-1, 1]) box(0.1, 1.7, 0.1, post, [hx - 1.6 + s * 0.8, 0.85, hz + 4.3]);
   plane(1.9, 0.75, psx(A.houseSign, { side: DoubleSide, unlit: 0.5 }), [hx - 1.6, 1.3, hz + 4.36], null, 1);
   const leaf = psx(T.leaf, { rx: 2, ry: 2 });
-  for (const s of [-1, 1]) { ball(0.55, leaf, [hx + s * 2.3, 0.45, hz + 0.45], 0.9); outside.blockRound(hx + s * 2.3, hz + 0.45, 0.5); }
+  for (const s of [-1, 1]) { ball(0.55, leaf, [hx + s * 2.3, 0.45, hz + 0.45], 0.9); lot.blockRound(hx + s * 2.3, hz + 0.45, 0.5); }
 
   // ---------- Clyde, by the door, and what Clyde says when you come up the path ----------
   const me = new Mesh(keep(new PlaneGeometry(0.62, 0.72).translate(0, 0.36, 0)), psx(A.clyde.idle, { unlit: 0.6 }));
-  me.position.set(hx + 1.05, 0, hz + 0.9); scene.add(me);
+  me.position.set(hx + 1.05, 0, hz + 0.9); place.add(me);
   const hi = new Mesh(keep(new PlaneGeometry(0.95, 0.31).translate(0.3, 0.155, 0)), psx(A.greet, { unlit: 0.8 }));
-  hi.position.set(hx + 1.05, 0.8, hz + 0.9); hi.visible = false; scene.add(hi);
+  hi.position.set(hx + 1.05, 0.8, hz + 0.9); hi.visible = false; place.add(hi);
   outside.face(me, hi, ...puffs);
 
   // what's solid: the house, the mailbox, the sign
-  outside.block(hx - W / 2, hx + W / 2, hz - D, hz);
-  outside.blockRound(hx + 1.4, hz + 3.0, 0.2);
-  outside.blockRound(hx + 1.05, hz + 0.9, 0.25);
-  outside.block(hx - 2.5, hx - 0.7, hz + 4.25, hz + 4.35);
+  lot.block(hx - W / 2, hx + W / 2, hz - D, hz);
+  lot.blockRound(hx + 1.4, hz + 3.0, 0.2);
+  lot.blockRound(hx + 1.05, hz + 0.9, 0.25);
+  lot.block(hx - 2.5, hx - 0.7, hz + 4.25, hz + 4.35);
 
   // ---------- beside the house: Clyde's Weather Machine (weather-machine.js) ----------
-  const weather = buildWeather(m, scene);
+  const weather = buildWeather(m, place);
 
   let blinkAt = 2;
+  const [meX, meZ] = lot.at(1.05, 0.9);   // (where Clyde stands, out on the plot)
   return {
     door, clyde: me, group: scene,
     // from far off it's drawn as a plain block: the size of the house itself (not the path, the sign
@@ -101,7 +105,7 @@ export function buildHouse(m, A) {
         p.scale.setScalar(0.5 + k * 0.8);
         p.material.uniforms.uFade.value = Math.max(0, k * 1.3 - 0.35);
       }
-      const near = ears && outside.is(ears.place) && Math.hypot(ears.x - me.position.x, ears.z - me.position.z) < 7;
+      const near = ears && outside.is(ears.place) && Math.hypot(ears.x - meX, ears.z - meZ) < 7;
       hi.visible = near;
       let mood = 'idle';
       if (near) mood = Math.floor(t * 3) % 2 ? 'wave' : 'happy';

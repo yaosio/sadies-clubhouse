@@ -15,7 +15,7 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
   distance.
 - **Putting away is counted in doors.** Every building outside is one door from the outside, so in
   a big town none would ever count as far: it needs distance in metres there.
-- **The outside's scenery is a fixed size** (the lane, fences, grass, hills); only the walkable
+- **The outside's scenery is a fixed size** (the square's paving, fences, grass, hills); only the walkable
   edge grows with the plots. A plot past about 30 m either side needs it to grow.
 - **One outside, shared by every building.** A place's settings (`hush`, `brush`, `watch`)
   are one each for the whole outside, so two outdoor activities would fight over them. Music a room plays isn't heard outside (only an

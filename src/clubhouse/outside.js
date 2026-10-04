@@ -5,9 +5,10 @@
 // The cat tree's trunk rises out of the middle, its top always being built; the wing on one side is
 // a branch, the bare platform on the other is where the next one goes.
 //
-// Outside the gate a lane runs along the fence, with plots (`LOTS`) either side of the path for
-// houses of their own: an activity whose card has a `lot` builds its house on that plot (the clubhouse
-// hands it this place), and the next free plot has a COMING SOON stake. Plots never move either.
+// Outside the gate the path leads into the town square (town/): a round paved space with the plots
+// (`LOTS`) in a curve round its far side, each turned to face the middle, and paths leaving it for the
+// grass. An activity whose card has a `lot` builds its house on that plot (the clubhouse hands it this
+// place), and the next free plot has a COMING SOON stake.
 //
 // Behind the house, the backyard: the back of the house finished off (windows, a back door that's
 // strictly for cats, flower beds), a patio, a bench in the sun where Sadie naps, and a fence round
@@ -15,13 +16,16 @@
 import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
 import { psx, keep, skyMat, tex, sadieSprite } from './look.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
+import { LOTS, SQUARE } from './town/layout.js';
+import { buildSquare } from './town/square.js';
 
-// The plots along the lane outside the gate: where each house's front door is (they face the gate),
-// and how high its ground is (y). Never moved or reordered (tests/clubhouse/spots.json): a new one
-// only ever goes on the end, and the outside grows to take it in.
-export const LOTS = [{ x: -10, y: 0, z: -37 }, { x: 10, y: 0, z: -37 }, { x: -24, y: 0, z: -37 }, { x: 24, y: 0, z: -37 }];
-// spots in the grounds round the house, for buildings that aren't on the lane (a card's `grounds`):
-// the middle of each, its ground's height, and how much room there is (w across, d deep). They never move either.
+export { LOTS };
+
+// (The plots round the town square outside the gate are in town/layout.js: where each house's front
+// door is, how high its ground is (y), and which way it faces (yaw). They keep their order
+// (tests/clubhouse/spots.json): a new one goes on the end, and the outside grows to take it in.)
+// spots in the grounds round the house, for buildings that aren't on a plot (a card's `grounds`):
+// the middle of each, its ground's height, and how much room there is (w across, d deep). They never move.
 // 0: beside the house on the left, from the front garden to the backyard (the hedge maze). `joins`:
 // where a little path to it can join the outside's paths (the main path's edge, just before the porch,
 // where the hedges leave a gap; and the backyard's path, which runs along to it)
@@ -42,9 +46,10 @@ export function buildOutside(T, cards = []) {
   for (const [x, y, z, s] of [[-40, 38, 100, 1.4], [30, 44, 110, 1.8], [70, 30, 80, 1.2], [-90, 26, 60, 1.5]])
     plane(14 * s, 5 * s, psx(T.cloud, { unlit: 0.9 }), [x, y, z], [0, Math.atan2(x, z) + Math.PI, 0], 1);
   plane(260, 260, psx(T.grass, { rx: 130, ry: 130 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 24).renderOrder = -2;
-  plane(3, 30, psx(T.path, { rx: 2, ry: 20, onFloor: true }), [0, 0, -15], [-Math.PI / 2, 0, 0], 12).renderOrder = -1;
-  // the lane outside the gate, and a stake on the next free plot
-  plane(64, 2.4, psx(T.path, { rx: 40, ry: 1.6, onFloor: true }), [0, 0, -31], [-Math.PI / 2, 0, 0], 16).renderOrder = -1;
+  // the path out of the gate runs to the edge of the town square
+  const gateWay = SQUARE.z + SQUARE.r - 0.4;
+  plane(3, -gateWay, psx(T.path, { rx: 2, ry: -gateWay * 2 / 3, onFloor: true }), [0, 0, gateWay / 2], [-Math.PI / 2, 0, 0], 12).renderOrder = -1;
+  // (and a stake on the next free plot, below)
   const taken = new Set(cards.filter(c => Number.isInteger(c.lot)).map(c => c.lot));
   const free = LOTS.find((_, i) => !taken.has(i));
 
@@ -202,11 +207,14 @@ export function buildOutside(T, cards = []) {
   // Sadie on the gatepost: she's expecting you (not that she'd show it)
   const sadie = sadieSprite(T, 0.9);
   sadie.position.set(2.6, 2.4, -20.1); scene.add(sadie);
+  // the town square: its birds, and Sadie watching them
+  const square = buildSquare(T, scene, sadie);
 
-  if (free) {
-    const post = psx(T.wood, { tint: 0xffe0c0 });
-    box(0.14, 1.6, 0.14, post, [free.x - 0.9, 0.8, free.z - 1]); box(0.14, 1.6, 0.14, post, [free.x + 0.9, 0.8, free.z - 1]);
-    plane(2.2, 0.8, psx(T.lotSign, { unlit: 0.3, side: DoubleSide }), [free.x, 1.3, free.z - 0.93], [0, 0, 0], 1);
+  if (free) {   // (turned with the plot, to face the middle of the square)
+    const stake = new Group(); stake.position.set(free.x, 0, free.z); stake.rotation.y = free.yaw; scene.add(stake);
+    const post = psx(T.wood, { tint: 0xffe0c0 }), k = kit(stake);
+    k.box(0.14, 1.6, 0.14, post, [-0.9, 0.8, -1]); k.box(0.14, 1.6, 0.14, post, [0.9, 0.8, -1]);
+    k.plane(2.2, 0.8, psx(T.lotSign, { unlit: 0.3, side: DoubleSide }), [0, 1.3, -0.93], [0, 0, 0], 1);
   }
 
   // Where you can walk: the ground (the garden, out along the lane, and the front steps), round
@@ -221,9 +229,9 @@ export function buildOutside(T, cards = []) {
     ...HEDGES.map(([x, z, len]) => [x - 0.5, x + 0.5, z - len / 2, z + len / 2]),
     ...[-1, 1].map(s => [s * 2.6 - 0.45, s * 2.6 + 0.45, -20.45, -19.55]),
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
-  if (free) RECTS.push([free.x - 1, free.x + 1, free.z - 1.1, free.z - 0.9]);
   const CIRCLES = [[-9, 0.4, 1.6], [9, 0.4, 1.6], [-2, -2.6, 0.3], [2, -2.6, 0.3], [-4, 19, 0.65], ...[...TREES, ...YARD_TREES].map(([x, z, s]) => [x, z, 0.4 * s])];
-  const SURFACES = [];
+  const SURFACES = [], TURNED = [];   // (TURNED: solid boxes on a plot, turned with it: lots below)
+  for (const c of square.circles) CIRCLES.push(c);
   const keepIn = (list, it) => { list.push(it); return () => { const i = list.indexOf(it); if (i >= 0) list.splice(i, 1); }; };   // more to walk on: each (x, z) => its height there, or null
   function ground(x, z) {
     if (Math.abs(x) > EDGE.x || z < EDGE.z0 || z > EDGE.z1) return null;
@@ -234,6 +242,10 @@ export function buildOutside(T, cards = []) {
   // (something solid from y0 to y1 is in the way of someone standing at h)
   const inTheWay = (y0 = -Infinity, y1 = Infinity, h) => y0 < h + TALL && y1 > h + 0.05;
   function clear(x, z, h) {
+    for (const t of TURNED) {
+      const dx = x - t.X, dz = z - t.Z, lx = dx * t.c - dz * t.s, lz = dx * t.s + dz * t.c;
+      if (lx > t.x0 - P && lx < t.x1 + P && lz > t.z0 - P && lz < t.z1 + P && inTheWay(t.y0, t.y1, h)) return false;
+    }
     for (const [x0, x1, z0, z1, y0, y1] of RECTS) if (x > x0 - P && x < x1 + P && z > z0 - P && z < z1 + P && inTheWay(y0, y1, h)) return false;
     for (const [cx, cz, r, y0, y1] of CIRCLES) if (Math.hypot(x - cx, z - cz) < r + P && inTheWay(y0, y1, h)) return false;
     return true;
@@ -245,8 +257,21 @@ export function buildOutside(T, cards = []) {
     return best;
   }
 
+  // A plot as its house is told about it: the plot itself, `at(x, z)` (a place in the house's own terms, x across
+  // and z out from its door, as [x, z] on the outside), and `block` / `blockRound` (what's solid, in the same terms).
+  const lots = LOTS.map(l => {
+    const c = Math.cos(l.yaw), s = Math.sin(l.yaw), at = (x, z) => [l.x + x * c + z * s, l.z - x * s + z * c];
+    return {
+      ...l, at,
+      block: (x0, x1, z0, z1, y0, y1) => keepIn(TURNED, { x0, x1, z0, z1, y0, y1, X: l.x, Z: l.z, c, s }),
+      blockRound: (x, z, r, y0, y1) => keepIn(CIRCLES, [...at(x, z), r, y0, y1]),
+    };
+  });
+
+  if (free) lots[LOTS.indexOf(free)].block(-1, 1, -1.1, -0.9);   // (its stake)
+
   return {
-    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs], sadie, napper, uses: [], lots: LOTS, grounds: GROUNDS, house,
+    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs, ...square.faces], sadie, napper, uses: [], lots, grounds: GROUNDS, house,
     // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r);
     // from y0 up to y1 (from the ground up, if it doesn't say). Each hands back how to take it away.
     block(x0, x1, z0, z1, y0, y1) { return keepIn(RECTS, [x0, x1, z0, z1, y0, y1]); },
@@ -262,6 +287,7 @@ export function buildOutside(T, cards = []) {
     update(t, dt) {
       // Sadie on the gatepost blinks now and then
       sadie.userData.blink(dt);
+      square.update(t, dt);
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;
       // Sadie's Zs drift up off the bench and fade
       for (const z of zs) {

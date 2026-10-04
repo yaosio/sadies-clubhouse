@@ -7,7 +7,7 @@ how one place is seen from another.
 The clubhouse is Sadie's house in crappy late-90s 3D, made with three.js (the one library, bundled
 into the page), loaded only when the page opens on it. It's made of separate **places**, each its
 own scene with its own floor and light:
-- `outside.js`: the garden, the house's shell, the backyard behind it, and the lane outside the gate
+- `outside.js`: the garden, the house's shell, the backyard behind it, and the town square outside the gate
   with its plots (`docs/clubhouse/outside/README.md`).
 - `hall.js`: the entrance hall, the bottom of the cat tree (`hall.md`).
 - `room.js`: the plain den with a computer, for an activity played at a computer (the others build their own room).

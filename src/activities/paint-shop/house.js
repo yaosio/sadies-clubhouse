@@ -12,8 +12,11 @@ export const DW = 1.3, DH = 2.4;   // the front door
 export function buildHouse(m, A) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
   const scene = new Group(); outside.add(scene);
-  const { add, box, plane } = kit(scene);
-  const hx = lot.x, hz = lot.z, W = 6.4, D = 5, H = 3.6;
+  // (the plot is turned to face the middle of the town square: everything in the house is built in its own
+  // terms, x across and z out from the front door, in `place`, which sits on the plot turned the way it faces)
+  const place = new Group(); place.position.set(lot.x, lot.y, lot.z); place.rotation.y = lot.yaw; place.userData.turn = lot.yaw; scene.add(place);
+  const { add, box, plane } = kit(place);
+  const hx = 0, hz = 0, W = 6.4, D = 5, H = 3.6;
   // (it faces the gate, away from the sun, so it's lit a little from within: never drab)
   const wall = (w, h) => psx(A.wall, { rx: w / 3.2, ry: h / 2.4, unlit: 0.35 });
 
@@ -29,7 +32,7 @@ export function buildHouse(m, A) {
   const roof = box(W + 0.3, 0.25, D + 0.3, psx(null, { tint: 0xe8dcff }), [hx, H + 0.12, hz - D / 2]);
   box(W + 0.3, 0.9, 0.2, psx(null, { tint: 0xff8ec8, unlit: 0.3 }), [hx, H + 0.55, hz + 0.05]);
   plane(3.8, 0.87, psx(A.sign, { unlit: 0.5 }), [hx + 0.4, H + 0.55, hz + 0.17], null, 1);
-  const door = doorway(scene, { pos: [hx, 0, hz], yaw: 0, w: DW, h: DH, leaves: [{ front: A.door, back: A.doorBack }], hinge: -1, trim: 0xffd23a });
+  const door = doorway(scene, { pos: [lot.x, lot.y, lot.z], yaw: lot.yaw, w: DW, h: DH, leaves: [{ front: A.door, back: A.doorBack }], hinge: -1, trim: 0xffd23a });
   door.group.traverse(o => { if (o.material?.uniforms?.uUnlit && !o.material.uniforms.pic) o.material.uniforms.uUnlit.value = 0.3; });
   door.see.position.y += 0.03;   // (a hair above the grass, which runs on under the shop)
   for (const s of [-1, 1]) plane(1.7, 1.3, psx(A.window, { unlit: 0.5 }), [hx + s * 2.05, 1.45, hz + 0.06], null, 1);
@@ -39,7 +42,7 @@ export function buildHouse(m, A) {
   // ---------- the giant paint can on the roof: in the middle, up on a stand above the sign, tipping
   // to one side, pouring pink onto the top of the sign ----------
   box(1.4, 1.5, 1.4, psx(null, { tint: 0x9a6a3a, unlit: 0.3 }), [hx, H + 1.0, hz - 1.4]);   // its stand
-  const can = new Group(); can.position.set(hx, H + 2.7, hz - 1.4); can.rotation.set(0.2, 0, -0.45); scene.add(can);
+  const can = new Group(); can.position.set(hx, H + 2.7, hz - 1.4); can.rotation.set(0.2, 0, -0.45); place.add(can);
   const tin = psx(null, { tint: 0xd8d8e8, unlit: 0.3 });
   const body = new Mesh(keep(new CylinderGeometry(1.0, 1.0, 1.8, 12, 1)), [psx(A.canLabel, { rx: 2, unlit: 0.35 }), psx(null, { tint: 0xff8ec8, unlit: 0.4 }), tin]);
   body.rotation.y = -Math.PI / 2;   // (one of its two labels to the lane)
@@ -48,10 +51,10 @@ export function buildHouse(m, A) {
 
   // ---------- the path from the lane, and the sandwich board ----------
   plane(1.3, 4.8, psx(T.path, { rx: 1, ry: 3, onFloor: true }), [hx, 0, hz + 2.4 + 0.02], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
-  const board = new Group(); board.position.set(hx + 1.5, 0, hz + 3.3); board.rotation.y = -0.3; scene.add(board);
+  const board = new Group(); board.position.set(hx + 1.5, 0, hz + 3.3); board.rotation.y = -0.3; place.add(board);
   for (const [t, s] of [[A.board, 1], [A.boardBack, -1]]) {
     const face = plane(0.62, 0.85, psx(t, { unlit: 0.4 }), [0, 0, 0], null, 1);
-    scene.remove(face); board.add(face);
+    place.remove(face); board.add(face);
     face.position.set(0, 0.42, s * 0.12); face.rotation.set(-s * 0.28, s < 0 ? Math.PI : 0, 0);
     // (a wooden board behind each sign, so it's a solid thing from every side, not a picture in the air)
     const back = new Mesh(keep(new BoxGeometry(0.66, 0.89, 0.03)), psx(null, { tint: 0x7a4a2a, unlit: 0.3 }));
@@ -59,8 +62,8 @@ export function buildHouse(m, A) {
   }
 
   // what's solid: the shop and the board
-  outside.block(hx - W / 2, hx + W / 2, hz - D, hz);
-  outside.blockRound(hx + 1.5, hz + 3.3, 0.35);
+  lot.block(hx - W / 2, hx + W / 2, hz - D, hz);
+  lot.blockRound(hx + 1.5, hz + 3.3, 0.35);
 
   return {
     door, group: scene,
