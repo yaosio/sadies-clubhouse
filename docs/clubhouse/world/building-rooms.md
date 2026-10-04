@@ -20,6 +20,9 @@ when changing any of that. What a room must do to be put away: `docs/clubhouse/r
   once more than 16 are built) is put away: it stops its sounds, its own `putAway()` (if it has one)
   takes back what it put elsewhere, everything it made that no other place uses goes back to the
   graphics card, and it's built again from its save as you come back.
+- At 16 built, no more are built ahead of you: only the door you walk up to builds its room (and the
+  longest-ago one goes), so with more rooms than that nothing is built and put away over and over.
+  16 is Claude's choice (`MAX` in `clubhouse.js`), not a rule: raise it if the game can carry more.
 - Every room can be put away (not while it says it's `busy()`).
 - A building outside keeps its house: the clubhouse hands it back to the room as `house` when it's
   built again, and keeps the house's `update` going meanwhile (`docs/clubhouse/outside/buildings.md`).
