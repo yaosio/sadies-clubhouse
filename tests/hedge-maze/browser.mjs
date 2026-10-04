@@ -4,8 +4,8 @@
 //
 // It finds the hedge block beside the house, sees the maze through its front gate, walks in, finds its way through, turning corner
 // after corner (5 to 8, then the corner onto the end), and out of the end into the backyard. Turning
-// round, the gate it came out of shows the same bit of maze; walking back in, it's a new maze past the
-// first corner, and its end lets it out into the backyard again. And you can walk round the side of
+// round, the gate it came out of shows the maze, and walking back in, you come in where you came out
+// (a second walk through the new maze was dropped: fatal-only). And you can walk round the side of
 // the house to the backyard without the maze. Screenshots in dist/check/hedge-maze/. Any error on
 // the page is a failure.
 import { bothDevices } from '../shared/browser.mjs';
@@ -65,10 +65,7 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(1400);
     z = await Z();
     check(`${device}: ...and walking back in, you come in where you came out`, (await M('where')).place === ROOM && z.inside && z.doors.back === exitKey);
-    const second = await through();
-    const back = await M('where');
-    z = await Z();
-    check(`${device}: ...and it's a new maze, whose end lets you out into the backyard again (the sneaky bit)`, second.out && back.place === 'outside' && back.z > 9 && z.doors.back !== exitKey, JSON.stringify({ ...second, at: back }));
+    // (the way through is done once: a second, different maze is a pleasure, not something that can trap you)
 
     // the backyard's also just round the side of the house
     await M('put', 'outside', { x: -12, z: -6, yaw: Math.PI, pitch: 0 });

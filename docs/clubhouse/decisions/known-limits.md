@@ -42,8 +42,8 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
   there are (65 s for a one-room change at 11 rooms, against 6 min 23 s). A change to the shared
   toolbox, the clubhouse's shell or the check tools still runs everything, and that full run grows with
   the rooms. It trusts that `main` passed (a docs-only merge can't change what's checked), so run
-  `npm run check -- --retest` every review round. Still open: shorter walks in the slow rooms (hedge
-  maze, aquarium, 47 s each).
+  `npm run check -- --retest` every review round. The slow rooms' walks were trimmed 2026-10-04 (hedge
+  maze 47 to 33 s, aquarium 47 to 40 s: most of the aquarium's time is the game's own dives).
 - **Code files have no size limit** (the owner: no hard limit, and splitting isn't very necessary,
   2026-10-04). A big file only costs Claude reading time. Split one when it gets in the way, not by
   rule; the biggest are `clubhouse.js` (58 KB), `look.js` and `outside.js` (22 KB, next to split).
