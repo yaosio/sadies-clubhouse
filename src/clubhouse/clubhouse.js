@@ -243,11 +243,12 @@ export async function open(cards, enter) {
   function tend(dt, doorFor) {
     const away = doorsAway();
     let next = null, best = 1e9;
+    const full = slots.filter(r => r.place).length >= MAX;   // (at the cap, only the door you walk up to builds a room: else the rest would be built and put away over and over)
     for (const r of slots) if (!r.place && !r.building && r.portals.length && again(r)) {
       const n = away(r); if (n > 2) continue;
       const dd = Math.min(99, ...r.portals.filter(p => p.wa === me.world).map(p => Math.hypot(me.x - p.a.pos.x, me.z - p.a.pos.z)));
       const score = n * 100 + dd;
-      if (doorFor === r || (!onlyDoors && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
+      if (doorFor === r || (!onlyDoors && !full && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
     }
     // (a building outside the gate that didn't build at the start has no door yet: tried again too)
     next ||= slots.find(r => !r.place && !r.building && !r.portals.length && outdoors(r.card) && again(r));
@@ -818,7 +819,7 @@ export async function open(cards, enter) {
     // the rooms built so far, whether they're all built, building one now (and waiting for that), and
     // putting one away now (as if you'd been far from it long enough)
     built: () => slots.filter(r => r.place).map(r => r.name),
-    settled: () => slots.every(r => r.place || !(r.portals.length || outdoors(r.card))) && !slots.some(r => r.building),
+    settled: () => !slots.some(r => r.building) && (slots.filter(r => r.place).length >= MAX || slots.every(r => r.place || !(r.portals.length || outdoors(r.card)))),
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
