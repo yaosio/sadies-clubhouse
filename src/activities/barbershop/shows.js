@@ -39,7 +39,9 @@ export const SHOWS = {
       let x = S.x - 0.8, y = S.y + 0.13 + i * 0.26, rz = 0;
       if (t > 3.8 && !fall) rz = Math.sin(t * 11) * 0.015 * (i + 1);
       if (fall) {
-        x += (i - 1) * fall * 0.45 + i * fall * fall * 0.25; rz = fall * (i + 1) * 0.45;
+        // (they slide out and settle on the stage, nowhere near the wall: `u` goes from 0 up to 1 and stays)
+        const u = 1 - Math.exp(-fall * 2.2);
+        x += (i - 1.5) * 0.4 * u; rz = u * (0.9 + i * 0.4);
         y = Math.max(S.y + 0.13 + (i % 2) * 0.02, y - fall * fall * (1.6 + i * 0.5));
       }
       b.position.set(x, y, S.z + (i % 2 ? 0.06 : -0.06) * Math.min(1, fall * 3));
