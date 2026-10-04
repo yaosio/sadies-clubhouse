@@ -12,9 +12,13 @@ its birds, or the paths that lead out of it. (`src/clubhouse/town/`; the outside
   areas can grow along them without anything being moved: a new plot goes beside one.
 - **The birds** (`birds.js`): five little flat pictures, each its own colour. They fly round the
   square, land on the benches, the bird bath and the paving, then take off again. Five is Claude's
-  choice, to keep it light (one picture each). They make no sound yet. The owner is fine with soft chirping
-  (not loud, not constant: `docs/clubhouse/RULEBOOK.md` section 4), so it can be added (sounds go
-  through `docs/clubhouse/sound/system.md`).
+  choice, to keep it light (one picture each). They chirp now and then as they take off or land
+  (`chirps.js`, the owner said soft chirping is fine, never loud or constant:
+  `docs/clubhouse/RULEBOOK.md` section 4). Claude's numbers, not the owner's: three chirp shapes, a
+  different pitch for each bird, never the same shape twice running, at most one chirp every 14
+  seconds from all the birds together (and then only 3 times in 10), heard only out in the square
+  and fading with distance. Through the sound system's SOUNDS button
+  (`docs/clubhouse/sound/system.md`).
 - **Sadie on the gatepost** watches them (the owner's choice, 2026-10-04): she keeps facing you and
   only glances. Her eyes go left, right or up after the bird she's watching, as you see it, and now
   and then her tail flicks. The glances are extra pictures made from her own (`sadiePoses` in
