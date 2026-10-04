@@ -103,13 +103,13 @@ check('the tools: brush, roller, spray can, bucket, every stamp, and the dynamit
 check('...every name fits a label (the 3x5 font, upper case)', TOOLS.every(t => /^[A-Z' ]+$/.test(t.name) && t.name.length <= 20) && POTS.every(p => /^[A-Z ]+$/.test(p.name)));
 check('you start with the brush, in red', START.tool === 'brush' && START.paint === 1);
 
-// 8. every sound: soft, short, 8-bit, fading right down to nothing, no click (RULEBOOK.md
-// section 4); and painting itself has no sound at all
+// 8. every sound: soft, 8-bit, fading right down to nothing, no click (RULEBOOK.md section 4); and
+// painting itself has no sound at all. (No length limit: the owner said it isn't one of theirs.)
 for (const [name, make] of Object.entries(ALL)) {
-  const a = make(), recorded = /^woo/.test(name), most = name === 'kaboom' ? 1.6 : recorded ? 1.2 : 0.6;   // (Chooter's woo is a recording, not 8-bit)
+  const a = make(), recorded = /^woo/.test(name);   // (Chooter's woo is a recording, not 8-bit)
   let peak = 0; for (const v of a) peak = Math.max(peak, Math.abs(v));
-  check(`the ${name}: 8-bit, soft, under ${most} s, fading to nothing, no click`,
-    (recorded || a.every(v => Math.abs(Math.round(v * 127) - v * 127) < 1e-3)) && peak > 0.08 && peak <= 0.5 && a.length <= most * RATE &&
+  check(`the ${name}: ${recorded ? '' : '8-bit, '}soft, fading to nothing, no click`,
+    (recorded || a.every(v => Math.abs(Math.round(v * 127) - v * 127) < 1e-3)) && peak > 0.08 && peak <= 0.5 &&
     a.slice(-5).every(v => Math.abs(v) < 0.02) && Math.abs(a[0]) < 0.05, `peak ${peak.toFixed(2)}, ${(a.length / RATE).toFixed(2)} s`);
 }
 check('no sound for painting (brush, roller, spray): only one-off blips', !Object.keys(ALL).some(k => /brush|roll|spray|stroke|hiss/.test(k)));
