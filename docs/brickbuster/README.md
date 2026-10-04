@@ -12,7 +12,7 @@ times and it shatters, and the yarn ball escapes into the hall for good.
 - Missing isn't losing: the ball cracks the glass. Three cracks at the top (playing too well) or at
   the bottom (too badly) and it breaks. Either way, you broke it.
 - The cracks are loud, crunchy and wonderfully 90s. Once the ball is out, it's silent (the poster
-  explains why; and the owner has misophonia, so nothing out there ever makes a constant noise).
+  explains why; and nothing out there makes a constant noise: `docs/clubhouse/RULEBOOK.md` section 4).
 - Sadie's sounds are rare and soft: never close together, never the same twice running, never
   louder than a crack, fading with distance. Anything new that repeats gets the same treatment.
 - The ball is Sadie's ball of yarn; the paddle is a character (a real 3D paddle, not a flat

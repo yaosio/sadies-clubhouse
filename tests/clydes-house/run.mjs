@@ -104,8 +104,7 @@ check('...and says what it keeps in the browser', card.keeps.every(k => k.starts
   check('every weather has its own soft jingle', all.every(k => ALL[k + 'In']));
 }
 
-// 6. every sound: soft, short, 8-bit, fading right down to nothing, no click (the owner can't
-// stand harsh, droning or repetitive noise)
+// 6. every sound: soft, short, 8-bit, fading right down to nothing, no click (RULEBOOK.md section 4)
 for (const [name, make] of Object.entries(ALL)) {
   const a = make();
   let peak = 0; for (const v of a) peak = Math.max(peak, Math.abs(v));

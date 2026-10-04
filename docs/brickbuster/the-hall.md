@@ -19,7 +19,7 @@ quietly pops back into the middle of the hall.
 
 ## Sadie's sounds
 
-The ball stays silent (the owner has misophonia and can't stand constant noise), but Sadie makes a
+The ball stays silent (a rolling ball would be a constant noise: `docs/clubhouse/RULEBOOK.md` section 4), but Sadie makes a
 sound now and then while she plays, and only now and then: a soft pat of her paw on some whacks, a
 little "mrrp" chirp as she pounces, a happy trill for a mighty whack, and once in a while a small
 meow. Never two close together, never more than five a minute, never the same one twice running,

@@ -21,7 +21,7 @@ backyard, where Sadie naps on the bench.
 - **A new maze every visit**, from either gate.
 - **Not a trap.** The backyard is also just round either side of the house: the maze is one way
   there, not the only one.
-- **Kind to the ears** (the owner has misophonia): the music is a soft garden music box, composed
+- **Kind to the ears** (`docs/clubhouse/RULEBOOK.md` section 4): the music is a soft garden music box, composed
   as it plays, so it never loops; every note dies away by itself, and there's a quiet moment between
   pieces. No other sounds.
 

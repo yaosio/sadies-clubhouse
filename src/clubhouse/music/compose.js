@@ -8,7 +8,7 @@
 // a new variation of. Phrases leave room: a phrase of rest now and then, a soft echo in the gap.
 // When a piece ends there's a quiet moment, then the next piece starts in a nearby key.
 //
-// Kind to the ears (the owner has misophonia): no drums, no held pads or drones, every note dies
+// Kind to the ears (docs/clubhouse/RULEBOOK.md section 4): no drums, no held pads or drones, every note dies
 // away by itself (the longest a few seconds), nothing ticks along in a fast even stream, and the
 // same few bars never come round again.
 

@@ -1,5 +1,5 @@
-// The sea's own sounds, all rare and gentle (the owner has misophonia: nothing constant, nothing
-// that repeats). There's no loop at all: now and then one small wave laps at the boat, and the sail
+// The sea's own sounds, all rare and gentle (RULEBOOK.md section 4: nothing constant, no
+// drone or tick). There's no loop at all: now and then one small wave laps at the boat, and the sail
 // rustles once when you turn hard. `seaPacing` decides when, with its rules in numbers the tests
 // read: never two sounds closer than GAP seconds, waves only every WAVE_MIN to WAVE_MAX seconds,
 // never the same one twice running.

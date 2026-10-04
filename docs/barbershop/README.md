@@ -16,7 +16,7 @@ rule), so the shop is Marbles', and Sadie is her customer.
   rope by the stage, and can be walked away from: nothing holds you.
 - **Marbles never takes anything from Sadie.** She's a trickster in what she picks and where she
   pops up, not a thief.
-- **Kind to the ears** (the owner has misophonia, and dislikes only droning and ticking). Sounds
+- **Kind to the ears** (`docs/clubhouse/RULEBOOK.md` section 4). Sounds
   play once, soft, when something happens. The music is a melody on the music line (never a drone
   or a steady beat): the shop's own tune while you're inside, and a short song with each show.
 - **You can see what's pickable.** Bobbing arrows over every wig head, ribbon, hanger and Marbles

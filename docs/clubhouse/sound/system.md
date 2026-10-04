@@ -19,7 +19,8 @@ Three, each with its volume on the pause menu (ON, SOFT, OFF, kept as `mansion.m
 `mansion.sounds`, `mansion.voices`): `music`, `sounds` (effects, instruments you play) and `voices`
 (the characters).
 
-## The rules live here, once (the owner has misophonia)
+## The rules live here, once
+The owner's reason for them is in `docs/clubhouse/RULEBOOK.md` section 4; these are how the system keeps it.
 - The same sound never again within its `gap` (0.08 s unless it says).
 - A voice never says the same thing twice running (within 10 s: a room with only one meow still
   meows later).

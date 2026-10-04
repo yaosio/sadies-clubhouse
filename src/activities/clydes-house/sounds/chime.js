@@ -1,6 +1,6 @@
 // When the treat lands in Sadie's bowl: a soft music-box "ding-ding" (two notes going up). It plays
 // once per breakfast and never repeats, rings for under two seconds and fades right down to nothing
-// (the owner can't stand harsh or repetitive noise). Plain numbers, no browser: 8-bit, 11 kHz.
+// (RULEBOOK.md section 4). Plain numbers, no browser: 8-bit, 11 kHz.
 import { RATE, TAU, hz } from '../../../shared/retro.js';
 export { RATE };
 

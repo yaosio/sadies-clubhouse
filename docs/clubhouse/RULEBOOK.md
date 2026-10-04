@@ -39,10 +39,16 @@ player's saved settings would be lost.)
 - **Sadie's in it** somehow (not always the same way). An exception is said in the activity's
   README.
 
-## 4. Kind to the ears (the owner has misophonia)
+## 4. Kind to the ears
+**The owner's rule (Yaosio, 2026-10-04, replacing a stricter blanket one):** the owner has
+misophonia, and the only sounds that bother them are **droning** ones (an engine hum) and
+**ticking** ones (a clock, hi-hats). Soft bird chirping is fine, just never loud or constant. Any
+other sound is fine if it's rare, soft and varied. Written only here; other pages point here.
 - Everything through the sound system (`docs/clubhouse/sound/README.md`). *Checked.*
-- Nothing droning, constant or repetitive. Music doesn't loop the same song forever: it's composed
-  as it plays, or stops after a while. *Not checked: only fatal errors are tested (`docs/clubhouse/decisions/fatal-only.md`).*
+- No drone, no tick. *Not checked: only fatal errors are tested (`docs/clubhouse/decisions/fatal-only.md`).*
+- A sound that can happen often (a chirp, a meow) is kept rare, soft and varied.
+- Claude's choices, not the owner's rule: the main theme is composed as it plays, not looped, and
+  most rooms never loop a sound. A room may loosen that if it stays soft.
 - The owner's exceptions (2026-10-02), both things you choose to switch on: Space Adventure's radio
   loops its song, and the Music Room tape's LOOP repeats as long as you leave it on.
 

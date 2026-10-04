@@ -1,7 +1,7 @@
 # Sound and music
 
 Every sound in the game goes through one sound system, and the clubhouse plays a main theme of its
-own. **The owner has misophonia: nothing droning, constant or repetitive** (`docs/clubhouse/RULEBOOK.md`).
+own. The kind-to-the-ears rule (no droning, no ticking, nothing loud or constant) is written once, in `docs/clubhouse/RULEBOOK.md` section 4.
 Read only the page your change touches.
 
 - `system.md`: the sound system (`src/shared/sound.js`): how a room plays sounds and music, the
