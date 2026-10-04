@@ -44,20 +44,27 @@ door stays with it.
    clubhouse; only from its own folder and `src/shared/` (the toolbox, kept small: a change there
    retests every activity). In Dropper World, `core/` never touches the DOM or imports from
    `render/`, `ui/` or `input/`.
-3. `npm run check -- --preview` must pass: the code checker, `npm test`, a test build, and the game in
-   headless Chromium as a phone and a desktop (any page error fails). Look at the screenshots in
-   `dist/check/`. Checks test fatal errors only (`docs/clubhouse/checks/fatal-only.md`): none for sound, looks or polish. `--quick` skips the tests. Details: `docs/clubhouse/checks/README.md`. If a change is
-   meant to move a test's numbers, explain why in plain words and update that activity's tuning notes.
-4. Commit with a plain-English message saying what changed and what to look for in-game. Push to the
-   working branch. Never commit `dist/` or `node_modules/`; do commit `package-lock.json`. GitHub
-   runs no checks (they cost minutes; `.github/workflows/` run only by hand), so before a merge, bring
-   in the latest `main` and `npm run check -- --since-main` must pass on exactly that (it checks only
-   what differs from `main`; a full `npm run check -- --retest` every review round).
+3. **See it first, check after** (Yaosio, 2026-10-04: less waiting before the owner can look). Once the
+   change is written: the quick look passes (`npm run check -- --preview --quick --only
+   clubhouse,<the rooms touched>`: code checker, build, and those pages open in headless Chromium with no
+   page error), then commit, push, build again (`npm run build -- --preview`: its label names the commit)
+   and publish to the test page (below), saying "checks still running" with the link. Then run the full
+   `npm run check -- --preview` (the code checker, `npm test`, a test build, and the game in headless
+   Chromium as a phone and a desktop, any page error fails; look at the screenshots in `dist/check/`).
+   If it finds something, fix it, push, and publish to the same link, telling the owner plainly. Say
+   when it passes. Only the test page goes out early: the merge and the real game still wait for the
+   full check (step 4). Checks test fatal errors only (`docs/clubhouse/checks/fatal-only.md`): none for
+   sound, looks or polish. `--quick` skips the tests. Details: `docs/clubhouse/checks/README.md`. If a
+   change is meant to move a test's numbers, explain why in plain words and update that activity's
+   tuning notes.
+4. Before a merge: bring in the latest `main` and `npm run check -- --since-main` must pass on exactly
+   that (it checks only what differs from `main`; a full `npm run check -- --retest` every review
+   round). GitHub runs no checks (they cost minutes; `.github/workflows/` run only by hand). Never
+   commit `dist/` or `node_modules/`; do commit `package-lock.json`.
    **Docs-only changes** (no code, no game files; Yaosio, 2026-10-03, because the full check keeps
    getting longer as the game grows): the quick checks are enough (`node tools/docs.mjs`, lint); skip
    the full run. Anything touching game code still gets the full check on the latest `main`.
-5. Publish that build to the test page (below) and give the owner the link. Build it again after
-   committing (`npm run build -- --preview`): its label names the commit it was built at.
+5. Commit messages are plain English, saying what changed and what to look for in-game.
 6. When the owner says to (or the change is behind the scenes and needs no in-game check), open a pull
    request, merge it into `main`, and publish the real game.
 7. A script that would be useful again goes in `tools/<activity>/` (or `tests/<activity>/browser.mjs`),
