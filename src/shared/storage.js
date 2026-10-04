@@ -17,6 +17,7 @@
 //   onLeave(fn)      fn() runs as the page is hidden or closed (switching apps on a phone counts,
 //                    and is often the last chance to save); hands back how to stop it. A box has
 //                    it too. Never after a start-over.
+//   tabNote.put/take a note kept for this tab only (not a save: gone when the tab closes).
 //   forget(prefixes) every save under those prefixes erased (or every save there is, with none).
 //   reloading()      nothing more is saved on this page, by anyone: it's about to reload after a
 //                    start-over or a backup's put back, and a room saving on its way out would
@@ -33,6 +34,12 @@ export const store = {
   },
   set(k, v) { if (over) return false; try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { failed = true; return false; } },
   remove(k) { try { localStorage.removeItem(k); } catch {} },
+};
+
+// a note for this tab only (which door you just came out of): gone when the tab closes, never a save
+export const tabNote = {
+  take(k) { try { const v = sessionStorage.getItem(k); sessionStorage.removeItem(k); return v; } catch { return null; } },
+  put(k, v) { try { sessionStorage.setItem(k, v); } catch {} },
 };
 
 // a save that can't be read, kept beside it instead of being wiped by the next save

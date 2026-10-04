@@ -233,6 +233,7 @@ mkdirSync(outDir, { recursive: true });
 const server = await serve();
 const page = `http://127.0.0.1:${server.address().port}/`;
 
+const SAVE_MAX = 300 * 1024;   // bytes of saves one room may keep (Claude's choice: docs/clubhouse/rooms/saves.md)
 const browser = await chromium.launch();
 // Every page a room's checks open is watched for errors the page itself didn't catch, and any one
 // fails its checks, whether or not they remembered to look (CLAUDE.md: any page error fails).
@@ -268,6 +269,11 @@ async function browserChecks(name, hash, suite, extra = {}) {
   const card = cards[name];
   keeping = false;
   if (card?.keeps?.length) {
+    // one room's saves can't be allowed to eat the browser's room for everyone's (about 5 MB, past
+    // that a save quietly fails and progress is lost): the fullest its own saves got while it was played
+    const own = d => Object.entries(d).filter(([k]) => card.keeps.some(p => k.startsWith(p)) && !k.endsWith('.unreadable')).reduce((n, [k, v]) => n + k.length + v.length, 0);
+    const biggest = Math.max(0, ...dumps.map(own));
+    roomCheck('its saves fit the budget', biggest <= SAVE_MAX, `most it kept: ${Math.round(biggest / 1024)} KB, limit ${SAVE_MAX / 1024} KB`);
     const kept = failed === before && !process.env.CI ? keepSample({ root, id: name, keeps: card.keeps, dumps }) : null;
     if (kept) console.log(`(its saves have a new shape: kept as tests/saves/${name}/${kept}, commit it with the change)`);
     try { await oldSaves({ browser: watched, page, card, check: roomCheck, root, skip: kept ? [kept] : [] }); }

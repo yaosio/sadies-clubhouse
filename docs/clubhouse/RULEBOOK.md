@@ -59,8 +59,8 @@ player's saved settings would be lost.)
 - Shared code names no room; a room imports only its own folder and the toolbox. *Checked.*
 
 ## 7. Small and fast
-- A room's save stays small (a target: under 200 KB) and old saves always load. *Old saves loading is
-  checked; the size isn't (Dropper World's full board is a little over, about 206 KB).* (`docs/clubhouse/rooms/saves.md`)
+- A room's save stays small (under 300 KB, Claude's choice: the browser has about 5 MB for every room
+  together) and old saves always load. *Both checked* (the biggest save any room's checks reach). (`docs/clubhouse/rooms/saves.md`)
 - A room hands back everything it made when it's put away. *Checked:* every room is put away and built
   again several times, and the memory and listeners are compared.
 

@@ -31,7 +31,7 @@ import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
 import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
-import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading } from '../shared/storage.js';
+import { store, tabNote, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading } from '../shared/storage.js';
 import { showCredits } from './credits.js';
 import { makeTheme } from './music/theme.js';
 import { makeWeather } from './weather/sky.js';
@@ -361,7 +361,7 @@ export async function open(cards, enter) {
 
   // you start at the gate, or (coming back from an activity) at its computer: that room's built first
   let back = null;
-  try { back = sessionStorage.getItem(BACK); sessionStorage.removeItem(BACK); } catch {}
+  back = tabNote.take(BACK);
   const backSlot = slots.find(r => r.card.id === back);
   // (and the buildings outside you can see from the gate as you start. The ones behind you are built
   // straight after the first picture, before you've had time to turn round)
@@ -584,7 +584,7 @@ export async function open(cards, enter) {
     const dy = going.yaw - f.yaw; me.yaw = f.yaw + Math.atan2(Math.sin(dy), Math.cos(dy)) * e; me.pitch = f.pitch + (0 - f.pitch) * e;
     if (going.t >= 1 && !going.done) {
       going.done = true; $('#flash').hidden = false;
-      try { sessionStorage.setItem(BACK, u.card.id); } catch {}
+      tabNote.put(BACK, u.card.id);
       setTimeout(() => { close(); enter(u.card); }, 120);
     }
   }
