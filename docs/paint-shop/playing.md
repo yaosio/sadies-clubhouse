@@ -8,7 +8,11 @@ changing who's in the shop or how it looks. The pots, tools and controls are in 
 Chooter sits by his counter, tail wagging nonstop, wearing a painter's cap and holding a paintbrush
 in his mouth, both in whatever paint you last dipped in (stripes for RAINBOW): so you can see your
 colour on him. (He used to be splotched in it, but red splotches looked like blood.) When the
-dynamite goes off, or Sadie comes in, he jumps about (it's the best thing ever). He makes no sound.
+dynamite goes off, or Sadie comes in, he jumps about (it's the best thing ever). He has one sound, a
+soft "wooo" (a recording of the owner's own dog impression, about a second): once in a long while on
+his own, every two to four minutes (Claude's number), only while you're in the shop. There's a TEST
+button, "MAKE CHOOTER WOO (TEST)", on him: press it and he woos and hops. It's there because the
+owner asked to test the sound; it can come out later, and the owner decides when.
 Drawn in his Dropper World colours: black coat, white blaze, floppy ears, pink tongue, blue collar,
 gold tag.
 

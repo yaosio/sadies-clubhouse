@@ -154,6 +154,9 @@ export async function buildRoom(m) {
   const sure = mesh(new PlaneGeometry(0.75, 0.16), psx(A.sure, { unlit: 0.8 }), [0, 1.15, -0.05], [0, Math.PI, 0], tnt); sure.visible = false;
   const plunger = { pos: new Vector3(2.4, 0.86, RD - 0.8), reach: 2.2, label: 'BLOW UP THE WHOLE ROOM', button: 'PUSH', act: () => push() };
   uses.push(plunger);
+  // a TEST button (the owner's request): Chooter woos on demand. It can come out later; the owner decides when.
+  let wooTurn = 0;
+  uses.push({ pos: new Vector3(2.85, 0.6, -RD + 0.75), reach: 2.2, label: 'MAKE CHOOTER WOO (TEST)', button: 'WOO', act: () => woo() });
   // Sadie's cat flap, a lamp or three, and a skirting board (not paintable: the shop's own)
   plane(0.46, 0.46, psx(A.catflap), [FLAP.x, 0.25, -RD + 0.05], null, 1);
   for (const [x, z] of [[-2.5, -1], [2.5, -1], [0, 2.4]]) {
@@ -273,6 +276,10 @@ export async function buildRoom(m) {
   // it's worn off. Only while you're in the room to see it.
   const floorS = S.byName.get('floor');
   const walk = { on: false, next: null, path: [], i: 0, t: 0, prints: 0, gone: 0, paint: 1, side: 1 };
+  // Chooter's woo: when you press the test button, and once in a long while on his own (every two to
+  // four minutes, only while you're in the room: my numbers)
+  let wooNext = null;
+  function woo() { sounds()[wooTurn++ % 2 ? 'woo2' : 'woo'](); hop = 1.2; }
   function sadieComes() {
     const tx = -2 + Math.random() * 3.6, tz = -1.6 + Math.random() * 3.8;
     Object.assign(walk, { on: true, path: [[FLAP.x, FLAP.z], [(FLAP.x + tx) / 2 + 0.6, (FLAP.z + tz) / 2 - 0.4], [tx, tz], [tx, tz], [FLAP.x, FLAP.z]], i: 0, t: 0, prints: 0, gone: 0, sit: 0,
@@ -359,6 +366,8 @@ export async function buildRoom(m) {
       // Sadie: only while you're here
       walk.next ??= clock + 25;   // (the first visit: a while after the room's built)
       if (here) {
+        wooNext ??= clock + 60 + Math.random() * 60;
+        if (clock > wooNext) { woo(); wooNext = clock + 120 + Math.random() * 120; }
         if (!walk.on && clock > walk.next) sadieComes();
         if (walk.on) sadieWalks(dt);
       } else if (walk.on) { walk.on = false; sadie.visible = false; walk.next = clock + 20; }
