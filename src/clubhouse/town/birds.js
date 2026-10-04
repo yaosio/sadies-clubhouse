@@ -1,10 +1,9 @@
 // The birds of the town square: a few little flat pictures that fly round the square, land on the
 // benches, the bird bath and the paving for a while, and take off again. All pictures, all silent.
 //
-// And Sadie on the gatepost, who watches them. She's one flat picture, so she can't turn only her
-// head: she faces whichever side the bird she's watching is on, and leans a little when it's high.
-// (Anything hung on her, like the weather's umbrella, follows: `userData.flips` mirrors it with her,
-// `userData.slides` only moves it to the side she's facing.)
+// And Sadie on the gatepost, who watches them: she keeps facing you and her eyes glance left, right
+// or up after the bird (extra pictures of her, made from her own: sadiePoses below). Future idea: more
+// angles of Sadie, so she can really turn her head.
 import { Mesh, PlaneGeometry } from 'three';
 import { psx, keep, tex } from '../look.js';
 import { SQUARE } from './layout.js';
@@ -34,7 +33,7 @@ function birdPictures() {
 }
 const FLAP = ['up', 'level', 'down', 'level'];
 
-export function makeBirds(scene, perches, sadie) {
+export function makeBirds(T, scene, perches, sadie) {
   const pics = birdPictures();
   const geo = keep(new PlaneGeometry(W, H).translate(0, H / 2, 0));
   const spot = () => { const a = rand(0, Math.PI * 2), r = rand(2.5, SQUARE.r - 1); return { x: SQUARE.x + Math.sin(a) * r, y: rand(2.2, 5.0), z: SQUARE.z - Math.cos(a) * r }; };
@@ -60,25 +59,21 @@ export function makeBirds(scene, perches, sadie) {
   }
 
   // ---------- Sadie watching ----------
-  let focus = null, focusUntil = 0, face = 1, lean = 0;
+  // She keeps facing you and only glances: her eyes go left, right or up, after the bird she's watching
+  // (as you see it), and now and then her tail flicks. Her blinking is done here too, on the same pictures.
+  const poses = sadiePoses(T);
+  let focus = null, focusUntil = 0, wait = 3, shut = 0, flick = 0, flickAt = 6;
   function watch(t, dt) {
     const flying = birds.filter(b => b.state !== 'perch');
     if (!focus || t > focusUntil || (focus.state === 'perch' && flying.length)) {
-      const pool = flying.length ? flying : birds;
-      focus = pick(pool); focusUntil = t + rand(2.5, 5.5);
+      focus = pick(flying.length ? flying : birds); focusUntil = t + rand(2.5, 5.5);
     }
     const ry = sadie.rotation.y, dx = (focus.x - sadie.position.x) * Math.cos(ry) - (focus.z - sadie.position.z) * Math.sin(ry);
-    if (dx > 0.4) face = 1; else if (dx < -0.4) face = -1;
-    const up = Math.atan2(focus.y - (sadie.position.y + 0.5), Math.hypot(focus.x - sadie.position.x, focus.z - sadie.position.z));
-    lean += (Math.max(-0.12, Math.min(0.2, up * 0.3)) * face - lean) * Math.min(1, dt * 5);
-    sadie.rotation.z = lean;
-    sadie.material.uniforms.uRep.value.x = face;
-    for (const c of sadie.children) {
-      if (!c.userData.flips && !c.userData.slides) continue;
-      c.userData.x0 ??= Math.abs(c.position.x);
-      c.position.x = c.userData.x0 * face;
-      if (c.userData.flips) c.scale.x = face;
-    }
+    const up = Math.atan2(focus.y - (sadie.position.y + 0.5), Math.hypot(focus.x - sadie.position.x, focus.z - sadie.position.z)) > 0.5;
+    const side = dx > 0.8 ? 'r' : dx < -0.8 ? 'l' : 'c';
+    if (shut > 0) shut -= dt; else if ((wait -= dt) < 0) { shut = 0.15; wait = 2.5 + Math.random() * 3; }
+    if (flick > 0) flick -= dt; else if (t > flickAt) { flick = 0.25; flickAt = t + rand(6, 14); }
+    sadie.material.uniforms.map.value = shut > 0 ? T.nap : flick > 0 && side === 'c' && !up ? poses.flick : poses[side + (up ? 'u' : '')];
   }
 
   function update(t, dt) {
@@ -110,4 +105,28 @@ export function makeBirds(scene, perches, sadie) {
   }
 
   return { update, meshes: birds.map(b => b.mesh) };
+}
+
+// Sadie's glances: her own picture with the pupils moved (left, centre, right; level or up: 'l' 'c' 'r',
+// 'lu' 'cu' 'ru'), and one with the tail swished. Read from her picture, so they stay hers if it changes.
+function sadiePoses(T) {
+  const src = T.sadie.image, w = src.width, h = src.height;
+  const probe = document.createElement('canvas'); probe.width = w; probe.height = h;
+  const pg = probe.getContext('2d', { willReadFrequently: true }); pg.drawImage(src, 0, 0);
+  const at = (x, y) => { const [r, g, b, a] = pg.getImageData(x, y, 1, 1).data; return a ? `rgb(${r},${g},${b})` : null; };
+  const Y = at(36, 22), P = at(37, 22), G = at(39, 22), lid = at(36, 21);
+  const EYES = [36, 43];
+  const make = draw => tex(w, h, g => { g.drawImage(src, 0, 0); draw(g); });
+  const dot = (g, c, x, y) => { g.fillStyle = c; g.fillRect(x, y, 1, 1); };
+  const poses = {};
+  for (const [k, shift] of [['l', 0], ['c', 1], ['r', 2]]) {
+    poses[k] = make(g => { for (const x of EYES) { const row = [Y, Y, G, G]; row[shift] = P; row[shift + 1 > 3 ? 3 : shift + 1] = P; row.forEach((c, i) => dot(g, c, x + i, 22)); } });
+    poses[k + 'u'] = make(g => { for (const x of EYES) {
+      [Y, Y, G, G].forEach((c, i) => dot(g, c, x + i, 22));
+      [lid, lid, lid, lid].forEach((c, i) => dot(g, i === shift || i === shift + 1 ? P : c, x + i, 21));
+    } });
+  }
+  // the tail (nothing else is in that corner): one step to the side
+  poses.flick = make(g => { g.clearRect(5, 10, 10, 14); g.drawImage(src, 5, 10, 10, 14, 4, 10, 10, 14); });
+  return poses;
 }

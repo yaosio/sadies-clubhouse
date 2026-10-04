@@ -65,6 +65,6 @@ export function buildSquare(T, scene, sadie) {
   // somewhere to sit and hop on the paving
   for (const [r, a] of [[3.6, 20], [4.2, -70], [3.4, 150], [8, 10], [3.8, -150], [5, 100]]) { const [x, z] = on(r, a); perches.push({ x, y: 0, z }); }
 
-  const birds = makeBirds(scene, perches, sadie);
+  const birds = makeBirds(T, scene, perches, sadie);
   return { update: birds.update, faces: birds.meshes, circles };
 }

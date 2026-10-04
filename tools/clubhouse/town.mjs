@@ -28,7 +28,7 @@ for (const [device, opts] of [['desktop', DEVICES.desktop], ['phone', { ...DEVIC
   await look(0, -30, 0, -12, 2, -42); await shot('2-left-buildings');
   await look(0, -30, 0, 12, 2, -42); await shot('3-right-buildings');
   await look(0, -26, 0, 0, 2, -50); await shot('4-ahead-path');
-  for (let i = 0; i < 5; i++) { await look(1.2, -23.2, 0, 2.6, 2.4, -20.1); await shot(`5-sadie-${i}`, 1300); }
+  for (let i = 0; i < 8; i++) { await look(2.2, -21.3, 0.6, 2.6, 2.6, -20.1); await shot(`5-sadie-${i}`, 1100); }
   await look(8, -24, 0, 2.6, 2.4, -20.1); await shot('5b-sadie-side');
   await look(4, -45, 0, 0, 3, -30); await shot('6-from-behind-the-square', 800);
   await look(0, -22, 12, 0, -5, -60); await shot('7-high');

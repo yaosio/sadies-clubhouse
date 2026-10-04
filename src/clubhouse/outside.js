@@ -286,8 +286,7 @@ export function buildOutside(T, cards = []) {
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
     update(t, dt) {
       // Sadie on the gatepost blinks now and then
-      sadie.userData.blink(dt);
-      square.update(t, dt);
+      square.update(t, dt);   // (it blinks Sadie on the gatepost too: she watches the birds)
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;
       // Sadie's Zs drift up off the bench and fade
       for (const z of zs) {

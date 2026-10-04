@@ -15,6 +15,8 @@ its birds, or the paths that lead out of it. (`src/clubhouse/town/`; the outside
   choice, to keep it light (one picture each). They make no sound: the owner can't stand droning or
   ticking, and soft chirps (never loud or constant) are allowed if the owner asks (sounds go through
   `docs/clubhouse/sound/system.md`).
-- **Sadie on the gatepost** watches them. She is one flat picture, so she can't turn only her head:
-  she faces whichever side the bird is on and leans back a little when it is high. What she wears
-  or says (the weather's) turns with her.
+- **Sadie on the gatepost** watches them (the owner's choice, 2026-10-04): she keeps facing you and
+  only glances. Her eyes go left, right or up after the bird she's watching, as you see it, and now
+  and then her tail flicks. The glances are extra pictures made from her own (`sadiePoses` in
+  `birds.js`), and her blinking is done on the same pictures. Future idea: more angles of Sadie, so she
+  can really turn her head (the owner isn't sure yet).
