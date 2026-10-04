@@ -15,7 +15,7 @@ spin faster in bad weather, a funnel that puffs out a cloud each time you pull a
 PLEASE DO.)), and four levers with brass plates: **RAIN**, **SNOW**, **2ND SUN** and **CATS**.
 
 Walk up to a lever and press E (PULL on a phone): its weather comes over everywhere out of doors
-(the garden, the lane, the Hedge Maze, and what you see of them through a door) in about three
+(the garden, the town square, the Hedge Maze, and what you see of them through a door) in about three
 seconds, and every other lever goes back up. Pull it again and the sky clears. One weather at a
 time.
 

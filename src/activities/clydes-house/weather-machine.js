@@ -54,7 +54,7 @@ export function buildWeather(m, group) {
   const post = psx(T.wood, { tint: 0xffe0c0 });
   box(0.08, 1.2, 0.08, post, [MX - side * 1.9, 0.6, FRONT + 0.5]);
   plane(1.1, 0.52, psx(A.note, { unlit: 0.5, side: DoubleSide }), [MX - side * 1.9, 1.2, FRONT + 0.55], null, 1);
-  // stepping stones from the lane
+  // stepping stones from the town square
   plane(1.1, 5.6 - FRONT, psx(T.path, { rx: 1, ry: 4, onFloor: true }), [MX, 0, (FRONT + 5.6) / 2], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
   lot.block(MX - 1.45, MX + 1.45, MZ - 0.55, FRONT + 0.05);
   lot.blockRound(MX - side * 1.9, FRONT + 0.5, 0.1);

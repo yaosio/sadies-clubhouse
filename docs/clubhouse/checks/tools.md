@@ -34,9 +34,10 @@ The tools that take pictures of the clubhouse or measure it are in `look-tools.m
   files.
 
 ## The checkers
-- `tools/docs.mjs`: keeps the docs laid out by task (`docs/TASKS.md`). It fails when a docs page is
-  over its size limit (5,000 bytes; tighter for `CLAUDE.md`, `README.md`, `docs/TASKS.md`,
-  `docs/clubhouse/ARCHITECTURE.md` and an activity's README), doesn't start with a `# title`, names a
+- `tools/docs.mjs`: keeps the docs laid out by task (`docs/TASKS.md`). It prints a note (never fails)
+  when a docs page is over its size guide (5,000 bytes; tighter for `CLAUDE.md`, `README.md`,
+  `docs/TASKS.md`, `docs/clubhouse/ARCHITECTURE.md` and an activity's README: the owner wants no hard
+  limit, 2026-10-04). It fails when a page doesn't start with a `# title`, names a
   `.md` page that doesn't exist, or isn't listed in its folder's `README.md`. It also checks that
   every activity's docs have the same shape (README with `## Design pillars` then `## Its pages`, and a
   `parked.md`), and that the shared pages in `docs/clubhouse/` name no activity. Run with the code

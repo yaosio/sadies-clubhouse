@@ -66,7 +66,7 @@ function view(mz, k) {
   return out.join(' ');
 }
 
-// 1. the card: in the grounds beside the house, not a door on the landing or a plot along the lane
+// 1. the card: in the grounds beside the house, not a door on the landing or a plot round the town square
 check('the card puts the maze in the grounds beside the house (not a door on the landing, not a plot)', card.grounds === 0 && card.slot === undefined && card.lot === undefined && typeof card.room === 'function');
 
 // 2. a new maze, from the front arch: turns after turn, the end after 5 to 8 corners, and the

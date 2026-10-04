@@ -1,4 +1,4 @@
-// Chooter's Paint Shop from outside, on its plot along the lane: a mint shop splattered in every colour
+// Chooter's Paint Shop from outside, on its plot round the town square: a mint shop splattered in every colour
 // (its customers paint the outside too), a pink and yellow awning, its sign, two windows full of paint
 // cans, a sandwich board on the path (TODAY: PAINT THE WALLS / ALSO FLOOR AND CAT?), and a giant
 // paint can up on the roof, tipping over, pouring pink onto the sign.
@@ -45,11 +45,11 @@ export function buildHouse(m, A) {
   const can = new Group(); can.position.set(hx, H + 2.7, hz - 1.4); can.rotation.set(0.2, 0, -0.45); place.add(can);
   const tin = psx(null, { tint: 0xd8d8e8, unlit: 0.3 });
   const body = new Mesh(keep(new CylinderGeometry(1.0, 1.0, 1.8, 12, 1)), [psx(A.canLabel, { rx: 2, unlit: 0.35 }), psx(null, { tint: 0xff8ec8, unlit: 0.4 }), tin]);
-  body.rotation.y = -Math.PI / 2;   // (one of its two labels to the lane)
+  body.rotation.y = -Math.PI / 2;   // (one of its two labels to the square)
   can.add(body);
   plane(0.42, 1.6, psx(A.pour, { unlit: 0.45 }), [hx + 1.15, H + 1.8, hz - 0.08], null, 2);   // (from its rim down to the top of the sign)
 
-  // ---------- the path from the lane, and the sandwich board ----------
+  // ---------- the path from the square, and the sandwich board ----------
   plane(1.3, 4.8, psx(T.path, { rx: 1, ry: 3, onFloor: true }), [hx, 0, hz + 2.4 + 0.02], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
   const board = new Group(); board.position.set(hx + 1.5, 0, hz + 3.3); board.rotation.y = -0.3; place.add(board);
   for (const [t, s] of [[A.board, 1], [A.boardBack, -1]]) {

@@ -3,8 +3,8 @@
 //   node tools/docs.mjs
 //
 // A job reads `docs/TASKS.md`'s row for it, so every docs page is small, about one topic, and listed
-// where it can be found. It fails when:
-//   - a docs file is over its size limit (the pages a job always reads have tighter ones),
+// where it can be found. It only notes (never fails) when a docs file is over its size guide (the pages a job
+// always reads have tighter ones: Yaosio, 2026-10-04: no hard limit). It fails when:
 //   - a docs file doesn't start with a `# title`,
 //   - a backticked `.md` path in the docs, CLAUDE.md or README.md doesn't exist,
 //   - a docs page isn't listed in the README.md of its folder (or one above it),
@@ -16,7 +16,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
-const LIMIT = 5000;                    // bytes, any docs page
+const LIMIT = 5000;                    // bytes, any docs page (a guide: going over only prints a note)
 const LIMITS = {                       // what every job reads: tighter
   'CLAUDE.md': 6000, 'README.md': 8000, 'docs/TASKS.md': 6000, 'docs/clubhouse/ARCHITECTURE.md': 5000,
 };
@@ -36,14 +36,14 @@ const names = activities.flatMap(id => {   // how an activity is named: its card
 const GENERIC = ['CLAUDE.md', 'docs/TASKS.md', 'docs/clubhouse/rooms/adding.md', 'docs/clubhouse/checks/tools.md'];   // may name the pages every activity has, bare
 const MAY_NAME = ['docs/clubhouse/decisions/', 'docs/clubhouse/look/history.md', 'docs/clubhouse/RULEBOOK.md'];
 
-let bad = 0;
+let bad = 0; const big = [];
 const fail = msg => { bad++; console.log('FAIL  ' + msg); };
 
 for (const f of everything) {
   const text = read(f), size = Buffer.byteLength(text);
   const isActivityReadme = /^docs\/[^/]+\/README\.md$/.test(f) && activities.includes(f.split('/')[1]);
   const limit = LIMITS[f] ?? (isActivityReadme ? ACTIVITY_README : LIMIT);
-  if (size > limit) fail(`${f} is ${size} bytes, over its ${limit}: split it by topic into small pages and list them in its folder's README.md`);
+  if (size > limit) big.push(`${f} is ${size} bytes, over its ${limit} guide: worth splitting by topic into small pages (listed in its folder's README.md)`);
   if (f.startsWith('docs/') && !text.startsWith('# ')) fail(`${f} doesn't start with a "# title" line`);
 
   // every backticked docs page it names exists: from the top, or beside it
@@ -88,5 +88,6 @@ for (const id of activities) {
   if (!existsSync(join(root, `docs/${id}/parked.md`))) fail(`docs/${id}/parked.md is missing (parked ideas, or that there are none)`);
 }
 
+for (const b of big) console.log('NOTE  ' + b);
 console.log(bad ? `${bad} problem(s) with the docs` : `PASS  the docs are small, listed, true to their pointers, and shaped alike (${everything.length} pages)`);
 process.exit(bad ? 1 : 0);

@@ -2,7 +2,7 @@
 // (never on its own) with the built page. It's built into the clubhouse (outside the gate), so these
 // run whenever the clubhouse changes too.
 //
-// It walks out along the lane to the shop and in through its door, dips the brush in a pot on the
+// It walks out across the town square to the shop and in through its door, dips the brush in a pot on the
 // counter and takes a tool off the pegboard (E, or the USE button on a phone), sees the YOU'RE HOLDING
 // box name them and the switch go to PAINT, flips it to LOOK and back, and paints a wall with a finger or the mouse (silently), stamps a stamp, fills the
 // floor with the bucket, blows the floor's paint off with the dynamite, watches Sadie come in and
@@ -38,7 +38,7 @@ export default async function ({ browser, page, check, outDir }) {
     await p.click('#ok');
 
     // out of the gate, across the path from Clyde's, and in
-    check(`${device}: the paint shop is on the lane, with its door`, await M('faceDoor', 'outside', 'paint-shop', 3));
+    check(`${device}: the paint shop is on the town square, with its door`, await M('faceDoor', 'outside', 'paint-shop', 3));
     await walk(250); await p.waitForTimeout(700);
     await shot('1-shop');
     check(`${device}: ...which opens onto the shop`, await M('looking') === ROOM);

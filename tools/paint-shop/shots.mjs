@@ -1,4 +1,4 @@
-// Pictures of Chooter's Paint Shop (npm run build first): the shop from the lane, its door, inside
+// Pictures of Chooter's Paint Shop (npm run build first): the shop from the town square, its door, inside
 // (the counter and Chooter, the pegboard, the plaster Sadie), then painting: the LOOK and PAINT buttons and a
 // stroke across the back wall with a finger or the mouse, a stamp, a rainbow stroke, the bucket on the
 // floor, Sadie's paw prints, the dynamite going off, and the room after all of it. As a desktop and a

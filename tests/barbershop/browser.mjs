@@ -2,7 +2,7 @@
 // (never on its own) with the built page. It's built into the clubhouse (outside the gate), so these
 // run whenever the clubhouse changes too.
 //
-// It walks out along the lane to the shop and in through its door, looks at a wig head and picks it
+// It walks out across the town square to the shop and in through its door, looks at a wig head and picks it
 // (E, or the USE button on a phone), asks Marbles to pick, puts on the pop star outfit and pulls the
 // rope, and waits for the whole show (Sadie hops up, sings, hops back) to end with her back in her chair.
 // Screenshots in dist/check/barbershop/. Any error on the page is a failure.
@@ -24,8 +24,8 @@ export default async function ({ browser, page, check, outDir }) {
     if (!await up()) { check(`${device}: the clubhouse opens`, false, errors[0]); return; }
     await p.click('#ok');
 
-    // out of the gate, along the lane, and in
-    check(`${device}: the barbershop is on the lane, with its door`, await M('faceDoor', 'outside', 'barbershop', 3));
+    // out of the gate, across the square, and in
+    check(`${device}: the barbershop is on the town square, with its door`, await M('faceDoor', 'outside', 'barbershop', 3));
     await walk(250); await p.waitForTimeout(700);
     await shot('1-shop');
     check(`${device}: ...which opens onto the shop`, await M('looking') === ROOM);

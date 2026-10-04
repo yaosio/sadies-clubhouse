@@ -1,7 +1,5 @@
 # Known limits
 
-Things that are fine today but will need work as the game grows. Go through these in every review.
-
 Things that are fine today but will need work as the game grows. Add any new limit a feature hits;
 remove one once it's fixed. Each review also asks of every shared file (the clubhouse, the outside,
 the toolbox): is there anything here only one room uses, or that grows with every new kind of room?
@@ -35,3 +33,11 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
 - **The computer activities' pages are in the first download** (Dropper World, TypeFitter), though
   most visits never open them. Plan: fetch each when its computer is used, like a room's code. Do it
   when the first download passes 1.5 MB (it's 1.4 MB now).
+- **The full check grows by about a minute with every room** (about 15 s of fixed cost, since every
+  room's browser run loads the page twice, as a phone and a desktop, plus its own walk). 7 min 18 s at
+  11 browser runs (2026-10-04). Plan: run the rooms' browser checks side by side, then (past about 15
+  rooms) only the changed places plus one walk through every room.
+- **Code files have no size limit** (the owner: no hard limit, and splitting isn't very necessary,
+  2026-10-04). A big file only costs Claude reading time. Split one when it gets in the way, not by
+  rule; the biggest are `clubhouse.js` (58 KB), `look.js` and `outside.js` (22 KB, next to split).
+- **Docs sizes are guides, not limits** (`tools/docs.mjs` prints a note; the owner wants no hard limit).

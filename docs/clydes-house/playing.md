@@ -11,7 +11,7 @@ the eager "helper" characters of 90s programs. Polite, keen, and unable to do an
 way. **The house** is The Overthinkery: a tall, crooked, butter-yellow cottage with terracotta tiles
 (each storey a little more off-true than the one below, because thinking goes up), a round window,
 a turret with a spark for a weathervane, and a chimney that puffs out question marks. A sign by the
-lane says THE OVERTHINKERY / CLYDE: I CAN HELP WITH THAT!, the mailbox says CLYDE, the mat says
+path says THE OVERTHINKERY / CLYDE: I CAN HELP WITH THAT!, the mailbox says CLYDE, the mat says
 WIPE YOUR THOUGHTS, and Clyde stands by the door and waves (HI! COME IN!) as you come up the path.
 
 **Sadie** is in it as herself: asleep in her basket at the end of the machine, and the reason for it.

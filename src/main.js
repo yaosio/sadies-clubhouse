@@ -60,7 +60,7 @@ async function enter(card) {
 const wanted = cards.find(c => c.id === location.hash.slice(1) && c.start);   // (a game that lives in its room has no page of its own)
 if (wanted) enter(wanted);
 else {
-  // The buildings outside (on the lane, or in the grounds) are built before the clubhouse opens, as you
+  // The buildings outside (on the town square, or in the grounds) are built before the clubhouse opens, as you
   // can see them from the gate: their code is asked for now, alongside the clubhouse's, not one after
   // another once it's here. (If one doesn't come, the clubhouse asks again when it builds it.)
   for (const c of cards) if (c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds))) c.room().catch(() => {});

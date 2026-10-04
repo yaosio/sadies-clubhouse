@@ -20,7 +20,7 @@ working as rooms come and go.
 - A room put away and built again as you walk up to its door, with nothing piling up.
 - A place that throws an error in a frame doesn't freeze the game.
 - A room whose file won't come keeping its door shut (the others still built), and built once it does.
-- Every landing door leading into its own room, and every building outside (a plot along the lane, a
+- Every landing door leading into its own room, and every building outside (a plot round the town square, a
   spot in the grounds) leading into its own room when you walk in through its door from outside.
 
 ## Playing an activity

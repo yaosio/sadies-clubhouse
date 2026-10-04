@@ -1,7 +1,7 @@
 // Sadie's clubhouse: the clubhouse you walk around. You start at the front gate (the first time, Sadie's
 // letter invites you in), walk through the front door into the entrance hall (the bottom of the cat
 // tree), up the stairs to the landings where the activities have their doors, and into a room; or
-// out along the lane, or round the house, to a building of its own.
+// out across the town square, or round the house, to a building of its own.
 //
 // Every place (outside, the hall, each activity's room) is its own separate scene, joined only by
 // doorways. There are no loading screens: an open doorway shows the place on its other side (drawn
@@ -93,7 +93,7 @@ export async function open(cards, enter) {
   const slots = cards.map((c, i) => ({ card: c, i, name: 'room:' + c.id, place: null, building: null, far: 0, portals: [] }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
   for (const r of slots) if (hall.doors[r.card.id]) { const p = { a: hall.doors[r.card.id], wa: hall, b: null, wb: null, open: 0, slot: r, key: 'door' }; portals.push(p); r.portals.push(p); }
-  // a building of its own outside: on a plot along the lane (`lot`) or in the grounds round the house (`grounds`)
+  // a building of its own outside: on a plot round the town square (`lot`) or in the grounds round the house (`grounds`)
   const outdoors = c => !!c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds));
   // each doorway seen from its own side (only those whose rooms are built): where it is, and where it leads
   let sides = [], places = [];
@@ -263,7 +263,7 @@ export async function open(cards, enter) {
   }
   // A building outside the gate that's far off (FAR_HOUSE metres from where you are, or from the door
   // you're looking out of) is drawn as a plain block its size instead (made the first time it's
-  // needed): with a long lane of houses, only the near ones are drawn in full.
+  // needed): with a big town of houses, only the near ones are drawn in full.
   let FAR_HOUSE = 90;
   // Where outside is seen from: you, out there, or the open door you're looking out of (null: it
   // can't be seen). Worked out once a frame, before the places update (`ears().outside`).

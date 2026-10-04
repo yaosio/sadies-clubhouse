@@ -48,7 +48,8 @@ other sound is fine if it's rare, soft and varied. Written only here; other page
 - No drone, no tick. *Not checked: only fatal errors are tested (`docs/clubhouse/decisions/fatal-only.md`).*
 - A sound that can happen often (a chirp, a meow) is kept rare, soft and varied.
 - Claude's choices, not the owner's rule: the main theme is composed as it plays, not looped, and
-  most rooms never loop a sound. A room may loosen that if it stays soft.
+  most rooms never loop a sound. A room may loosen that if it stays soft: the barbershop's tune
+  repeats while you're inside (a melody, no drone or tick, with quiet after each show).
 - The owner's exceptions (2026-10-02), both things you choose to switch on: Space Adventure's radio
   loops its song, and the Music Room tape's LOOP repeats as long as you leave it on.
 

@@ -1,5 +1,5 @@
-// Pictures of Clyde's house (npm run build first): from the gate looking out, from the lane, at the
-// front door, the castle from the lane (its windows stay behind the fence), inside, and stepping up to the Good Morning Machine and running it (the right parts
+// Pictures of Clyde's house (npm run build first): from the gate looking out, from the town square, at the
+// front door, the castle from the town square (its windows stay behind the fence), inside, and stepping up to the Good Morning Machine and running it (the right parts
 // put in, sped up), as a desktop and a phone. Saves dist/shots/clydes-house/<device>-<name>.png.
 //   node tools/clydes-house/shots.mjs [desktop|phone]
 import { serve } from '../serve.mjs';

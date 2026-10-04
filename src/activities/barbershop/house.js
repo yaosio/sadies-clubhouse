@@ -1,4 +1,4 @@
-// Marbles' Cut & Curl from outside, on its plot along the lane (beside Clyde's House): a cream shop with
+// Marbles' Cut & Curl from outside, on its plot round the town square (beside Clyde's House): a cream shop with
 // pink stripes and a tiled bottom, a red and white awning, a barber pole turning by the door, its sign,
 // two windows with a mirror in each, and a giant pair of scissors on the roof, snipping slowly.
 //
@@ -58,7 +58,7 @@ export function buildHouse(m, A) {
   }
   box(1.4, 1.1, 1.4, psx(null, { tint: 0x9a6a3a, unlit: 0.3 }), [hx, H + 0.9, hz - 1.6]);   // its stand
 
-  // ---------- the path from the lane ----------
+  // ---------- the path from the square ----------
   plane(1.3, 4.8, psx(T.path, { rx: 1, ry: 3, onFloor: true }), [hx, 0, hz + 2.4 + 0.02], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
 
   // what's solid: the shop and the pole
