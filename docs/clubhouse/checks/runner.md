@@ -59,9 +59,14 @@ is skipped, the flags, or how GitHub runs the checks.
   hidden browser draws on the processor) and checks that let the game run for a moment fail.
 
 ## `.github/workflows/check.yml`
-The same checks on GitHub's computers, run only by hand (the Actions page's "Run workflow"): the
-repository is private, so they cost minutes, and on every push they used the free month up in two
-days (2026-10-03). Nothing waits on them; `npm run check` here is the check.
+The same checks on GitHub's computers: on every pull request, on main, and every night at 03:17
+(Yaosio, 2026-10-04: so tests run in the background without anyone waiting). Standard GitHub computers
+are free and unlimited for public repositories; when the repository was private, a run on every push
+used the free month up in two days (2026-10-03), so if it ever goes private again, switch this off.
+Nothing waits on them; `npm run check` here is the gate for a merge, and a red run on a pull request
+is looked at like any failure. The nightly run on main starts with `--retest` (everything from scratch).
+GitHub's rules: a schedule runs on main only, can start late when GitHub is busy, and is switched off
+after 60 days with no activity in the repository (any push keeps it alive).
 - `plan` runs the code checker and the docs check (whatever it changes) and
   works out which activities haven't passed on exactly their code. What passed is remembered
   between runs.
@@ -71,4 +76,3 @@ days (2026-10-03). Nothing waits on them; `npm run check` here is the check.
 - `remember` saves what passed and gives the one tick or cross.
 - A full retest takes about as long as the slowest activity rather than all of them in a row.
 - Screenshots of a failure are kept with the run for a week.
-- Started on a Monday's schedule (it no longer is) it checked everything from scratch (`--retest`).

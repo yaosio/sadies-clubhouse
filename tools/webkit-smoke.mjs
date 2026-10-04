@@ -1,6 +1,5 @@
 // The game in WebKit, the engine under Safari and every iPhone: a short look that it opens and draws.
-// Run by hand (`npm run build` first; on GitHub, `.github/workflows/safari.yml` by hand,
-// never on its own; locally, after
+// Run by hand (`npm run build` first; on GitHub, `.github/workflows/safari.yml` weekly or by hand; locally, after
 // `npx playwright install webkit`: `node tools/webkit-smoke.mjs`). Not part of `npm run check`: the real
 // checks play the game in Chromium, and this only asks whether Safari's engine runs it at all.
 // For the clubhouse, as a phone and a desktop: it opens and draws, the frames keep coming, the letter's
