@@ -764,7 +764,8 @@ export async function open(cards, enter) {
     seenFrom = outsideSeenFrom();
     soundsPaused(mode === 'menu');   // (nothing new sounds behind the pause menu but music)
     weather.update(t, dt, places, skySeen(), ears());
-    for (const w of places) guard(w.name, () => w.update(t, dt));
+    const heard = ears();   // (a place hears you only while you're in it)
+    for (const w of places) guard(w.name, () => w.update(t, dt, w === me.world ? heard : null));
     // the main theme: it makes way for any other music by itself (the sound system hears it), and
     // for a place that asks for quiet (its `hush`: the Music Room, Space Adventure's cockpit and radio)
     youAreIn(me.world.name, ears());   // (a room's music is only heard in it; sounds fade with how far off they are)

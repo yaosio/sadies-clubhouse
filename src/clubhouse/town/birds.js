@@ -1,5 +1,6 @@
 // The birds of the town square: a few little flat pictures that fly round the square, land on the
-// benches, the bird bath and the paving for a while, and take off again. All pictures, all silent.
+// benches, the bird bath and the paving for a while, and take off again. All pictures. They chirp
+// now and then as they take off or land (chirps.js: soft, rare, never constant).
 //
 // And Sadie on the gatepost, who watches them: she keeps facing you and her eyes glance left, right
 // or up after the bird (extra pictures of her, made from her own: sadiePoses below). Future idea: more
@@ -7,6 +8,8 @@
 import { Mesh, PlaneGeometry } from 'three';
 import { psx, keep, tex } from '../look.js';
 import { SQUARE } from './layout.js';
+import { soundsFor } from '../../shared/sound.js';
+import { chirp, chirpWhen, CHIRP_RATE } from './chirps.js';
 
 const COUNT = 5;                                  // (my choice, to keep it light: more only costs a picture each)
 const TINTS = [0xffd23a, 0x6aa8ff, 0xff7a6a, 0xc8986a, 0xff8ec8];
@@ -47,6 +50,16 @@ export function makeBirds(T, scene, perches, sadie) {
     return b;
   });
 
+  // the chirps: only heard out in the square, fading with how far off the bird is
+  const sound = soundsFor('outside'), pace = { last: -1e9, shape: 0 };
+  let heard = null;
+  function sing(b, t, i) {
+    if (heard?.place?.name !== 'outside') return;
+    const shape = chirpWhen(pace, t);
+    if (shape < 0) return;
+    sound.play(`chirp${i}.${shape}`, () => chirp(i, shape), { loud: 0.5, rate: CHIRP_RATE, at: { x: b.x, y: b.y, z: b.z }, near: 4, far: 16 });
+  }
+
   function sit(b, p) { b.perch = p; p.taken = true; b.x = p.x; b.y = p.y; b.z = p.z; b.vx = b.vy = b.vz = 0; b.state = 'perch'; b.wait = rand(4, 12); }
   function leave(b) {
     if (b.perch) { b.perch.taken = false; b.perch = null; }
@@ -76,20 +89,20 @@ export function makeBirds(T, scene, perches, sadie) {
     sadie.material.uniforms.map.value = shut > 0 ? T.nap : flick > 0 && side === 'c' && !up ? poses.flick : poses[side + (up ? 'u' : '')];
   }
 
-  function update(t, dt) {
-    dt = Math.min(dt, 0.1);
-    for (const b of birds) {
+  function update(t, dt, ears) {
+    dt = Math.min(dt, 0.1); heard = ears;
+    for (const [i, b] of birds.entries()) {
       if (b.state === 'perch') {
         b.wait -= dt;
         if (b.perch.y < 0.3 && b.wait > 0 && Math.random() < dt * 0.4) b.hop = 0.2;   // (a hop on the paving now and then)
-        if (b.wait <= 0) leave(b);
+        if (b.wait <= 0) { leave(b); sing(b, t, i); }
       } else {
         const dx = b.wp.x - b.x, dy = b.wp.y - b.y, dz = b.wp.z - b.z, d = Math.hypot(dx, dy, dz) || 1;
         const landing = b.state === 'land', speed = landing ? Math.max(1.2, Math.min(4, d * 1.4)) : 3.6;
         const k = Math.min(1, dt * (landing ? 3 : 2));
         b.vx += (dx / d * speed - b.vx) * k; b.vy += (dy / d * speed - b.vy) * k; b.vz += (dz / d * speed - b.vz) * k;
         b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
-        if (landing && d < 0.2) sit(b, b.perch);
+        if (landing && d < 0.2) { sit(b, b.perch); sing(b, t, i); }
         else if (!landing && d < 0.7) { if (--b.flights > 0) b.wp = spot(); else land(b); }
       }
       b.hop = Math.max(0, b.hop - dt * 0.8);
