@@ -273,7 +273,7 @@ async function browserChecks(name, hash, suite, extra = {}) {
     // that a save quietly fails and progress is lost): the fullest its own saves got while it was played
     const own = d => Object.entries(d).filter(([k]) => card.keeps.some(p => k.startsWith(p)) && !k.endsWith('.unreadable')).reduce((n, [k, v]) => n + k.length + v.length, 0);
     const biggest = Math.max(0, ...dumps.map(own));
-    roomCheck('its saves fit the budget', biggest <= SAVE_MAX, `${Math.round(biggest / 1024)} KB, over ${SAVE_MAX / 1024} KB`);
+    roomCheck('its saves fit the budget', biggest <= SAVE_MAX, `most it kept: ${Math.round(biggest / 1024)} KB, limit ${SAVE_MAX / 1024} KB`);
     const kept = failed === before && !process.env.CI ? keepSample({ root, id: name, keeps: card.keeps, dumps }) : null;
     if (kept) console.log(`(its saves have a new shape: kept as tests/saves/${name}/${kept}, commit it with the change)`);
     try { await oldSaves({ browser: watched, page, card, check: roomCheck, root, skip: kept ? [kept] : [] }); }
