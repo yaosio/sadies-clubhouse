@@ -28,14 +28,14 @@ for (const [device, opts] of Object.entries(DEVICES)) {
     const dx = lx - x, dz = lz - z;
     await M('put', place, { x, z, y, yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(ly - (y + 1.6), Math.hypot(dx, dz)) });
   };
-  const { x: mx, z: mz } = await p.evaluate(() => window.__weather.machine);
+  const { x: mx, z: mz, out } = await p.evaluate(() => window.__weather.machine);   // (out: the way its front faces)
   await p.evaluate(() => window.__clubhouse.weatherSpeed(8));
-  await look('outside', mx + 1.5, mz + 3.6, 0, mx, 1.6, mz); await shot('0-machine');
+  await look('outside', mx + out[0] * 3.6, mz + out[1] * 3.6, 0, mx, 1.6, mz); await shot('0-machine');
   for (const w of ['rain', 'snow', 'sun', 'cats', 'clear']) {
     if (which && which !== w) continue;
     await p.evaluate(w => { const W = window.__weather; if (W.state().now !== w) W.pull(w === 'clear' ? W.state().now : w); }, w);
     if (w === 'snow') await p.evaluate(() => window.__clubhouse.weatherSpeed(40));
-    await look('outside', mx + 0.3, mz + 2.4, 0, mx, 1.4, mz); await shot(`${w}-1-levers`, 1500);
+    await look('outside', mx + out[0] * 2.4, mz + out[1] * 2.4, 0, mx, 1.4, mz); await shot(`${w}-1-levers`, 1500);
     await p.evaluate(() => window.__clubhouse.weatherSpeed(8));
     await look('outside', -3, -31, 0, 2, 5, -10); await shot(`${w}-2-lane`, 1200);
     await look('outside', 1.2, -23.5, 0, 2.6, 2.7, -20.1); await shot(`${w}-3-sadie`, 400);

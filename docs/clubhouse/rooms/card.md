@@ -31,12 +31,13 @@ An activity is a folder in `src/activities/` with a `card.js`:
 - **A building outside** is a game that lives in its room whose card has `lot` or `grounds` instead
   of `slot` (`docs/clubhouse/outside/buildings.md`).
 
-## Doors, plots and spots never move
+## Doors, plots and spots stay put
 - Each card says which door on the landings is its own: `slot`, its place in `SLOTS` (0 is the
   first one up the stairs). Folder order used to decide, and adding an activity once moved two
   doors, so a new activity takes the next free slot and never shuffles the others.
 - Every door, plot and spot is written down in `tests/clubhouse/spots.json`, and the room checker
-  fails if one moves. A new one goes on the end of its list, there and in the code.
+  fails if one moves. A new one goes on the end of its list, there and in the code. (Plots were moved
+  once on purpose, for the town square: `docs/clubhouse/outside/plots.md` says whose rule that is.)
 - Doors don't have to be in sensible places: a new kind of spot (halfway up the scratching post, on
   the ceiling, in another room) is welcome, as a new list. The landings: `docs/clubhouse/world/hall.md`.
   Plots and grounds spots: `docs/clubhouse/outside/plots.md`.

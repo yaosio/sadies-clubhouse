@@ -483,7 +483,12 @@ export async function open(cards, enter) {
     }
     cam.rotation.set(me.pitch, me.yaw, 0);
     cam.updateMatrixWorld();
-    for (const f of me.world.faces) f.rotation.y = Math.atan2(cam.position.x - f.position.x, cam.position.z - f.position.z);
+    for (const f of me.world.faces) {
+      // (something in a turned house, which sets its `turn`: the camera's side of it, less the house's turn)
+      const turn = f.parent?.userData.turn;
+      if (turn === undefined) f.rotation.y = Math.atan2(cam.position.x - f.position.x, cam.position.z - f.position.z);
+      else { const e = f.matrixWorld.elements; f.rotation.y = Math.atan2(cam.position.x - e[12], cam.position.z - e[14]) - turn; }
+    }
     // each open doorway you're in front of (the nearest few) shows its other side, in its own picture
     const open = [];
     for (const s of sides) if (s.w === me.world && s.p.open > 0.02) {

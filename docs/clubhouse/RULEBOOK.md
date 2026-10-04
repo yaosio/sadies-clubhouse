@@ -52,7 +52,8 @@ player's saved settings would be lost.)
 
 ## 6. Where it goes
 - A door never moves; a new room takes the next free door spot (`slot`). A building outside takes
-  the next plot along the lane (`lot`) or a grounds spot (`grounds`); those never move either.
+  the next plot round the town square (`lot`) or a grounds spot (`grounds`); those stay put too
+  (Claude's rule, not the owner's; plots moved once, 2026-10-04, for the square).
   *Checked that each spot stays where it is* (not which room has which). (`docs/clubhouse/rooms/card.md`)
 - The town grows a building at a time, packed close, next to what's there
   (`docs/clubhouse/outside/town.md`).

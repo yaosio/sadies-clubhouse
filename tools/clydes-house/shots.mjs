@@ -31,7 +31,7 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   await look('outside', 0, -27, 0, -10, 3, -38); await shot('1-turned-round');
   await look('outside', -3, -30, 0, -10, 3.5, -38); await shot('2-lane');
   await look('outside', -8, -35, 0, 0, 6, 5); await shot('2b-castle-from-the-lane');
-  await look('outside', -9.2, -33, 0, -10, 1.3, -37); await shot('3-door');
+  await look('outside', -5.0, -43.8, 0, -6.25, 1.3, -46.73); await shot('3-door');
   await M('faceDoor', 'outside', 'clydes-house', 1.6); await shot('4-door-open', 900);
   await M('put', 'room:clydes-house', 'door'); await shot('5-inside');
   await look('room:clydes-house', 0, -1, 0, -4.6, 2, 0); await shot('6-left-wall');

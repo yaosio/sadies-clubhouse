@@ -23,7 +23,8 @@ export function buildWeather(m, group) {
   const tint = (c, o = {}) => psx(null, { tint: c, ...o });
 
   // ---------- the machine, beside the house (on the side away from the path out of the gate) ----------
-  const side = lot.x < 0 ? -1 : 1, MX = lot.x + side * 6, MZ = lot.z - 0.6, FRONT = MZ + 0.5;
+  // (on the side of the house away from the middle of the square, in the house's own terms: x across, z out from the door)
+  const right = lot.at(1, 0)[0] > lot.at(0, 0)[0] ? 1 : -1, side = lot.x < 0 ? -right : right, MX = side * 6, MZ = -0.6, FRONT = MZ + 0.5;
   const enamel = (w, h) => psx(A.enamel, { rx: w / 0.8, ry: h / 0.8, unlit: 0.3 });
   const brass = tint(0xffd23a, { unlit: 0.3 }), iron = tint(0x221a44);
   box(2.8, 1.5, 1.0, enamel(2.8, 1.5), [MX, 0.75, MZ]);
@@ -54,9 +55,9 @@ export function buildWeather(m, group) {
   box(0.08, 1.2, 0.08, post, [MX - side * 1.9, 0.6, FRONT + 0.5]);
   plane(1.1, 0.52, psx(A.note, { unlit: 0.5, side: DoubleSide }), [MX - side * 1.9, 1.2, FRONT + 0.55], null, 1);
   // stepping stones from the lane
-  plane(1.1, lot.z + 5.6 - FRONT, psx(T.path, { rx: 1, ry: 4, onFloor: true }), [MX, 0, (FRONT + lot.z + 5.6) / 2], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
-  outside.block(MX - 1.45, MX + 1.45, MZ - 0.55, FRONT + 0.05);
-  outside.blockRound(MX - side * 1.9, FRONT + 0.5, 0.1);
+  plane(1.1, 5.6 - FRONT, psx(T.path, { rx: 1, ry: 4, onFloor: true }), [MX, 0, (FRONT + 5.6) / 2], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
+  lot.block(MX - 1.45, MX + 1.45, MZ - 0.55, FRONT + 0.05);
+  lot.blockRound(MX - side * 1.9, FRONT + 0.5, 0.1);
 
   // the levers: a knob on a stick, up when off, pulled down towards you when on (each turns round
   // its pivot, in a group of its own), with a plate under it saying what it does
@@ -78,7 +79,7 @@ export function buildWeather(m, group) {
   if (old) { weather.set(old, { snap: true }); m.saves.remove(OLD); }
   let shown = null, sounds = null, puffT = 9, wind = 0;
 
-  const uses = KINDS.map(k => ({ pos: new Vector3(levers[k].x, 1.3, FRONT + 0.1), reach: 2.4, label: '', button: 'PULL', kind: k, act: () => pull(k) }));
+  const uses = KINDS.map(k => ({ pos: (([x, z]) => new Vector3(x, 1.3, z))(lot.at(levers[k].x, FRONT + 0.1)), reach: 2.4, label: '', button: 'PULL', kind: k, act: () => pull(k) }));
   // (the labels and the forecast follow the weather, whoever changed it)
   function show() {
     shown = weather.now();
@@ -118,7 +119,8 @@ export function buildWeather(m, group) {
       sounds: sounds ? sounds.log.slice() : [], labels: uses.map(u => u.label),
     }),
     pull,
-    machine: { x: MX, z: FRONT, levers: Object.fromEntries(KINDS.map(k => [k, levers[k].x])) },
+    // (on the outside, not in the house's own terms; `out`: the way its front faces)
+    machine: { x: lot.at(MX, FRONT)[0], z: lot.at(MX, FRONT)[1], out: [lot.at(0, 1)[0] - lot.at(0, 0)[0], lot.at(0, 1)[1] - lot.at(0, 0)[1]], levers: Object.fromEntries(KINDS.map(k => [k, lot.at(levers[k].x, FRONT)[0]])) },
   });
   return { update, pull, uses };
 }
