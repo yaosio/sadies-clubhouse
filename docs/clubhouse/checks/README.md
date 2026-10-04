@@ -7,7 +7,8 @@ tool, then only the file below that fits.
 `npm run check` (`tools/check.mjs`) runs the code checker, each activity's headless tests, a build,
 then the page in headless Chromium: the clubhouse's checks (unless exactly this page already passed
 them), then each activity's browser checks, each played as a phone and a desktop side by side. It
-prints how long each stage took. It's the only check: GitHub's copy runs only when started by hand.
+prints how long each stage took. It's the only check: GitHub's copy runs only when started by hand. `--since-main` (the merge check)
+runs only what differs from `main`.
 
 ## The files
 - `fatal-only.md`: read first: what a check here is for (fatal errors only), and what was dropped.

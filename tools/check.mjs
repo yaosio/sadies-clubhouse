@@ -11,6 +11,7 @@
 //   npm run check -- --retest      run everything even if it already passed on this exact code
 //   npm run check -- --live <file> the live game page, saved (with its game/source-*.json beside it): an activity whose code is exactly
 //                                  what that page was built from counts as having passed its tests
+//   npm run check -- --since-main  only what differs from origin/main (which already passed): the merge check (see docs/clubhouse/checks/runner.md)
 //   npm run check -- --only a,b    just those activities ('clubhouse': the clubhouse's own checks)
 //   npm run check -- --plan        just print which activities still need checking (for GitHub's computers, run by hand)
 //   npm run check -- --no-lint     skip the code checker (GitHub runs it once for the whole change)
@@ -76,10 +77,10 @@ function run(label, cmd, cmdArgs) {
 const started = Date.now();
 const took = t => console.log(`(${Math.round((Date.now() - t) / 1000)} s)`);
 
-function hashOf(paths) {
+function hashOf(paths, base = root) {
   const h = createHash('sha1');
   const add = p => {
-    const full = join(root, p);
+    const full = join(base, p);
     if (!existsSync(full)) return;
     if (statSync(full).isDirectory()) { for (const f of readdirSync(full).sort()) add(join(p, f)); }
     else h.update(p).update(readFileSync(full));
@@ -88,6 +89,7 @@ function hashOf(paths) {
   return h.digest('hex').slice(0, 12);
 }
 const ACTIVITIES = activityIds(root).filter(wanted);
+const sinceMain = args.includes('--since-main');
 // what an activity's tests depend on, and what its browser checks depend on besides
 // (the clubhouse's own headless tests: its music's, and that every sound in the game goes through the
 // sound director, so they depend on all of src/)
@@ -97,9 +99,12 @@ const BASE = ['package.json', 'package-lock.json', '.nvmrc'];
 const TOOLS = ['tests/shared', 'tools/build.mjs', 'tools/check.mjs', 'tools/serve.mjs', 'tools/browser.mjs', 'tools/activities.mjs', 'tools/source.mjs', '.github/workflows/check.yml'];
 const testPaths = a => a === 'clubhouse' ? [...BASE, 'src', 'tests/clubhouse', 'tools/activities.mjs'] : [...BASE, 'src/shared', `src/activities/${a}`, `tests/${a}`];
 // (a game that lives in its room in the clubhouse, its card having a `room`, depends on the clubhouse too)
-const inClubhouse = a => /^\s*room:/m.test(readFileSync(join(root, 'src/activities', a, 'card.js'), 'utf8'));
-const pagePaths = a => [`tools/${a}`, `tests/saves/${a}`, ...TOOLS, ...(inClubhouse(a) ? ['src/clubhouse'] : []),
-  ...readdirSync(join(root, 'src')).filter(f => statSync(join(root, 'src', f)).isFile()).map(f => 'src/' + f)];
+const inClubhouse = (a, base = root) => existsSync(join(base, 'src/activities', a, 'card.js')) && /^\s*room:/m.test(readFileSync(join(base, 'src/activities', a, 'card.js'), 'utf8'));
+const pagePaths = (a, base = root) => [`tools/${a}`, `tests/saves/${a}`, ...TOOLS, ...(inClubhouse(a, base) ? ['src/clubhouse'] : []),
+  ...readdirSync(join(base, 'src')).filter(f => statSync(join(base, 'src', f)).isFile()).map(f => 'src/' + f)];
+// the clubhouse's browser checks depend on all of src/; its own shell is everything in it but the activities
+const shellPaths = base => [...BASE, 'tests/clubhouse', ...TOOLS, 'src/shared', 'src/clubhouse',
+  ...readdirSync(join(base, 'src')).filter(f => statSync(join(base, 'src', f)).isFile()).map(f => 'src/' + f)];
 // "passed" notes in dist/: one per activity and kind, named after the hash of what it depended on
 const note = (kind, a, hash) => join(root, 'dist', `${kind}-passed-${a}-${hash}`);
 // (a note says when it passed and how many seconds it took, for sharing out GitHub's computers)
@@ -153,6 +158,31 @@ const testHash = Object.fromEntries([...ACTIVITIES, 'clubhouse'].map(a => [a, ha
 const browserHashes = Object.fromEntries(ACTIVITIES.map(a => [a, hashOf([...testPaths(a), ...pagePaths(a)]) + '-' + mode]));
 const browserHash = a => browserHashes[a];
 const clubHash = hashOf([...BASE, 'src', 'tests/clubhouse', ...TOOLS]) + '-' + mode;
+// --since-main: `main` already passed the whole check (that's the rule for merging into it), so an
+// activity whose code is exactly what main has counts as passed, with no notes from an earlier run
+// needed (a fresh session has none). The activities that differ are `touched`; if the clubhouse's own
+// shell (src/ but the activities, its tests, the shared toolbox, the check tools) differs, everything
+// does and nothing is skipped. touched stays null (check everything the usual way) without the flag.
+let touched = null;
+if (sinceMain) {
+  const base = join(root, 'dist/main-copy');
+  rmSync(base, { recursive: true, force: true }); mkdirSync(base, { recursive: true });
+  const sha = spawnSync('git', ['rev-parse', process.env.SINCE_REF || 'origin/main'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+  const tar = spawnSync('sh', ['-c', `git archive ${sha} | tar -x -C ${JSON.stringify(base)}`], { cwd: root });
+  if (!sha || tar.status !== 0) { console.log('--since-main: could not read origin/main (git fetch origin main first)'); process.exit(1); }
+  const baseIds = new Set(activityIds(base));
+  touched = new Set();
+  for (const a of ACTIVITIES) {
+    const bt = baseIds.has(a) ? hashOf(testPaths(a), base) : null;
+    const bb = baseIds.has(a) ? hashOf([...testPaths(a), ...pagePaths(a, base)], base) + '-' + mode : null;
+    if (bt === testHash[a]) passed('tests', a, bt); else touched.add(a);
+    if (bb === browserHashes[a]) passed('browser', a, bb); else touched.add(a);
+  }
+  const shellSame = hashOf(shellPaths(root)) === hashOf(shellPaths(base), base);
+  if (!shellSame) { touched = null; console.log('\n--since-main: the shell (src/ beyond the activities, the toolbox or the check tools) differs from main, so everything is checked'); }
+  else console.log(`\n--since-main: main passed everything but ${touched.size ? [...touched].join(', ') : 'nothing: this is the same game'}; only those are checked, and the clubhouse's every-room loops cover only them`);
+  rmSync(base, { recursive: true, force: true });
+}
 // --plan: just say which of them still need checking (on GitHub, so only those get a computer):
 // those whose tests or browser checks haven't passed on exactly this code
 if (args.includes('--plan')) {
@@ -280,7 +310,7 @@ async function browserChecks(name, hash, suite, extra = {}) {
     catch (e) { check(`${name}: its old saves were checked`, false, e.message.split('\n')[0]); }
   }
   const secs = (Date.now() - t) / 1000;
-  if (failed === before) passed('browser', name, hash, secs);
+  if (failed === before && !(name === 'clubhouse' && touched)) passed('browser', name, hash, secs);   // (a clubhouse that looked only at the touched rooms isn't a full pass)
   overBudget(`${name}'s browser checks`, secs);
   took(t);
 }
@@ -290,7 +320,7 @@ async function browserChecks(name, hash, suite, extra = {}) {
 // background (Dropper World's full board) carries on alongside it: nothing it checks is timed.
 if (!wanted('clubhouse')) { /* not asked for (--only) */ }
 else if (existsSync(note('browser', 'clubhouse', clubHash)) && !retest) console.log('\n== the clubhouse in a browser\nalready passed on exactly this page, not running it again');
-else await browserChecks('clubhouse', clubHash, import(join(root, 'tests/clubhouse/browser.mjs')));
+else await browserChecks('clubhouse', clubHash, import(join(root, 'tests/clubhouse/browser.mjs')), { touched });
 
 // Then each activity's, one after another. (Side by side on one computer was tried: the hidden
 // browser draws every page on the processor, so with several at once each game runs slower, and
