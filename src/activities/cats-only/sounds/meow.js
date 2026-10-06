@@ -109,13 +109,9 @@ export function pile() {
   return rushed;
 }
 
-// get the big sounds made now (when the button's pressed), so nothing stalls when the herd bursts out
-// (in a few small steps, a frame or so apart, so the game never stalls)
-export function warm() {
-  const steps = [...Array(TYPES * 3)].map((_, i) => () => raw(Math.floor(i / 3), i % 3)).concat([pile, chorus]);
-  const next = () => { steps.shift()?.(); if (steps.length) setTimeout(next, 16); };
-  next();
-}
+// the big sounds made ahead of time (when the button's pressed), so nothing stalls when the herd bursts
+// out: a list of small jobs for the room to run a frame or so apart on the game's own time
+export const warmSteps = () => [...Array(TYPES * 3)].map((_, i) => () => raw(Math.floor(i / 3), i % 3)).concat([pile, chorus]);
 
 // The red button going in: a soft low "bwup", no click at the end.
 export function press() {

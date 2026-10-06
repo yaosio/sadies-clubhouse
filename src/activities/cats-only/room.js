@@ -10,7 +10,7 @@
 // herd.js, in plain numbers.
 import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, CylinderGeometry, InstancedMesh, Object3D } from 'three';
 import { soundsFor } from '../../shared/sound.js';
-import { makeSounds, warm } from './sounds/index.js';
+import { makeSounds, warmSteps } from './sounds/index.js';
 import { COUNT, makeStampede, across, SPAWN } from './herd.js';
 
 const SPARKS = 3;                         // little sparkles that fly off each Sadie as she puffs away
@@ -96,7 +96,7 @@ export async function buildRoom(m) {
   function snap() { sound ||= makeSounds(sfx); knob.position.z = armed ? 0.075 : 0.1; }
   function press() {
     if (phase !== 'idle') return;                                    // (mid-stampede: nothing more to press)
-    snap(); sound.press(); setTimeout(warm, 60);   // (the big sounds get made now, while you wait for the door)
+    snap(); sound.press(); warmSteps().forEach((job, i) => m.after(0.05 + i * 0.03, job));   // (the big sounds get made now, bit by bit, while you wait for the door)
     if (!armed) { armed = true; saveArmed(); knob.position.z = 0.075; }
     // the door's open (you opened it first, to look): it slams shut, then flies open again with them
     if (ld.open() > 0.3) { phase = 'slam'; slam = SLAM; place.shut = door; }

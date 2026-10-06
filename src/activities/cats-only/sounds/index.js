@@ -5,7 +5,7 @@ import { wrap } from '../../../shared/sound.js';
 import { meow, press, pile, chorus, PITCHES, LOUD, SR } from './meow.js';
 import { RATE } from '../../../shared/retro.js';
 
-export { warm } from './meow.js';
+export { warmSteps } from './meow.js';
 
 export function makeSounds(h) {
   const play = (key, make, loud, more) => h.play(key, make, { loud, rate: RATE, ...more });
