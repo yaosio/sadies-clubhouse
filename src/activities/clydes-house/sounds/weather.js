@@ -17,5 +17,7 @@ export const snowIn = () => notes([84, 88, 91], 0.14, 1.3, 0.14, 5);
 export const sunIn = () => notes([60, 64, 67, 72], 0.1);
 // raining cats: a little tune that sounds like it's asking
 export const catsIn = () => notes([72, 76, 74, 79], 0.12, 1.3, 0.17);
+// a tornado: a little tune going round and round and up (once, soft, not a whirr)
+export const tornadoIn = () => notes([60, 67, 64, 71, 67, 74], 0.1, 1.4, 0.15);
 // clearing up: two notes, settling
 export const clearIn = () => notes([72, 67], 0.16, 1.1, 0.18);

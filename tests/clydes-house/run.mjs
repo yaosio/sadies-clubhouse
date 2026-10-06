@@ -94,7 +94,7 @@ check('...and says what it keeps in the browser', card.keeps.every(k => k.starts
 // 5c. the weather machine: one weather at a time, a lever again clears it, and each has its forecast
 // (the weather itself, its look and Sadie's words, is the world's: tests/clubhouse/run.mjs)
 {
-  check('the weather machine has four levers: rain, snow, a second sun, cats', WX.KINDS.join() === 'rain,snow,sun,cats');
+  check('the weather machine has five levers: rain, snow, a second sun, cats, a tornado', WX.KINDS.join() === 'rain,snow,sun,cats,tornado');
   check('pulling a lever brings its weather; pulling it again clears the sky', WX.pull('clear', 'rain') === 'rain' && WX.pull('rain', 'snow') === 'snow' && WX.pull('snow', 'snow') === 'clear');
   check('...and a weather from its old save is brought in (anything odd isn\'t)', WX.loaded('cats') === 'cats' && WX.loaded('clear') === 'clear' && WX.loaded('hail') === null && WX.loaded(null) === null);
   const all = ['clear', ...WX.KINDS];

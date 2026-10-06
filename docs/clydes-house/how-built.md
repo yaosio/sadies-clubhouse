@@ -33,7 +33,7 @@ being far off and put away. Read before changing its code. Its checks and pictur
 
 ## The Weather Machine
 
-- `weather.js`: the weather machine's rules, with no screen: its four levers, the forecasts,
+- `weather.js`: the weather machine's rules, with no screen: its five levers, the forecasts,
   pulling a lever, and reading the weather's old save.
 - `weather-machine.js`: the weather machine, built beside the house (`buildWeather`, called by
   `house.js`): the cabinet, dish, wind cups, funnel and puff, the forecast and the levers (`act`

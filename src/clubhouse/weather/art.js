@@ -44,6 +44,31 @@ export function drawWeatherArt() {
   });
   A.cats = COATS.map(([f, d]) => ({ sit: cat(f, d, false), fall: cat(f, d, true) }));
 
+  // the tornado (twister.js): its funnel (dark and pale streaks going round), the bits it carries
+  // (a leaf, a paper, a plank) and Sadie flying on a tuna, facing right
+  A.funnel = tex(32, 8, g => {
+    rect(g, '#a8b8b0', 0, 0, 32, 8); dith(g, '#a8b8b0', '#dce8e0', 0, 0, 32, 8, 0.4);
+    for (const [x, y, w] of [[2, 1, 9], [14, 3, 12], [6, 5, 10], [22, 6, 8], [24, 0, 7]]) rect(g, '#5e706a', x, y, w, 1);
+  });
+  A.bits = [
+    tex(6, 6, g => { disc(g, C.green2, 3, 3, 2); rect(g, C.green3, 3, 3, 1, 1); rect(g, C.green3, 0, 5); }),
+    tex(6, 6, g => { rect(g, C.white, 0, 0, 5, 6); rect(g, C.grey, 1, 1, 3, 1); rect(g, C.grey, 1, 3, 3, 1); }),
+    tex(8, 3, g => { rect(g, C.tan3, 0, 0, 8, 3); rect(g, C.tan2, 1, 1, 6, 1); rect(g, C.ink, 7, 1); }),
+  ];
+  A.rider = tex(32, 16, g => {
+    // the tuna: a blue-grey torpedo with a pale belly, yellow finlets and a forked tail
+    rect(g, C.ink, 4, 7, 22, 8); rect(g, C.ink, 7, 6, 15, 10); rect(g, C.ink, 26, 9, 3, 4);
+    rect(g, C.tarp2, 5, 8, 20, 4); rect(g, C.tarp, 8, 7, 13, 2); rect(g, '#d8e8f8', 6, 12, 18, 2);
+    rect(g, C.gold, 12, 14, 1, 1); rect(g, C.gold, 15, 14, 1, 1); rect(g, C.gold, 18, 14, 1, 1);
+    rect(g, C.ink, 0, 5, 4, 3); rect(g, C.ink, 0, 13, 4, 3); rect(g, C.ink, 3, 8, 3, 6); rect(g, C.tarp2, 1, 6, 3, 1); rect(g, C.tarp2, 1, 14, 3, 1);
+    rect(g, C.white, 24, 9); rect(g, C.ink, 25, 9);
+    // Sadie on top, hanging on (ears flat, tail streaming behind)
+    rect(g, C.ink, 14, 1, 8, 7); rect(g, '#6a5a8a', 15, 2, 6, 5);
+    rect(g, C.ink, 14, 0, 2, 2); rect(g, C.ink, 20, 0, 2, 2); rect(g, C.pink, 17, 5, 2, 1);
+    rect(g, C.white, 16, 3); rect(g, C.white, 20, 3); rect(g, C.ink, 16, 4); rect(g, C.ink, 20, 4);
+    rect(g, C.ink, 6, 3, 8, 2); rect(g, '#6a5a8a', 7, 3, 6, 1); rect(g, C.ink, 4, 1, 3, 2);
+  });
+
   // Sadie on the gatepost: a little umbrella, a heap of snow, sunglasses, and what she says
   A.umbrella = tex(20, 14, g => {
     for (let y = 0; y < 6; y++) rect(g, y % 2 ? C.pink2 : C.pink, 10 - (y + 4), y, 2 * (y + 4), 1);
