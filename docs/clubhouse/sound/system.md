@@ -28,7 +28,8 @@ The owner's reason for them is in `docs/clubhouse/RULEBOOK.md` section 4; these 
   needs pause code for its sounds).
 - `at` (where the sound is, `{x, z}` or `{x, y, z}`) fades it the further it is from you
   (`nearness`; `dist` if a room works it out itself).
-- Never more than 14 sounds at once (more are dropped).
+- No limit on how many sounds play at once (there was one of 14, Claude's choice, removed 2026-10-06
+  at the owner's say-so so a room can be as loud and crowded as it wants).
 - A room's music is only heard while you're in that room (the clubhouse tells it where you are,
   `youAreIn`). A line made with `{ everywhere: true }` is heard everywhere (the main theme's).
 - Any music playing (a meter on every music line) makes the main theme fade out (`otherMusic()`,

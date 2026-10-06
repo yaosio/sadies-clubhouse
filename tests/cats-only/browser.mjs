@@ -72,7 +72,7 @@ export default async function ({ browser, page, check, outDir }) {
     const after = await M('where');
     check(`${device}: the herd never moved the player`, Math.hypot(after.x - stood.x, after.z - stood.z) < 0.01 && after.place === 'hall', `${after.x.toFixed(2)}, ${after.z.toFixed(2)}`);
     const meows = Object.entries(s.meows).filter(([k]) => /^meow/.test(k)).reduce((a, [, v]) => a + v, 0);
-    check(`${device}: a caterwaul of meows (${meows}), but not an endless one`, meows >= 20 && meows <= 90, `${meows} meows`);
+    check(`${device}: a caterwaul of meows (${meows}), but not an endless one`, meows >= 60 && meows <= 360, `${meows} meows`);
     check(`${device}: it all took a while, so you can watch (${took.toFixed(1)} s)`, took > 5 && took < 20, `${took.toFixed(1)} s`);
 
     // 4. the door's already open when the button's pressed: it slams shut and flies open with the herd

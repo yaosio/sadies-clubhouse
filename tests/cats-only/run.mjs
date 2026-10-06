@@ -6,7 +6,7 @@
 //   node tests/cats-only/run.mjs
 import card from '../../src/activities/cats-only/card.js';
 import { COUNT, SPAWN, RUN, AFTER, LONGEST, MEOWS, MEOW_GAP, MEOW_TYPES, MEOW_PITCHES, POP, OUTSIDE_MAX, makeStampede, route, lengths, along, across } from '../../src/activities/cats-only/herd.js';
-import { meow, press, pile, chorus, TYPES, PITCHES, LOUD, SR } from '../../src/activities/cats-only/sounds/meow.js';
+import { meow, press, pile, TYPES, PITCHES, LOUD, SR } from '../../src/activities/cats-only/sounds/meow.js';
 import { RATE } from '../../src/shared/retro.js';
 import { checker } from '../shared/check.mjs';
 
@@ -65,8 +65,8 @@ for (const seed of [1, 2, 3, 7, 99]) {
     if (!ok1 || !ok2) { all = false; why += ` [${Math.round(1 / dt)} fps: bad ${bad}, ${garden} in the garden, ${maxOn} at once, over ${T.over}]`; }
     // meows: few, spread out, a different one each time, one per cat
     const gaps = said.slice(1).map((m, i) => T.meows[i + 1].t - T.meows[i].t);
-    if (!(T.meows.length <= MEOWS && T.meows.length >= 40 && gaps.every(g => g >= MEOW_GAP - 1e-9) && T.meows.every((m, i) => i === 0 || m.variant !== T.meows[i - 1].variant || m.pitch !== T.meows[i - 1].pitch)
-      && new Set(T.meows.map(m => m.who)).size === T.meows.length && said.length === T.meows.length && T.meows.every(m => m.variant < MEOW_TYPES && m.pitch < MEOW_PITCHES) && new Set(T.meows.map(m => m.variant)).size === MEOW_TYPES && new Set(T.meows.map(m => m.pitch)).size === MEOW_PITCHES)) { all = false; why += ` [meows: ${T.meows.length}]`; }
+    if (!(T.meows.length <= MEOWS && T.meows.length >= 100 && gaps.every(g => g >= MEOW_GAP - 1e-9) && T.meows.every((m, i) => i === 0 || m.variant !== T.meows[i - 1].variant || m.pitch !== T.meows[i - 1].pitch)
+      && T.meows.every(m => T.meows.filter(o => o.who === m.who).length <= 2) && said.length === T.meows.length && T.meows.every(m => m.variant < MEOW_TYPES && m.pitch < MEOW_PITCHES) && new Set(T.meows.map(m => m.variant)).size === MEOW_TYPES && new Set(T.meows.map(m => m.pitch)).size === MEOW_PITCHES)) { all = false; why += ` [meows: ${T.meows.length}]`; }
     { const P = makeStampede(geo, seed); P.step(0.05);   // the pile: all of them in the little room, up to the ceiling, before anything is let go
       const hs = P.runners.map(u => u.pile[1] - geo.door.y);
       if (!(P.runners.every(u => u.on && u.where === 'hall') && Math.max(...hs) > 1.7 && Math.min(...hs) >= 0 && Math.max(...hs) < 2.1 && P.runners.every(u => Math.abs(u.pile[2] - geo.door.z) < 1.3 && Math.abs(u.pile[2] - geo.door.z) > 0.5 && Math.abs(u.pile[0] - geo.door.x) < 0.45))) { all = false; why += ' [pile]'; }
@@ -76,7 +76,7 @@ for (const seed of [1, 2, 3, 7, 99]) {
       if (!(popping && !E.left && k * dt <= POP + 0.2)) { all = false; why += ` [puff: ${popping}, ${k * dt} s]`; } }
     T.hide(); if (!T.runners.every(u => !u.on)) { all = false; why += ' [hide]'; }
   }
-  check(`seed ${seed}: at 60, 20 and 10 frames a second: every Sadie finite and in bounds, some run out into the garden, it all ends; the front door is let go ${AFTER} s after the last one is through; a caterwaul of up to ${MEOWS} meows in every kind and pitch, ${MEOW_GAP} s or more apart, never the same one twice running, one per cat; the pile fills the closet before they go; hiding them hides them all`, all, why);
+  check(`seed ${seed}: at 60, 20 and 10 frames a second: every Sadie finite and in bounds, some run out into the garden, it all ends; the front door is let go ${AFTER} s after the last one is through; a caterwaul of up to ${MEOWS} meows in every kind and pitch, ${MEOW_GAP} s or more apart, never the same one twice running, one or two per cat; the pile fills the closet before they go; hiding them hides them all`, all, why);
 }
 
 // 5. the whole thing is over in a bounded time (it no longer has to beat anyone to the front door: you may watch them go)
@@ -93,9 +93,7 @@ const meows = Array.from({ length: TYPES }, (_, i) => meow(i));
 const peak = a => a.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
 check('eight different meows, each under a second and a half even at the lowest pitch, none clipped', TYPES === MEOW_TYPES && PITCHES.length === MEOW_PITCHES && meows.every(a => a.length / SR / Math.min(...PITCHES) < 1.6 && peak(a) <= 1 && peak(a) > 0.1) && new Set(meows.map(a => a.length + ':' + a[2000])).size === TYPES);
 check('the pitches spread wide (a kitten to a tom), none the same', PITCHES.every((p, i) => i === 0 || p > PITCHES[i - 1]) && PITCHES[PITCHES.length - 1] / PITCHES[0] > 2);
-check('none is at full volume (the owner asked for this one to be loud, but it stays under 60%)', LOUD.meow <= 0.4 && LOUD.press <= 0.35 && LOUD.pile <= 0.5 && LOUD.crowd <= 0.6);
-const crowd = chorus();
-check('the crowd of cats is one sound of about ten seconds, not clipped, fading in and out (nothing loops)', crowd.length / SR > 9 && crowd.length / SR < 12 && peak(crowd) <= 1 && peak(crowd) > 0.3 && Math.abs(crowd[0]) < 0.05 && Math.abs(crowd[crowd.length - 1]) < 0.05);
+check('none is at full volume (the owner asked for this one to be loud, but it stays under 60%)', LOUD.meow <= 0.4 && LOUD.press <= 0.35 && LOUD.pile <= 0.5);
 const rush = pile();
 check('the pile-out rush is one soft sound of a couple of seconds, not clipped', rush.length / RATE > 1.5 && rush.length / RATE < 3.5 && peak(rush) <= 1 && peak(rush) > 0.1);
 check('the button\'s sound is one short soft thump', press().length / RATE < 0.3 && peak(press()) <= 1);

@@ -14,7 +14,6 @@
 //   - a voice (bus 'voices': Sadie, Clyde) never says the same thing twice running (within
 //     VOICE_GAP seconds: after a good while it's not "again", and a room with one meow still meows)
 //   - `dist` (metres from you) fades it: all of it up to `near`, nothing past `far`
-//   - never more than MAX sounds at once (anything more is dropped, not queued)
 //   - a room's music is only heard while you're in that room (the clubhouse says where you are)
 //   - any music playing (heard on its meter) makes the main theme fade out (otherMusic())
 //   - a room put away (or left for good) stops everything it started: closeSounds(owner)
@@ -26,7 +25,6 @@
 
 export const LEVELS = { on: 1, soft: 0.45, off: 0 };
 export const BUSES = ['music', 'sounds', 'voices'];
-const MAX = 14;           // sounds playing at once, at most
 const HOLD = 6;           // seconds the theme stays away after other music was last heard (its rests)
 const HEARD = 0.004;      // how loud (RMS) counts as music playing
 const VOICE_GAP = 10;     // seconds before a voice may say the same thing again
@@ -126,7 +124,7 @@ export function soundsFor(owner) {
       if (loud < 0.005) return false;
       lastAt.set(key, now); if (b === 'voices') { lastVoice = key; lastVoiceAt = now; }
       h.played++; h.last = key; h.log.push(key); if (h.log.length > 200) h.log.shift(); h.counts[key] = (h.counts[key] || 0) + 1;
-      if (!engine() || ctx.state !== 'running' || live >= MAX) return true;
+      if (!engine() || ctx.state !== 'running') return true;
       try {
         if (!made.has(key)) {
           const s = make(), buf = ctx.createBuffer(1, s.length * hold, rate * hold), d = buf.getChannelData(0);

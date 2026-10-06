@@ -1,5 +1,4 @@
-// The herd's voices: eight kinds of cat noise (each played at one of six pitches), a crowd of
-// ninety of them yowling over each other, the rush of them piling out, and the button's quiet thump.
+// The herd's voices: eight kinds of cat noise (each played at one of six pitches), the rush of them piling out, and the button's quiet thump.
 // The meows are made like a real cat's: a rough, wobbling buzz (a throat) with breath in it, sent
 // through three mouth shapes that glide from "mm" to "ee" to "ow", at a higher quality than the rest of
 // the game's sounds and without the 8-bit crunch, so they don't sound like an old arcade machine.
@@ -8,7 +7,7 @@
 import { RATE, TAU, rng, resonance, finish } from '../../../shared/retro.js';
 
 export const SR = 22050;                          // the meows are made at twice the game's usual rate: clearer
-export const LOUD = { meow: 0.32, press: 0.3, pile: 0.45, crowd: 0.55 };   // how loud each can be, at most, before distance
+export const LOUD = { meow: 0.22, press: 0.3, pile: 0.45 };   // how loud each can be, at most, before distance
 
 const lerp = (pts, k) => {   // a value along a few points, k from 0 to 1
   const x = Math.min(pts.length - 1.0001, Math.max(0, k * (pts.length - 1))), i = Math.floor(x);
@@ -69,25 +68,7 @@ function raw(type, v = 0) {
 }
 
 // one of the herd's meows: the sound system plays it at the pitch it's asked for
-export function meow(type = 0) { return raw(type, 0); }
-
-// Ninety cats all yowling at once, over ten seconds: each of the versions of each kind, at every
-// pitch, at uneven times, some near and some far. It swells up fast, carries on, and dies away. Made once.
-let crowd = null;
-export function chorus() {
-  if (crowd) return crowd;
-  const len = 10, a = new Float32Array(Math.round((len + 1) * SR)), r = rng(2024);
-  for (let c = 0; c < 90; c++) {
-    const t0 = Math.round((0.05 + Math.pow(r(), 1.1) * 7.8) * SR), src = raw(Math.floor(r() * TYPES), Math.floor(r() * 3)), sp = PITCHES[Math.floor(r() * PITCHES.length)], g = 0.2 + r() * 0.8;
-    for (let i = 0; ; i++) {
-      const p = i * sp, j = Math.floor(p); if (j + 1 >= src.length || t0 + i >= a.length) break;
-      a[t0 + i] += (src[j] + (src[j + 1] - src[j]) * (p - j)) * g;
-    }
-  }
-  for (let i = 0; i < a.length; i++) { const t = i / SR; a[i] *= Math.min(1, t / 0.6, (len + 1 - t) / 2.5); }
-  crowd = scale(soft(a, 0.05), 0.85);
-  return crowd;
-}
+export function meow(type = 0, v = 0) { return raw(type, v % 3); }
 
 // All of them piling out of the little room at once: a soft whoosh that swells and falls away over
 // about two seconds, and a scatter of muffled thumps and scrabbles at uneven times inside it. It
@@ -111,7 +92,7 @@ export function pile() {
 
 // the big sounds made ahead of time (when the button's pressed), so nothing stalls when the herd bursts
 // out: a list of small jobs for the room to run a frame or so apart on the game's own time
-export const warmSteps = () => [...Array(TYPES * 3)].map((_, i) => () => raw(Math.floor(i / 3), i % 3)).concat([pile, chorus]);
+export const warmSteps = () => [...Array(TYPES * 3)].map((_, i) => () => raw(Math.floor(i / 3), i % 3)).concat([pile]);
 
 // The red button going in: a soft low "bwup", no click at the end.
 export function press() {

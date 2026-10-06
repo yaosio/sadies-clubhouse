@@ -24,15 +24,16 @@ re-checks what matters.
   when the front door has shut, whichever's first (`PORCH`, `OUTSIDE_MAX`).
 - **The ways:** 65% down the stairs, 35% over the railing and a lap of the post (`herd.js`
   `makeStampede`). The lanes differ, so no two take quite the same line.
-- **Meows: a caterwaul.** Up to 90 individual meows in the stampede, as close as 0.04 s apart, eight
-  kinds at six pitches (`MEOWS`, `MEOW_GAP`, `MEOW_TYPES`, `MEOW_PITCHES`), at 0.32 of full volume
-  (`sounds/meow.js` `LOUD`), plus **one ten-second recording of ninety cats yowling over each other**
-  (`chorus`, 0.55) that starts as the door opens, swells fast, carries on and dies away, so the room
-  really sounds packed with cats (the sound system's own cap of 14 sounds at once would otherwise
-  limit it). They're made like real cats (rough wobbling throat, breath, three mouth shapes gliding
-  through the meow), at 22 kHz without the 8-bit crunch the rest of the game's sounds have, so they
-  don't sound like an arcade machine. One soft rush of them piling out of the closet (`pile`) goes with
-  it. The owner has misophonia (`docs/clubhouse/RULEBOOK.md` section 4) but asked for this to be
-  loud and chaotic: it's a one-off of about ten seconds, only when the button's pressed, with no loop,
-  drone or tick. All the loudness numbers are Claude's choices and can come down.
+- **Meows: a caterwaul, all in the game.** Every Sadie meows once or twice (up to 360 meows in the
+  stampede, `MEOWS`), as close as 0.02 s apart (`MEOW_GAP`), eight kinds in three versions each at six
+  pitches (`MEOW_TYPES`, `MEOW_PITCHES`), each at 0.22 of full volume (`sounds/meow.js` `LOUD`). They
+  pile on top of each other because the sound system no longer limits how many sounds play at once (it
+  had a limit of 14, Claude's choice, removed at the owner's word; an earlier version of this room used
+  one big recording of a crowd to get round that, which isn't needed now). They're made like real cats
+  (rough wobbling throat, breath, three mouth shapes gliding through the meow), at 22 kHz without the
+  8-bit crunch the rest of the game's sounds have, so they don't sound like an arcade machine. One soft
+  rush of them piling out of the closet (`pile`) goes with it. The owner has misophonia
+  (`docs/clubhouse/RULEBOOK.md` section 4) but asked for this to be loud and chaotic: it's a one-off
+  of about ten seconds, only when the button's pressed, with no loop, drone or tick. The loudness is
+  Claude's choice and can come down.
 - **The closet: 1.7 m wide, 1.7 m deep, 2.6 m high** (`RW`, `RD`, `H` in `room.js`), the bed at the back.

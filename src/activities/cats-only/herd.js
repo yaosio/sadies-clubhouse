@@ -14,8 +14,8 @@ export const SPAWN = 3.0;                // they all pour out within this many s
 export const RUN = [4.2, 6.0];           // each one reaches the front door this many seconds after setting off
 export const PORCH = [2.3, 3.8];         // out of the front door, the porch steps go down between these distances (m): the garden's ground is lower
 export const OUTSIDE_MAX = 40;           // how far down the garden path one runs before it's gone (m)
-export const MEOWS = 90;                 // at most this many meows in the whole stampede (a caterwaul), and never closer than...
-export const MEOW_GAP = 0.04;            // ...this many seconds apart
+export const MEOWS = COUNT * 2;          // at most this many meows in the whole stampede (every Sadie meows once or twice: a caterwaul), and never closer than...
+export const MEOW_GAP = 0.02;            // ...this many seconds apart
 export const AFTER = 0.3;                // the front door is let go this long after the last one is through it
 export const POP = 0.45;                 // a Sadie that vanishes puffs away over this many seconds, not just blinks out
 export const LONGEST = SPAWN + RUN[1] + AFTER + 1.2 + POP;   // the whole thing, door opening to the last puff, never takes longer (1.2 s: the front door swinging shut)
@@ -116,13 +116,14 @@ export function makeStampede(geo, seed = 1) {
   // who meows, and when: lots of them, all different, in every pitch, crowding on top of each other
   // (but never the same kind at the same pitch twice running: the sound system won't say it twice)
   const meows = [];
-  const pick = runners.map((u, i) => i).sort(() => r() - 0.5);
-  const tries = pick.slice(0, MEOWS + 20).map(i => ({ who: i, t: runners[i].delay + runners[i].time * (0.05 + r() * 0.8) })).sort((a, b) => a.t - b.t);
+  const tries = [];
+  for (let i = 0; i < COUNT; i++) for (let k = 0; k < (r() < 0.6 ? 2 : 1); k++) tries.push({ who: i, t: runners[i].delay + runners[i].time * (0.05 + r() * 0.85) });
+  tries.sort((a, b) => a.t - b.t);
   let lastKey = -1;
   for (const m of tries) {
     if (meows.length >= MEOWS || (meows.length && m.t - meows[meows.length - 1].t < MEOW_GAP)) continue;
     let key; do { key = Math.floor(r() * MEOW_TYPES * MEOW_PITCHES); } while (key === lastKey);
-    lastKey = key; meows.push({ ...m, variant: Math.floor(key / MEOW_PITCHES), pitch: key % MEOW_PITCHES });
+    lastKey = key; meows.push({ ...m, variant: Math.floor(key / MEOW_PITCHES), pitch: key % MEOW_PITCHES, ver: Math.floor(r() * 3) });
   }
   const crossAt = Math.max(...runners.map(u => u.delay + u.time));
   let t = 0, heard = 0, wob = 0, started = false;

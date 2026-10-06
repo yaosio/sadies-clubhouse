@@ -115,7 +115,7 @@ export async function buildRoom(m) {
     sound ||= makeSounds(sfx);
     const e = m.ears();   // the sound of them all piling out of the little room
     const there = { x: ld.pos.x, y: ld.pos.y + 1, z: ld.pos.z };
-    if (hall.is(e.place)) { sound.pile(there); sound.crowd(there); } else if (e.place === place) { sound.pile(undefined, 3); sound.crowd(undefined, 3); } else if (D.outside.is(e.place)) sound.crowd(undefined, 9);
+    if (hall.is(e.place)) sound.pile(there); else if (e.place === place) sound.pile(undefined, 3);
   }
   function finish() {
     stamp?.hide(); draw(); stamp = null;
@@ -179,7 +179,7 @@ export async function buildRoom(m) {
           const u = stamp.runners[w.who], e = m.ears();
           if (!u.on || u.where !== 'hall') continue;
           sound ||= makeSounds(sfx);
-          if (hall.is(e.place)) sound.meow(w.variant, w.pitch, { x: u.x, y: u.y + 0.4, z: u.z }); else if (e.place === place) sound.meow(w.variant, w.pitch, undefined, 4);
+          if (hall.is(e.place)) sound.meow(w.variant, w.pitch, { x: u.x, y: u.y + 0.4, z: u.z }, undefined, w.ver); else if (e.place === place) sound.meow(w.variant, w.pitch, undefined, 4, w.ver);
         }
         if (phase !== 'puff' && stamp.t > SPAWN + 0.4) place.holding = null;
         if (phase === 'pour' && stamp.t >= stamp.holdFor) { letGoFront?.(); letGoFront = null; phase = 'drain'; }

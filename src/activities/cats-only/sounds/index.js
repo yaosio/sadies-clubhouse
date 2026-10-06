@@ -2,7 +2,7 @@
 // (src/shared/sound.js) plays them through the room's handle. The herd's meows are voices that fade
 // with how far off they are; nothing here loops.
 import { wrap } from '../../../shared/sound.js';
-import { meow, press, pile, chorus, PITCHES, LOUD, SR } from './meow.js';
+import { meow, press, pile, PITCHES, LOUD, SR } from './meow.js';
 import { RATE } from '../../../shared/retro.js';
 
 export { warmSteps } from './meow.js';
@@ -11,11 +11,9 @@ export function makeSounds(h) {
   const play = (key, make, loud, more) => h.play(key, make, { loud, rate: RATE, ...more });
   return wrap(h, {
     // one of the herd's meows (kind `type`, at one of the PITCHES), `at` where that cat is (or `dist`, how far off, when it's heard from another place)
-    meow: (type, pitch, at, dist) => play('meow' + type + '.' + pitch, () => meow(type), LOUD.meow, { bus: 'voices', at, dist, rate: SR * PITCHES[pitch % PITCHES.length], gap: 0.02 }),
+    meow: (type, pitch, at, dist, ver = 0) => play('meow' + type + '.' + pitch + '.' + ver, () => meow(type, ver), LOUD.meow, { bus: 'voices', at, dist, rate: SR * PITCHES[pitch % PITCHES.length], gap: 0.02 }),
     press: () => play('press', press, LOUD.press, { gap: 0.4 }),
     // the whole herd piling out of the little room (`at` where, or `dist` how far off)
     pile: (at, dist) => play('pile', pile, LOUD.pile, { at, dist, gap: 2 }),
-    // ninety cats yowling over each other (`at` where, or `dist`): once, for the length of the stampede
-    crowd: (at, dist) => play('crowd', chorus, LOUD.crowd, { at, dist, gap: 5, rate: SR, near: 6, far: 30 }),
   });
 }
