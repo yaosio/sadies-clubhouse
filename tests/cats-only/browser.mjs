@@ -5,7 +5,7 @@
 // It opens the door without pressing the button and steps into the closet (and finds it too small to
 // do more than step in, and out again). It looks at the button and presses it (the real USE press),
 // then opens the door: the herd pours out, the front door swings open for them, they run out of it
-// and vanish once it has shut, and the player hasn't been moved an inch. It does the same with the
+// and puff away once it has shut, and the player hasn't been moved an inch. It does the same with the
 // door already open when the button's pressed (it slams shut and flies open again). Screenshots in
 // dist/check/cats-only/. Any error on the page is a failure.
 import { bothDevices } from '../shared/browser.mjs';
@@ -48,7 +48,7 @@ export default async function ({ browser, page, check, outDir }) {
     await use();
     await rest(300);
     s = await C();
-    check(`${device}: pressing it arms the door (nothing runs yet), and it now says to open the door`, s.armed && s.phase === 'idle' && s.on === 0 && /OPEN THE DOOR/.test(await M('target') || ''), `${s.armed} ${s.phase}`);
+    check(`${device}: pressing it arms the door (nothing runs yet, the whole pile just waits behind it), and it now says to open the door`, s.armed && s.phase === 'idle' && /OPEN THE DOOR/.test(await M('target') || ''), `${s.armed} ${s.phase}`);
 
     // 3. open the door: the avalanche. Stand where the door opens, and watch.
     const stood = await M('faceDoor', 'hall', 'cats-only', 1.4) && await M('where');
@@ -56,24 +56,24 @@ export default async function ({ browser, page, check, outDir }) {
     const t0 = await p.evaluate(() => window.__clubhouse.played());
     await rest(500);
     s = await C();
-    check(`${device}: opening the armed door sets the herd off, and the front door swings open for them`, s.phase === 'pour' && s.on > 5 && s.frontHeld, `${s.phase}, ${s.on} running`);
+    check(`${device}: opening the armed door sets the herd off, and the front door swings open for them`, s.phase === 'pour' && s.frontHeld, `${s.phase}, ${s.on} running`);
     await rest(900);
     await shot('4-herd');
     s = await C();
-    check(`${device}: a whole herd is out at once`, s.on >= 40, `${s.on} Sadies`);
-    await rest(1700);
+    check(`${device}: a whole herd is out at once`, s.on >= 120, `${s.on} Sadies`);
+    await until(() => window.__catsOnly.state().garden > 20, null, 12000);
     s = await C();
     await shot('5-garden');
-    check(`${device}: they run out of the front door into the garden (it's open to let them)`, s.garden > 5 && s.frontOpen > 0.6, `${s.garden} in the garden, door ${s.frontOpen.toFixed(2)}`);
-    check(`${device}: all of it is over, and the front door's shut, before anyone could have walked to it`, await until(() => window.__catsOnly.state().phase === 'idle', null, 9000));
+    check(`${device}: they run out of the front door into the garden (it's open to let them)`, s.garden > 20 && s.frontOpen > 0.6, `${s.garden} in the garden, door ${s.frontOpen.toFixed(2)}`);
+    check(`${device}: all of it is over (the front door shut, every Sadie puffed away)`, await until(() => window.__catsOnly.state().phase === 'idle', null, 20000));
     const took = (await p.evaluate(() => window.__clubhouse.played())) - t0;
     s = await C();
     check(`${device}: afterwards no Sadie is left and the front door has shut`, s.on === 0 && s.frontOpen < 0.15 && !s.frontHeld, `${s.on} left, door ${s.frontOpen.toFixed(2)}`);
     const after = await M('where');
     check(`${device}: the herd never moved the player`, Math.hypot(after.x - stood.x, after.z - stood.z) < 0.01 && after.place === 'hall', `${after.x.toFixed(2)}, ${after.z.toFixed(2)}`);
     const meows = Object.entries(s.meows).filter(([k]) => /^meow/.test(k)).reduce((a, [, v]) => a + v, 0);
-    check(`${device}: the meows were few (${meows})`, meows <= 10, `${meows} meows`);
-    check(`${device}: it took well under the quickest walk to the front door (${took.toFixed(1)} s)`, took < 8.5, `${took.toFixed(1)} s`);
+    check(`${device}: a caterwaul of meows (${meows}), but not an endless one`, meows >= 20 && meows <= 90, `${meows} meows`);
+    check(`${device}: it all took a while, so you can watch (${took.toFixed(1)} s)`, took > 5 && took < 20, `${took.toFixed(1)} s`);
 
     // 4. the door's already open when the button's pressed: it slams shut and flies open with the herd
     await M('faceDoor', 'hall', 'cats-only', 1.4);
@@ -88,7 +88,7 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and it flies open again with the herd`, s.phase === 'pour' && s.doorOpen > 0.4, `${s.phase}, door ${s.doorOpen.toFixed(2)}`);
     await rest(1200);
     await shot('6-slammed');
-    check(`${device}: that one ends too`, await until(() => window.__catsOnly.state().phase === 'idle', null, 9000) && (await C()).on === 0);
+    check(`${device}: that one ends too`, await until(() => window.__catsOnly.state().phase === 'idle', null, 20000) && (await C()).on === 0);
 
     // 5. still fine: walk about, nothing stuck, no errors
     await M('faceDoor', 'hall', 'cats-only', 1.4);

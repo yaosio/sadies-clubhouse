@@ -3,13 +3,15 @@
 // with how far off they are; there is nothing else here and nothing loops.
 import { RATE } from '../../../shared/retro.js';
 import { wrap } from '../../../shared/sound.js';
-import { meow, press, LOUD } from './meow.js';
+import { meow, press, pile, PITCHES, LOUD } from './meow.js';
 
 export function makeSounds(h) {
   const play = (key, make, loud, more) => h.play(key, make, { loud, rate: RATE, ...more });
   return wrap(h, {
-    // one of the herd's meows (version `variant`), `at` where that cat is (or `dist`, how far off, when it's heard from another place)
-    meow: (variant, at, dist) => play('meow' + variant, () => meow(variant), LOUD.meow, { bus: 'voices', at, dist }),
+    // one of the herd's meows (kind `type`, at one of the PITCHES), `at` where that cat is (or `dist`, how far off, when it's heard from another place)
+    meow: (type, pitch, at, dist) => play('meow' + type + '.' + pitch, () => meow(type), LOUD.meow, { bus: 'voices', at, dist, rate: RATE * PITCHES[pitch % PITCHES.length], gap: 0.02 }),
     press: () => play('press', press, LOUD.press, { gap: 0.4 }),
+    // the whole herd piling out of the little room (`at` where, or `dist` how far off)
+    pile: (at, dist) => play('pile', pile, LOUD.pile, { at, dist, gap: 2 }),
   });
 }

@@ -17,19 +17,20 @@ What you'll see and do. Read before changing how it plays. The numbers are in `n
 
 ## The stampede
 - Pressed and then the door opens (it opens as you walk up facing it, like every door): the herd
-  pours out of the closet, thickest at the start, all in about a second and a half, and runs along
+  pours out of the closet (the closet looks packed with them, up to the ceiling, as the door swings open, and a soft rush of noise goes with them), thickest at the start, all within about three seconds, and runs along
   the landing. Most run down the staircase; some leap the railing and tear round the scratching post
   on the ground floor first. All of them cross the ground floor and out of the front door, which
   swings open by itself for them and stays open until the last one is through, then shuts. They run
-  on down the garden path and are gone.
-- Once the front door has shut they vanish (if you're standing in its way and it can't shut, they
-  vanish a few seconds later anyway: they've long since run off).
-- A few of them meow, softly, in six different voices (`numbers.md` says how many).
+  on down the garden path.
+- Once the front door has shut every Sadie still about puffs away in a shower of sparkles (if you're
+  standing in its way and it can't shut, they puff away a few seconds later anyway).
+- Lots of them meow, softly, in eight kinds of meow at six pitches, over each other: a caterwaul
+  (`numbers.md` says how many).
 - If you press the button while the door's already open (you opened it first to look): it slams shut,
   and flies open again with the herd.
 - They never push you or block you. They're flat pictures that run through everything; you keep
-  walking where you were. The whole thing is over in about six seconds, long before anyone could
-  walk to the front door to see them go.
+  walking where you were. They run at a pace you can follow; the whole thing takes about ten seconds, and you can walk to
+  the front door to see them go if you like.
 - You can see it from the landing, the stairs, the ground floor, the closet doorway and out in the
   garden (each Sadie turns to face you wherever you look from).
 - Press the button and open the door again and it all happens again.

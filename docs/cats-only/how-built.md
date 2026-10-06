@@ -10,10 +10,10 @@ and being put away. Read before changing the code. Its checks are in `checks.md`
 - **`room.js`**: the closet (shell, floor, the bed; `floor` lets you step in about half a metre and
   stops you at the bed), and everything it puts in other places: the sign and red button on the
   landing wall beside its door (put into the hall with the hall's `add`, the button as a `use` with
-  an `act`), and the herd, one flat Sadie per runner sharing a single geometry and picture, a group
-  of them in the hall and a group in the garden (a runner is moved from one group to the other as it
-  crosses the front door). It works the little state machine (`idle`, `slam`, `opening`, `pour`,
-  `drain`), turns every Sadie to face you wherever you're looking from (`eyes()`), plays the meows
+  an `act`), and the herd, flat Sadies drawn as one instanced picture in the hall and one in the garden (a
+  runner is drawn in the other as it crosses the front door; psx's vertex shader is patched to read
+  each instance's matrix), with a second instanced picture of sparkles for the puff. It works the little state machine (`idle`, `slam`, `opening`, `pour`,
+  `drain`, `puff`), turns every Sadie to face you wherever you're looking from (`eyes()`), plays the meows
   and puts it all away.
 - **`herd.js`**: the stampede in plain numbers, no screen (the tests read it): the ways a runner can
   take (`route`: the stairs, or the leap over the railing and a lap of the post, each worked out from
@@ -21,7 +21,7 @@ and being put away. Read before changing the code. Its checks are in `checks.md`
   (`makeStampede`: when each one sets off, how fast it goes, where it is at any moment), who meows
   and when, and `across`: where a spot in one doorway comes out in another's place (the clubhouse's
   own doorway sum).
-- **`sounds/`**: `meow.js` makes the six meows and the button's thump; `index.js` names them and says
+- **`sounds/`**: `meow.js` makes the eight kinds of meow (the sound system plays each at one of six pitches), the rush of them piling out and the button's thump; `index.js` names them and says
   how loud; the clubhouse's sound system plays them (`docs/clubhouse/sound/system.md`).
 - **`door.js`**: the door picture, drawn by `art/cats-only/door.js` (`node tools/cats-only/pictures.mjs`).
 

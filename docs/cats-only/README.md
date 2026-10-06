@@ -14,8 +14,10 @@ behind them they vanish.
   do is step in (and out).
 - Press the button and then open the door: a whole herd of Sadies (a stampede, a lot of them) pours
   out, all meowing and carrying on, by various paths through the clubhouse, and out of the front door.
-- Once the front door closes they vanish.
-- They're fast enough that the player can't get to the front door in time to see them vanish.
+- Once the front door closes they vanish, with a little puff, not a blink. (The first version was
+  meant to be too fast to follow to the front door; the owner said slow it down: you may watch them go.)
+- The closet looks piled to the ceiling with Sadies when the door opens; they come out like an
+  avalanche, with a caterwaul of meows at every pitch and a rush of noise.
 - If the door is open when the button's pressed, it closes and straight away opens again with the
   avalanche.
 - They can't move the player around: they're only pictures, they never push or block you.

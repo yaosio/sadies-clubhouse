@@ -9,16 +9,18 @@
 // tuning, not rules: docs/cats-only/numbers.md.
 import { rng } from '../../shared/retro.js';
 
-export const COUNT = 64;                 // how many Sadies (Claude's choice: dozens, still light for a phone)
-export const SPAWN = 1.4;                // they all pour out within this many seconds, thickest at the start
-export const RUN = [2.2, 3.0];           // each one reaches the front door this many seconds after setting off
+export const COUNT = 180;                // how many Sadies (Claude's choice: a pile to the ceiling; drawn as just two instanced pictures, so still light)
+export const SPAWN = 3.0;                // they all pour out within this many seconds, the front of the pile first
+export const RUN = [4.2, 6.0];           // each one reaches the front door this many seconds after setting off
 export const PORCH = [2.3, 3.8];         // out of the front door, the porch steps go down between these distances (m): the garden's ground is lower
 export const OUTSIDE_MAX = 40;           // how far down the garden path one runs before it's gone (m)
-export const MEOWS = 10;                 // at most this many meows in the whole stampede, and never closer than...
-export const MEOW_GAP = 0.35;            // ...this many seconds apart
+export const MEOWS = 90;                 // at most this many meows in the whole stampede (a caterwaul), and never closer than...
+export const MEOW_GAP = 0.04;            // ...this many seconds apart
 export const AFTER = 0.3;                // the front door is let go this long after the last one is through it
-export const LONGEST = SPAWN + RUN[1] + AFTER + 1.2;   // the whole thing, door opening to front door shut, never takes longer (1.2 s: the door swinging shut)
-export const MEOW_VARIANTS = 6;
+export const POP = 0.45;                 // a Sadie that vanishes puffs away over this many seconds, not just blinks out
+export const LONGEST = SPAWN + RUN[1] + AFTER + 1.2 + POP;   // the whole thing, door opening to the last puff, never takes longer (1.2 s: the front door swinging shut)
+export const MEOW_TYPES = 8;            // kinds of meow (meow, mew, yowl, mrow, squeal, whine, yeow, chirp)
+export const MEOW_PITCHES = 6;           // and how high each is played: a kitten's squeak to a tom's yowl
 
 const TAU = Math.PI * 2;
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
@@ -97,52 +99,75 @@ export function along(pts, cum, s) {
 // { on, where: 'hall' | 'garden', x, y, z, size, bounce, from }.
 export function makeStampede(geo, seed = 1) {
   const r = rng(seed), runners = [];
+  const d = geo.door, side = [d.nz, -d.nx];
   for (let i = 0; i < COUNT; i++) {
-    // thickest at the start: an avalanche, then the stragglers
-    const delay = SPAWN * Math.pow(i / (COUNT - 1), 1.6) * (0.9 + r() * 0.1);
-    const pts = route(geo, r() < 0.65 ? 'stairs' : 'jump', r(), r(), r()), cum = lengths(pts), len = cum[cum.length - 1];
-    const time = Math.min(RUN[1], Math.max(RUN[0], len / (9 + r() * 5)));
-    runners.push({ delay, pts, cum, len, time, speed: len / time, lane: (r() - 0.5) * 1.6, size: 0.62 + r() * 0.26, beat: r() * TAU, tilt: r(),
-      on: false, where: 'hall', x: 0, y: 0, z: 0, bounce: 0, from: [0, 0], at: -1, crossed: false });
+    // where it sits in the pile in the closet: right up to the ceiling (behind the doorway, in the doorway's own terms)
+    const depth = 0.15 + r() * 1.3, lat = (r() - 0.5) * 1.3, high = r() * 1.95;
+    const pile = [d.x - d.nx * depth + side[0] * lat, d.y + high, d.z - d.nz * depth + side[1] * lat];
+    // the front of the pile goes first: an avalanche, the back of the pile tumbling out after
+    const delay = SPAWN * Math.pow(Math.min(1, ((depth - 0.15) / 1.3) * 0.85 + r() * 0.15), 1.5);   // (a hard rush at first, the back of the pile trailing)
+    const pts = route(geo, r() < 0.65 ? 'stairs' : 'jump', r(), r(), r());
+    pts.unshift([pile[0], pile[1], pile[2], 0]);   // (it tumbles down from where it was sitting)
+    const cum = lengths(pts), len = cum[cum.length - 1];
+    const time = Math.min(RUN[1], Math.max(RUN[0], len / (5.5 + r() * 3)));
+    runners.push({ delay, pts, cum, len, time, speed: len / time, lane: (r() - 0.5) * 1.6, size: 0.55 + r() * 0.32, beat: r() * TAU, tilt: r(), pile,
+      on: false, where: 'hall', x: 0, y: 0, z: 0, bounce: 0, pop: 0, dying: 0, from: [0, 0], at: -1, crossed: false });
   }
-  // who meows, and when: a few of them, spread out, never two close together
+  // who meows, and when: lots of them, all different, in every pitch, crowding on top of each other
+  // (but never the same kind at the same pitch twice running: the sound system won't say it twice)
   const meows = [];
   const pick = runners.map((u, i) => i).sort(() => r() - 0.5);
-  const tries = pick.slice(0, MEOWS * 3).map(i => ({ who: i, t: runners[i].delay + runners[i].time * (0.15 + r() * 0.6) })).sort((a, b) => a.t - b.t);
-  let lastVariant = -1;
+  const tries = pick.slice(0, MEOWS + 20).map(i => ({ who: i, t: runners[i].delay + runners[i].time * (0.05 + r() * 0.8) })).sort((a, b) => a.t - b.t);
+  let lastKey = -1;
   for (const m of tries) {
     if (meows.length >= MEOWS || (meows.length && m.t - meows[meows.length - 1].t < MEOW_GAP)) continue;
-    let v = Math.floor(r() * (MEOW_VARIANTS - 1)); if (lastVariant >= 0 && v >= lastVariant) v++;   // (never the same one twice running)
-    lastVariant = v; meows.push({ ...m, variant: v });
+    let key; do { key = Math.floor(r() * MEOW_TYPES * MEOW_PITCHES); } while (key === lastKey);
+    lastKey = key; meows.push({ ...m, variant: Math.floor(key / MEOW_PITCHES), pitch: key % MEOW_PITCHES });
   }
   const crossAt = Math.max(...runners.map(u => u.delay + u.time));
-  let t = 0, heard = 0;
+  let t = 0, heard = 0, wob = 0, started = false;
+  // out of the front door and down the garden path, in the doorway's own terms (x across, z out)
+  function outside(u, s) {
+    const run = s - u.len, f = geo.front, a = u.pts[u.pts.length - 1];
+    const lx = Math.max(-1.1, Math.min(1.1, (a[0] - f.x) * Math.cos(f.yaw) - (a[2] - f.z) * Math.sin(f.yaw) + u.lane * Math.min(1, run / 6)));
+    const lz = -run, c = Math.cos(f.yaw), sn = Math.sin(f.yaw);
+    // (the hall's way of putting it, which `across` turns into the garden's)
+    const [gx, gz] = across(f, geo.out, f.x + lx * c + lz * sn, f.z - lx * sn + lz * c);
+    u.where = 'garden'; u.x = gx; u.z = gz; u.crossed = true;
+    u.y = geo.out.y * (1 - Math.min(1, Math.max(0, (run - PORCH[0]) / (PORCH[1] - PORCH[0]))));
+    return run;
+  }
   const S = {
     runners, meows, crossAt,
     get t() { return t; },
+    get started() { return started; },
     // how long the front door needs holding open: until the last one is through it
     get holdFor() { return crossAt + AFTER; },
-    // move everything on `dt` seconds. Returns the meows that fall in it: [{ who, variant }]
+    // The whole herd sitting in the closet, piled to the ceiling, waiting (and fidgeting) behind the shut door
+    showPile(dt = 0) {
+      wob += dt;
+      for (const u of runners) { u.on = true; u.where = 'hall'; u.x = u.pile[0]; u.y = u.pile[1]; u.z = u.pile[2]; u.bounce = Math.max(0, Math.sin(wob * 5 + u.beat * 3)) * 0.03; }
+    },
+    // let them go
+    start() { started = true; },
+    // move everything on `dt` seconds. Returns the meows that fall in it: [{ who, variant, pitch }]
     step(dt) {
-      t += dt;
+      if (!started) { this.showPile(dt); return []; }
+      t += dt; wob += dt;
       for (const u of runners) {
+        if (u.dying) { u.dying += dt / POP; if (u.dying >= 1) { u.on = false; u.dying = 0; u.gone = true; } u.pop = u.dying; continue; }
+        if (u.gone) continue;
         const s = (t - u.delay) * u.speed;
-        if (s < 0) { u.on = false; continue; }
+        if (s < 0) { u.on = true; u.where = 'hall'; u.x = u.pile[0]; u.y = u.pile[1]; u.z = u.pile[2]; u.bounce = Math.max(0, Math.sin(wob * 7 + u.beat * 3)) * 0.04; continue; }   // (still in the pile)
+        u.on = true;
         if (s <= u.len) {
           const p = along(u.pts, u.cum, s);
-          u.on = true; u.where = 'hall'; u.x = p[0]; u.y = p[1]; u.z = p[2];
+          u.where = 'hall'; u.x = p[0]; u.y = p[1]; u.z = p[2];
           u.bounce = p[3] ? Math.abs(Math.sin(u.beat + s * 2.2)) * 0.16 : 0;
         } else {
-          // out of the front door and down the garden path, in the doorway's own terms (x across, z out)
-          const run = s - u.len, f = geo.front, a = u.pts[u.pts.length - 1];
-          if (run > OUTSIDE_MAX) { u.on = false; continue; }
-          const lx = Math.max(-1.1, Math.min(1.1, (a[0] - f.x) * Math.cos(f.yaw) - (a[2] - f.z) * Math.sin(f.yaw) + u.lane * Math.min(1, run / 6)));
-          const lz = -run, c = Math.cos(f.yaw), sn = Math.sin(f.yaw);
-          // (the hall's way of putting it, which `across` turns into the garden's)
-          const hx = f.x + lx * c + lz * sn, hz = f.z - lx * sn + lz * c;
-          const [gx, gz] = across(f, geo.out, hx, hz);
-          u.on = true; u.where = 'garden'; u.x = gx; u.y = geo.out.y * (1 - Math.min(1, Math.max(0, (run - PORCH[0]) / (PORCH[1] - PORCH[0])))); u.z = gz; u.bounce = Math.abs(Math.sin(u.beat + s * 2.2)) * 0.16;
-          u.crossed = true;
+          const run = outside(u, s);
+          u.bounce = Math.abs(Math.sin(u.beat + s * 2.2)) * 0.16;
+          if (run > OUTSIDE_MAX) u.dying = 1e-6;   // far down the path: it puffs away
         }
       }
       const said = [];
@@ -150,7 +175,10 @@ export function makeStampede(geo, seed = 1) {
       return said;
     },
     get over() { return t > crossAt + AFTER + 0.2; },
-    hide() { for (const u of runners) u.on = false; },
+    // the front door has shut: every Sadie still about puffs away (and none is left once they've all finished)
+    vanishAll() { for (const u of runners) if (u.on && !u.dying) u.dying = 1e-6; },
+    get left() { return runners.some(u => u.on); },
+    hide() { for (const u of runners) { u.on = false; u.dying = 0; u.pop = 0; } },
   };
   return S;
 }

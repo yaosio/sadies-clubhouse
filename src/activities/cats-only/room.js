@@ -8,10 +8,12 @@
 // clubhouse. The room puts the button and the herd into the hall (m.hall) and the garden
 // (m.hall.front.outside), and takes them out again when it's put away. How the herd runs is in
 // herd.js, in plain numbers.
-import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, CylinderGeometry } from 'three';
+import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, CylinderGeometry, InstancedMesh, Object3D } from 'three';
 import { soundsFor } from '../../shared/sound.js';
 import { makeSounds } from './sounds/index.js';
 import { COUNT, makeStampede, across, SPAWN } from './herd.js';
+
+const SPARKS = 3;                         // little sparkles that fly off each Sadie as she puffs away
 
 const RW = 0.85, RD = 0.85, H = 2.6;     // the room: half its width and depth, and its height (a closet)
 const BED = { x: 0, z: -0.28, r: 0.32 }; // the cat bed in the back
@@ -47,17 +49,31 @@ export async function buildRoom(m) {
   });
   const panel = new Group(); panel.position.set(ld.pos.x, Y, ld.pos.z); panel.rotation.y = ld.yaw;   // (local +x runs along the wall, +z out into the hall)
   const at = (geo, mat, x, y, z, rx = 0) => { const o = new Mesh(keep(geo), mat); o.position.set(x, y, z); o.rotation.x = rx; panel.add(o); return o; };
-  const SX = -1.2, SY = 1.3;                                       // where the sign is, along the wall from the door and up
-  at(new PlaneGeometry(0.5, 0.31), psx(sign, { unlit: 0.25, decal: true }), SX, SY, 0.05);
-  at(new CylinderGeometry(0.1, 0.1, 0.03, 12), psx(null, { tint: 0x601010 }), SX, SY - 0.04, 0.065, Math.PI / 2);   // the red button's rim
-  const knob = at(new CylinderGeometry(0.075, 0.075, 0.06, 12), psx(null, { tint: 0xff2020, unlit: 0.4 }), SX, SY - 0.04, 0.1, Math.PI / 2);
+  const SX = -1.2, SY = 1.2;                                       // where the button is, along the wall from the door and up; the sign is over it
+  at(new PlaneGeometry(0.5, 0.31), psx(sign, { unlit: 0.25, decal: true }), SX, SY + 0.3, 0.05);
+  at(new PlaneGeometry(0.3, 0.3), psx(null, { tint: 0x403030, decal: true }), SX, SY, 0.04);   // a plate behind the button
+  at(new CylinderGeometry(0.1, 0.1, 0.03, 12), psx(null, { tint: 0x601010 }), SX, SY, 0.065, Math.PI / 2);   // the red button's rim
+  const knob = at(new CylinderGeometry(0.075, 0.075, 0.06, 12), psx(null, { tint: 0xff2020, unlit: 0.4 }), SX, SY, 0.1, Math.PI / 2);
   panel.updateMatrix();
-  const buttonAt = new Vector3(SX, SY - 0.04, 0.2).applyMatrix4(panel.matrix);
+  const buttonAt = new Vector3(SX, SY, 0.2).applyMatrix4(panel.matrix);
 
-  // ---------- the herd: one flat Sadie per runner, all sharing one picture ----------
-  const sadieGeo = keep(new PlaneGeometry(1, 47 / 58, 1, 1).translate(0, 47 / 116, 0)), sadieMat = psx(T.sadie, { unlit: 0.4 });
-  const hallHerd = new Group(), gardenHerd = new Group();
-  const sprites = Array.from({ length: COUNT }, () => { const s = new Mesh(sadieGeo, sadieMat); s.visible = false; hallHerd.add(s); return s; });
+  // ---------- the herd: flat Sadies, all drawn as one instanced picture in the hall and one in the garden ----------
+  // (psx's vertex shader reads only the mesh's own matrix; this makes it read each instance's too)
+  const instanced = mat => {
+    mat.vertexShader = mat.vertexShader.replace('void main(){', 'void main(){ mat4 mm = modelMatrix;\n#ifdef USE_INSTANCING\n mm = modelMatrix * instanceMatrix;\n#endif')
+      .replace('modelMatrix * vec4(position, 1.0)', 'mm * vec4(position, 1.0)').replace('mat3(modelMatrix)', 'mat3(mm)');
+    return mat;
+  };
+  const sadieGeo = keep(new PlaneGeometry(1, 47 / 58, 1, 1).translate(0, 47 / 116, 0)), sadieMat = instanced(psx(T.sadie, { unlit: 0.4 }));
+  const sparkGeo = keep(new PlaneGeometry(1, 1)), sparkTex = tex(8, 8, g => {   // a little four-pointed twinkle
+    g.fillStyle = '#fff4a8'; g.fillRect(3, 0, 2, 8); g.fillRect(0, 3, 8, 2); g.fillStyle = '#ffffff'; g.fillRect(2, 2, 4, 4);
+  }), sparkMat = instanced(psx(sparkTex, { unlit: 1 }));
+  const flock = () => {   // one picture of Sadies and one of sparkles, for one place
+    const g = new Group(), body = new InstancedMesh(sadieGeo, sadieMat, COUNT), sparks = new InstancedMesh(sparkGeo, sparkMat, COUNT * SPARKS);
+    for (const o of [body, sparks]) { o.frustumCulled = false; o.count = 0; g.add(o); }
+    return { group: g, body, sparks };
+  };
+  const hallHerd = flock(), gardenHerd = flock();
   const D = hall.front, roomDoor = { x: 0, z: RD, yaw: Math.PI };
   const geo = () => ({ shape: hall.shape, door: { x: ld.pos.x, y: ld.pos.y, z: ld.pos.z, nx: ld.normal.x, nz: ld.normal.z }, front: D.in, out: D.out });
 
@@ -73,9 +89,10 @@ export async function buildRoom(m) {
 
   // ---------- the button and the stampede ----------
   let armed = m.saves.get('armed', false) === true;   // pressed, and the door not yet opened
-  let phase = 'idle';      // idle | slam (the door's shut for a moment) | opening | pour (running) | drain (waiting for the front door to shut)
+  let phase = 'idle';      // idle | slam (the door's shut for a moment) | opening | pour (running) | drain (waiting for the front door to shut) | puff (vanishing)
   let slam = 0, wait = 0, stamp = null, letGoFront = null;
   const saveArmed = () => m.saves.set('armed', armed);
+  const herd = () => stamp ||= makeStampede(geo(), Math.floor(Math.random() * 1e6) + 1);   // (while you wait, the whole pile sits behind the door)
   function snap() { sound ||= makeSounds(sfx); knob.position.z = armed ? 0.075 : 0.1; }
   function press() {
     if (phase !== 'idle') return;                                    // (mid-stampede: nothing more to press)
@@ -86,38 +103,47 @@ export async function buildRoom(m) {
   }
   function fire() {
     armed = false; saveArmed(); knob.position.z = 0.1;
-    stamp = makeStampede(geo(), Math.floor(Math.random() * 1e6) + 1);
-    for (const s of sprites) { s.visible = false; if (s.parent !== hallHerd) hallHerd.add(s); }
+    herd().start();
     letGoFront = D.hold();   // the front door swings open for them
     place.holding = door; place.shut = null; phase = 'pour';
     sound ||= makeSounds(sfx);
+    const e = m.ears();   // the sound of them all piling out of the little room
+    if (hall.is(e.place)) sound.pile({ x: ld.pos.x, y: ld.pos.y + 1, z: ld.pos.z }); else if (e.place === place) sound.pile(undefined, 3);
   }
   function finish() {
-    stamp?.hide(); for (const s of sprites) s.visible = false;
+    stamp?.hide(); draw(); stamp = null;
     letGoFront?.(); letGoFront = null; place.holding = null; place.shut = null;
-    stamp = null; phase = 'idle'; wait = 0;
+    phase = 'idle'; wait = 0;
   }
   const use = {
     pos: buttonAt, reach: 2.8, button: 'PRESS',
     get label() { return armed ? 'PRESSED. NOW OPEN THE DOOR' : 'DO NOT PRESS'; },
     act: press,
   };
-  const outOfPlaces = [hall.add(panel, hallHerd), hall.use(use), D.outside.add(gardenHerd)];   // (how to take them out again)
+  const outOfPlaces = [hall.add(panel, hallHerd.group), hall.use(use), D.outside.add(gardenHerd.group)];   // (how to take them out again)
 
-  const face = (s, eye, x, z) => { if (eye) s.rotation.y = Math.atan2(eye[0] - x, eye[1] - z); };
+  const dummy = new Object3D();
+  const put = (mesh, i, x, y, z, yaw, sx, sy, roll = 0) => {
+    dummy.position.set(x, y, z); dummy.rotation.set(0, yaw, roll, 'YXZ'); dummy.scale.set(sx, sy, 1); dummy.updateMatrix(); mesh.setMatrixAt(i, dummy.matrix);
+  };
   function draw() {
-    if (!stamp) return;
-    const eye = eyes();
-    stamp.runners.forEach((u, i) => {
-      const s = sprites[i];
-      if (s.visible !== u.on) s.visible = u.on;
-      if (!u.on) return;
-      const home = u.where === 'garden' ? gardenHerd : hallHerd;
-      if (s.parent !== home) home.add(s);
-      s.position.set(u.x, u.y + u.bounce, u.z);
-      s.scale.set(u.size, u.size * (1 - u.bounce * 0.5), 1);
-      face(s, eye && eye[u.where === 'garden' ? 'garden' : 'hall'], u.x, u.z);
-    });
+    const eye = eyes(), n = { hall: 0, garden: 0, hallSparks: 0, gardenSparks: 0 };
+    if (stamp) for (const u of stamp.runners) {
+      if (!u.on) continue;
+      const g = u.where === 'garden' ? 'garden' : 'hall', flk = g === 'garden' ? gardenHerd : hallHerd, e = eye && eye[g];
+      const yaw = e ? Math.atan2(e[0] - u.x, e[1] - u.z) : 0, p = u.pop;
+      // a Sadie that's vanishing swells a little, spins and shrinks to nothing as she floats up, in a shower of sparkles
+      const k = p === 0 ? 1 : p < 0.25 ? 1 + p * 2 : 1.5 * (1 - (p - 0.25) / 0.75), sz = u.size * k;
+      put(flk.body, n[g]++, u.x, u.y + u.bounce + p * 0.5, u.z, yaw, sz, sz * (1 - u.bounce * 0.5), p * 2.5);
+      if (p > 0) for (let j = 0; j < SPARKS; j++) {
+        const a = u.beat + j * 2.1, r = p * (0.5 + 0.25 * j), c = Math.cos(yaw), s = Math.sin(yaw), side = Math.cos(a) * r;
+        put(flk.sparks, n[g + 'Sparks']++, u.x + c * side, u.y + 0.3 + p * 0.5 + Math.sin(a) * r, u.z - s * side, yaw, (1 - p) * 0.28 * (0.6 + 0.4 * Math.sin(p * 40 + j)), (1 - p) * 0.28);
+      }
+    }
+    for (const [flk, g] of [[hallHerd, 'hall'], [gardenHerd, 'garden']]) {
+      flk.body.count = n[g]; flk.sparks.count = n[g + 'Sparks'];
+      flk.body.instanceMatrix.needsUpdate = flk.sparks.instanceMatrix.needsUpdate = true;
+    }
   }
 
   const place = {
@@ -135,20 +161,24 @@ export async function buildRoom(m) {
     },
     update(t, dt = 0) {
       dt = Math.min(dt, 0.1);   // (a slow frame never makes the herd leap)
-      if (phase === 'idle') { if (armed && ld.open() > SPEAK) fire(); }
-      else if (phase === 'slam') { if ((slam -= dt) <= 0) { place.shut = null; place.holding = door; phase = 'opening'; wait = 0; } }
-      else if (phase === 'opening') { if (ld.open() > SPEAK || (wait += dt) > 2) fire(); }   // (never stuck waiting for a door)
-      else if (phase === 'pour' || phase === 'drain') {
+      if (phase === 'idle') {
+        if (armed) { herd().step(dt); if (ld.open() > SPEAK) fire(); }   // (the pile fidgets behind the door, and you see it as the door swings open)
+        else if (stamp) finish();
+      }
+      else if (phase === 'slam') { herd().step(dt); if ((slam -= dt) <= 0) { place.shut = null; place.holding = door; phase = 'opening'; wait = 0; } }
+      else if (phase === 'opening') { herd().step(dt); if (ld.open() > SPEAK || (wait += dt) > 2) fire(); }   // (never stuck waiting for a door)
+      else {
         for (const w of stamp.step(dt)) {
           const u = stamp.runners[w.who], e = m.ears();
           if (!u.on || u.where !== 'hall') continue;
           sound ||= makeSounds(sfx);
-          if (hall.is(e.place)) sound.meow(w.variant, { x: u.x, y: u.y + 0.4, z: u.z }); else if (e.place === place) sound.meow(w.variant, undefined, 4);
+          if (hall.is(e.place)) sound.meow(w.variant, w.pitch, { x: u.x, y: u.y + 0.4, z: u.z }); else if (e.place === place) sound.meow(w.variant, w.pitch, undefined, 4);
         }
-        if (stamp.t > SPAWN + 0.4) place.holding = null;
+        if (phase !== 'puff' && stamp.t > SPAWN + 0.4) place.holding = null;
         if (phase === 'pour' && stamp.t >= stamp.holdFor) { letGoFront?.(); letGoFront = null; phase = 'drain'; }
-        // gone once the front door has shut behind them (or, if you're standing in its way and it can't, a few seconds on: they've long since run off)
-        else if (phase === 'drain' && stamp.over && (D.open() < 0.1 || stamp.t > stamp.holdFor + 4)) finish();
+        // once the front door has shut behind them (or, if you're standing in its way and it can't, a few seconds on: they've long since run off) they puff away
+        else if (phase === 'drain' && stamp.over && (D.open() < 0.1 || stamp.t > stamp.holdFor + 4)) { stamp.vanishAll(); phase = 'puff'; }
+        else if (phase === 'puff' && !stamp.left) finish();
       }
       draw();
     },
