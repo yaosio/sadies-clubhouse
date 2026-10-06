@@ -22,8 +22,12 @@ anything is drawn. What it should look like: `docs/clubhouse/look/README.md`.
   the nudge is big enough to draw them over what's in front, and a phone's depth is too coarse to
   keep even 15 cm between a window and its wall. So the outside windows are painted into their
   walls' pictures (`painted()` in `outside.js`).
-- A doorway's see-through box sits a hair above any ground that runs on under it, or the ground
-  shows through.
+- A doorway's see-through box wins by a few depth steps over any floor or ground that runs on
+  under it (`doorwayMat`'s polygon offset, units only: its sides are seen nearly edge on, so no slope
+  part), or the ground shows through and fights it.
+- The door frame's posts and top start at the wall's face and stand out from it, never back into the
+  see-through box: their inner faces would lie exactly on the box's sides and fight with it along
+  the doorway's edges. `tools/clubhouse/audit-doors.mjs` lists anything flat sitting on a box face.
 
 ## Nothing jumps at a doorway
 Nothing flickers as you go through a doorway, and nothing jumps (the owner saw even a few

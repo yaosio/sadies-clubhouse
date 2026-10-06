@@ -91,6 +91,9 @@ export function doorwayMat(picture) {
     fragmentShader: `uniform sampler2D pic; uniform vec2 uRes; uniform float uOn;
       void main(){ gl_FragColor = uOn > 0.5 ? texture2D(pic, gl_FragCoord.xy / uRes) : vec4(0.04, 0.02, 0.1, 1.0); }`,
     side: BackSide,
+    // (a floor or ground that runs on under the doorway sits exactly on the box's bottom: the box wins
+    // by a few depth steps, so the two never fight. Not by slope: its sides are seen nearly edge on)
+    polygonOffset: true, polygonOffsetFactor: 0, polygonOffsetUnits: -8,
   }));
 }
 

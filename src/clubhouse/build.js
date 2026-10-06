@@ -69,7 +69,7 @@ export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xff
   see.position.set(0, h / 2, -D / 2); group.add(see);
   const trimMat = psx(null, { tint: trim });
   for (const [bw, bh, x, y] of [[0.12, h + 0.12, -w / 2 - 0.06, h / 2], [0.12, h + 0.12, w / 2 + 0.06, h / 2], [w + 0.24, 0.12, 0, h + 0.06]]) {
-    const b = new Mesh(keep(new BoxGeometry(bw, bh, 0.1)), trimMat); b.position.set(x, y, 0.02); group.add(b);
+    const b = new Mesh(keep(new BoxGeometry(bw, bh, 0.07)), trimMat); b.position.set(x, y, 0.035); group.add(b);   // (from the wall's face out: never into the see-through box, whose sides it would share)
   }
   const hinges = [], fronts = [];
   const lw = leaves.length === 1 ? w : w / 2;
