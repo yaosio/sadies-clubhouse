@@ -83,6 +83,7 @@ export default async function ({ browser, page, check, outDir }) {
     await rest(120);
     s = await C();
     check(`${device}: pressing the button with the door open slams it shut`, s.phase === 'slam' && s.doorOpen < 0.95 && s.armed, `${s.phase}, door ${s.doorOpen.toFixed(2)}`);
+    check(`${device}: (and no Sadie shows in the closet until its door has shut)`, !s.piled || s.doorOpen < 0.05, `piled ${s.piled}, door ${s.doorOpen.toFixed(2)}`);
     await until(() => window.__catsOnly.state().phase === 'pour', null, 4000);
     s = await C();
     check(`${device}: ...and it flies open again with the herd`, s.phase === 'pour' && s.doorOpen > 0.4, `${s.phase}, door ${s.doorOpen.toFixed(2)}`);

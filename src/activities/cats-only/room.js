@@ -10,7 +10,7 @@
 // herd.js, in plain numbers.
 import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, CylinderGeometry, InstancedMesh, Object3D } from 'three';
 import { soundsFor } from '../../shared/sound.js';
-import { makeSounds } from './sounds/index.js';
+import { makeSounds, warm } from './sounds/index.js';
 import { COUNT, makeStampede, across, SPAWN } from './herd.js';
 
 const SPARKS = 3;                         // little sparkles that fly off each Sadie as she puffs away
@@ -90,25 +90,32 @@ export async function buildRoom(m) {
   // ---------- the button and the stampede ----------
   let armed = m.saves.get('armed', false) === true;   // pressed, and the door not yet opened
   let phase = 'idle';      // idle | slam (the door's shut for a moment) | opening | pour (running) | drain (waiting for the front door to shut) | puff (vanishing)
-  let slam = 0, wait = 0, stamp = null, letGoFront = null;
+  let slam = 0, wait = 0, stamp = null, letGoFront = null, piled = false;   // piled: the Sadies are in the closet (only once its door has shut)
   const saveArmed = () => m.saves.set('armed', armed);
   const herd = () => stamp ||= makeStampede(geo(), Math.floor(Math.random() * 1e6) + 1);   // (while you wait, the whole pile sits behind the door)
   function snap() { sound ||= makeSounds(sfx); knob.position.z = armed ? 0.075 : 0.1; }
   function press() {
     if (phase !== 'idle') return;                                    // (mid-stampede: nothing more to press)
-    snap(); sound.press();
+    snap(); sound.press(); setTimeout(warm, 60);   // (the big sounds get made now, while you wait for the door)
     if (!armed) { armed = true; saveArmed(); knob.position.z = 0.075; }
     // the door's open (you opened it first, to look): it slams shut, then flies open again with them
     if (ld.open() > 0.3) { phase = 'slam'; slam = SLAM; place.shut = door; }
   }
+  // The Sadies only appear in the closet once its door has shut (never in front of your eyes with it open)
+  function waiting(dt) {
+    if (!piled && ld.open() < 0.03) piled = true;
+    if (piled) herd().step(dt); else if (stamp) stamp.hide();
+  }
   function fire() {
+    piled = false;
     armed = false; saveArmed(); knob.position.z = 0.1;
     herd().start();
     letGoFront = D.hold();   // the front door swings open for them
     place.holding = door; place.shut = null; phase = 'pour';
     sound ||= makeSounds(sfx);
     const e = m.ears();   // the sound of them all piling out of the little room
-    if (hall.is(e.place)) sound.pile({ x: ld.pos.x, y: ld.pos.y + 1, z: ld.pos.z }); else if (e.place === place) sound.pile(undefined, 3);
+    const there = { x: ld.pos.x, y: ld.pos.y + 1, z: ld.pos.z };
+    if (hall.is(e.place)) { sound.pile(there); sound.crowd(there); } else if (e.place === place) { sound.pile(undefined, 3); sound.crowd(undefined, 3); } else if (D.outside.is(e.place)) sound.crowd(undefined, 9);
   }
   function finish() {
     stamp?.hide(); draw(); stamp = null;
@@ -162,11 +169,11 @@ export async function buildRoom(m) {
     update(t, dt = 0) {
       dt = Math.min(dt, 0.1);   // (a slow frame never makes the herd leap)
       if (phase === 'idle') {
-        if (armed) { herd().step(dt); if (ld.open() > SPEAK) fire(); }   // (the pile fidgets behind the door, and you see it as the door swings open)
-        else if (stamp) finish();
+        if (armed) { waiting(dt); if (piled && ld.open() > SPEAK) fire(); }   // (the pile fidgets behind the door, and you see it as the door swings open)
+        else { piled = false; if (stamp) finish(); }
       }
-      else if (phase === 'slam') { herd().step(dt); if ((slam -= dt) <= 0) { place.shut = null; place.holding = door; phase = 'opening'; wait = 0; } }
-      else if (phase === 'opening') { herd().step(dt); if (ld.open() > SPEAK || (wait += dt) > 2) fire(); }   // (never stuck waiting for a door)
+      else if (phase === 'slam') { waiting(dt); if ((slam -= dt) <= 0) { piled = true; place.shut = null; place.holding = door; phase = 'opening'; wait = 0; } }
+      else if (phase === 'opening') { waiting(dt); if (ld.open() > SPEAK || (wait += dt) > 2) fire(); }   // (never stuck waiting for a door)
       else {
         for (const w of stamp.step(dt)) {
           const u = stamp.runners[w.who], e = m.ears();
@@ -184,7 +191,7 @@ export async function buildRoom(m) {
     },
   };
   m.checks?.('__catsOnly', {
-    state: () => ({ armed, phase, t: stamp?.t ?? 0, on: stamp ? stamp.runners.filter(u => u.on).length : 0, garden: stamp ? stamp.runners.filter(u => u.on && u.where === 'garden').length : 0,
+    state: () => ({ armed, phase, piled, t: stamp?.t ?? 0, on: stamp ? stamp.runners.filter(u => u.on).length : 0, garden: stamp ? stamp.runners.filter(u => u.on && u.where === 'garden').length : 0,
       frontHeld: !!letGoFront, frontOpen: D.open(), doorOpen: ld.open(), meows: { ...sfx.counts } }),
     press, go: () => { if (phase === 'idle') fire(); }, button: () => ({ x: buttonAt.x, y: buttonAt.y, z: buttonAt.z, label: use.label }),
   });

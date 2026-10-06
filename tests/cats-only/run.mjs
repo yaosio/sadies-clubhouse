@@ -6,7 +6,7 @@
 //   node tests/cats-only/run.mjs
 import card from '../../src/activities/cats-only/card.js';
 import { COUNT, SPAWN, RUN, AFTER, LONGEST, MEOWS, MEOW_GAP, MEOW_TYPES, MEOW_PITCHES, POP, OUTSIDE_MAX, makeStampede, route, lengths, along, across } from '../../src/activities/cats-only/herd.js';
-import { meow, press, pile, TYPES, PITCHES, LOUD } from '../../src/activities/cats-only/sounds/meow.js';
+import { meow, press, pile, chorus, TYPES, PITCHES, LOUD, SR } from '../../src/activities/cats-only/sounds/meow.js';
 import { RATE } from '../../src/shared/retro.js';
 import { checker } from '../shared/check.mjs';
 
@@ -69,7 +69,7 @@ for (const seed of [1, 2, 3, 7, 99]) {
       && new Set(T.meows.map(m => m.who)).size === T.meows.length && said.length === T.meows.length && T.meows.every(m => m.variant < MEOW_TYPES && m.pitch < MEOW_PITCHES) && new Set(T.meows.map(m => m.variant)).size === MEOW_TYPES && new Set(T.meows.map(m => m.pitch)).size === MEOW_PITCHES)) { all = false; why += ` [meows: ${T.meows.length}]`; }
     { const P = makeStampede(geo, seed); P.step(0.05);   // the pile: all of them in the little room, up to the ceiling, before anything is let go
       const hs = P.runners.map(u => u.pile[1] - geo.door.y);
-      if (!(P.runners.every(u => u.on && u.where === 'hall') && Math.max(...hs) > 1.7 && Math.min(...hs) >= 0 && Math.max(...hs) < 2.1 && P.runners.every(u => Math.abs(u.pile[2] - geo.door.z) < 1.7 && Math.abs(u.pile[0] - geo.door.x) < 0.8))) { all = false; why += ' [pile]'; }
+      if (!(P.runners.every(u => u.on && u.where === 'hall') && Math.max(...hs) > 1.7 && Math.min(...hs) >= 0 && Math.max(...hs) < 2.1 && P.runners.every(u => Math.abs(u.pile[2] - geo.door.z) < 1.3 && Math.abs(u.pile[2] - geo.door.z) > 0.5 && Math.abs(u.pile[0] - geo.door.x) < 0.45))) { all = false; why += ' [pile]'; }
       // the end: every one still about puffs away over POP s, and none is left
       const E = makeStampede(geo, seed); E.start(); let st = 0; while (!E.over && st++ < 3000) E.step(dt);
       E.vanishAll(); const popping = E.runners.filter(u => u.on).every(u => u.dying > 0); let k = 0; while (E.left && k++ < 400) E.step(dt);
@@ -91,9 +91,11 @@ check(`the whole stampede takes at most ${LONGEST.toFixed(1)} s, door opening to
 // 7. the voices: eight different kinds of cat noise at six pitches, short, never loud, never clipped; the pile-up rush; the button one quiet thump
 const meows = Array.from({ length: TYPES }, (_, i) => meow(i));
 const peak = a => a.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
-check('eight different meows, each under a second and a half even at the lowest pitch, none clipped', TYPES === MEOW_TYPES && PITCHES.length === MEOW_PITCHES && meows.every(a => a.length / RATE / Math.min(...PITCHES) < 1.6 && peak(a) <= 1 && peak(a) > 0.1) && new Set(meows.map(a => a.length + ':' + a[2000])).size === TYPES);
+check('eight different meows, each under a second and a half even at the lowest pitch, none clipped', TYPES === MEOW_TYPES && PITCHES.length === MEOW_PITCHES && meows.every(a => a.length / SR / Math.min(...PITCHES) < 1.6 && peak(a) <= 1 && peak(a) > 0.1) && new Set(meows.map(a => a.length + ':' + a[2000])).size === TYPES);
 check('the pitches spread wide (a kitten to a tom), none the same', PITCHES.every((p, i) => i === 0 || p > PITCHES[i - 1]) && PITCHES[PITCHES.length - 1] / PITCHES[0] > 2);
-check('they sit well below full volume (the game plays them at under a third)', LOUD.meow <= 0.3 && LOUD.press <= 0.35 && LOUD.pile <= 0.5);
+check('none is at full volume (the owner asked for this one to be loud, but it stays under 60%)', LOUD.meow <= 0.4 && LOUD.press <= 0.35 && LOUD.pile <= 0.5 && LOUD.crowd <= 0.6);
+const crowd = chorus();
+check('the crowd of cats is one sound of about ten seconds, not clipped, fading in and out (nothing loops)', crowd.length / SR > 9 && crowd.length / SR < 12 && peak(crowd) <= 1 && peak(crowd) > 0.3 && Math.abs(crowd[0]) < 0.05 && Math.abs(crowd[crowd.length - 1]) < 0.05);
 const rush = pile();
 check('the pile-out rush is one soft sound of a couple of seconds, not clipped', rush.length / RATE > 1.5 && rush.length / RATE < 3.5 && peak(rush) <= 1 && peak(rush) > 0.1);
 check('the button\'s sound is one short soft thump', press().length / RATE < 0.3 && peak(press()) <= 1);

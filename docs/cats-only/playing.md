@@ -24,8 +24,11 @@ What you'll see and do. Read before changing how it plays. The numbers are in `n
   on down the garden path.
 - Once the front door has shut every Sadie still about puffs away in a shower of sparkles (if you're
   standing in its way and it can't shut, they puff away a few seconds later anyway).
-- Lots of them meow, softly, in eight kinds of meow at six pitches, over each other: a caterwaul
+- Lots of them meow, loudly and all over each other, in eight kinds of meow at six pitches, with a
+  recording of a whole crowd of yowling cats under it: it sounds like being in a room with 180 cats
   (`numbers.md` says how many).
+- The Sadies only appear in the closet once its door has shut: press the button with the door open
+  and it slams first, and they're there when it flies open.
 - If you press the button while the door's already open (you opened it first to look): it slams shut,
   and flies open again with the herd.
 - They never push you or block you. They're flat pictures that run through everything; you keep

@@ -21,7 +21,7 @@ and being put away. Read before changing the code. Its checks are in `checks.md`
   (`makeStampede`: when each one sets off, how fast it goes, where it is at any moment), who meows
   and when, and `across`: where a spot in one doorway comes out in another's place (the clubhouse's
   own doorway sum).
-- **`sounds/`**: `meow.js` makes the eight kinds of meow (the sound system plays each at one of six pitches), the rush of them piling out and the button's thump; `index.js` names them and says
+- **`sounds/`**: `meow.js` makes the eight kinds of meow (made like a real cat's, the sound system plays each at one of six pitches), the crowd of ninety yowling for ten seconds, the rush of them piling out and the button's thump; `index.js` names them and says
   how loud; the clubhouse's sound system plays them (`docs/clubhouse/sound/system.md`).
 - **`door.js`**: the door picture, drawn by `art/cats-only/door.js` (`node tools/cats-only/pictures.mjs`).
 

@@ -102,10 +102,10 @@ export function makeStampede(geo, seed = 1) {
   const d = geo.door, side = [d.nz, -d.nx];
   for (let i = 0; i < COUNT; i++) {
     // where it sits in the pile in the closet: right up to the ceiling (behind the doorway, in the doorway's own terms)
-    const depth = 0.15 + r() * 1.3, lat = (r() - 0.5) * 1.3, high = r() * 1.95;
+    const depth = 0.62 + r() * 0.65, lat = (r() - 0.5) * 0.8, high = r() * 1.95;   // (kept off the door and the walls: a Sadie is up to 0.9 m wide and turns to face you)
     const pile = [d.x - d.nx * depth + side[0] * lat, d.y + high, d.z - d.nz * depth + side[1] * lat];
     // the front of the pile goes first: an avalanche, the back of the pile tumbling out after
-    const delay = SPAWN * Math.pow(Math.min(1, ((depth - 0.15) / 1.3) * 0.85 + r() * 0.15), 1.5);   // (a hard rush at first, the back of the pile trailing)
+    const delay = SPAWN * Math.pow(Math.min(1, ((depth - 0.62) / 0.65) * 0.85 + r() * 0.15), 1.5);   // (a hard rush at first, the back of the pile trailing)
     const pts = route(geo, r() < 0.65 ? 'stairs' : 'jump', r(), r(), r());
     pts.unshift([pile[0], pile[1], pile[2], 0]);   // (it tumbles down from where it was sitting)
     const cum = lengths(pts), len = cum[cum.length - 1];
