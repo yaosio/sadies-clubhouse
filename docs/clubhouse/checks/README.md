@@ -22,6 +22,7 @@ runs only what differs from `main`.
   still load.
 - `runner.md`: read when changing `tools/check.mjs` (what's skipped when, the flags) or
   `.github/workflows/check.yml` (GitHub's plan and remember: on pull requests, main and nightly).
+- `pages.md`: read when changing the GitHub Pages publish (`.github/workflows/pages.yml`).
 - `safari.md`: read when changing the look at the game in Safari's engine (WebKit).
 - `tools.md`: read when changing the build, the publishing tools, the docs checker or the code
   checker's rules.
