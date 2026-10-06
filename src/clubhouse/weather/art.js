@@ -11,7 +11,7 @@ function dith(g, a, b, x, y, w, h, amt) {
 }
 function disc(g, c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) rect(g, c, cx + x, cy + y); }
 
-export function drawWeatherArt() {
+export function drawWeatherArt(sadie) {
   const A = {};
   // the sky: cloud cover (tinted to each weather's colour), and snow lying on the ground
   A.cover = tex(32, 32, g => {
@@ -55,18 +55,15 @@ export function drawWeatherArt() {
     tex(6, 6, g => { rect(g, C.white, 0, 0, 5, 6); rect(g, C.grey, 1, 1, 3, 1); rect(g, C.grey, 1, 3, 3, 1); }),
     tex(8, 3, g => { rect(g, C.tan3, 0, 0, 8, 3); rect(g, C.tan2, 1, 1, 6, 1); rect(g, C.ink, 7, 1); }),
   ];
-  A.rider = tex(32, 16, g => {
-    // the tuna: a blue-grey torpedo with a pale belly, yellow finlets and a forked tail
-    rect(g, C.ink, 4, 7, 22, 8); rect(g, C.ink, 7, 6, 15, 10); rect(g, C.ink, 26, 9, 3, 4);
-    rect(g, C.tarp2, 5, 8, 20, 4); rect(g, C.tarp, 8, 7, 13, 2); rect(g, '#d8e8f8', 6, 12, 18, 2);
-    rect(g, C.gold, 12, 14, 1, 1); rect(g, C.gold, 15, 14, 1, 1); rect(g, C.gold, 18, 14, 1, 1);
-    rect(g, C.ink, 0, 5, 4, 3); rect(g, C.ink, 0, 13, 4, 3); rect(g, C.ink, 3, 8, 3, 6); rect(g, C.tarp2, 1, 6, 3, 1); rect(g, C.tarp2, 1, 14, 3, 1);
-    rect(g, C.white, 24, 9); rect(g, C.ink, 25, 9);
-    // Sadie on top, hanging on (ears flat, tail streaming behind)
-    rect(g, C.ink, 14, 1, 8, 7); rect(g, '#6a5a8a', 15, 2, 6, 5);
-    rect(g, C.ink, 14, 0, 2, 2); rect(g, C.ink, 20, 0, 2, 2); rect(g, C.pink, 17, 5, 2, 1);
-    rect(g, C.white, 16, 3); rect(g, C.white, 20, 3); rect(g, C.ink, 16, 4); rect(g, C.ink, 20, 4);
-    rect(g, C.ink, 6, 3, 8, 2); rect(g, '#6a5a8a', 7, 3, 6, 1); rect(g, C.ink, 4, 1, 3, 2);
+  A.rider = tex(80, 54, g => {
+    // the tuna, lengthways along the bottom: a blue-grey torpedo with a pale belly, yellow finlets and a forked tail
+    rect(g, C.ink, 10, 38, 56, 15); rect(g, C.ink, 18, 36, 38, 19); rect(g, C.ink, 66, 42, 8, 8);
+    rect(g, C.tarp2, 12, 40, 52, 8); rect(g, C.tarp, 20, 38, 34, 4); rect(g, '#d8e8f8', 14, 48, 48, 4);
+    for (const x of [28, 36, 44, 52]) { rect(g, C.gold, x, 52, 3, 2); rect(g, C.gold, x, 36, 3, 2); }
+    rect(g, C.ink, 0, 32, 10, 8); rect(g, C.ink, 0, 50, 10, 4); rect(g, C.ink, 6, 38, 8, 14); rect(g, C.tarp2, 2, 34, 6, 3); rect(g, C.tarp2, 2, 51, 6, 2);
+    rect(g, C.white, 62, 41, 3, 3); rect(g, C.ink, 63, 42, 2, 2); rect(g, C.pink, 70, 46, 4, 1);
+    // Sadie herself, sitting on top of it (her own picture)
+    if (sadie) g.drawImage(sadie, 12, 0);
   });
 
   // Sadie on the gatepost: a little umbrella, a heap of snow, sunglasses, and what she says

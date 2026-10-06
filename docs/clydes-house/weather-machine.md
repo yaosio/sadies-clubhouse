@@ -36,8 +36,8 @@ wind cups follow the weather whoever changed it. What the weather does (below) i
   dozen at once) fall tumbling from the sky, each one rights itself just before the ground (they
   always land on their feet), sits a moment, and poofs.
 
-- **Tornado:** a sickly green cloud cover, and far off over the hills a tall pale funnel standing under the
-  clouds, swaying slowly, with leaves, paper and planks circling it, and **Sadie flying round it on a
+- **Tornado:** a sickly green cloud cover, and far off over the hills a tall pale funnel under the
+  clouds, wandering slowly all the way round the sky (in and out, a lap every few minutes), with leaves, paper and planks circling it, and **Sadie (her own picture) flying round it on a
   tuna**, up and down. It's only a picture in the distance (nothing to reach, nothing to get stuck
   in), in every place out of doors that has a sky (`twister.js`). The wind cups spin their fastest.
 

@@ -31,7 +31,7 @@ const FIELD = 30, TOP = 16;  // what falls, falls in a box this wide and tall ro
 const LIE = 260, TILE = 2;   // the snow on the ground: this wide, round where it's seen from (a tile at a time)
 
 export function makeWeather(T, outside) {
-  const A = drawWeatherArt();
+  const A = drawWeatherArt(T.sadie.image);
   const twister = makeTwister(A);
   const cloudMat = psx(A.cover, { unlit: 1, rx: 28, ry: 5, side: DoubleSide, fade: 1 });
   const coverTint = cloudMat.uniforms.tint.value;

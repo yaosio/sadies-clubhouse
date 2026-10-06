@@ -1,15 +1,16 @@
 // The tornado, far off in the sky of every place out of doors (the weather's, like the clouds: it
-// shows wherever a place has a `sky`). A tall funnel standing on the far ground, sliding slowly side
-// to side under the cloud cover, bits of leaf, paper and plank circling it, and Sadie riding a tuna
-// round and round it, bobbing up and down. It's only a picture in the distance: nothing to reach,
+// shows wherever a place has a `sky`). A tall funnel standing on the far ground, wandering slowly
+// all round the sky under the cloud cover (in and out, a lap every few minutes), bits of leaf,
+// paper and plank circling it, and Sadie riding a tuna round and round it, bobbing up and down. It's only a picture in the distance: nothing to reach,
 // and no sound of its own (a wind like that would drone: RULEBOOK.md section 4).
 //
-// A place's `sky.twister` ({ x, z }) says where it stands; without it, it stands off at the
-// edge of the sky (for a sky that `follow`s you, that's measured from you, like the cloud cover).
+// A place's `sky.twister` ({ x, z }) says where in the sky it starts; it wanders from there, round
+// the middle of the place (or round you, for a sky that `follow`s you, like the cloud cover).
 import { Mesh, Group, CylinderGeometry, PlaneGeometry, DoubleSide } from 'three';
 import { psx, keep } from '../look.js';
 
 const RINGS = 8;      // the funnel is this many rings stacked up, each a little off the one below
+const RIDER = 80 / 54;   // (the rider picture's shape: Sadie on her tuna)
 const BITS = 26;      // leaves, papers and planks circling it
 const SHAPE = (dome) => ({ h: dome * 0.42, top: dome * 0.06, bottom: dome * 0.007 });
 
@@ -17,7 +18,7 @@ export function makeTwister(A) {
   const funnelMat = psx(A.funnel, { tint: 0xc8d4cc, unlit: 1, side: DoubleSide, rx: 6, ry: 1 });
   const bitMats = A.bits.map(b => psx(b, { unlit: 0.8, side: DoubleSide }));
   const riderMat = psx(A.rider, { unlit: 0.9, side: DoubleSide });
-  const bitGeo = keep(new PlaneGeometry(1, 1)), riderGeo = keep(new PlaneGeometry(2, 1));
+  const bitGeo = keep(new PlaneGeometry(1, 1)), riderGeo = keep(new PlaneGeometry(RIDER, 1));
   const ringGeos = new Map();   // (one set of rings for each size of sky)
   const rings = dome => {
     if (!ringGeos.has(dome)) {
@@ -37,10 +38,10 @@ export function makeTwister(A) {
       m.scale.setScalar(s.h * (0.014 + 0.012 * ((i * 7) % 5) / 4)); body.add(m);
       return { m, k, a: i * 2.4, sp: 0.5 + ((i * 3) % 7) / 7 * 0.6 };
     });
-    const rider = new Mesh(riderGeo, riderMat); rider.scale.setScalar(s.h * 0.09); body.add(rider);
+    const rider = new Mesh(riderGeo, riderMat); rider.scale.setScalar(s.h * 0.22); body.add(rider);
     root.renderOrder = -2.4; for (const o of [...ring, ...bits.map(b => b.m), rider]) o.renderOrder = -2.4;
     place.scene.add(root);
-    return { root, body, ring, bits, rider, s, spot: sky.twister ?? null, last: { x: 0, z: 0 } };
+    return { root, body, ring, bits, rider, s, a0: sky.twister ? Math.atan2(sky.twister.z, sky.twister.x) : 1, ground: 0, last: { x: 0, z: 0 } };
   }
 
   // each frame: `amt` (0 to 1: how much tornado), `at` where the place is seen from (or null)
@@ -51,11 +52,13 @@ export function makeTwister(A) {
     const sky = place.sky, s = d.s;
     if (at) d.last = at;
     const eye = d.last;
-    // where it stands: where the sky says, or off at the edge, and drifting slowly side to side
-    const base = d.spot ?? { x: sky.dome * 0.4, z: sky.dome * 0.6 };
+    // where it stands: wandering round the sky from where the place says it starts, in and out as
+    // it goes (staying inside the hills, in front of the cloud cover's edge)
     const ox = sky.follow ? eye.x : 0, oz = sky.follow ? eye.z : 0;
-    const ground = place.floor?.(base.x + ox, base.z + oz, 0) ?? 0;
-    d.root.position.set(base.x + ox + Math.sin(t * 0.05) * s.h * 0.4, ground ?? 0, base.z + oz + Math.cos(t * 0.04) * s.h * 0.15);
+    const lap = d.a0 + t * 0.02 + Math.sin(t * 0.11) * 0.25, far = sky.dome * (0.62 + 0.22 * Math.sin(t * 0.045 + 1));
+    const x = ox + Math.cos(lap) * far, z = oz + Math.sin(lap) * far;
+    d.ground = place.floor?.(x, z, 0) ?? d.ground;
+    d.root.position.set(x, d.ground, z);
     d.root.scale.setScalar(Math.max(0.01, amt));
     // the funnel: each ring turning, and leaning a little off the ring below
     d.ring.forEach((m, i) => { m.rotation.y = t * (1.2 + i * 0.1); m.position.x = Math.sin(t * 0.7 + i * 0.6) * i * s.h * 0.006; m.position.z = Math.cos(t * 0.5 + i * 0.5) * i * s.h * 0.004; });
