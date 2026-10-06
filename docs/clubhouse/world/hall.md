@@ -7,6 +7,8 @@ hall or giving an activity a door. How the house looks: `docs/clubhouse/look/clu
 - Every wall on both landings can have a door: a card's `slot` is its place in `SLOTS` (the first six
   by the first landing's stairs, taken; then the rest of the first landing; then the second
   landing). The next three free ones are boarded up with SOON on them, the rest are plain wall.
+- The seventh door (first landing) is straight above the front door, and what it lets out runs
+  the length of the hall to get out of it (`docs/cats-only/`).
 - Above the second landing the top's still being built.
 - Walking: the floor under you is worked out per place (`floor(x, z, y)`: the ground, each tread,
   the bridges, the landings). A step is at most half a metre, so the railings and the landings'

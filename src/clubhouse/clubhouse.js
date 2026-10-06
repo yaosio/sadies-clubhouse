@@ -84,7 +84,7 @@ export async function open(cards, enter) {
   const weather = makeWeather(T, outside);
   for (const x of made()) shared.add(x);   // (its things go with no room)
   // what a room is lent of the hall, and a building of the outside (neighbours.js: only what the docs list)
-  const lent = { hall: hallView(hall), outside: outsideView(outside) };
+  const lent = { hall: hallView(hall, outside), outside: outsideView(outside) };
   const took = Math.round(performance.now() - t0);
   const speed = { places: { 'outside and hall': took }, bits: { 'outside and hall': took }, first: 0 };
   // a room per card: `place` once it's built
@@ -757,7 +757,8 @@ export async function open(cards, enter) {
     for (const p of portals) {
       if (!p.b) continue;
       // (or while something in the place on either side holds it open: an escaping yarn ball)
-      const want = opening?.p === p || p.wa.holding === p.a || p.wb.holding === p.b;
+      // (a place can also slam its own door shut for a moment: its `shut`, Cats Only's button)
+      const want = p.wb.shut !== p.b && (opening?.p === p || p.wa.holding === p.a || p.wb.holding === p.b);
       p.open += ((want ? 1 : 0) - p.open) * Math.min(1, dt * 5);
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }

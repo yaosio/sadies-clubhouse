@@ -43,8 +43,8 @@ A room is lent the hall, its landing door and (a building) the outside, never th
 (`src/clubhouse/neighbours.js`). Asking the kit, the hall, the outside or its door for anything this
 page and `docs/clubhouse/outside/buildings.md` don't list is an error on the spot, so the checks fail
 it. Something a room needs from next door is added here first.
-- `landingDoor`: its `pos` and `normal` (which way it faces), and `paint(texture)`, which puts a new
-  picture on its front (an OUT OF ORDER sign).
+- `landingDoor`: its `pos`, `normal` and `yaw` (which way it faces), `open()` (how far open it is, 0 to
+  1), and `paint(texture)`, which puts a new picture on its front (an OUT OF ORDER sign).
 - `hall`:
   - `add(...things)` and `face(...things)` (things that turn to face you) into it, each handing back
     how to take them out again;
@@ -52,6 +52,10 @@ it. Something a room needs from next door is added here first.
   - `shape`: its solid shape, for things bouncing round it;
   - Sadie asleep in her box: `borrowSadie()` hands back how to give her back; she's out of her box
     while anyone has her (`sadieBorrowed()`).
+  - `front`: the front door, for something running out through it (a herd of Sadies, say): `in` and `out`
+    (where it is, `{ x, y, z, yaw }`, seen from the hall and from the garden), `open()` (how far open it
+    is), `hold()` (keeps it open, hands back how to let go: several can hold it at once), and `outside`
+    (the garden beyond it: `add`, `face`, `use` and `is`, to put things into, like the hall's).
   So a game can let something loose in the hall (a ball, and Sadie chasing it): its room's `update`
   moves them, since every place updates every frame.
 - `outside`, `lot` or `ground`, and `house` (a building only): `docs/clubhouse/outside/buildings.md`.

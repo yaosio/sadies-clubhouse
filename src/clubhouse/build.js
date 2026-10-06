@@ -84,8 +84,9 @@ export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xff
   const normal = new Vector3(Math.sin(yaw), 0, Math.cos(yaw));
   const own = fronts.map(f => f.material.uniforms.map.value);
   return {
-    group, see, w, h, yaw, pos: new Vector3(...pos), normal, swing: 1,
+    group, see, w, h, yaw, pos: new Vector3(...pos), normal, swing: 1, amount: 0,   // amount: how far open it is now (0 to 1)
     setOpen(k) {           // 0 shut, 1 open (not quite flat, so the door stays in sight as you go through)
+      this.amount = k;
       for (const [pivot, s] of hinges) pivot.rotation.y = s * this.swing * k * 1.4;
       see.material.uniforms.uOn.value = 0;
     },
