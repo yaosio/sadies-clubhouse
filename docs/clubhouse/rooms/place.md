@@ -23,6 +23,8 @@ Like any room:
   clubhouse reads them every frame (a room can become a whole different place that way, quicker to
   get about and seeing further).
 - `holding`: it holds its door open (the doorway, while something goes out through it).
+- `shut`: it slams its own door shut for a moment (set it to the door, and null again to let it open:
+  a button that slams it, with the door open). It wins over everything that would open it.
 - `watch`: a point everyone in it watches. Your view follows it and you can't walk or look away
   until it's null again (the thumb stick hides meanwhile). A `watch` can also say `at` (`x`, `z`,
   and `y`, where you stand): you're eased there, or put there at once with `snap` (strapping you

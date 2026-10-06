@@ -36,10 +36,20 @@ function lend(place, what, more) {
 
 // The hall: its solid `shape` (for something bouncing round it), and Sadie asleep in her box, lent
 // out (`borrowSadie()` hands back how to give her back): she's out of her box while anyone has her.
-export function hallView(hall) {
-  let out = 0;
+export function hallView(hall, outside) {
+  let out = 0, holders = 0;
+  const fd = hall.doors.front, od = outside.doors.front;
+  const there = d => ({ x: d.pos.x, y: d.pos.y, z: d.pos.z, yaw: d.yaw });
   return lend(hall, 'hall', {
     shape: hall.shape,
+    // The front door, for something running out through it (the Cats Only herd): where it is on
+    // each side (`in`, `out`), how far open it is (`open()`, 0 to 1), `hold()` to keep it open (hands
+    // back how to let go), and `outside`: the garden beyond it, to put things into.
+    front: strict('hall.front', {
+      in: there(fd), out: there(od), open: () => fd.amount,
+      hold() { holders++; hall.holding = fd; let given = false; return () => { if (given) return; given = true; if (--holders === 0) hall.holding = null; }; },
+      outside: lend(outside, 'garden', {}),
+    }),
     borrowSadie() {
       out++; hall.napping.visible = false;
       let given = false;
@@ -57,8 +67,8 @@ export function outsideView(outside) {
   });
 }
 
-// A room's door on the landing: where it is and which way it faces, and `paint(texture)` for a new
-// picture on its front (nothing, for its own back).
+// A room's door on the landing: where it is and which way it faces (`normal`, `yaw`), how far open it
+// is (`open()`, 0 to 1), and `paint(texture)` for a new picture on its front (nothing, for its own back).
 export function doorView(d) {
-  return d ? strict('landingDoor', { pos: d.pos, normal: d.normal, paint: t => d.paint(t) }) : null;
+  return d ? strict('landingDoor', { pos: d.pos, normal: d.normal, yaw: d.yaw, open: () => d.amount, paint: t => d.paint(t) }) : null;
 }
