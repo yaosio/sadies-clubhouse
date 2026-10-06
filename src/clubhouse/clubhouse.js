@@ -859,10 +859,10 @@ export async function open(cards, enter) {
           const n = idx ? idx.count : pos.count;
           for (let t = 0; t < n; t += 3) {
             const a = [0, 1, 2].map(k => loc(idx ? idx.getX(t + k) : t + k));
-            for (const [axis, planes] of [[1, [0, bh]], [0, [-bx, bx]], [2, [-D]]]) {
+            for (const [axis, planes] of [[1, [0.02, bh + 0.01]], [0, [-bx - 0.01, bx + 0.01]], [2, [-D]]]) {
               const v = a.map(q => q[axis]);
               if (Math.max(...v) - Math.min(...v) > 1e-3) continue;   // (flat in this axis)
-              const near = planes.find(pl => Math.abs(v[0] - pl) < 0.02); if (near === undefined) continue;
+              const near = planes.find(pl => Math.abs(v[0] - pl) < 0.019); if (near === undefined) continue;
               // overlaps the box in the other two axes
               const ok = [0, 1, 2].filter(k => k !== axis).every(k => { const lo = Math.min(...a.map(q => q[k])), hi = Math.max(...a.map(q => q[k])); const [bl, bhh] = k === 0 ? [-bx, bx] : k === 1 ? [0, bh] : [-D, 0]; return hi > bl + 1e-3 && lo < bhh - 1e-3; });
               if (!ok) continue;
