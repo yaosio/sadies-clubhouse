@@ -10,9 +10,12 @@ import { Mesh, Group, CylinderGeometry, PlaneGeometry, DoubleSide } from 'three'
 import { psx, keep } from '../look.js';
 
 const RINGS = 8;      // the funnel is this many rings stacked up, each a little off the one below
+// (it all fits inside the cloud dome, which is a half-ball of radius `dome`: at FAR of the way out the
+// dome is 0.53 `dome` high, the funnel 0.3, and Sadie's loop and the bits fit under it too)
+const FAR = 0.85;
 const RIDER = 80 / 54;   // (the rider picture's shape: Sadie on her tuna)
 const BITS = 26;      // leaves, papers and planks circling it
-const SHAPE = (dome) => ({ h: dome * 0.34, top: dome * 0.05, bottom: dome * 0.006 });
+const SHAPE = (dome) => ({ h: dome * 0.3, top: dome * 0.05, bottom: dome * 0.006 });
 
 export function makeTwister(A) {
   const funnelMat = psx(A.funnel, { tint: 0xc8d4cc, unlit: 1, side: DoubleSide, rx: 6, ry: 1 });
@@ -56,7 +59,7 @@ export function makeTwister(A) {
     // cover, wandering slowly all the way round from where the place says it starts (never over
     // the town: only its top shows above the hills)
     const ox = sky.follow ? eye.x : 0, oz = sky.follow ? eye.z : 0;
-    const lap = d.a0 + t * 0.015 + Math.sin(t * 0.11) * 0.2, far = sky.dome * (0.935 + 0.01 * Math.sin(t * 0.045 + 1));
+    const lap = d.a0 + t * 0.015 + Math.sin(t * 0.11) * 0.2, far = sky.dome * FAR;
     const x = ox + Math.cos(lap) * far, z = oz + Math.sin(lap) * far;
     d.root.position.set(x, 0, z);
     d.root.scale.setScalar(Math.max(0.01, amt));
@@ -70,7 +73,7 @@ export function makeTwister(A) {
       b.m.rotation.set(t * b.sp * 2, a, t * b.sp * 1.5);
     }
     // Sadie on her tuna: round and round, up and down, always facing the way she's going
-    const k = 0.45 + 0.3 * Math.sin(t * 0.25), a = t * 0.9, r = wide(k) * 1.5;
+    const k = 0.45 + 0.3 * Math.sin(t * 0.25), a = t * 0.9, r = wide(k) * 1.2;
     const px = Math.cos(a) * r, pz = Math.sin(a) * r;
     d.rider.position.set(px, k * s.h + Math.sin(t * 2.2) * s.h * 0.015, pz);
     // (billboard: face whoever's looking; flipped when she's going to the left from where they stand)
