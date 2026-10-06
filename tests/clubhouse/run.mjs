@@ -13,6 +13,7 @@ import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, onLeave, f
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { checker } from '../shared/check.mjs';
+import { checkPool } from './pool.mjs';
 
 const { check, finish } = checker();
 
@@ -272,5 +273,6 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   check('every font the game carries is credited on the CREDITS page (and three.js)', !missing.length && CREDITS.some(c => c.name === 'three.js'), missing.join(', '));
 }
 await checkCards(check);
+checkPool(check);
 
 finish('failed', 'all passed');

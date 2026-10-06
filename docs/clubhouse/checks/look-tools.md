@@ -24,3 +24,5 @@ you want to see or time something, or change one of them. The other tools are in
 - `tools/clubhouse/spot.mjs`: a picture from anywhere: `node tools/clubhouse/spot.mjs <name> <place>
   <x> <z> <y> <lookX> <lookY> <lookZ>` stands there and looks at that point
   (`dist/shots/clubhouse/spot-<name>.png`), for checking how one thing looks.
+- `tools/clubhouse/pool.mjs`: the pool in the backyard: stands by the beach ball, kicks it, then arrives at
+  the gate, in pictures (`dist/shots/clubhouse/pool-<n>.png`).

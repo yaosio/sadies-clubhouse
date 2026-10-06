@@ -9,6 +9,7 @@ Everything outside the gate belongs to somebody else.
 
 - `plots.md`: where things go (plots round the town square, spots in the grounds, the walkable edge).
 - `square.md`: the town square, its paths out, its birds, and Sadie watching them.
+- `pool.md`: the pool in the backyard: Sadie, Marbles, the dog and the beach ball, and the files.
 - `buildings.md`: a building outside: what its kit has, the house it hands back, its sounds, when
   it's built.
 - `weather.md`: the world's weather, over every place out of doors.
