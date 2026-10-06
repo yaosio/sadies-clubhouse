@@ -5,7 +5,7 @@ world, not any building. Read when changing the weather, or making a place out o
 
 - `rules.js`: the kinds and how each looks. `sky.js`: the clouds, sunlight, rain, snow, cats and
   Sadie's reactions on the gatepost. `twister.js`: the tornado (a far-off funnel with Sadie riding a
-  tuna round it; it wanders slowly round the whole sky; a place's `sky.twister` `{ x, z }` says where it starts). Saved as `mansion.weather`.
+  tuna round it; it wanders slowly round the edge of the sky, behind the hills (only its top shows); a place's `sky.twister` `{ x, z }` says where it starts). Saved as `mansion.weather`.
 - It comes over every place out of doors: one whose place says `sky` (`dome`, how far off its cloud
   cover is, inside its sun and outside its hills; `follow`, for a sky that goes round you; `sun2`,
   where a second sun comes up, if it has a sun).
