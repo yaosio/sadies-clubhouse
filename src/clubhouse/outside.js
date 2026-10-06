@@ -272,7 +272,7 @@ export function buildOutside(T, cards = []) {
     // out of doors (the weather: weather/sky.js): the cloud cover just inside the sun and just outside
     // the hills, so it hides the sun and its edge is behind the hills; a second sun comes up over the
     // hills just left of the first, clear of the clubhouse
-    sky: { dome: 130, sun2: { x: -82, z: 99 } },
+    sky: { dome: 130, sun2: { x: -82, z: 99 }, twister: { x: -62, z: 75 } },
     spots: { start: { x: 0, z: -27, yaw: Math.PI, pitch: 0.12 } },
     update(t, dt, ears) {
       // Sadie on the gatepost blinks now and then

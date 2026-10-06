@@ -11,7 +11,7 @@ function dith(g, a, b, x, y, w, h, amt) {
 }
 function disc(g, c, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) rect(g, c, cx + x, cy + y); }
 
-export function drawWeatherArt() {
+export function drawWeatherArt(sadie) {
   const A = {};
   // the sky: cloud cover (tinted to each weather's colour), and snow lying on the ground
   A.cover = tex(32, 32, g => {
@@ -43,6 +43,28 @@ export function drawWeatherArt() {
     }
   });
   A.cats = COATS.map(([f, d]) => ({ sit: cat(f, d, false), fall: cat(f, d, true) }));
+
+  // the tornado (twister.js): its funnel (dark and pale streaks going round), the bits it carries
+  // (a leaf, a paper, a plank) and Sadie flying on a tuna, facing right
+  A.funnel = tex(32, 8, g => {
+    rect(g, '#a8b8b0', 0, 0, 32, 8); dith(g, '#a8b8b0', '#dce8e0', 0, 0, 32, 8, 0.4);
+    for (const [x, y, w] of [[2, 1, 9], [14, 3, 12], [6, 5, 10], [22, 6, 8], [24, 0, 7]]) rect(g, '#5e706a', x, y, w, 1);
+  });
+  A.bits = [
+    tex(6, 6, g => { disc(g, C.green2, 3, 3, 2); rect(g, C.green3, 3, 3, 1, 1); rect(g, C.green3, 0, 5); }),
+    tex(6, 6, g => { rect(g, C.white, 0, 0, 5, 6); rect(g, C.grey, 1, 1, 3, 1); rect(g, C.grey, 1, 3, 3, 1); }),
+    tex(8, 3, g => { rect(g, C.tan3, 0, 0, 8, 3); rect(g, C.tan2, 1, 1, 6, 1); rect(g, C.ink, 7, 1); }),
+  ];
+  A.rider = tex(80, 54, g => {
+    // the tuna, lengthways along the bottom: a blue-grey torpedo with a pale belly, yellow finlets and a forked tail
+    rect(g, C.ink, 10, 38, 56, 15); rect(g, C.ink, 18, 36, 38, 19); rect(g, C.ink, 66, 42, 8, 8);
+    rect(g, C.tarp2, 12, 40, 52, 8); rect(g, C.tarp, 20, 38, 34, 4); rect(g, '#d8e8f8', 14, 48, 48, 4);
+    for (const x of [28, 36, 44, 52]) { rect(g, C.gold, x, 52, 3, 2); rect(g, C.gold, x, 36, 3, 2); }
+    rect(g, C.ink, 0, 32, 10, 8); rect(g, C.ink, 0, 50, 10, 4); rect(g, C.ink, 6, 38, 8, 14); rect(g, C.tarp2, 2, 34, 6, 3); rect(g, C.tarp2, 2, 51, 6, 2);
+    rect(g, C.white, 62, 41, 3, 3); rect(g, C.ink, 63, 42, 2, 2); rect(g, C.pink, 70, 46, 4, 1);
+    // Sadie herself, sitting on top of it (her own picture)
+    if (sadie) g.drawImage(sadie, 12, 0);
+  });
 
   // Sadie on the gatepost: a little umbrella, a heap of snow, sunglasses, and what she says
   A.umbrella = tex(20, 14, g => {
