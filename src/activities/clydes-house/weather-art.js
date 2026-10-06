@@ -7,7 +7,7 @@ import { rect, dith, disc, signs } from './art.js';
 // the machine's own colours: mint enamel, brass, and Clyde's terracotta
 export const W = { mint: '#6ee0c0', mint2: '#3aa88a', mint3: '#1e6a58', brass: '#ffd23a', brass2: '#c89018', edge: '#5a2414', body: '#d97757' };
 // each lever's knob
-export const KNOB = { rain: 0x2a78e8, snow: 0xffffff, sun: 0xffd23a, cats: 0xff8ec8 };
+export const KNOB = { rain: 0x2a78e8, snow: 0xffffff, sun: 0xffd23a, cats: 0xff8ec8, tornado: 0x6a8a78 };
 
 export function drawWeatherArt({ tex, words, C }) {
   const A = {};
@@ -25,6 +25,7 @@ export function drawWeatherArt({ tex, words, C }) {
     rain: g => { disc(g, C.grey, 7, 3, 3); disc(g, C.grey, 11, 3, 2); rect(g, C.tarp, 6, 7); rect(g, C.tarp, 9, 8); rect(g, C.tarp, 12, 7); },
     snow: g => { for (const [x, y] of [[6, 2], [11, 4], [8, 7]]) { rect(g, C.white, x - 1, y, 3, 1); rect(g, C.white, x, y - 1, 1, 3); } },
     sun: g => { disc(g, C.gold, 6, 5, 3); disc(g, C.gold, 12, 4, 2); rect(g, C.yellow, 5, 4); rect(g, C.yellow, 11, 3); },
+    tornado: g => { rect(g, C.grey, 4, 2, 10, 1); rect(g, C.grey, 5, 4, 8, 1); rect(g, C.grey2, 6, 6, 6, 1); rect(g, C.grey2, 7, 8, 4, 1); rect(g, C.ink, 8, 9, 2, 1); },
     cats: g => { rect(g, C.pink, 6, 3, 6, 5); rect(g, C.pink, 6, 2); rect(g, C.pink, 11, 2); rect(g, C.ink, 7, 4); rect(g, C.ink, 10, 4); rect(g, C.ink, 8, 6, 2, 1); },
   };
   A.plate = {};

@@ -2,7 +2,7 @@
 // close, then for each weather (clear, rain, snow, a second sun, cats) the square looking back at the
 // clubhouse, Sadie on the gatepost, and the view out through the front door from the hall. As a
 // desktop and a phone. Saves dist/shots/clydes-house/<device>-weather-<name>.png.
-//   node tools/clydes-house/weather.mjs [desktop|phone] [rain|snow|sun|cats|clear]
+//   node tools/clydes-house/weather.mjs [desktop|phone] [rain|snow|sun|cats|tornado|clear]
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -31,7 +31,7 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   const { x: mx, z: mz, out } = await p.evaluate(() => window.__weather.machine);   // (out: the way its front faces)
   await p.evaluate(() => window.__clubhouse.weatherSpeed(8));
   await look('outside', mx + out[0] * 3.6, mz + out[1] * 3.6, 0, mx, 1.6, mz); await shot('0-machine');
-  for (const w of ['rain', 'snow', 'sun', 'cats', 'clear']) {
+  for (const w of ['rain', 'snow', 'sun', 'cats', 'tornado', 'clear']) {
     if (which && which !== w) continue;
     await p.evaluate(w => { const W = window.__weather; if (W.state().now !== w) W.pull(w === 'clear' ? W.state().now : w); }, w);
     if (w === 'snow') await p.evaluate(() => window.__clubhouse.weatherSpeed(40));

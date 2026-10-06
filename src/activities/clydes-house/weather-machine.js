@@ -1,6 +1,6 @@
 // Clyde's Weather Machine: on the grass beside Clyde's house, a mint-green cabinet with far too much
 // on top (a dish pointed at the sky, a spinning wind cup, a funnel that puffs out a cloud), a screen
-// with the forecast, and four levers: rain, snow, a second sun, and cats. Pulling one changes the
+// with the forecast, and five levers: rain, snow, a second sun, cats, and a tornado. Pulling one changes the
 // weather for everywhere out of doors; pulling it again clears the sky. The rules are in weather.js.
 //
 // The weather itself is the world's (its kit's `weather`: the clouds, the light, what falls,
@@ -64,7 +64,7 @@ export function buildWeather(m, group) {
   const levers = {};
   const stickGeo = keep(new CylinderGeometry(0.03, 0.03, 0.5, 4).translate(0, 0.25, 0)), knobGeo = keep(new SphereGeometry(0.08, 8, 6));
   KINDS.forEach((k, i) => {
-    const x = MX + (i - 1.5) * 0.62;
+    const x = MX + (i - (KINDS.length - 1) / 2) * 0.52;
     plane(0.5, 0.31, psx(A.plate[k], { unlit: 0.5 }), [x, 0.52, FRONT + 0.04], null, 1);
     box(0.12, 0.34, 0.06, iron, [x, 1.05, FRONT + 0.02]);
     const g = new Group(); g.position.set(x, 1.05, FRONT + 0.05); group.add(g);
@@ -105,7 +105,7 @@ export function buildWeather(m, group) {
     // the machine: its levers, the dish and the cups (faster in bad weather), the puff
     for (const k of KINDS) { const L = levers[k]; L.at += ((k === now ? 1 : 0) - L.at) * Math.min(1, dt * 12); L.g.rotation.x = 0.25 + L.at * 1.9; }
     dish.rotation.y = t * 0.3;
-    wind += ((now === 'rain' ? 3 : now === 'snow' ? 1 : 0) - wind) * Math.min(1, dt / 3);
+    wind += ((now === 'rain' ? 3 : now === 'snow' ? 1 : now === 'tornado' ? 6 : 0) - wind) * Math.min(1, dt / 3);
     cups.rotation.y += dt * (1.5 + wind);
     puffT += dt;
     puff.position.set(MX + side * 1.1, puffT < 2.5 ? 2.3 + puffT * 1.2 : -9, MZ + 0.2);

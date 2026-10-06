@@ -230,7 +230,7 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
 // ---------- the weather (src/clubhouse/weather/): the world's, over everywhere out of doors ----------
 {
   const all = ['clear', ...WX.KINDS];
-  check('the weather is one of clear, rain, snow, a second sun or cats; anything odd is clear', WX.KINDS.join() === 'rain,snow,sun,cats' && WX.loaded('cats') === 'cats' && WX.loaded('hail') === 'clear' && WX.loaded(null) === 'clear');
+  check('the weather is one of clear, rain, snow, a second sun, cats or a tornado; anything odd is clear', WX.KINDS.join() === 'rain,snow,sun,cats,tornado' && WX.loaded('cats') === 'cats' && WX.loaded('hail') === 'clear' && WX.loaded(null) === 'clear');
   check('every weather has its look and a word from Sadie, in letters the clubhouse\'s font has', all.every(k => WX.LOOK[k] && WX.SADIE[k] && !/[^A-Z0-9 .,!'?]/.test(WX.SADIE[k])));
   check('...rain is dimmer and the second sun brighter than a clear day', WX.LOOK.rain.sun < WX.LOOK.clear.sun && WX.LOOK.sun.sun > WX.LOOK.clear.sun);
   check('it\'s saved with the clubhouse\'s own (a backup has it; no room\'s start-over clears it)', WX.KEY.startsWith('mansion.'));

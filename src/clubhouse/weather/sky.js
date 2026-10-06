@@ -8,7 +8,8 @@
 // worked out while nobody can see out). Snow settles on the ground bit by bit. Cats fall tumbling,
 // right themselves (they always land on their feet), sit a moment and are gone. Sadie on the
 // gatepost reacts: an umbrella, a heap of snow on her head, sunglasses, and a word (and a mew or
-// mrrp if you're out there). The rules are in rules.js.
+// mrrp if you're out there). A tornado stands far off under the clouds with Sadie riding a tuna
+// round it (twister.js). The rules are in rules.js.
 //
 // A place out of doors says `sky`: `dome` (how far off the cloud cover is: inside its sun, outside
 // its hills), `follow` (the cloud cover goes round you, for a sky that follows you), and `sun2`
@@ -17,6 +18,7 @@ import { Mesh, Color, BufferGeometry, BufferAttribute, PlaneGeometry, SphereGeom
 import { psx, keep } from '../look.js';
 import { KEY, KINDS, LOOK, loaded } from './rules.js';
 import { drawWeatherArt } from './art.js';
+import { makeTwister } from './twister.js';
 import { ALL as VOICE, RATE } from './sounds.js';
 import { soundsFor, wrap } from '../../shared/sound.js';
 import { store } from '../../shared/storage.js';
@@ -29,7 +31,8 @@ const FIELD = 30, TOP = 16;  // what falls, falls in a box this wide and tall ro
 const LIE = 260, TILE = 2;   // the snow on the ground: this wide, round where it's seen from (a tile at a time)
 
 export function makeWeather(T, outside) {
-  const A = drawWeatherArt();
+  const A = drawWeatherArt(T.sadie.image);
+  const twister = makeTwister(A);
   const cloudMat = psx(A.cover, { unlit: 1, rx: 28, ry: 5, side: DoubleSide, fade: 1 });
   const coverTint = cloudMat.uniforms.tint.value;
   const domeGeo = keep(new SphereGeometry(1, 24, 8, 0, Math.PI * 2, 0, Math.PI / 2 - 0.05));
@@ -50,7 +53,7 @@ export function makeWeather(T, outside) {
     let sun2 = null;
     if (sky.sun2) { sun2 = new Mesh(sunGeo, sunMat); sun2.rotation.y = Math.atan2(sky.sun2.x, sky.sun2.z) + Math.PI; sun2.visible = false; scene.add(sun2); }
     const lying = new Mesh(lyingGeo, lyingMat); lying.rotation.x = -Math.PI / 2; lying.renderOrder = -0.5; lying.visible = false; scene.add(lying);
-    d = { cover, sun2, lying, scene, sun: place.light.sun };   // (`sun`: its own sunlight on a clear day)
+    d = { cover, sun2, lying, twist: twister.dress(place), scene, sun: place.light.sun };   // (`sun`: its own sunlight on a clear day)
     dressed.set(place, d);
     return d;
   }
@@ -117,6 +120,7 @@ export function makeWeather(T, outside) {
       if (p.sky.follow && at) d.cover.position.set(at.x, 0, at.z);
       if (d.sun2) { d.sun2.visible = s2 > 0.01; d.sun2.position.set(p.sky.sun2.x, 14 + s2 * 48, p.sky.sun2.z); d.sun2.scale.setScalar(1.3); }
       d.lying.visible = settled > 0.01;
+      twister.update(d.twist, p, t, amount.tornado, at);
       if (at) d.lying.position.set(Math.round(at.x / TILE) * TILE, 0, Math.round(at.z / TILE) * TILE);
     }
     // what falls, round where each place out of doors is seen from. Nothing's worked out in a place

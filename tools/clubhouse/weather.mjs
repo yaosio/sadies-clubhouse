@@ -1,7 +1,7 @@
 // Pictures of the world's weather in every place out of doors (npm run build first): for each place
 // with a `sky` (the outside, the Hedge Maze...) and each weather, a look four ways round from its start.
 // As a desktop and a phone. Saves dist/shots/clubhouse/<device>-weather-<place>-<weather>-<ahead|right|behind|left>.png.
-//   node tools/clubhouse/weather.mjs [desktop|phone] [rain|snow|sun|cats|clear]
+//   node tools/clubhouse/weather.mjs [desktop|phone] [rain|snow|sun|cats|tornado|clear]
 import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -24,7 +24,7 @@ for (const [device, opts] of Object.entries(DEVICES)) {
   const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
   for (const n of await M('places')) await M('build', n);
   await M('weatherSpeed', 30);
-  for (const w of which ? [which] : ['clear', 'rain', 'snow', 'sun', 'cats']) {
+  for (const w of which ? [which] : ['clear', 'rain', 'snow', 'sun', 'cats', 'tornado']) {
     await M('setWeather', w);
     if (w === 'snow') await M('weatherSpeed', 60);
     for (const n of await M('outdoors')) {
