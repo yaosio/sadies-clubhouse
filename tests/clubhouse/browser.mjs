@@ -70,6 +70,13 @@ export default async function ({ browser, page, check, outDir, touched = null })
     const after = await M('where');
     check(`${device}: ${opts.hasTouch ? 'the thumb stick' : 'W'} walks you up the path`, after.z - before.z > 0.8, `moved ${(after.z - before.z).toFixed(2)} m`);
 
+    // the pool in the backyard: in at its gate, up to the edge of the water and no further
+    await M('put', 'outside', { x: 0, z: 15, y: 0, yaw: Math.PI, pitch: 0 });
+    await walk(3500);
+    const edge = await M('where');
+    await shot('2b-pool');
+    check(`${device}: you walk in at the pool's gate and stop at the water's edge, not in it`, edge.place === 'outside' && edge.z > 17 && edge.z < 20.1, `got to z ${edge.z.toFixed(1)}`);
+
     // in through the front door: it opens as you come up, and the hall shows through it
     await M('faceDoor', 'outside', 'front', 2.4);
     await walk(350);

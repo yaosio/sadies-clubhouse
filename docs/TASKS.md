@@ -23,7 +23,7 @@ win over any feature idea) and its pages.
 | The main theme | `docs/clubhouse/sound/main-theme.md` |
 | Add a building outside | `docs/clubhouse/outside/plots.md`, `buildings.md`, then `docs/clubhouse/rooms/card.md` |
 | The weather | `docs/clubhouse/outside/weather.md` |
-| The outside, or the town | `docs/clubhouse/outside/README.md`, `town.md`, and `square.md` for the town square |
+| The outside, or the town | `docs/clubhouse/outside/README.md`, `town.md`, and `square.md` for the town square, `pool.md` for the pool |
 | The clubhouse itself: walking, doorways, the hall | folder `docs/clubhouse/world/` (its README says which page) |
 | How the clubhouse is drawn (materials, flicker) | `docs/clubhouse/world/drawing.md`, `docs/clubhouse/look/README.md` |
 | The page shell (opening an activity, ESC BACK, fonts) | `docs/clubhouse/world/shell.md` |

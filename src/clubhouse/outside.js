@@ -11,13 +11,15 @@
 // place), and the next free plot has a COMING SOON stake.
 //
 // Behind the house, the backyard: the back of the house finished off (windows, a back door that's
-// strictly for cats, flower beds), a patio, a bench in the sun where Sadie naps, and a fence round
-// it all. You get there round either side of the house (or through the hedge maze).
-import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, PlaneGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
+// strictly for cats, flower beds), a patio, the pool (pool/: Sadie lounging, Marbles and Chooter
+// about, a beach ball to kick), and a fence round it all. You get there round either side of the
+// house (or through the hedge maze).
+import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
 import { psx, keep, skyMat, tex, sadieSprite } from './look.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
 import { LOTS, SQUARE } from './town/layout.js';
 import { buildSquare } from './town/square.js';
+import { buildPool } from './pool/pool.js';
 
 export { LOTS };
 
@@ -181,23 +183,13 @@ export function buildOutside(T, cards = []) {
   for (const s of [-1, 1]) box(5.6, 0.4, 0.9, psx(T.flowers, { rx: 5, ry: 1 }), [s * 5.4, 0.2, 10.55]);
   const back = GROUNDS[0].joins.back;   // (from the patio to grounds spot 0)
   plane(-3.5 - back.x, 1.4, psx(T.path, { rx: 11, ry: 1, onFloor: true }), [(back.x - 3.5) / 2, 0, back.z], [-Math.PI / 2, 0, 0], 8).renderOrder = -1;
-  // two trees, a bird bath, and the bench in the sun where Sadie naps
+  // two trees, and the pool (pool/pool.js)
   const YARD_TREES = [[-12, 22, 1.3], [16, 24, 1.5], [24, 16, 1.2]];
   for (const [x, z, s] of YARD_TREES) {
     cyl(0.3 * s, 0.4 * s, 3 * s, 6, bark, [x, 1.5 * s, z]);
     ball(1.8 * s, leaf, [x, 3.6 * s, z]); ball(1.2 * s, leaf, [x - 0.8 * s, 4.3 * s, z + 0.4]);
   }
-  cyl(0.18, 0.28, 0.9, 6, psx(T.stone, { rx: 1, ry: 1 }), [-4, 0.45, 19]);
-  cyl(0.65, 0.4, 0.2, 8, psx(T.stone, { rx: 2, ry: 1 }), [-4, 0.98, 19]);
-  plane(4.6, 3.4, psx(T.sunPatch, { onFloor: true, unlit: 0.4 }), [5.5, 0, 17.6], [-Math.PI / 2, 0, 0], 2).renderOrder = -1;
-  const bench = psx(T.wood, { tint: 0xffd0a0, rx: 3 });
-  box(2.4, 0.1, 0.6, bench, [5.5, 0.48, 17.8]);
-  box(2.4, 0.5, 0.08, bench, [5.5, 0.9, 18.1]);
-  for (const x of [4.5, 6.5]) for (const z of [17.6, 18.05]) box(0.08, 0.46, 0.08, iron, [x, 0.23, z]);
-  for (const x of [4.35, 6.65]) box(0.08, 0.06, 0.6, iron, [x, 0.72, 17.8]);
-  const napper = new Mesh(keep(new PlaneGeometry(0.85, 0.69, 1, 1).translate(0, 0.345, 0)), psx(T.nap, { unlit: 0.45 }));
-  napper.position.set(5.0, 0.53, 17.75); scene.add(napper);
-  const zs = [0, 1].map(i => { const z = new Mesh(keep(new PlaneGeometry(0.4, 0.4)), psx(T.zzz, { unlit: 0.6 })); z.userData.phase = i / 2; scene.add(z); return z; });
+  const pool = buildPool(T, scene);
   // the fence round the back and both sides of the grounds
   plane(58, 1.5, psx(T.fence, { rx: 58 / 1.5, side: DoubleSide }), [0, 0.75, 30], [0, 0, 0], 1);
   for (const s of [-1, 1]) plane(50, 1.5, psx(T.fence, { rx: 50 / 1.5, side: DoubleSide }), [s * 29, 0.75, 5], [0, Math.PI / 2, 0], 1);
@@ -223,11 +215,11 @@ export function buildOutside(T, cards = []) {
   // tunnel. The rest of what's here is all at ground level for now.
   const P = WALKER, TALL = 1.6;
   const RECTS = [[-9, 9, 0, 10], [13, 19, 3, 9], [-7.3, -5.7, -9.8, -8.2], [-8.2, -2.6, 10, 11], [2.6, 8.2, 10, 11], [-1.2, 1.2, 10, 11.1],
-    [4.3, 6.7, 17.5, 18.15], [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
+    ...pool.rects, [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
     ...HEDGES.map(([x, z, len]) => [x - 0.5, x + 0.5, z - len / 2, z + len / 2]),
     ...[-1, 1].map(s => [s * 2.6 - 0.45, s * 2.6 + 0.45, -20.45, -19.55]),
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
-  const CIRCLES = [[-9, 0.4, 1.6], [9, 0.4, 1.6], [-2, -2.6, 0.3], [2, -2.6, 0.3], [-4, 19, 0.65], ...[...TREES, ...YARD_TREES].map(([x, z, s]) => [x, z, 0.4 * s])];
+  const CIRCLES = [[-9, 0.4, 1.6], [9, 0.4, 1.6], [-2, -2.6, 0.3], [2, -2.6, 0.3], ...[...TREES, ...YARD_TREES].map(([x, z, s]) => [x, z, 0.4 * s])];
   const SURFACES = [], TURNED = [];   // (TURNED: solid boxes on a plot, turned with it: lots below)
   for (const c of square.circles) CIRCLES.push(c);
   const keepIn = (list, it) => { list.push(it); return () => { const i = list.indexOf(it); if (i >= 0) list.splice(i, 1); }; };   // more to walk on: each (x, z) => its height there, or null
@@ -269,7 +261,7 @@ export function buildOutside(T, cards = []) {
   if (free) lots[LOTS.indexOf(free)].block(-1, 1, -1.1, -0.9);   // (its stake)
 
   return {
-    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, napper, ...zs, ...square.faces], sadie, napper, uses: [], lots, grounds: GROUNDS, house,
+    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, ...pool.faces, ...square.faces], sadie, uses: pool.uses, lots, grounds: GROUNDS, house,
     // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r);
     // from y0 up to y1 (from the ground up, if it doesn't say). Each hands back how to take it away.
     block(x0, x1, z0, z1, y0, y1) { return keepIn(RECTS, [x0, x1, z0, z1, y0, y1]); },
@@ -286,12 +278,7 @@ export function buildOutside(T, cards = []) {
       // Sadie on the gatepost blinks now and then
       square.update(t, dt, ears);   // (it blinks Sadie on the gatepost too: she watches the birds)
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;
-      // Sadie's Zs drift up off the bench and fade
-      for (const z of zs) {
-        const k = (t / 5 + z.userData.phase) % 1;
-        z.position.set(5.0 + Math.sin(k * 6) * 0.15 + k * 0.3, 1.1 + k * 0.9, 17.75);
-        z.material.uniforms.uFade.value = Math.max(0, k * 1.4 - 0.4);
-      }
+      pool.update(t, dt, ears);
     },
   };
 }

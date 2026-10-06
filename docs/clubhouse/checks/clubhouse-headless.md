@@ -28,6 +28,16 @@ Every activity's card, read as the build reads it:
 - A room never touches storage itself (only its kit's box).
 - Every activity has tests of its own (`tests/<id>/run.mjs` or `browser.mjs`).
 
+## The pool (`tests/clubhouse/pool.mjs`)
+Ten minutes of the pool's goings-on with you coming and going and kicking the ball (no drawing: plain
+numbers, so it runs in a moment):
+- The ball, the dog and Marbles never leave the fenced pool area, go missing, or end up in the water
+  by accident; Marbles never holds the ball for good; a ball left mid-pool drifts to an edge.
+- the dog goes crazy at every arrival and stops within about 15 seconds; Marbles tries all four ways
+  of annoying Sadie.
+- You can't get stuck: every standing spot on the deck joins the gate, and the water, its edge and
+  the diving board are solid.
+
 ## The save director's own checks
 - A bad save put aside.
 - A full browser noticed.
