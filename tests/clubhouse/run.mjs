@@ -244,13 +244,21 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   const kit = strict('the kit', { saves: 1, house: null });
   check('asking the kit for something it doesn\'t list is an error; what it lists is fine, even if it\'s nothing', throws(() => kit.hall) && kit.saves === 1 && kit.house === null && !throws(() => kit.then));
   const scene = { kids: [], add(...o) { this.kids.push(...o); }, remove(...o) { this.kids = this.kids.filter(k => !o.includes(k)); } };
-  const hall = { scene, faces: [], uses: [], napping: { visible: true }, shape: {}, floor() {} };
-  const H = hallView(hall), outside = { scene, faces: [], uses: [], block() {}, blockRound() {}, surface() {}, house: {}, sadie: {} }, O = outsideView(outside);
+  const door = y => ({ pos: { x: 0, y, z: -8 }, yaw: 0, amount: 0.25 });
+  const hall = { scene, faces: [], uses: [], napping: { visible: true }, shape: {}, floor() {}, doors: { front: door(0) }, holding: null };
+  const outside = { scene, faces: [], uses: [], block() {}, blockRound() {}, surface() {}, house: {}, sadie: {}, doors: { front: door(0.45) } };
+  const H = hallView(hall, outside), O = outsideView(outside);
   check('a room is lent only the documented bits of the hall and the outside', throws(() => H.scene) && throws(() => H.napping) && throws(() => H.floor) && throws(() => O.sadie) && throws(() => O.light) && !!H.shape && !!O.house);
   check('...and can\'t change them', throws(() => { 'use strict'; H.shape = 1; }));
   const out = [H.add('ball'), H.face('cat')];
   check('...what it adds to a place it can take out again', scene.kids.includes('ball') && hall.faces.includes('cat') && (out.forEach(f => f()), !scene.kids.includes('ball') && !hall.faces.includes('cat')));
   check('...and the hall knows itself (ears().place), and the clubhouse its real place behind the view', H.is(hall) && !H.is(outside) && O.is(outside) && realPlace(O) === outside);
+  // the front door, for something running out through it: where it is, how open, held open by whoever needs it
+  const F = H.front, r1 = F.hold(), r2 = F.hold();
+  r1(); r1();
+  const heldStill = hall.holding === hall.doors.front;
+  r2();
+  check('the front door is lent: where it is on each side, how open it is, and held open until the last holder lets go (each only once)', F.in.y === 0 && F.out.y === 0.45 && F.open() === 0.25 && heldStill && hall.holding === null && F.outside.is(outside) && throws(() => F.door));
   const a = H.borrowSadie(), b = H.borrowSadie();
   a(); a();
   const stillOut = !hall.napping.visible && H.sadieBorrowed();
