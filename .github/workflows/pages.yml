@@ -1,0 +1,41 @@
+# Puts the real game on GitHub Pages (https://yaosio.github.io/sadies-dropper-world/) every time main changes.
+# It builds exactly what `npm run build` makes (dist/index.html and dist/game/) and publishes that folder.
+# No secrets: it uses only GitHub's own built-in permission for Pages.
+# Needs one setting, in the repo: Settings > Pages > Build and deployment > Source: "GitHub Actions".
+# Not the game's source of truth and not what the test page or the Artifact link serve; a second place to play.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
