@@ -844,6 +844,37 @@ export async function open(cards, enter) {
     // the graphics card (and in the kit's list of things to hand back)
     speed: () => ({ ...speed, places: { ...speed.places }, bits: { ...speed.bits }, programs: renderer.info.programs.length, geometries: renderer.info.memory.geometries,
       textures: renderer.info.memory.textures, kept: made().length, heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e5) / 10 : null }),
+    // every doorway's see-through box faces that a flat surface sits on (within 2 cm): they'd fight over the pixels (tools/clubhouse/audit-doors.mjs)
+    audit() {
+      const out = [], V = new Vector3();
+      for (const s of sides) {
+        const d = s.d, D = Math.max(1.3, (d.group.children.filter(c => c.isGroup).length === 1 ? d.w : d.w / 2)) + 0.1, hits = {};
+        const bx = d.w / 2, bh = d.h;
+        s.w.scene.updateMatrixWorld(true);
+        s.w.scene.traverse(o => {
+          if (!o.isMesh || o === d.see || !o.geometry?.attributes?.position) return;
+          if (o.material?.uniforms?.uOn) return;
+          const pos = o.geometry.attributes.position, idx = o.geometry.index;
+          const loc = i => { V.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld); const [lx, lz] = d.local(V.x, V.z); return [lx, V.y - d.pos.y, lz]; };
+          const n = idx ? idx.count : pos.count;
+          for (let t = 0; t < n; t += 3) {
+            const a = [0, 1, 2].map(k => loc(idx ? idx.getX(t + k) : t + k));
+            for (const [axis, planes] of [[1, [0.02, bh + 0.01]], [0, [-bx - 0.01, bx + 0.01]], [2, [-D]]]) {
+              const v = a.map(q => q[axis]);
+              if (Math.max(...v) - Math.min(...v) > 1e-3) continue;   // (flat in this axis)
+              const near = planes.find(pl => Math.abs(v[0] - pl) < 0.019); if (near === undefined) continue;
+              // overlaps the box in the other two axes
+              const ok = [0, 1, 2].filter(k => k !== axis).every(k => { const lo = Math.min(...a.map(q => q[k])), hi = Math.max(...a.map(q => q[k])); const [bl, bhh] = k === 0 ? [-bx, bx] : k === 1 ? [0, bh] : [-D, 0]; return hi > bl + 1e-3 && lo < bhh - 1e-3; });
+              if (!ok) continue;
+              const key = (axis === 1 ? 'y' : axis === 0 ? 'x' : 'z') + '=' + near.toFixed(2) + ' off ' + (v[0] - near).toFixed(3) + ' mesh ' + (o.name || o.parent?.name || o.geometry.type);
+              hits[key] = (hits[key] || 0) + 1;
+            }
+          }
+        });
+        out.push({ w: s.w.name, to: s.tw.name, hits });
+      }
+      return out;
+    },
     turnTo(yaw, pitch = 0) { me.yaw = yaw; me.pitch = pitch; },
     // the LOOK | PAINT switch in a place with a brush (on PAINT: pressing paints), and how many presses are painting
     painting: () => paint.on(),
