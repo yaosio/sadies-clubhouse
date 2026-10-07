@@ -1,4 +1,4 @@
-# Puts the real game on GitHub Pages (https://yaosio.github.io/sadies-dropper-world/) every time main changes.
+# Puts the real game on GitHub Pages (https://yaosio.github.io/<repo name>/ (the address ends with the repository's name, so renaming the repository changes it; nothing in the build depends on it)) every time main changes.
 # It builds exactly what `npm run build` makes (dist/index.html and dist/game/) and publishes that folder.
 # No secrets: it uses only GitHub's own built-in permission for Pages.
 # Needs one setting, in the repo: Settings > Pages > Build and deployment > Source: "GitHub Actions".
