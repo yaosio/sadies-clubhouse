@@ -47,6 +47,10 @@ other sound is fine if it's rare, soft and varied. Written only here; other page
 - Everything through the sound system (`docs/clubhouse/sound/README.md`). *Checked.*
 - No drone, no tick. *Not checked: only fatal errors are tested (`docs/clubhouse/decisions/fatal-only.md`).*
 - A sound that can happen often (a chirp, a meow) is kept rare, soft and varied.
+- **Every number in a room's sound docs (sounds a minute, gaps between sounds, one wave per 40 s)
+  is Claude's own guess at "rare enough", and only a soft guide** (Yaosio, 2026-10-08). Go past it
+  when the moment calls for it (big chaotic loud sounds are welcome when they're the point, like
+  the Cats Only stampede), but don't go out of the way to. Only droning and ticking are firmly out.
 - Claude's choices, not the owner's rule: the main theme is composed as it plays, not looped, and
   most rooms never loop a sound. A room may loosen that if it stays soft: the barbershop's tune
   repeats while you're inside (a melody, no drone or tick, with quiet after each show).
