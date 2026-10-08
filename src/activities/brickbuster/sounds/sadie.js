@@ -19,7 +19,7 @@ export const LOUD = { pat: 0.3, chirp: 0.35, trill: 0.3, meow: 0.25 };
 export const CHATTER = {
   gap: 5, voice: 15, most: 5,
   pat: { chance: 0.3, every: 10 },     // a whack
-  meow: { chance: 0.08, every: 75 },   // a whack, once in a while, instead of the pat
+  meow: { chance: 0.15, every: 30 },   // a whack, once in a while, instead of the pat
   chirp: { chance: 0.2, every: 30 },   // her pouncing on it
   trill: { chance: 0.6, every: 25 },   // a mighty whack, up towards the landing
 };

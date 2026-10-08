@@ -23,11 +23,11 @@ expect. Read before changing any of them.
   never outside the hall or through the landing, and Sadie never through the landing or its
   railing, nor standing about while the ball rolls off.
 - **Sadie's sounds** (`CHATTER` and `LOUD` in `sounds/sadie.js`): a pat on 30% of whacks (at most
-  one every 10 s), a meow on 8% of whacks (at most one every 75 s), a chirp on 20% of pounces (one
+  one every 10 s), a meow on 15% of whacks (at most one every 30 s), a chirp on 20% of pounces (one
   every 30 s), a trill on 60% of mighty whacks (one every 25 s); not two of her sounds within
   5 s, not two chirps, trills or meows within 15 s, about 5 in a minute at most. All of these are
   Claude's numbers and soft guides (`docs/clubhouse/RULEBOOK.md` section 4). The tests
-  expect about 3 a minute (pats 1.5, chirps 0.8, trills 0.6, meows 0.2). Right next to her they
+  expect about 3 a minute (pats 1.5, chirps 0.8, trills 0.6, meows about 0.5). Right next to her they
   play at 0.25 to 0.35 of full volume, fading to nothing 18 m off.
 - **The escape**: 9 hops, each 0.25 s plus its length at 8.5 m/s, about 8 seconds in all; Sadie
   runs at 5.5 m/s. The shatter lasts 3 seconds; shards lie on the floor 1.5 to 2.5 s.
