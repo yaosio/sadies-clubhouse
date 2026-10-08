@@ -11,8 +11,8 @@ Its tests and its picture tool. Read before changing what's checked, or when a c
   sounds (8-bit, never silent, each crack bigger, the shatter biggest; Sadie's softer than any
   crack, each version different), the cracks' drawing, the heap's spots (80, where nobody walks,
   none on thin air), the ball loose in the hall for 90 minutes, and Sadie's sounds while she plays
-  (now and then, never two close together, never more than 5 a minute, never the same twice
-  running). About 20 seconds.
+  (now and then, rarely two close together, about 5 a minute at most, not the same twice
+  running: soft guides, so the test only checks they stay roughly that rare). About 20 seconds.
 - **`tests/brickbuster/browser.mjs`**: phone and desktop, fatal errors only: through its door,
   stepping up, the paddle by keys, mouse and finger, a crack, stepping back, the crack kept after a
   reload, breaking it (stepped back to watch and let go once the ball's out, the heap, the sad

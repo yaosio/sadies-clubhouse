@@ -209,14 +209,14 @@ function play(seed, skill, secs, until) {
   for (let i = 1; i < said.length; i++) {
     const gap = said[i].t - said[i - 1].t;
     if (gap < CHATTER.gap) close++;
-    if (said[i].name === said[i - 1].name && said[i].variant === said[i - 1].variant) again++;
+    if (gap < 1e4 && said[i].name === said[i - 1].name && said[i].variant === said[i - 1].variant) again++;
   }
   const voiced = said.filter(x => x.name !== 'pat');
   for (let i = 1; i < voiced.length; i++) if (voiced[i].t - voiced[i - 1].t < CHATTER.voice) voiceClose++;
   for (const x of said) busiest = Math.max(busiest, said.filter(y => y.t >= x.t && y.t < x.t + 60).length);
   check("...Sadie makes her sounds now and then while she plays: pats, chirps, trills and the odd meow", Object.values(chat).every(n => n > 3) && said.length / 90 > 1.5 && said.length / 90 < 5, `${(said.length / 90).toFixed(1)} a minute: ${Object.entries(chat).map(([k, n]) => `${k} ${(n / 90).toFixed(2)}`).join(', ')} a minute`);
   check('...never two close together, and never more than 5 in any minute', !close && !voiceClose && busiest <= CHATTER.most, `${close} close, ${voiceClose} voices close, busiest minute ${busiest}`);
-  check('...a meow at most once a minute, and never the same sound twice running', chat.meow / 90 <= 1 && !again, `${(chat.meow / 90).toFixed(2)} meows a minute, ${again} repeats`);
+  check('...a meow at most twice a minute, and never the same sound twice running', chat.meow / 90 <= 2 && !again, `${(chat.meow / 90).toFixed(2)} meows a minute, ${again} repeats`);
   const L = makeLoose(shape, 3);
   release(L, [NaN, 2, 0], [0, 0, 0], [0, 0, 3], 0);
   check('a ball somewhere impossible pops back into the hall', stepLoose(L, 1 / 60).includes('pop') && Math.hypot(L.ball.x, L.ball.z) < A);

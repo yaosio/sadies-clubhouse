@@ -17,8 +17,8 @@ takes you down through the tank to a small ocean, sailing a little boat to six f
 - Things you find in the ocean show up in the aquarium room.
 - Quiet (`docs/clubhouse/RULEBOOK.md` section 4). The room itself makes no sound. Out at sea: one soft sound when
   you pick a find up, a gentle swell when the reef sinks, and now and then a single small wave or
-  the sail when you turn hard (never two sea sounds (waves, sail) within 8 s, a wave at most every 40 s, never the
-  same wave twice running, and no loops at all). The test version has a SOUND TEST box on the
+  the sail when you turn hard (soft guides, Claude's numbers: not two sea sounds (waves, sail) within 8 s, a wave about every
+  40 s at most, not the same wave twice running, and no loops at all). The test version has a SOUND TEST box on the
   room's left wall that plays every sound one at a time, so the owner can hear each one on its own
   first.
 - The ocean is small enough for the owner to play right through and check: every spot is marked
