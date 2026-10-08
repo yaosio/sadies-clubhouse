@@ -73,7 +73,7 @@ door stays with it.
    not the scratchpad, which is gone next session.
 
 ## Publishing
-- GitHub `main` is the source of truth. The game page is https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB
+- GitHub `main` is the source of truth. The game page is https://claude.ai/artifact/3vqbn276s3a4hCN462QjsB If the page and the repo ever disagree, trust the repo and say so.
 - Only publish a build of `main`'s latest commit, to that same URL, once `npm run check -- --live
   <the saved page>` passes on it (what the live page already passed is skipped). First read the live page and its copy of the project
   (`game/source-*.json`, named in the page) into a folder, and list its files into a text file; then
