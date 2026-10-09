@@ -12,7 +12,7 @@ export const PAINTS = [
   { name: 'LIME', hex: 0x9af03a }, { name: 'GREEN', hex: 0x1fae4a }, { name: 'SKY BLUE', hex: 0x3ad0ff },
   { name: 'BLUE', hex: 0x2a5ae8 }, { name: 'PURPLE', hex: 0x8a3ae0 }, { name: 'PINK', hex: 0xff8ec8 },
   { name: 'HOT PINK', hex: 0xff2a9a }, { name: 'BROWN', hex: 0x9a5a2a }, { name: 'BLACK', hex: 0x1c1238 },
-  { name: 'WHITE', hex: 0xffffff }, { name: 'GREY', hex: 0x8a88a8 },
+  { name: 'WHITE', hex: 0xffffff }, { name: 'GRAY', hex: 0x8a88a8 },
 ];
 // the RAINBOW pot: a stroke goes through these in turn as it goes
 export const RAINBOW = [1, 2, 3, 4, 6, 7, 8, 10];

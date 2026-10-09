@@ -92,7 +92,7 @@ export function drawArt(m) {
   });
   A.toolSign = tex(64, 10, g => { rect(g, C.ink, 0, 0, 64, 10); rect(g, C.yellow, 1, 1, 62, 8); words(g, 'TOOLS. TAKE ONE!', 32, 3, 1, C.ink, { align: 'center' }); });
   A.potSign = tex(64, 10, g => { rect(g, C.ink, 0, 0, 64, 10); rect(g, C.yellow, 1, 1, 62, 8); words(g, 'PAINT. DIP IN!', 32, 3, 1, C.ink, { align: 'center' }); });
-  A.morePaint = tex(132, 10, g => { rect(g, C.ink, 0, 0, 132, 10); rect(g, C.white, 1, 1, 130, 8); words(g, 'MORE COLOURS IN THE FULL VERSION', 66, 3, 1, C.plum, { align: 'center' }); });
+  A.morePaint = tex(132, 10, g => { rect(g, C.ink, 0, 0, 132, 10); rect(g, C.white, 1, 1, 130, 8); words(g, 'MORE COLORS IN THE FULL VERSION', 66, 3, 1, C.plum, { align: 'center' }); });
   A.pegboard = tex(16, 16, g => { rect(g, '#d8a868', 0, 0, 16, 16); for (let y = 2; y < 16; y += 4) for (let x = 2; x < 16; x += 4) rect(g, '#8a5a30', x, y); });
   A.counter = tex(16, 16, g => { rect(g, C.tan, 0, 0, 16, 16); rect(g, C.tan2, 0, 7, 16, 1); rect(g, C.tan2, 0, 15, 16, 1); splat(g, PAINT_CSS[6], 4, 4, 1, 2); splat(g, PAINT_CSS[1], 12, 11, 1, 9); });
   A.plaque = tex(48, 10, g => { rect(g, C.gold3, 0, 0, 48, 10); rect(g, C.gold, 1, 1, 46, 8); words(g, 'SADIE', 24, 3, 1, C.ink, { align: 'center' }); });

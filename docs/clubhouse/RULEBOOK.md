@@ -12,6 +12,10 @@ Sadie's house is **the clubhouse**, everywhere: in the docs, the game and what C
 `#mansion`, and the clubhouse's own saves starting `mansion.`, which must keep that name or every
 player's saved settings would be lost.)
 
+Everything the player reads uses **US spelling**: color, gray, center, favorite, neighbor (owner's
+choice, 2026-10-08). Code names, file names, ids and save keys can keep the UK spelling (`colour`
+in the code is fine); only the words on screen matter.
+
 ## 1. One look
 - The misremembered 90s (`docs/clubhouse/look/README.md`): loud Kid Pix colours, chunky pixels,
   dithering, flat sprite characters that turn to face you. Built from the kit's textures and palette
