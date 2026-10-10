@@ -277,15 +277,20 @@ export default async function ({ browser, page, check, outDir, touched = null })
     check(`${device}: RESUME carries on`, await M('mode') === 'play');
     await pressPause(p, opts);
     await p.waitForTimeout(200);
-    await p.click('#resets button:has-text("INVITATION")');
-    await p.click('#sureYes');
-    await up();
-    check(`${device}: YES starts the invitation over: Sadie's letter is back`, await M('mode') === 'letter');
     // every save written while walking round (and playing every computer's activity) belongs to someone: a card's
     // `keeps` or the clubhouse's own, so the start-over buttons can always find it
     const keeps = await allKeeps(), keys = await p.evaluate(() => Object.keys(localStorage));
     const stray = keys.filter(k => !keeps.some(s => k.startsWith(s)));
     check(`${device}: every save belongs to an activity's card or the clubhouse`, keys.length && !stray.length, stray.join(', ') || `${keys.length} saves`);
+    // EVERYTHING erases every save the game has and nothing else (another page on the same address keeps its things)
+    await p.evaluate(() => localStorage.setItem('zz-other-page.thing', '1'));
+    await p.evaluate(() => [...document.querySelectorAll('#resets button')].find(b => b.textContent === 'EVERYTHING')?.click());
+    await p.click('#sureYes');
+    await up();
+    check(`${device}: YES starts everything over: Sadie's letter is back`, await M('mode') === 'letter');
+    const other = await p.evaluate(() => localStorage.getItem('zz-other-page.thing'));
+    check(`${device}: ...and another page's saves on the same address are still there`, other === '1', String(other));
+    await p.evaluate(() => localStorage.removeItem('zz-other-page.thing'));
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }));
@@ -312,4 +317,18 @@ export default async function ({ browser, page, check, outDir, touched = null })
   check('...and it\'s built once its file comes', await M('build', cutOff) && (await M('built')).includes(cutOff));
   check('...with no errors on the page', !errors.length, errors.slice(0, 3).join(' | '));
   await ctx.close();
+
+  // a browser that can't start 3D: the page says so in plain words, not a blank screen
+  const ctx3 = await browser.newContext(DESKTOP);
+  await ctx3.addInitScript(() => {
+    const get = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...a) { return /webgl/i.test(type) ? null : get.call(this, type, ...a); };
+  });
+  const p3 = await ctx3.newPage(), errors3 = [];
+  p3.on('pageerror', e => errors3.push(e.message));
+  await p3.goto(page);
+  const said = await p3.waitForSelector('#clubOops', { timeout: 15000 }).then(el => el.textContent(), () => '');
+  check('with no 3D, the page says so in words', /3D/.test(said), said || 'nothing shown');
+  check('...with no errors on the page', !errors3.length, errors3.slice(0, 3).join(' | '));
+  await ctx3.close();
 }

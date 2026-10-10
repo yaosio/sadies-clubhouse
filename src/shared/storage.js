@@ -18,7 +18,8 @@
 //                    and is often the last chance to save); hands back how to stop it. A box has
 //                    it too. Never after a start-over.
 //   tabNote.put/take a note kept for this tab only (not a save: gone when the tab closes).
-//   forget(prefixes) every save under those prefixes erased (or every save there is, with none).
+//   forget(prefixes) every save under those prefixes erased (never anything else: the page may share
+//                    its address with others).
 //   reloading()      nothing more is saved on this page, by anyone: it's about to reload after a
 //                    start-over or a backup's put back, and a room saving on its way out would
 //                    write back what was just erased.
@@ -73,7 +74,6 @@ export function onLeave(fn) {
   return () => leaving.delete(fn);
 }
 export function forget(prefixes) {
-  if (!prefixes) { try { localStorage.clear(); sessionStorage.clear(); } catch {} return; }
   try { for (const k of keys()) if (mine(k, prefixes)) localStorage.removeItem(k); } catch {}
 }
 export function reloading() { over = true; }
