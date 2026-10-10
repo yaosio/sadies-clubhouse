@@ -92,11 +92,8 @@ export async function buildRoom(m) {
   cbox(W + 1.0, 1.6, 1.1, psx(null, { tint: 0x1c1238 }), [0, H + 0.8, 0.4]);
   const marquee = tex(256, 64, () => {}), mg = marquee.image.getContext('2d');
   cplane(W + 0.7, 1.55, psx(marquee, { unlit: 0.95 }), [0, H + 0.8, 0.96]);
-  // the glass: a glint, and the cracks drawn on a see-through picture over it
-  const glint = tex(32, 48, g => {
-    g.fillStyle = '#e8f8ff';
-    for (let i = 0; i < 9; i++) { g.fillRect(Math.round(7 - i * 0.6), 3 + i, 1, 1); if (i < 5) g.fillRect(Math.round(10 - i * 0.6), 3 + i, 1, 1); }
-  });
+  // the glass: clear (no fake glare: it hid the board), and the cracks drawn on a see-through picture over it
+  const glint = tex(32, 48, () => {});
   const glass = [cplane(W, H, psx(glint, { unlit: 1, fade: 0.4 }), [0, H / 2, Z.glass])];
   const CW = Math.round(W / 0.05), CH = Math.round(H / 0.05);   // the cracks' picture, in its chunky pixels (5 cm each)
   const cracksTex = tex(CW, CH, () => {}), cg = cracksTex.image.getContext('2d');
@@ -252,6 +249,7 @@ export async function buildRoom(m) {
   const clunk = () => { if (sound && now - lastTock > 0.07) { lastTock = now; sound.tock(); } };
   const play = {
     label: "PLAY BRICKBUSTER '96",
+    holdToLeave: true,   // on a phone, STEP BACK has to be held a moment (a thumb sliding about hits it by accident)
     // what the view has to fit: the glass, and a bit of the case round it
     // (the glass, the marquee, and the floor in front, where the bricks come out onto the heap; the
     // marquee's letters are big enough to read from there)

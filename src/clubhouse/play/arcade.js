@@ -53,6 +53,8 @@ export function arcade(you) {
     stepBack,
     // whether you're at a game (stepped up to it, or on your way there or back)
     at: () => !!game,
+    // whether STEP BACK on a phone has to be held (a game that asks for it, with `holdToLeave`)
+    holdToLeave: () => !!playing()?.holdToLeave,
     // a key, while you're playing: handled here (true), whatever it is
     key(e) {
       const pl = playing(); if (!pl) return false;

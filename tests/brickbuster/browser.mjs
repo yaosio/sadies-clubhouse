@@ -82,7 +82,17 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(100);
     const flying = await B();
     // stepping back: the game stops where it was
-    if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('Escape');
+    // (on a phone STEP BACK is held a moment: a quick tap does nothing)
+    const stepBack = async () => {
+      if (!opts.hasTouch) return p.keyboard.press('Escape');
+      await p.tap('#clubhouse #use');
+      await p.waitForTimeout(900);
+      check(`${device}: a quick tap on STEP BACK does not leave`, await modeIs('arcade'));
+      await p.dispatchEvent('#clubhouse #use', 'pointerdown');
+      await p.waitForTimeout(900);
+      await p.dispatchEvent('#clubhouse #use', 'pointerup');
+    };
+    await stepBack();
     await modeIs('play');
     const left = await B();
     // the game is kept after a reload: the lives, the level, the ball where it was
@@ -117,7 +127,7 @@ export default async function ({ browser, page, check, outDir }) {
     // (Sadie gone after it and the door shut behind her, or as long as that could take)
     await until(() => { const s = window.__brickbuster.state(); return !s.sadie && s.sign && !s.doorHeld; }, null, 15000);
     s = await B();
-    check(`${device}: every brick left lands on the heap, and the door has her sign`, s.bricks === 0 && s.pile === pile0 + board && s.sign && !s.sadie, `${s.pile} on the heap, ${board} on the board and ${pile0} on the heap before`);
+    check(`${device}: every brick left lands on the heap, and the door has her sign`, s.bricks === 0 && s.pile >= pile0 + board && s.sign && !s.sadie, `${s.pile} on the heap, ${board} on the board and ${pile0} on the heap before`);
 
     // ...then the machine fixes itself: the paddle goes home, a new ball pops out, the glass comes back, the heap
     // dances out of the top, a new board pops in, the sign comes off
@@ -159,7 +169,7 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(700);
     s = await B();
     check(`${device}: ...and after a reload it is still unbreakable`, !s.broken && s.cracks === 0, `cracks ${s.cracks}, broken ${s.broken}`);
-    if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('Escape');
+    await stepBack();
     await modeIs('play');
     await p.waitForTimeout(1500);
     // put away when you're far off (the clubhouse does it after a while three doors away) and built

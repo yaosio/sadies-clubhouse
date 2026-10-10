@@ -22,6 +22,7 @@ A use with `play` is a game (mode `arcade`):
 - `start()` (called during the press, so sound is allowed), `stop()`.
 - `steer(v, dt)`: held keys, -1 to 1 (A/D, the arrows). `nudge(metres)`: the mouse without
   clicking, or a finger sliding anywhere, already turned into metres across the game.
+- `holdToLeave`: set it and, on a phone, the STEP BACK button has to be held about half a second (a game where a sliding thumb hits it by accident).
 - `over`: set when the game ends; the clubhouse steps you back. Esc, W, S or STEP BACK also glide
   you back to where you stood; the pause menu stops the game too.
 

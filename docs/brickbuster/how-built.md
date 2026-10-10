@@ -18,7 +18,7 @@ changing the code. Its sounds and music are in `sounds.md`, its checks in `check
 - **`boards.js`**: the board for a level, from the game's seed and the level number (`boards.md`).
 - **`room.js`**: the room (10 x 13 m, 11 m tall, arcade carpet, the QUIET!! poster by the door,
   Sadie on her box), the case (zigzag 90s plastic, a copper-bar marquee with the score, FREE PLAY /
-  NO COINS stickers), the glass (a glint, and the cracks drawn on a see-through picture from each
+  NO COINS stickers), the glass (clear, no fake glare since it hid the board, and the cracks drawn on a see-through picture from each
   crack's seed: `crackLines`), the bricks (bits fall down inside when knocked out), the yarn ball
   and the paddle (an extruded rounded slab, its face a 32 x 10 picture per mood and gaze, plus sad
   and sighing), and the marquee (score, high score, level, hearts; GAME OVER, FIXING ITSELF,
