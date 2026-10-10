@@ -31,7 +31,7 @@ const MID = (COLS - 1) / 2, RMID = (ROWS - 1) / 2;
 const ART = {
   cat: ['..#........#..', '.###......###.', '.############.', '.##..####..##.', '.############.', '..####..####..', '....######....', '..............'],
   heart: ['..####..####..', '.############.', '.############.', '..##########..', '...########...', '....######....', '.....####.....', '......##......'],
-  invader: ['..#.....#..', '...#...#...', '..#######..', '.##.###.##.', '###########', '#.#######.#', '#.#.....#.#', '...##.##...'],
+  rocket: ['....#....', '...###...', '...###...', '..#####..', '..#####..', '.#######.', '###.#.###', '#...#...#'],
 };
 // (the first two rows of cat and heart are 14 wide; this keeps them honest)
 const art = (rows, r, c) => {
@@ -66,7 +66,7 @@ const SHAPES = [
     at: (r, c, p) => (mix(p.seedA, r * 31 + Math.min(c, COLS - 1 - c)) % 1000) / 1000 < p.density },
   { name: 'cat', make: () => ({}), at: (r, c) => art(ART.cat, r, c) },
   { name: 'heart', make: () => ({}), at: (r, c) => art(ART.heart, r, c) },
-  { name: 'invader', make: () => ({}), at: (r, c) => art(ART.invader, r, c) },
+  { name: 'rocket', make: () => ({}), at: (r, c) => art(ART.rocket, r, c) },
 ];
 export const SHAPE_NAMES = SHAPES.map(s => s.name);
 
@@ -98,7 +98,7 @@ const TONES = [
 export function makeBoard(seed, level) {
   level = Math.max(1, Math.floor(level) || 1);
   const si = shapeFor(seed, level), shape = SHAPES[si], ask = rng(mix(seed, level * 7919 + 5));
-  const picture = ['cat', 'heart', 'invader'].includes(shape.name);   // (a picture keeps its shape: no holes punched, never turned over)
+  const picture = ['cat', 'heart', 'rocket'].includes(shape.name);   // (a picture keeps its shape: no holes punched, never turned over)
   const p = shape.make(ask), mirror = ask() < 0.5, flip = ask() < 0.35 && !picture;
   const holes = !picture && ask() < 0.5 ? 0.04 + ask() * 0.08 : 0, holeSeed = Math.floor(ask() * 1e6), tone = TONES[Math.floor(ask() * TONES.length)];
   const cells = [];

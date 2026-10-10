@@ -15,7 +15,7 @@ boards. There is no last level: the numbers just keep going (a test makes thousa
 A board is a grid of 14 columns and 8 rows (some cells have a brick; each brick has a colour from
 the rainbow of eight and is worth more nearer the top). The shape is one of twelve: stripes,
 checker, diamond (sometimes hollow), pyramid (up or down), waves, pillars, frame, cross, scatter,
-Sadie's cat face, a heart and a space invader. The shapes come round in a shuffled order (a new
+Sadie's cat face, a heart and a little rocket (all our own drawings: nothing copied from any game or character, Yaosio asked 2026-10-10). The shapes come round in a shuffled order (a new
 shuffle every twelve levels), so a shape never comes twice running. Each shape is turned a little
 different every time: its numbers, mirrored left to right or not, upside down or not (not the
 pictures), a few holes punched in it (not the pictures), and one of four ways of colouring it (in
