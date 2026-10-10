@@ -13,3 +13,4 @@ the part your change touches. The outside has its own folder: `docs/clubhouse/ou
   menu, and what a room is lent (`neighbours.js`).
 - `hall.md`: the hall, its stairs and landings, and which wall a door goes on.
 - `drawing.md`: how it's drawn: the PS1 material, textures, no flicker, no jumps at doorways, words.
+- `speed-readout.md`: the pause menu's SPEED button: frames a second and memory, to read out on a phone.

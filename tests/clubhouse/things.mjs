@@ -69,6 +69,16 @@ export async function checkThings(check) {
     for (let i = 0; i < 30 * 60; i++) k.step(DT, null);
     check('when outside cannot be seen (null) nothing changes, however long', k.states().game === 'near' && t.log.length === log);
   }
+  // ---- not watched ----
+  {
+    const k = makeThings(), t = fake('still', 0, 100, { watched: false }); k.add(t);
+    k.step(DT, { x: 0, z: 100 }); await settle();
+    for (let i = 0; i < 30 * 60; i++) k.step(DT, { x: 0, z: -400 });
+    check('a thing that is not watched is built once and then never let go', k.states().still === 'near');
+    k.watch('still', true);
+    for (let i = 0; i < 30 * 10; i++) k.step(DT, { x: 0, z: -400 });
+    check('...until it is watched again', k.states().still !== 'near');
+  }
   // ---- one at a time, the nearest first ----
   {
     const k = makeThings(), order = [], slow = (id) => ({ show: s => { if (s === 'near') { order.push(id); return new Promise(ok => setTimeout(ok, 5)); } } });

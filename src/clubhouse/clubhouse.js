@@ -28,6 +28,7 @@ import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx
 import { timers } from './timers.js';
 import { buildOutside } from './outside.js';
 import { makeThings } from './things.js';
+import { makeMeter } from './meter.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
@@ -238,19 +239,17 @@ export async function open(cards, enter) {
     return r => (r.place ? d.get(r.place) : Math.min(98, ...r.portals.map(p => d.get(p.wa) ?? 98)) + 1) ?? 99;
   }
   // every frame: build the nearest room not built yet (while you're still, or as you come up to its
-  // door), and put away rooms three doors off for a while (or the ones you were near longest ago,
-  // once there are more than MAX)
-  const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7, BITE = 6, TRIES = 6;
+  // door), and put away rooms three doors off for a while (there's no cap on how many stay built)
+  const FAR_DOORS = 3, FAR_SECS = 20, NEAR_DOOR = 7, BITE = 6, TRIES = 6;
   let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks: a room's built only as you walk up to its door, and never put away by itself)
   function tend(dt, doorFor) {
     const away = doorsAway();
     let next = null, best = 1e9;
-    const full = slots.filter(r => r.place).length >= MAX;   // (at the cap, only the door you walk up to builds a room: else the rest would be built and put away over and over)
     for (const r of slots) if (!r.place && !r.building && r.portals.length && again(r)) {
       const n = away(r); if (n > 2) continue;
       const dd = Math.min(99, ...r.portals.filter(p => p.wa === me.world).map(p => Math.hypot(me.x - p.a.pos.x, me.z - p.a.pos.z)));
       const score = n * 100 + dd;
-      if (doorFor === r || (!onlyDoors && !full && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
+      if (doorFor === r || (!onlyDoors && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
     }
     // (a building outside the gate that didn't build at the start has no door yet: tried again too)
     next ||= slots.find(r => !r.place && !r.building && !r.portals.length && outdoors(r.card) && again(r));
@@ -258,10 +257,6 @@ export async function open(cards, enter) {
     const built = slots.filter(r => r.place);
     for (const r of built) r.far = away(r) >= FAR_DOORS ? r.far + dt : 0;
     if (!onlyDoors) for (const r of built) if (r.far > FAR_SECS) putAway(r);
-    if (built.length > MAX) {
-      const spare = built.filter(r => r.place && away(r) >= 2).sort((a, b) => b.far - a.far);
-      for (const r of spare.slice(0, built.length - MAX)) putAway(r);
-    }
   }
   // A building outside the gate that's far off (FAR_HOUSE metres from where you are, or from the door
   // you're looking out of) is drawn as a plain block its size instead (made the first time it's
@@ -394,7 +389,7 @@ export async function open(cards, enter) {
   }
   for (const d of outside.things) {
     let handle = null, mine = null, block = null;
-    keeper.add({ id: d.id, x: d.x, z: d.z, r: d.r, near: d.near, busy: () => !!handle?.busy?.(),
+    keeper.add({ id: d.id, x: d.x, z: d.z, r: d.r, near: d.near, watched: d.watched, busy: () => !!handle?.busy?.(),
       show(state) {
         if (state === 'near') {
           if (!handle) {
@@ -668,13 +663,36 @@ export async function open(cards, enter) {
     if (document.pointerLockElement) document.exitPointerLock();
   }
   function resume() {
-    $('#menu').hidden = true; $('#credits').hidden = true; ask(false);
+    $('#menu').hidden = true; $('#credits').hidden = true; $('#speed').hidden = true; ask(false);
     if (!ways.some(w => w.resume?.())) mode = 'play';
     showTarget();
   }
   on($('#pause'), 'click', e => { e.stopPropagation(); if (mode === 'play' || mode === 'arcade') pause(); });
   on($('#resume'), 'click', resume);
   on($('#creditsBtn'), 'click', () => { const box = $('#credits'); if (box.hidden) { showCredits(box); box.hidden = false; box.scrollIntoView?.({ block: 'nearest' }); } else box.hidden = true; });
+  // SPEED: how fast the game is running here, to read out (meter.js): frames a second now, in this place and in the
+  // slowest, and what's held in memory. Hidden until you open it; the numbers are from before you paused.
+  const meter = makeMeter();
+  const mb = n => (n / 1e6).toFixed(1);
+  function speedLines() {
+    const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info'), mem = performance.memory, info = renderer.info.memory;
+    let bytes = 0;
+    for (const x of made()) if (x.isTexture && x.image?.width) bytes += x.image.width * x.image.height * 4;
+    if (mem) meter.note('heap', mem.usedJSHeapSize);
+    return [
+      `GRAPHICS CARD HOLDS: ${info.geometries} SHAPES, ${info.textures} PICTURES (ABOUT ${mb(bytes)} MB OF PICTURES)`,
+      mem ? `PAGE MEMORY: ${mb(mem.usedJSHeapSize)} MB NOW, ${mb(meter.peak('heap'))} MB AT MOST SINCE THE COUNT BEGAN, ${mb(mem.jsHeapSizeLimit)} MB ALLOWED` : "PAGE MEMORY: THIS BROWSER WON'T SAY",
+      navigator.deviceMemory ? `THIS DEVICE SAYS IT HAS ABOUT ${navigator.deviceMemory} GB (A ROUGH GUESS)` : null,
+      `PLACES BUILT: ${places.length}, ROOMS: ${slots.filter(r => r.place).length} OF ${slots.length}`,
+      `PICTURE SIZE: ${canvas.width} BY ${canvas.height}`,
+      ext ? `GRAPHICS CHIP: ${gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)}` : null,
+    ].filter(Boolean);
+  }
+  function showSpeed() {
+    $('#speedLines').replaceChildren(...meter.report(me.world.name, speedLines()).map(l => Object.assign(document.createElement('p'), { textContent: l })));
+  }
+  on($('#speedBtn'), 'click', () => { const box = $('#speed'); if (box.hidden) { showSpeed(); box.hidden = false; box.scrollIntoView?.({ block: 'nearest' }); } else box.hidden = true; });
+  on($('#speedClear'), 'click', () => { meter.clear(); showSpeed(); });
   // how loud: MUSIC, SOUNDS and VOICES (Sadie, Clyde), each ON, SOFT or OFF (src/shared/sound.js)
   const showVolumes = () => { for (const b of BUSES) $('#vol-' + b).textContent = `${b.toUpperCase()}: ${loud[b].toUpperCase()}`; };
   for (const b of BUSES) on($('#vol-' + b), 'click', () => setLoud(b, { on: 'soft', soft: 'off', off: 'on' }[loud[b]]));
@@ -836,11 +854,16 @@ export async function open(cards, enter) {
     try { fn(); } catch (e) { if (!said.has(name)) { said.add(name); console.warn(`${name} failed in a frame:`, e); } }
   }
   let broken = 0;   // frames failing one after another
+  let prevTick = 0, beat = 0;
   function tick(now) {
+    const began = performance.now();
     try { frame(now); broken = 0; } catch (e) {
       if (!said.has('frame')) { said.add('frame'); console.warn('a frame failed:', e); }
       if (++broken === 60) oops(STUCK);   // (one slip is carried past; a whole second of them means the picture is stuck)
     }
+    if (mode !== 'menu' && prevTick) meter.frame(me.world.name, now - prevTick, performance.now() - began);   // (the speed readout: frames behind the pause menu aren't counted)
+    prevTick = now;
+    if (++beat % 120 === 0 && performance.memory) meter.note('heap', performance.memory.usedJSHeapSize);
     raf = requestAnimationFrame(tick);
   }
 
@@ -879,7 +902,7 @@ export async function open(cards, enter) {
     // the rooms built so far, whether they're all built, building one now (and waiting for that), and
     // putting one away now (as if you'd been far from it long enough)
     built: () => slots.filter(r => r.place).map(r => r.name),
-    settled: () => !slots.some(r => r.building) && (slots.filter(r => r.place).length >= MAX || slots.every(r => r.place || !(r.portals.length || outdoors(r.card)))),
+    settled: () => !slots.some(r => r.building) && slots.every(r => r.place || !(r.portals.length || outdoors(r.card))),
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
@@ -895,6 +918,7 @@ export async function open(cards, enter) {
     // the things in the world and their states (near, far or gone); every range pulled in or pushed out by a factor
     things: () => keeper.states(),
     thingRange: k => keeper.setScale(k),
+    thingWatch: (id, on) => keeper.watch(id, on),
     houses: () => slots.filter(r => r.house?.group).map(r => ({ name: r.name, far: !r.house.group.visible })),
     // how quick the clubhouse is: ms to the first picture, ms to build each place, and what's held on
     // the graphics card (and in the kit's list of things to hand back)

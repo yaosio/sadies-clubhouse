@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { checker } from '../shared/check.mjs';
 import { checkPool } from './pool.mjs';
 import { checkThings } from './things.mjs';
+import { checkMeter } from './meter.mjs';
 
 const { check, finish } = checker();
 
@@ -284,5 +285,6 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
 await checkCards(check);
 checkPool(check);
 await checkThings(check);
+checkMeter(check);
 
 finish('failed', 'all passed');

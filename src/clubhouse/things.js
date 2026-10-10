@@ -56,9 +56,11 @@ export function makeThings(over = {}) {
 
   let now = 0;
   return {
-    // add a thing: { id, x, z, r, show(state), busy?(), near?, gap?, seen?, grace? }. It starts nowhere
+    // add a thing: { id, x, z, r, show(state), busy?(), near?, gap?, seen?, grace?, watched? }. It starts nowhere
     // (state null): the next `step` says where it is.
     add(t) { const thing = { ...t, state: null, away: 0, tries: 0, building: null, failed: -1e9 }; all.push(thing); return thing; },
+    // turn the distance watching of one thing on or off (a thing can start unwatched: `watched: false`)
+    watch(id, on) { const t = all.find(t => t.id === id); if (t) t.watched = on; },
     remove(id) { const i = all.findIndex(t => t.id === id); if (i >= 0) all.splice(i, 1); },
     // every frame: `from` is where outside is seen from ({ x, z }), or null if it can't be seen (nothing changes then)
     step(dt, from) {
@@ -67,6 +69,7 @@ export function makeThings(over = {}) {
       let next = null, best = 1e9;
       for (const t of all) {
         if (t.building) continue;
+        if (t.watched === false && t.state) continue;   // (not watched: built once at the start, then left alone)
         const r = range(t), d = edge(t, from);
         if (t.state === 'near') {
           t.away = d > r.leave && !t.busy?.() ? t.away + dt : 0;
