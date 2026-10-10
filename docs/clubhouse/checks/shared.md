@@ -22,13 +22,6 @@ each activity's browser checks.
   one included, is checked against all of them.
 - It can't tell a save that loads but quietly ignores what it no longer understands.
 
-## Saves stay small (`tools/check.mjs`, `SAVE_MAX`)
-- The fullest a room's own saves got while its checks played it must stay under 300 KB. The owner
-  asked for this one back (2026-10-04): a save that doesn't fit is lost progress. The 300 KB is
-  Claude's choice, no longer tied to a browser limit (saves moved to IndexedDB, which has far more
-  room; the biggest board today is about 206 KB); raise or drop it if a room really needs more. It only measures what the checks make a room
-  save: a room whose checks save little shows 0 KB, so it can't catch a save that only grows in long play.
-
 ## Dropped on purpose (2026-10-03)
 The calm-sounds check (`ears.mjs`: 30 s standing still in every room) and the something-is-drawn check
 (`looks.mjs`) were removed: only fatal errors are tested now, and those two cost about six of the

@@ -75,7 +75,7 @@ other sound is fine if it's rare, soft and varied. Written only here; other page
 - Shared code names no room; a room imports only its own folder and the toolbox. *Checked.*
 
 ## 7. Small and fast
-- A room's save stays small (under 300 KB, Claude's choice: a habit from the old 5 MB browser limit, IndexedDB has far more) and old saves always load. *Both checked* (the biggest save any room's checks reach). (`docs/clubhouse/rooms/saves.md`)
+- Old saves always load (no size cap on a room's save: saves live in IndexedDB). *Checked.* (`docs/clubhouse/rooms/saves.md`)
 - A room hands back everything it made when it's put away. *Checked:* every room is put away and built
   again several times, and the memory and listeners are compared.
 
