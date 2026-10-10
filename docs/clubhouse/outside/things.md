@@ -18,6 +18,10 @@ behind. Building the pool took 8 ms in headless Chrome on a desktop (the outside
 together take about 320 ms, mostly the rest of the outside); not a phone. The rest of the outside is
 still built whole, and `docs/clubhouse/decisions/known-limits.md` still says so.
 
+**The test page** (the build with the TEST label) pulls every range in to a fifth (`setScale(0.2)` in
+`clubhouse.js`), so the owner can walk it and feel the pool being built and put away (step 3 of the
+plan). The real game keeps the wide ranges, and the browser checks start from them.
+
 ## The idea
 A *thing* is a place and a size in the world plus one function, `show(state)`. It has no area name
 and nothing says which part of town it belongs to, so moving it is changing its position.

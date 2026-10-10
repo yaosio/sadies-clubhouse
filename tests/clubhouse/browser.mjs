@@ -47,6 +47,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
     await shot('1-letter');
     check(`${device}: the clubhouse opens and draws`, opened, errors[0]);
     if (!opened) { await ctx.close(); return; }
+    await M('thingRange', 1);   // (the test page pulls the ranges in so the owner can feel them; the checks start from the real ones)
     check(`${device}: ...at the gate, with Sadie's letter`, (await M('where')).place === 'outside' && await M('mode') === 'letter' && await p.isVisible('#letter'));
     await p.click('#ok');
     check(`${device}: OK puts the letter away`, await M('mode') === 'play' && !(await p.isVisible('#letter')));

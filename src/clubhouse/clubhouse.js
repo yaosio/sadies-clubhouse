@@ -385,6 +385,7 @@ export async function open(cards, enter) {
   // looks after the rest: what a thing made goes back to the graphics card when it is put away, and
   // a thing that is far but in view is drawn as a plain block its size.
   const keeper = makeThings();
+  if (testing) keeper.setScale(0.2);   // (the test page only: every range pulled in to a fifth, so the pool builds as you walk toward the backyard and goes when you leave. The real game keeps them wide)
   function release(mine) {
     const inUse = new Set(shared);
     for (const p of places) for (const sc of p.scenes || [p.scene]) things(sc, inUse);
