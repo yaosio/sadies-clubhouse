@@ -123,7 +123,7 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('5-shattered');
     check(`${device}: the third crack breaks the glass, with the big shatter`, s.broken === 'top' && s.heard.includes('shatter') && !s.heard.includes('crack3'), `broken ${s.broken}, heard ${s.heard.slice(-4).join(' ')}`);
     check(`${device}: ...and you're stepped back to watch`, await modeIs('play'));
-    check(`${device}: ...and it lets you go once the ball's out`, await until(() => { const e = window.__brickbuster.state(); return e.escape === 'gone' && !e.watched; }, null, 30000));
+    check(`${device}: ...and the yarn ball gets out`, await until(() => window.__brickbuster.state().escape === 'gone', null, 30000));
     // (Sadie gone after it and the door shut behind her, or as long as that could take)
     await until(() => { const s = window.__brickbuster.state(); return !s.sadie && s.sign && !s.doorHeld; }, null, 15000);
     s = await B();
@@ -132,6 +132,7 @@ export default async function ({ browser, page, check, outDir }) {
     // ...then the machine fixes itself: the paddle goes home, a new ball pops out, the glass comes back, the heap
     // dances out of the top, a new board pops in, the sign comes off
     check(`${device}: ...and the machine starts to fix itself`, await until(() => window.__brickbuster.state().fixing, null, 15000));
+    check(`${device}: ...with your view held on the machine while it does`, (await B()).watched);
     await until(() => window.__brickbuster.state().mended, null, 15000);
     await shot('6-mending');
     s = await B();
@@ -139,6 +140,8 @@ export default async function ({ browser, page, check, outDir }) {
     await until(() => window.__brickbuster.state().glassBack, null, 15000);
     check(`${device}: ...the glass puts itself back together`, (await B()).glassBack);
     await until(() => !window.__brickbuster.state().fixing, null, 40000);
+    await p.waitForTimeout(500);
+    check(`${device}: ...and you're let go once it's done`, !(await B()).watched);
     await p.waitForTimeout(300);
     s = await B();
     await shot('7-mended');
@@ -155,6 +158,17 @@ export default async function ({ browser, page, check, outDir }) {
     await until(n => window.__brickbuster.state().lives < n, lives0, 8000);
     s = await B();
     check(`${device}: once mended, missing costs a life and cracks nothing`, s.lives === lives0 - 1 && s.bottomCracks === 0 && !s.broken, `lives ${s.lives}`);
+    // every 3000 points a life back (up to 3): the 1UP sign pops up where the ball hit
+    await p.evaluate(() => window.__brickbuster.catchBall());
+    await p.waitForTimeout(300);
+    const before = Math.min((await B()).lives, 2);
+    await p.evaluate(() => window.__brickbuster.oneUp());
+    await until(n => window.__brickbuster.state().lives > n, before, 8000);
+    s = await B();
+    check(`${device}: 3000 points with a life missing gives it back, with a 1UP sign`, s.lives === before + 1, `lives ${before} -> ${s.lives}, signs ${s.ups}`);
+    check(`${device}: ...the sign is up`, s.ups >= 1);
+    await shot('8-oneup');
+    await p.evaluate(() => window.__brickbuster.catchBall());
     // once mended it's mended for good: hitting the top again never cracks it, and that's kept across a reload
     for (let i = 0; i < 4; i++) {
       await p.evaluate(() => window.__brickbuster.catchBall());

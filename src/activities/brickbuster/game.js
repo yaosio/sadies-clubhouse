@@ -22,6 +22,7 @@ export { COLS, ROWS };
 export const W = 6.0, H = 6.6;                  // the glass
 export const R = 0.16;                          // the yarn ball's radius
 export const PADDLE = { w: 1.3, h: 0.46, y: 0.7, speed: 6 };   // y: its middle
+export const EXTRA_LIFE = 3000;   // an extra life at every 3000 points, up to LIVES (Yaosio, 2026-10-10)
 export const CRACKS = 3, CRACK_HITS = 1, LIVES = 3, HEAP = 100;   // CRACK_HITS: how many times the ball has to hit the top for it to crack (one: as fast as it always was)
 const BRICK = { w: 0.4, h: 0.24, gap: 0.04, top: H - 1.25 };    // top: the top row's top edge, with room above to break through into
 // metres a second: faster with every level, up to level `cap` and no further (Claude's numbers)
@@ -36,7 +37,7 @@ export function makeGame(seed = 1, high = 0) {
     paddle: W / 2,
     bricks: [],                        // every cell of the grid, with `alive` for the ones that are bricks now
     cracks: { top: [], bottom: [] },   // each { x, seed }: where it hit, and how its lines run
-    score: 0, high, lives: LIVES, level: 1, speed: speedFor(1), serving: true,
+    score: 0, lifeMark: 0, high, lives: LIVES, level: 1, speed: speedFor(1), serving: true,
     seed: Math.max(1, Math.floor(seed)),   // this game's: its boards are made from it and the level
     rng: Math.max(1, Math.floor(seed) * 7919 % 2147483646),
     board: null,                       // the shape the board is
@@ -73,7 +74,7 @@ export function newBoard(g) {
 // score stays, and so does the glass as it is (cracked or not) and the heap on the floor
 export function restart(g) {
   g.seed = 1 + Math.floor(random(g) * 999999);
-  g.level = 1; g.lives = LIVES; g.score = 0; g.over = false;
+  g.level = 1; g.lives = LIVES; g.score = 0; g.lifeMark = 0; g.over = false;
   newBoard(g);
   g.topReady = true;
   serve(g);
@@ -149,6 +150,11 @@ function sub(g, dt, out) {
     const nx = Math.max(k.x, Math.min(k.x + k.w, b.x)), ny = Math.max(k.y, Math.min(k.y + k.h, b.y));
     if ((b.x - nx) ** 2 + (b.y - ny) ** 2 >= R * R) continue;
     k.alive = false; g.score += brickPoints(k); if (g.score > g.high) g.high = g.score;
+    const mark = Math.floor(g.score / EXTRA_LIFE);
+    if (mark > g.lifeMark) {   // every 3000 points: a life back (if there's one missing)
+      g.lifeMark = mark;
+      if (g.lives < LIVES) { g.lives++; out.push({ type: 'oneup', x: b.x, y: b.y, lives: g.lives }); }
+    }
     const px = Math.min(b.x + R - k.x, k.x + k.w - (b.x - R)), py = Math.min(b.y + R - k.y, k.y + k.h - (b.y - R));
     if (px < py) b.vx = b.x < k.x + k.w / 2 ? -Math.abs(b.vx) : Math.abs(b.vx);
     else b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy);
@@ -201,7 +207,7 @@ export function save(g) {
     return save(c);
   }
   const b = g.ball, r = n => Math.round(n * 1e4) / 1e4;
-  return { v: 2, seed: g.seed, level: g.level, lives: g.lives, score: g.score, high: g.high, rng: g.rng, topReady: g.topReady, topHits: g.topHits,
+  return { v: 2, seed: g.seed, level: g.level, lives: g.lives, score: g.score, lifeMark: g.lifeMark, high: g.high, rng: g.rng, topReady: g.topReady, topHits: g.topHits,
     bricks: g.bricks.map(k => k.alive ? 1 : 0).join(''), paddle: r(g.paddle), serving: g.serving,
     ball: { x: r(b.x), y: r(b.y), vx: r(b.vx), vy: r(b.vy), spin: r(b.spin % 6.2832) },
     pile: g.pile.join(''), pileNext: g.pileNext, cracks: g.cracks, broken: g.broken, mended: g.mended };
@@ -224,6 +230,7 @@ export function load(g, s) {
   }
   // (the first Brickbuster's score becomes the high score, and the game starts from the top)
   g.score = v2 ? Math.floor(num(s.score, 0, 1e9, 0)) : 0;
+  g.lifeMark = Math.floor(num(s.lifeMark, 0, 1e6, Math.floor(g.score / EXTRA_LIFE)));
   g.high = Math.max(g.score, Math.floor(num(v2 ? s.high : s.score, 0, 1e9, 0)));
   g.mended = !!s.mended && !s.broken;
   if (s.broken) g.broken = 'top';   // (the first one could also break at the bottom, or by clearing it: all just broken now)

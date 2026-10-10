@@ -1,5 +1,8 @@
 # Mending itself
 
+Your view is held on the machine from the moment the yarn ball is out until the mending is all done
+(Yaosio, 2026-10-10: it was too easy to miss that it fixes itself): you can't walk or look away.
+
 The machine fixing itself after it breaks. Read before changing it. The break is in `the-break.md`;
 its timings are in `numbers.md`; its tune is in `sounds.md`.
 

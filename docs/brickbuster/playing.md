@@ -27,6 +27,10 @@ the LEVEL and the lives left as little hearts. Idle, it says FULL VERSION 99 LEV
 - **Missing**: the ball drops out of the bottom of the glass (the paddle winces, a sad little slide
   down) and a new ball waits on the paddle. On a machine that hasn't broken yet, a miss cracks the
   glass at the bottom instead of costing a life (`the-break.md`); once mended, a miss costs one life.
+- **Extra life** (Yaosio, 2026-10-10): every 3000 points one life comes back, if one is missing (never
+  more than three). A big pink heart with 1UP under it in fat letters pops up where the ball hit,
+  floats up and shrinks away, with a happy little run of notes and the paddle smiling. The heart
+  says it first, because the main player has trouble reading. (`EXTRA_LIFE` in `game.js`.)
 - **GAME OVER**: after the third miss the marquee says GAME OVER with your final score and the HIGH
   score (or NEW HIGH SCORE), the paddle looks sad, and a few seconds later the next game starts: level
   1, three lives, a new seed (so new boards). The high score stays, and so do any cracks on the

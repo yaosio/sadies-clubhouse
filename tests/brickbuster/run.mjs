@@ -6,7 +6,7 @@ import { makeGame, step, launch, movePaddle, pushPaddle, save, load, restart, me
 import { makeBoard, shapeFor, SHAPE_NAMES, MIN_BRICKS } from '../../src/activities/brickbuster/boards.js';
 import { RATE } from '../../src/shared/retro.js';
 import { crack, shatter, tink } from '../../src/activities/brickbuster/sounds/glass.js';
-import { boing, blip, tock, miss, level, over } from '../../src/activities/brickbuster/sounds/machine.js';
+import { boing, blip, tock, miss, level, over, oneup } from '../../src/activities/brickbuster/sounds/machine.js';
 import { pop, mend as mendSound } from '../../src/activities/brickbuster/sounds/repair.js';
 import { mute } from '../../src/activities/brickbuster/sounds/quiet.js';
 import { pat, chirp, trill, meow, makeChatter, VARIANTS, CHATTER, LOUD } from '../../src/activities/brickbuster/sounds/sadie.js';
@@ -106,6 +106,22 @@ function play(seed, skill, secs, o = {}) {
   for (let t = 0; t < 120 && !g.broken; t += DT) { if (g.serving) launch(g); for (const e of step(g, DT)) { if (e.type === 'crack' && e.side === 'bottom') cr.push(e.level); if (e.type === 'break') br.push(e.why); } }
   check('a fresh machine: each missed ball cracks the glass at the bottom (1, 2, 3), the third breaks it, and no life is lost', cr.join() === '1,2,3' && br.join() === 'bottom' && g.broken === 'top' && g.lives === LIVES && !g.over, `cracks ${cr.join(' ')}, broke ${br.join(' ')}, lives ${g.lives}`);
   check('...and a mended machine never takes cracks at the bottom', (() => { mend(g); const e = []; for (let t = 0; t < 20 && !g.over; t += DT) { if (g.serving) launch(g); e.push(...step(g, DT)); } return g.over && !g.cracks.bottom.length && !e.some(x => x.type === 'crack'); })());
+}
+
+// 3b. every 3000 points a life back, never past three, and a save doesn't give it twice
+{
+  const g = makeGame(11); g.mended = true; launch(g);
+  const hit = () => { const k = g.bricks.find(b => b.alive); Object.assign(g.ball, { x: k.x + k.w / 2, y: k.y - R - 0.02, vx: 0, vy: 4 }); g.serving = false; return step(g, 0.05); };
+  g.lives = 1; g.score = 2999; g.lifeMark = 0;
+  const e = hit();
+  check('3000 points with a life missing gives one back (and tells the room where the ball was)', g.lives === 2 && e.filter(x => x.type === 'oneup').length === 1 && Number.isFinite(e.find(x => x.type === 'oneup')?.x));
+  const back = load(makeGame(12), save(g));
+  check('...a save remembers it was given, so reloading never gives it twice', back.lifeMark === 1 && back.lives === 2);
+  g.lives = LIVES; g.score = 5999; g.lifeMark = 1;
+  const e2 = hit();
+  check('...but never past three lives', g.lives === LIVES && !e2.some(x => x.type === 'oneup') && g.lifeMark === 2);
+  restart(g);
+  check('...and a new game starts counting again', g.lifeMark === 0 && g.lives === LIVES);
 }
 
 // 3. missing costs a life once mended: three and it's GAME OVER (and the glass isn't touched)
@@ -254,12 +270,12 @@ function play(seed, skill, secs, o = {}) {
   };
   const c = [1, 2, 3].map(l => stats(crack(l)));
   const sh = stats(shatter()), mu = stats(mute()), me = stats(mendSound());
-  const all = [...c, stats(boing(0)), stats(boing(1)), stats(blip(0)), stats(blip(5)), stats(tock()), stats(tink()), sh, mu, stats(miss()), stats(level()), stats(over()), stats(pop()), me];
+  const all = [...c, stats(boing(0)), stats(boing(1)), stats(blip(0)), stats(blip(5)), stats(tock()), stats(tink()), sh, mu, stats(miss()), stats(level()), stats(over()), stats(oneup()), stats(pop()), me];
   check('every sound is 8-bit, loud enough, and never past full volume', all.every(s => s.bits && s.peak > 0.2 && s.peak <= 1 && s.rms > 0.01), all.map(s => s.peak.toFixed(2)).join(' '));
   check('each crack is longer than the one before, the third a big one', c[0].secs < c[1].secs && c[1].secs < c[2].secs && c[2].secs > 1.5, c.map(s => s.secs.toFixed(2) + ' s').join(', '));
   check('...and louder', c[0].rms < c[2].rms, c.map(s => s.rms.toFixed(3)).join(' < '));
   check('the glass breaking is the biggest sound of all', sh.secs > c[2].secs && sh.rms > c[2].rms, `${sh.secs.toFixed(2)} s, ${sh.rms.toFixed(3)}`);
-  check('the machine mending itself is softer than the glass breaking; a miss, a new level and GAME OVER are short', me.rms < sh.rms && stats(miss()).secs < 1.2 && stats(level()).secs < 1.2 && stats(over()).secs < 2, `mend ${me.rms.toFixed(3)}`);
+  check('the machine mending itself is softer than the glass breaking; a miss, a new level and GAME OVER are short', me.rms < sh.rms && stats(miss()).secs < 1.2 && stats(level()).secs < 1.2 && stats(over()).secs < 2 && stats(oneup()).secs < 1.4, `mend ${me.rms.toFixed(3)}`);
   check('the same crack sounds the same every time', crack(2).every((v, i) => v === crack(2)[i]));
   // Sadie's: 8-bit too, short, softer than the case's sounds, and each version a bit different
   const cat = { pat, chirp, trill, meow }, versions = Object.entries(cat).flatMap(([k, f]) => [...Array(VARIANTS)].map((_, v) => ({ k, v, a: f(v), s: stats(f(v)) })));

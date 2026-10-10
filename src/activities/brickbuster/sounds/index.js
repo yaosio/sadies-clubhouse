@@ -5,7 +5,7 @@
 import { RATE } from '../../../shared/retro.js';
 import { wrap } from '../../../shared/sound.js';
 import { crack, shatter, tink } from './glass.js';
-import { boing, blip, tock, miss, level, over } from './machine.js';
+import { boing, blip, tock, miss, level, over, oneup } from './machine.js';
 import { pop, mend } from './repair.js';
 import { mute } from './quiet.js';
 import * as sadie from './sadie.js';
@@ -25,6 +25,7 @@ export function makeSounds(h) {
     miss: () => play('miss', miss, 0.8),
     level: () => play('level', level, 0.8),
     over: () => play('over', over, 0.8),
+    oneup: () => play('oneup', oneup, 0.85),
     pop: () => play('pop', pop, 0.8),
     mend: () => play('mend', mend, 0.7),
     // Sadie (a sound makeChatter picked), `at` where she is: a voice, fading with distance

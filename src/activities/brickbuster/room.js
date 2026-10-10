@@ -157,6 +157,28 @@ export async function buildRoom(m) {
   }
   // bits of brick falling down inside the glass, on their way to the slot
   const falling = [];
+  // the extra-life sign: a big pink heart (the same hearts as the marquee's) with a white outline and
+  // "1UP" under it in fat blocks. It pops up where the ball hit, floats up, and shrinks away.
+  // (the main player has trouble reading, so the heart does the telling and the letters are huge)
+  const ups = [];
+  const upTex = tex(32, 32, g => {
+    const heart = ['.##...##.', '####.####', '#########', '#########', '.#######.', '..#####..', '...###...', '....#....'];
+    const LET = { 1: ['.#.', '##.', '.#.', '.#.', '###'], U: ['#.#', '#.#', '#.#', '#.#', '###'], P: ['##.', '#.#', '##.', '#..', '#..'] };
+    const blocks = (rows, x0, y0, s, col) => { g.fillStyle = col; rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') g.fillRect(x0 + x * s, y0 + y * s, s, s); })); };
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) blocks(heart, 5 + dx, 1 + dy, 2, '#ffffff');   // (the white outline)
+    blocks(heart, 5, 1, 2, '#ff2e6e');
+    let x = 3;
+    for (const ch of '1UP') {
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) blocks(LET[ch], x + dx, 19 + dy, 2, '#1c1238');
+      blocks(LET[ch], x, 19, 2, '#fff27a'); x += 9;
+    }
+  });
+  const upMat = psx(upTex, { unlit: 1, decal: true });
+  function showUp(x, y) {
+    const mesh = cplane(1.5, 1.5, upMat, [Math.max(0.9, Math.min(W - 0.9, x)), Math.max(1.0, Math.min(H - 1.2, y)), Z.glass + 0.06]);
+    mesh.scale.setScalar(0.001);
+    ups.push({ mesh, t0: now, y0: mesh.position.y });
+  }
 
   // ---------- Sadie, on a box beside the machine, watching the ball ----------
   const SADIE = new Vector3(4.15, 0.9, CZ - 1.2);
@@ -292,6 +314,8 @@ export async function buildRoom(m) {
         // the ball dropped out of the bottom: a life gone (a new ball on the paddle in a moment)
         if (game.mended) sound.miss();   // (before the first break a miss cracks the glass instead, which has its own sound)
         feel('wince', 0.9); wait = 1.1; keep_();
+      } else if (e.type === 'oneup') {
+        sound.oneup(); feel('happy', 1.4); showUp(e.x, e.y); keep_();
       } else if (e.type === 'level') {
         // a new board: its bricks pop in, one after another across the glass
         sound.level(); feel('happy', 1.4); wait = 1.3; newBoardLook(); keep_();
@@ -356,6 +380,8 @@ export async function buildRoom(m) {
     escape = { hops, i: 0, t: 0, from: ball.position.clone() };
     place.watch = ball.position;   // everyone in the room watches it go
   }
+  // (once the yarn ball is out your view moves to the machine and stays there through the mending: nobody misses it)
+  const WATCH_MACHINE = new Vector3(0, FY + H * 0.45, CZ - Z.glass);
   const PADDLE_DOWN = new Vector3(0.5, 0.66, CZ - 1.6);
   function restPaddle() { paddle.position.copy(PADDLE_DOWN); paddle.rotation.set(1.0, Math.PI, 0.14); paddle.scale.set(1, 1, 1); }
   function slotPos(i) { const s = slots[i]; return new Vector3(s.x, s.y, s.z); }
@@ -374,7 +400,7 @@ export async function buildRoom(m) {
       else { run = 'gone'; doneAt = now + 2.4; }
     }
     e.from = to.clone(); e.t = 0; e.i++;
-    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; place.watch = null; outInTheHall(true); }
+    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; place.watch = WATCH_MACHINE; outInTheHall(true); }
   }
   // Sadie: off her box and straight out the door after it
   function runOn(dt) {
@@ -399,7 +425,7 @@ export async function buildRoom(m) {
   let repairAt = 0, repairHold = false, repair = null, hideBoard = false, ballPop = 0, repairMusic = null;
   const dances = [];   // heap bricks on their way up and out
   function startRepair() {
-    repairAt = 0; repair = { t0: now }; fixing = true; play.over = false;
+    repairAt = 0; repair = { t0: now }; fixing = true; play.over = false; place.watch = WATCH_MACHINE;
     if (!sound) sound = makeSounds(sfx);
     sound.wake();
     (repairMusic ||= makeRepairMusic(sfx)).play();
@@ -564,6 +590,13 @@ export async function buildRoom(m) {
           if (q >= 1) { ballPop = 0; ball.scale.setScalar(1); }
         }
       }
+      // the extra-life signs: pop up big, float up, shrink away
+      for (let i = ups.length - 1; i >= 0; i--) {
+        const u = ups[i], k = t - u.t0;
+        const s = k < 0.25 ? k / 0.25 * 1.2 : k < 0.4 ? 1.2 - 0.2 * (k - 0.25) / 0.15 : k < 2.4 ? 1 + 0.05 * Math.sin(k * 6) : Math.max(0.001, 1 - (k - 2.4) / 0.4);
+        u.mesh.scale.setScalar(s); u.mesh.position.y = u.y0 + Math.min(k, 2.4) * 0.22;
+        if (k > 2.8) { cab.remove(u.mesh); ups.splice(i, 1); }
+      }
       // bits of brick falling inside the glass: down the slot, out of the hatch, onto the heap
       for (let i = falling.length - 1; i >= 0; i--) {
         const f = falling[i]; f.vy -= 9 * dt;
@@ -591,6 +624,8 @@ export async function buildRoom(m) {
       // (broken when it was last left: it mends itself the first time you're in the room)
       if (game.broken && escape === 'gone' && run === 'gone' && !repair && !repairAt && !doneAt) { const e = m.ears?.(); if (e && e.place === place) repairAt = t + 1.5; }
       if (repairAt && t > repairAt && !repairHold) startRepair();
+      // (let go of your view once all of it is over)
+      if (place.watch === WATCH_MACHINE && !repair && !repairAt && !doneAt && !dances.length && !(escape && escape !== 'gone') && !(run && run !== 'gone')) place.watch = null;
       if (repair) repairOn(t);
       if (dances.length) dancesOn(dt);
       repairMusic?.tick();
@@ -643,7 +678,7 @@ export async function buildRoom(m) {
     state: () => ({ active, serving: game.serving, score: game.score, high: game.high, level: game.level, lives: game.lives, board: game.board, over: game.over,
       paddle: game.paddle, ball: { ...game.ball },
       bricks: game.bricks.filter(k => k.alive).length, pile: piled.filter(Boolean).length, broken: game.broken,
-      cracks: game.cracks.top.length, bottomCracks: game.cracks.bottom.length, mendedForGood: game.mended, fixing, mended: !!repair?.home, glassBack: glass[0].visible,
+      cracks: game.cracks.top.length, bottomCracks: game.cracks.bottom.length, ups: ups.length, mendedForGood: game.mended, fixing, mended: !!repair?.home, glassBack: glass[0].visible,
       escape: escape === 'gone' ? 'gone' : escape ? 'hop ' + escape.i : null, sadie: sadie.visible, doorHeld: !!place.holding, sign: signUp,
       yarn: ball.getWorldPosition(new Vector3()).toArray(), watched: !!place.watch, canPlay: place.uses.length > 0,
       hall: loose?.ball ? { ball: [loose.ball.x, loose.ball.y, loose.ball.z], cat: [loose.cat.x, loose.cat.y, loose.cat.z], mode: loose.cat.mode,
@@ -672,6 +707,12 @@ export async function buildRoom(m) {
     // hold the mending off (for taking pictures of the machine left broken)
     holdRepair(on) { repairHold = !!on; },
     // lose a life right now
+    // a hair under the next 3000 points with a life missing, and the ball about to hit a brick
+    oneUp() {
+      const k = game.bricks.find(b => b.alive); if (!k) return;
+      game.lives = Math.min(game.lives, LIVES - 1); game.score = 3000 * (Math.floor(game.score / 3000) + 1) - 1; game.lifeMark = Math.floor(game.score / 3000);
+      Object.assign(game.ball, { x: k.x + k.w / 2, y: k.y - R - 0.02, vx: 0, vy: 4 }); game.serving = false; wait = 0;
+    },
     loseLife() { Object.assign(game.ball, { x: game.paddle < W / 2 ? W - 0.4 : 0.4, y: 0.3, vx: 0, vy: -4 }); game.serving = false; wait = 0; },
   });
   return place;

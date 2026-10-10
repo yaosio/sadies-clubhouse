@@ -56,6 +56,13 @@ export function level() {
   return finish(a, 0.25);
 }
 
+// An extra life: a happy little run up and a sparkle on top.
+export function oneup() {
+  const a = new Float32Array(Math.round(1.1 * RATE));
+  [659, 784, 1319, 1047, 1175, 1568].forEach((f, i) => beep(a, i * 0.075, i === 5 ? 0.4 : 0.14, f, 0.24, i === 5 ? 0.8 : 1));
+  return finish(a, 0.25);
+}
+
 // GAME OVER: four notes drooping down, slow and soft.
 export function over() {
   const a = new Float32Array(Math.round(1.6 * RATE));
