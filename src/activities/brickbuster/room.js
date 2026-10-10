@@ -380,8 +380,13 @@ export async function buildRoom(m) {
     escape = { hops, i: 0, t: 0, from: ball.position.clone() };
     place.watch = ball.position;   // everyone in the room watches it go
   }
-  // (once the yarn ball is out your view moves to the machine and stays there through the mending: nobody misses it)
-  const WATCH_MACHINE = new Vector3(0, FY + H * 0.45, CZ - Z.glass);
+  // Your view follows the yarn ball out, then Sadie after it, until she's out and the door has shut. Then
+  // it glides back (WATCH_ALL: to the far end of the room, looking at the middle of the machine so all of
+  // it shows) and, once it's there, the machine mends itself. It stays there till the mending's done.
+  const WATCH_ALL = Object.assign(new Vector3(0, FY + H * 0.45, CZ - Z.glass), { at: { x: 0, z: -RD + 0.35, y: 0 } });
+  const watchSadie = new Vector3();
+  let viewing = false, viewSince = 0;   // (gliding back to see all of it, before the mending starts)
+  function gatherView() { place.watch = WATCH_ALL; viewing = true; viewSince = now; repairAt = now + 4; }   // (4 s at most: it starts as soon as you're there)
   const PADDLE_DOWN = new Vector3(0.5, 0.66, CZ - 1.6);
   function restPaddle() { paddle.position.copy(PADDLE_DOWN); paddle.rotation.set(1.0, Math.PI, 0.14); paddle.scale.set(1, 1, 1); }
   function slotPos(i) { const s = slots[i]; return new Vector3(s.x, s.y, s.z); }
@@ -400,7 +405,7 @@ export async function buildRoom(m) {
       else { run = 'gone'; doneAt = now + 2.4; }
     }
     e.from = to.clone(); e.t = 0; e.i++;
-    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; place.watch = WATCH_MACHINE; outInTheHall(true); }
+    if (e.i >= e.hops.length) { escape = 'gone'; ball.visible = false; outInTheHall(true); }
   }
   // Sadie: off her box and straight out the door after it
   function runOn(dt) {
@@ -414,7 +419,7 @@ export async function buildRoom(m) {
   let signUp = false;
   function unsign() { if (m.landingDoor) m.landingDoor.paint(null); signUp = false; }   // (her sign comes off: the door's own again)
   function putSignUp() { if (signed && m.landingDoor) { m.landingDoor.paint(signed); signUp = true; } }
-  function finished() { place.holding = null; doneAt = 0; putSignUp(); repairAt = now + 2.2; }
+  function finished() { place.holding = null; doneAt = 0; putSignUp(); gatherView(); }
 
   // ---------- mending itself ----------
   // Once Sadie's out and the door's shut (or, if it was left broken, when you come into the room), the
@@ -425,7 +430,7 @@ export async function buildRoom(m) {
   let repairAt = 0, repairHold = false, repair = null, hideBoard = false, ballPop = 0, repairMusic = null;
   const dances = [];   // heap bricks on their way up and out
   function startRepair() {
-    repairAt = 0; repair = { t0: now }; fixing = true; play.over = false; place.watch = WATCH_MACHINE;
+    repairAt = 0; repair = { t0: now }; fixing = true; play.over = false; viewing = false; place.watch = WATCH_ALL;
     if (!sound) sound = makeSounds(sfx);
     sound.wake();
     (repairMusic ||= makeRepairMusic(sfx)).play();
@@ -622,10 +627,14 @@ export async function buildRoom(m) {
       }
       if (escape && escape !== 'gone') escapeOn(dt);
       // (broken when it was last left: it mends itself the first time you're in the room)
-      if (game.broken && escape === 'gone' && run === 'gone' && !repair && !repairAt && !doneAt) { const e = m.ears?.(); if (e && e.place === place) repairAt = t + 1.5; }
+      if (game.broken && escape === 'gone' && run === 'gone' && !repair && !repairAt && !doneAt) { const e = m.ears?.(); if (e && e.place === place) gatherView(); }
       if (repairAt && t > repairAt && !repairHold) startRepair();
       // (let go of your view once all of it is over)
-      if (place.watch === WATCH_MACHINE && !repair && !repairAt && !doneAt && !dances.length && !(escape && escape !== 'gone') && !(run && run !== 'gone')) place.watch = null;
+      if (place.watch === WATCH_ALL && !viewing && !repair && !repairAt && !doneAt && !dances.length && !(escape && escape !== 'gone') && !(run && run !== 'gone')) place.watch = null;
+      // (after the ball's out: your view stays with Sadie while she runs for the door)
+      if (place.watch !== WATCH_ALL && run && run !== 'gone' && escape === 'gone') { sadie.getWorldPosition(watchSadie); watchSadie.y += 0.6; place.watch = watchSadie; }
+      // (and when you've glided back to see all of it, the mending starts)
+      if (viewing && repairAt) { const e = m.ears?.(); if (e && e.place === place && Math.hypot(e.x - WATCH_ALL.at.x, e.z - WATCH_ALL.at.z) < 0.3 && t - viewSince > 0.4) repairAt = t; }
       if (repair) repairOn(t);
       if (dances.length) dancesOn(dt);
       repairMusic?.tick();

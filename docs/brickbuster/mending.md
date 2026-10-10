@@ -1,7 +1,12 @@
 # Mending itself
 
-Your view is held on the machine from the moment the yarn ball is out until the mending is all done
-(Yaosio, 2026-10-10: it was too easy to miss that it fixes itself): you can't walk or look away.
+Your view is held for the whole event (Yaosio, 2026-10-10: it was too easy to miss that it fixes
+itself): it follows the yarn ball out, then Sadie running after it, until she's out and the door has
+shut. Then the game glides you to the far end of the room, looking at the middle of the machine so
+all of it shows (`WATCH_ALL` in `room.js`), and as soon as you're there the mending starts (at most
+4 s later, if something stops the glide). You're let go when it's all done. You can't walk or look
+away meanwhile. On a narrow portrait phone the case's outer trim is a little cropped; the glass,
+the marquee and the heap all show.
 
 The machine fixing itself after it breaks. Read before changing it. The break is in `the-break.md`;
 its timings are in `numbers.md`; its tune is in `sounds.md`.
