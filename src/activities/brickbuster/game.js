@@ -42,6 +42,7 @@ export function makeGame(seed = 1, high = 0) {
     topReady: true,                    // whether the top can be hit again (not since the ball was last on the paddle)
     topHits: 0,                        // the hits at the top since the last crack
     pile: [], pileNext: 0,             // the colours of the bricks on the floor, in the order they fell (and which spot is swapped next once it's full)
+    mended: false,                     // once the machine has mended itself it is mended for good: the glass never cracks again
     broken: null,                      // 'top' once the glass has broken (null: it hasn't)
     over: false,                       // GAME OVER: out of lives, till room.js starts the next game
   };
@@ -169,7 +170,7 @@ function miss(g, out) {
 
 function hitGlass(g, out) {
   const list = g.cracks.top;
-  if (list.length >= CRACKS || !g.topReady) { out.push({ type: 'glass' }); return; }
+  if (g.mended || list.length >= CRACKS || !g.topReady) { out.push({ type: 'glass' }); return; }
   g.topReady = false;
   if (++g.topHits < CRACK_HITS) { out.push({ type: 'glass' }); return; }   // (it holds, this time)
   g.topHits = 0;
@@ -185,14 +186,14 @@ export function save(g) {
   // GAME OVER is kept as the next game, ready to start
   if (g.over) {
     const c = makeGame(1 + Math.floor(g.seed * 31 % 999999), g.high);
-    c.cracks = g.cracks; c.topReady = g.topReady; c.topHits = g.topHits; c.pile = g.pile; c.pileNext = g.pileNext; c.paddle = g.paddle; c.rng = g.rng;
+    c.cracks = g.cracks; c.topReady = g.topReady; c.topHits = g.topHits; c.mended = g.mended; c.pile = g.pile; c.pileNext = g.pileNext; c.paddle = g.paddle; c.rng = g.rng;
     return save(c);
   }
   const b = g.ball, r = n => Math.round(n * 1e4) / 1e4;
   return { v: 2, seed: g.seed, level: g.level, lives: g.lives, score: g.score, high: g.high, rng: g.rng, topReady: g.topReady, topHits: g.topHits,
     bricks: g.bricks.map(k => k.alive ? 1 : 0).join(''), paddle: r(g.paddle), serving: g.serving,
     ball: { x: r(b.x), y: r(b.y), vx: r(b.vx), vy: r(b.vy), spin: r(b.spin % 6.2832) },
-    pile: g.pile.join(''), pileNext: g.pileNext, cracks: g.cracks, broken: g.broken };
+    pile: g.pile.join(''), pileNext: g.pileNext, cracks: g.cracks, broken: g.broken, mended: g.mended };
 }
 const num = (v, lo, hi, d) => Number.isFinite(+v) && v !== null && v !== '' ? Math.min(hi, Math.max(lo, +v)) : d;
 export function load(g, s) {
@@ -213,6 +214,7 @@ export function load(g, s) {
   // (the first Brickbuster's score becomes the high score, and the game starts from the top)
   g.score = v2 ? Math.floor(num(s.score, 0, 1e9, 0)) : 0;
   g.high = Math.max(g.score, Math.floor(num(v2 ? s.high : s.score, 0, 1e9, 0)));
+  g.mended = !!s.mended && !s.broken;
   if (s.broken) g.broken = 'top';   // (the first one could also break at the bottom, or by clearing it: all just broken now)
   if (g.broken) for (const k of g.bricks) k.alive = false;
   // the cracks at the top (the first one's cracks at the bottom are dropped)
@@ -240,7 +242,7 @@ export function load(g, s) {
 // the machine mends itself: the heap gone, the cracks gone, and the game carries on where it was
 // (the same level, score and lives, on a whole new board)
 export function mend(g) {
-  g.cracks = { top: [] }; g.topReady = true; g.topHits = 0; g.pile = []; g.pileNext = 0; g.broken = null; g.over = false;
+  g.cracks = { top: [] }; g.topReady = true; g.topHits = 0; g.pile = []; g.pileNext = 0; g.broken = null; g.over = false; g.mended = true;
   newBoard(g);
   serve(g);
 }

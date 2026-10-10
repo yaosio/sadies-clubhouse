@@ -138,22 +138,30 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(300);
     check(`${device}: ...the case offers to play again`, /BRICKBUSTER/.test(await M('target') || ''), await M('target'));
 
-    // broken a second time (Sadie's already out in the hall), and left broken: next time you're in the room, it fixes itself
+    // once mended it's mended for good: hitting the top again never cracks it, and that's kept across a reload
     await use();
     await modeIs('arcade');
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       await p.evaluate(() => window.__brickbuster.catchBall());
       await p.waitForTimeout(300);
       await p.evaluate(() => window.__brickbuster.crackTop());
-      await until(n => window.__brickbuster.state().cracks >= n || window.__brickbuster.state().broken, i + 1, 8000);
+      await p.waitForTimeout(700);
     }
-    await until(() => window.__brickbuster.state().broken, null, 8000);
-    check(`${device}: it breaks again the same way (the ball goes out again, with nobody to chase it from the room)`, await until(() => { const e = window.__brickbuster.state(); return e.escape === 'gone' && e.sign && !e.doorHeld; }, null, 30000));
-    await p.reload(); await up();
     s = await B();
-    check(`${device}: left broken, it's still broken next time: heap on the floor, sign on the door`, s.broken === 'top' && s.pile > 0 && s.bricks === 0);
+    check(`${device}: once mended, the glass never cracks or breaks again`, !s.broken && s.cracks === 0 && s.canPlay, `cracks ${s.cracks}, broken ${s.broken}`);
+    await p.reload(); await up();
     await M('put', 'room:brickbuster', 'case');
-    check(`${device}: ...and it fixes itself once you're in the room`, await until(() => { const e = window.__brickbuster.state(); return e.canPlay && !e.fixing && !e.broken && e.pile === 0; }, null, 60000));
+    await use();
+    await modeIs('arcade');
+    await p.evaluate(() => window.__brickbuster.catchBall());
+    await p.waitForTimeout(300);
+    await p.evaluate(() => window.__brickbuster.crackTop());
+    await p.waitForTimeout(700);
+    s = await B();
+    check(`${device}: ...and after a reload it is still unbreakable`, !s.broken && s.cracks === 0, `cracks ${s.cracks}, broken ${s.broken}`);
+    if (opts.hasTouch) await p.tap('#clubhouse #use'); else await p.keyboard.press('Escape');
+    await modeIs('play');
+    await p.waitForTimeout(1500);
     // put away when you're far off (the clubhouse does it after a while three doors away) and built
     // again as you come back: the yarn ball and Sadie leave the hall with it, and come back with it
     await M('faceDoor', 'hall', 'brickbuster', 2.4);   // (out in the hall: a room you're in is never put away)

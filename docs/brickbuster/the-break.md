@@ -10,7 +10,7 @@ The third crack at the top shatters all the glass at once (a big cheesy shatter,
 tumble out onto the heap, the paddle drops out into the rubble, and you're stepped back to watch,
 to a corner well away from its way out and the door (wherever you'd started playing from), on the
 floor: your view follows the yarn ball (no walking or looking away) until it's out of the room.
-The game isn't over: your level, score and lives are kept, and the machine mends itself.
+The game isn't over: your level, score and lives are kept, and the machine mends itself. Once mended it is mended for good (Yaosio, 2026-10-10): the glass never cracks or breaks again, so the break happens once per machine (start-over in the pause menu makes it breakable again). The top still bounces the ball.
 
 ## The escape
 

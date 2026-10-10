@@ -217,6 +217,12 @@ function play(seed, skill, secs, o = {}) {
   check("...a save from the first Brickbuster still loads: its score is the high score, it's still broken, the heap is still there", old.broken === 'top' && old.high === 740 && old.score === 0 && old.pile.length === 16 && old.bricks.every(k => !k.alive) && !step(old, 1).length);
   mend(old);
   check('...and mending a broken machine: the glass whole, the heap and cracks gone, a whole new board, the game carries on', !old.broken && !old.cracks.top.length && !old.pile.length && old.high === 740 && old.lives === LIVES && old.level === 1 && bricksLeft(old) >= MIN_BRICKS && old.serving);
+  check('...and once mended the glass is mended for good: the top never cracks again, and a save remembers it', (() => {
+    const m = load(makeGame(5), save(old));
+    if (!m.mended) return false;
+    for (let i = 0; i < 40; i++) { m.topReady = true; m.topHits = 5; m.cracks.top = []; Object.assign(m.ball, { x: 3, y: H - 0.3, vx: 0, vy: 5 }); m.serving = false; step(m, 1 / 30); }
+    return !m.broken && !m.cracks.top.length;
+  })());
   const mid = makeGame(31); mid.level = 7; mid.lives = 2; mid.score = 1234; mid.high = 5000; newBoard(mid); mid.cracks.top.push({ x: 1, seed: 2 }, { x: 2, seed: 3 }, { x: 3, seed: 4 }); mid.broken = 'top'; for (const k of mid.bricks) k.alive = false; mid.pile = [1, 2, 3];
   mend(mid);
   check('...in a game half way (level 7, 2 lives) it carries on at the same level with the same lives and score', mid.level === 7 && mid.lives === 2 && mid.score === 1234 && mid.high === 5000 && !mid.broken && bricksLeft(mid) >= MIN_BRICKS && mid.speed === speedFor(7));
