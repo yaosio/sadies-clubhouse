@@ -28,6 +28,7 @@ import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx
 import { timers } from './timers.js';
 import { buildOutside } from './outside.js';
 import { makeThings } from './things.js';
+import { makeMeter } from './meter.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
@@ -668,13 +669,36 @@ export async function open(cards, enter) {
     if (document.pointerLockElement) document.exitPointerLock();
   }
   function resume() {
-    $('#menu').hidden = true; $('#credits').hidden = true; ask(false);
+    $('#menu').hidden = true; $('#credits').hidden = true; $('#speed').hidden = true; ask(false);
     if (!ways.some(w => w.resume?.())) mode = 'play';
     showTarget();
   }
   on($('#pause'), 'click', e => { e.stopPropagation(); if (mode === 'play' || mode === 'arcade') pause(); });
   on($('#resume'), 'click', resume);
   on($('#creditsBtn'), 'click', () => { const box = $('#credits'); if (box.hidden) { showCredits(box); box.hidden = false; box.scrollIntoView?.({ block: 'nearest' }); } else box.hidden = true; });
+  // SPEED: how fast the game is running here, to read out (meter.js): frames a second now, in this place and in the
+  // slowest, and what's held in memory. Hidden until you open it; the numbers are from before you paused.
+  const meter = makeMeter();
+  const mb = n => (n / 1e6).toFixed(1);
+  function speedLines() {
+    const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info'), mem = performance.memory, info = renderer.info.memory;
+    let bytes = 0;
+    for (const x of made()) if (x.isTexture && x.image?.width) bytes += x.image.width * x.image.height * 4;
+    if (mem) meter.note('heap', mem.usedJSHeapSize);
+    return [
+      `GRAPHICS CARD HOLDS: ${info.geometries} SHAPES, ${info.textures} PICTURES (ABOUT ${mb(bytes)} MB OF PICTURES)`,
+      mem ? `PAGE MEMORY: ${mb(mem.usedJSHeapSize)} MB NOW, ${mb(meter.peak('heap'))} MB AT MOST SINCE THE COUNT BEGAN, ${mb(mem.jsHeapSizeLimit)} MB ALLOWED` : "PAGE MEMORY: THIS BROWSER WON'T SAY",
+      navigator.deviceMemory ? `THIS DEVICE SAYS IT HAS ABOUT ${navigator.deviceMemory} GB (A ROUGH GUESS)` : null,
+      `PLACES BUILT: ${places.length}, ROOMS: ${slots.filter(r => r.place).length} OF ${slots.length}`,
+      `PICTURE SIZE: ${canvas.width} BY ${canvas.height}`,
+      ext ? `GRAPHICS CHIP: ${gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)}` : null,
+    ].filter(Boolean);
+  }
+  function showSpeed() {
+    $('#speedLines').replaceChildren(...meter.report(me.world.name, speedLines()).map(l => Object.assign(document.createElement('p'), { textContent: l })));
+  }
+  on($('#speedBtn'), 'click', () => { const box = $('#speed'); if (box.hidden) { showSpeed(); box.hidden = false; box.scrollIntoView?.({ block: 'nearest' }); } else box.hidden = true; });
+  on($('#speedClear'), 'click', () => { meter.clear(); showSpeed(); });
   // how loud: MUSIC, SOUNDS and VOICES (Sadie, Clyde), each ON, SOFT or OFF (src/shared/sound.js)
   const showVolumes = () => { for (const b of BUSES) $('#vol-' + b).textContent = `${b.toUpperCase()}: ${loud[b].toUpperCase()}`; };
   for (const b of BUSES) on($('#vol-' + b), 'click', () => setLoud(b, { on: 'soft', soft: 'off', off: 'on' }[loud[b]]));
@@ -836,11 +860,16 @@ export async function open(cards, enter) {
     try { fn(); } catch (e) { if (!said.has(name)) { said.add(name); console.warn(`${name} failed in a frame:`, e); } }
   }
   let broken = 0;   // frames failing one after another
+  let prevTick = 0, beat = 0;
   function tick(now) {
+    const began = performance.now();
     try { frame(now); broken = 0; } catch (e) {
       if (!said.has('frame')) { said.add('frame'); console.warn('a frame failed:', e); }
       if (++broken === 60) oops(STUCK);   // (one slip is carried past; a whole second of them means the picture is stuck)
     }
+    if (mode !== 'menu' && prevTick) meter.frame(me.world.name, now - prevTick, performance.now() - began);   // (the speed readout: frames behind the pause menu aren't counted)
+    prevTick = now;
+    if (++beat % 120 === 0 && performance.memory) meter.note('heap', performance.memory.usedJSHeapSize);
     raf = requestAnimationFrame(tick);
   }
 

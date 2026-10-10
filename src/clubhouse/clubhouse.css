@@ -57,9 +57,9 @@
 #clubhouse #resets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 #clubhouse #menu #resets button{font-size:10px;padding:6px 10px;background:#ff8ec8}
 /* CREDITS: what the game uses that someone else made */
-#clubhouse #menu #creditsBtn{font-size:10px;padding:6px 10px;background:#8a78ff;color:#fff;box-shadow:0 3px 0 #4a3aa8}
-#clubhouse #credits{width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
-#clubhouse #credits p{margin:0 0 8px;font-size:10px;line-height:1.7;color:#e8dcff;text-align:left}
+#clubhouse #menu #creditsBtn,#clubhouse #menu #speedBtn,#clubhouse #menu #speedClear{font-size:10px;padding:6px 10px;background:#8a78ff;color:#fff;box-shadow:0 3px 0 #4a3aa8}
+#clubhouse #credits,#clubhouse #speed{width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
+#clubhouse #credits p,#clubhouse #speedLines p{margin:0 0 8px;font-size:10px;line-height:1.7;color:#e8dcff;text-align:left}
 #clubhouse #credits b{color:#ff8ec8}
 /* "are you sure?" before anything is erased */
 #clubhouse #sure{display:grid;gap:8px;justify-items:center}

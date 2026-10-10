@@ -255,6 +255,15 @@ export default async function ({ browser, page, check, outDir, touched = null })
     await shot('8-paused');
     check(`${device}: ${opts.hasTouch ? 'the pause button' : 'Escape'} pauses`, await M('mode') === 'menu' && await p.isVisible('#menu'));
     check(`${device}: ...with the start-over buttons`, await p.isVisible('#resets button:has-text("INVITATION")'));
+    // SPEED: hidden until opened, then frames a second, memory and the slowest place in words; it closes again
+    check(`${device}: the speed readout is hidden until SPEED is pressed`, !(await p.isVisible('#speed')));
+    await p.click('#speedBtn');
+    const speedText = await p.evaluate(() => document.getElementById('speedLines').innerText);
+    check(`${device}: ...then it says frames a second, graphics card and page memory`, /FRAMES A SECOND/.test(speedText) && /GRAPHICS CARD HOLDS: \d+ SHAPES/.test(speedText) && /PAGE MEMORY/.test(speedText), speedText.slice(0, 400));
+    await p.click('#speedClear');
+    check(`${device}: ...START THE COUNT OVER empties it`, /NOTHING YET/.test(await p.evaluate(() => document.getElementById('speedLines').innerText)));
+    await p.click('#speedBtn');
+    check(`${device}: ...and SPEED closes it`, !(await p.isVisible('#speed')));
     await p.evaluate(() => localStorage.setItem('mansion.music', '"on"'));   // (the backup below has one setting to put back)
     await p.click('#resets button:has-text("INVITATION")');
     await shot('9-sure');
