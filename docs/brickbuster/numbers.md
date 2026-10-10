@@ -11,10 +11,8 @@ expect. Read before changing any of them.
   (7.0 m/s) and no faster after that (Claude's choice; `SPEED` in `game.js`). The paddle sends the ball up
   to 60 degrees off straight up (at its very ends); the keys move the paddle 6 m/s. Points: 80 for
   the top row down to 10 for the bottom one.
-- **Cracks**: the ball has to hit the top twice for a crack (the first only tinks; Claude's choice,
-  `CRACK_HITS`), 3 cracks break it. The ball rattles about above the bricks once it's through, so after a
-  hit at the top the next one waits until the ball's been back to the paddle. A cleared board wipes
-  the cracks. Missing at the bottom doesn't crack anything.
+- **Cracks**: one hit at the top cracks it (`CRACK_HITS` = 1, fast as it always was), 3 cracks break it. The ball rattles about above the bricks once it's through, so after a
+  hit at the top the next one waits until the ball's been back to the paddle. Cracks stay across levels. Once the machine has mended itself the glass never cracks again (Yaosio, 2026-10-10: after that it's regular Breakout). Missing at the bottom doesn't crack anything.
 - **The heap**: 100 spots, 81 in three layers along the front of the machine and 19 down its right
   side; bricks are 0.21 m apart up a layer. A knocked-out brick takes a moment to fall inside the
   glass, then 0.55 s from the hatch to its spot. Once all 100 are taken the oldest is swapped.

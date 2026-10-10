@@ -5,8 +5,8 @@
 // (a life gone, a new ball on the paddle); lose the third and it's GAME OVER (and a fresh game, the
 // machine none the worse). Clear every brick and it's the next level: a new board (boards.js), the
 // ball a little faster. Once you've knocked a way through the bricks the ball hits the top of the
-// glass, and that cracks it: three cracks at the top and the glass breaks (a cleared board wipes the
-// cracks away; they stay from game to game otherwise; room.js has the machine mend itself after a break).
+// glass, and that cracks it: three cracks at the top and the glass breaks (they stay across levels; the
+// cracks stay from game to game too; once mended it never breaks again; room.js has the machine mend itself after a break).
 // Up at the top the ball rattles between the glass and the bricks, so only its first hit there
 // cracks it: the next crack waits until the ball's been back to the paddle.
 //
@@ -21,7 +21,7 @@ export { COLS, ROWS };
 export const W = 6.0, H = 6.6;                  // the glass
 export const R = 0.16;                          // the yarn ball's radius
 export const PADDLE = { w: 1.3, h: 0.46, y: 0.7, speed: 6 };   // y: its middle
-export const CRACKS = 3, CRACK_HITS = 2, LIVES = 3, HEAP = 100;   // CRACK_HITS: how many times the ball has to hit the top for it to crack (Claude's number)
+export const CRACKS = 3, CRACK_HITS = 1, LIVES = 3, HEAP = 100;   // CRACK_HITS: how many times the ball has to hit the top for it to crack (one: as fast as it always was)
 const BRICK = { w: 0.4, h: 0.24, gap: 0.04, top: H - 1.25 };    // top: the top row's top edge, with room above to break through into
 // metres a second: faster with every level, up to level `cap` and no further (Claude's numbers)
 export const SPEED = { start: 4.2, step: 0.2, cap: 15, get most() { return this.start + (this.cap - 1) * this.step; } };
@@ -153,8 +153,8 @@ function sub(g, dt, out) {
     else b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy);
     const s = Math.hypot(b.vx, b.vy); b.vx *= g.speed / s; b.vy *= g.speed / s;
     out.push({ type: 'brick', brick: k, slot: toPile(g, k.tone) });   // slot: its place in the pile
-    if (bricksLeft(g) === 0) {   // the next level: a new board, and the glass wipes its cracks away
-      g.level++; newBoard(g); serve(g); g.topReady = true; g.topHits = 0; g.cracks.top = [];
+    if (bricksLeft(g) === 0) {   // the next level: a new board
+      g.level++; newBoard(g); serve(g); g.topReady = true; g.topHits = 0;
       out.push({ type: 'level', level: g.level });
     }
     break;

@@ -17,8 +17,7 @@ the machine mends itself, and you can play again.
 - Leave any time and come back to the same moment: the level, score, lives, board and the ball
   exactly where it was, so leaving just before a miss never saves you.
 - Your score and the high score are always on the marquee.
-- Playing too well cracks the glass at the top. Three cracks and it breaks (a cleared board wipes
-  the cracks away). The cracks are loud, crunchy and wonderfully 90s. Once the yarn ball is out, it's
+- Playing too well cracks the glass at the top. Three cracks and it breaks (the first time only: once mended it's regular Breakout). The cracks are loud, crunchy and wonderfully 90s. Once the yarn ball is out, it's
   silent (the poster explains why; and nothing out there makes a constant noise:
   `docs/clubhouse/RULEBOOK.md` section 4).
 - It only ever breaks to be mended: once Sadie's out and the door's shut, the machine fixes itself

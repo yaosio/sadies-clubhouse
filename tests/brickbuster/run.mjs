@@ -143,7 +143,7 @@ function play(seed, skill, secs, o = {}) {
   for (const b of g.bricks) if (b !== last) b.alive = false;
   Object.assign(g.ball, { x: last.x + last.w / 2, y: last.y - R - 0.02, vx: 0, vy: 4 });
   const ev2 = step(g, 0.05);
-  check('...and knocking out the last one is the next level: a new board, the glass wiped clean of cracks, a faster ball waiting on the paddle', ev2.some(e => e.type === 'level' && e.level === 2) && g.level === 2 && g.serving && !g.broken && bricksLeft(g) >= MIN_BRICKS && g.speed > speedFor(1) && g.lives === LIVES && !g.cracks.top.length, `${was} then ${g.board}`);
+  check('...and knocking out the last one is the next level: a new board, the cracks kept, a faster ball waiting on the paddle', ev2.some(e => e.type === 'level' && e.level === 2) && g.level === 2 && g.serving && !g.broken && bricksLeft(g) >= MIN_BRICKS && g.speed > speedFor(1) && g.lives === LIVES && g.cracks.top.length === 1, `${was} then ${g.board}`);
   // the heap holds HEAP bricks, and once full the oldest spot is swapped for the newest
   const h = makeGame(4), slots = new Set();
   let mx = 0;

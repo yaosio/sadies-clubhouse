@@ -31,7 +31,7 @@ the LEVEL and the lives left as little hearts. Idle, it says FULL VERSION 99 LEV
   1, three lives, a new seed (so new boards). The high score stays, and so do any cracks on the
   glass and the heap on the floor. The machine isn't hurt.
 - **Clearing a board**: every brick gone is the next level: a new board pops in, a bright little jingle,
-  the glass wipes its cracks away, and the ball is a bit faster (up to level 15, then no faster).
+  and the ball is a bit faster (up to level 15, then no faster).
 - **The top**: once you've knocked a way through the bricks the ball hits the top of the glass. The
   first hit only tinks; the second cracks it (up at the top the ball rattles about, so a crack waits
   until the ball's been back to the paddle). Three cracks and the glass breaks (`the-break.md`).
