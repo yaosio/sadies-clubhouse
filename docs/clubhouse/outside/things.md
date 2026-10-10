@@ -6,9 +6,17 @@ The plan and its seven steps are in the project's shared files, review-2026-10-1
 (the owner approved step 1, 2026-10-10).
 
 ## Where it stands
-Step 1 only: the keeper exists and is checked, and **nothing uses it yet**. The outside is still
-built whole at the start (about 390 ms for the outside and the hall together, in headless Chrome
-on a desktop; not a phone), and `docs/clubhouse/decisions/known-limits.md` still lists that.
+Steps 1 and 2 are done. The keeper exists, and **the pool is the first thing**: `outside.js` lists it
+in `things` (its place, size, `near`, a stand-in slab, and `build()` that hands back `putAway()`), and
+`clubhouse.js` wires each listed thing to the keeper, builds what's near before the first picture,
+steps the keeper every frame, and when a thing is put away hands back everything it made to the
+graphics card (the same `made()` list rooms use) and takes its things to use and things that face you
+out of the outside's lists. The pool's `near` is 150 m, wider than the walk across the grounds, so in
+play it is always built and nothing looks different; the browser check pulls every range in
+(`__clubhouse.thingRange(k)`) to see it put away and built again, over and over, with nothing left
+behind. Building the pool took 8 ms in headless Chrome on a desktop (the outside and the hall
+together take about 320 ms, mostly the rest of the outside); not a phone. The rest of the outside is
+still built whole, and `docs/clubhouse/decisions/known-limits.md` still says so.
 
 ## The idea
 A *thing* is a place and a size in the world plus one function, `show(state)`. It has no area name
@@ -28,7 +36,8 @@ and nothing says which part of town it belongs to, so moving it is changing its 
 - One thing builds at a time, the nearest first. One that fails to build is tried again a little
   later, up to 6 times, like rooms.
 - What's solid is **not** the keeper's business: a thing keeps its solids whatever state it is in
-  (otherwise arriving by a door beside an unbuilt thing would let you walk through it).
+  (otherwise arriving by a door beside an unbuilt thing would let you walk through it). The pool's
+  solids are numbers in `pool/layout.js` that `outside.js` always keeps.
 - `setScale(k)` pulls every range in or pushes it out at once, for the checks and the test page.
 
 ## Claude's numbers (the owner can change any)

@@ -27,6 +27,7 @@ import {
 import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack, skyMat, sadieSprite } from './look.js';
 import { timers } from './timers.js';
 import { buildOutside } from './outside.js';
+import { makeThings } from './things.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
@@ -378,6 +379,46 @@ export async function open(cards, enter) {
   if (backSlot) await build(backSlot);
   const backRoom = backSlot?.place;
   relink();
+
+  // ---------- things in the world (things.js): built as you come near, put away as you go ----------
+  // The outside lists its things (a place, a size, how to build one and take it down again); this
+  // looks after the rest: what a thing made goes back to the graphics card when it is put away, and
+  // a thing that is far but in view is drawn as a plain block its size.
+  const keeper = makeThings();
+  function release(mine) {
+    const inUse = new Set(shared);
+    for (const p of places) for (const sc of p.scenes || [p.scene]) things(sc, inUse);
+    const gone = mine.filter(x => !inUse.has(x));
+    for (const x of gone) x.dispose();
+    handedBack(gone);
+  }
+  for (const d of outside.things) {
+    let handle = null, mine = null, block = null;
+    keeper.add({ id: d.id, x: d.x, z: d.z, r: d.r, near: d.near, busy: () => !!handle?.busy?.(),
+      show(state) {
+        if (state === 'near') {
+          if (!handle) {
+            const before = new Set(made()), at = performance.now();
+            try { handle = d.build(); } catch (e) { release(made().filter(x => !before.has(x))); throw e; }
+            mine = made().filter(x => !before.has(x));
+            speed.places['thing:' + d.id] = speed.bits['thing:' + d.id] = Math.round(performance.now() - at);
+          }
+          if (block) block.visible = false;
+          return;
+        }
+        if (handle) { handle.putAway(); handle = null; release(mine); mine = null; }
+        if (state === 'far') {
+          if (!block) {
+            block = new Mesh(keep(new BoxGeometry(d.body.w, d.body.h, d.body.d)), psx(null, { tint: d.tint ?? 0xb89a78, unlit: 0.35 }));
+            block.position.set(d.x, d.body.h / 2, d.z); outside.scene.add(block);
+          }
+          block.visible = true;
+        } else if (block) block.visible = false;
+      } });
+  }
+  // (everything near the gate is built before the first picture, so nothing pops in as you start)
+  keeper.step(0, outside.spots.start);
+  while (keeper.busy()) await new Promise(ok => setTimeout(ok, 0));
 
   // ---------- you ----------
   function place(world, spot) {
@@ -770,6 +811,7 @@ export async function open(cards, enter) {
       p.a.setOpen(p.open); p.b.setOpen(p.open);
     }
     seenFrom = outsideSeenFrom();
+    keeper.step(dt, seenFrom);
     soundsPaused(mode === 'menu');   // (nothing new sounds behind the pause menu but music)
     weather.update(t, dt, places, skySeen(), ears());
     const heard = ears();   // (a place hears you only while you're in it)
@@ -850,6 +892,9 @@ export async function open(cards, enter) {
     },
     // how far off a building outside the gate becomes a plain block (and which are, right now)
     farHouse: metres => { FAR_HOUSE = metres; farHouses(); },
+    // the things in the world and their states (near, far or gone); every range pulled in or pushed out by a factor
+    things: () => keeper.states(),
+    thingRange: k => keeper.setScale(k),
     houses: () => slots.filter(r => r.house?.group).map(r => ({ name: r.name, far: !r.house.group.visible })),
     // how quick the clubhouse is: ms to the first picture, ms to build each place, and what's held on
     // the graphics card (and in the kit's list of things to hand back)

@@ -181,6 +181,29 @@ export default async function ({ browser, page, check, outDir, touched = null })
       `memory ${heap.map(h => (h / 1e6).toFixed(1)).join(', ')} MB, listeners ${listeners.join(', ')}`);
     check(`${device}: ...and every room's save is just as it was`, saved1 === saved0, saved1 === saved0 ? '' : `before ${saved0.slice(0, 300)} after ${saved1.slice(0, 300)}`);
 
+    // the pool is a thing (src/clubhouse/things.js): with every range pulled in and you far off it is put
+    // away (nothing of it left in the scene or the lists), what's solid at it stays, and it comes back
+    // exactly as it was when they are let out again, over and over
+    {
+      await M('put', 'outside', { x: 0, z: -30, y: 0, yaw: Math.PI, pitch: 0 });
+      const here = () => p.evaluate(() => { const c = window.__clubhouse, o = c.outside(); return { pool: c.things().pool, kept: c.speed().kept, uses: o.uses.length, faces: o.faces.length, children: o.scene.children.length, water: c.floorAt('outside', 0, 22.7, 0) }; });
+      const first = await here();
+      check(`${device}: the pool is built as you start, and its water is solid`, first.pool === 'near' && first.uses > 0 && first.water === null, JSON.stringify(first));
+      const rounds = [];
+      for (let i = 0; i < 3; i++) {
+        await M('thingRange', 0.05);
+        const gone = await until(p, () => window.__clubhouse.things().pool !== 'near', null, 12000);
+        const away = await here();
+        await M('thingRange', 1);
+        const back = await until(p, () => window.__clubhouse.things().pool === 'near', null, 8000);
+        rounds.push({ gone, away, back, now: await here() });
+      }
+      const r = rounds[0];
+      check(`${device}: ...pulled in with you far off it is put away, with none of its pictures, things to use or things that face you left`, rounds.every(x => x.gone && x.away.uses < first.uses && x.away.faces < first.faces && x.away.children < first.children && x.away.kept < first.kept), JSON.stringify(r.away));
+      check(`${device}: ...its water is still solid while it is away`, rounds.every(x => x.away.water === null));
+      check(`${device}: ...and let out again it is built exactly as it was, every time (nothing left behind)`, rounds.every(x => x.back && x.now.kept === first.kept && x.now.uses === first.uses && x.now.faces === first.faces && x.now.children === first.children), JSON.stringify(rounds.map(x => x.now)));
+    }
+
     // every door on the landings leads to its own room
     const wrong = [];
     for (const c of landed.filter(mine)) {

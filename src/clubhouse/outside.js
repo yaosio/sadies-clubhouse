@@ -20,6 +20,7 @@ import { kit, wallGeometry, doorway, WALKER } from './build.js';
 import { LOTS, SQUARE } from './town/layout.js';
 import { buildSquare } from './town/square.js';
 import { buildPool } from './pool/pool.js';
+import { DECK, RECTS as POOL_RECTS } from './pool/layout.js';
 
 export { LOTS };
 
@@ -189,7 +190,22 @@ export function buildOutside(T, cards = []) {
     cyl(0.3 * s, 0.4 * s, 3 * s, 6, bark, [x, 1.5 * s, z]);
     ball(1.8 * s, leaf, [x, 3.6 * s, z]); ball(1.2 * s, leaf, [x - 0.8 * s, 4.3 * s, z + 0.4]);
   }
-  const pool = buildPool(T, scene);
+  // (the pool is a thing: things.js builds it as you come near and puts it away when you're far. What's
+  // solid at it stays on always (below), so a door that puts you down beside it never lets you walk through it)
+  let pool = null;
+  const faces = [], uses = [];
+  const without = (list, xs) => { for (const x of xs) { const i = list.indexOf(x); if (i >= 0) list.splice(i, 1); } };
+  const poolThing = {
+    id: 'pool', x: (DECK.x0 + DECK.x1) / 2, z: (DECK.z0 + DECK.z1) / 2, r: Math.hypot(DECK.x1 - DECK.x0, DECK.z1 - DECK.z0) / 2,
+    near: 150,   // (step 2: wider than the walk across the grounds, so in play it is always built; step 3 pulls it in)
+    body: { w: DECK.x1 - DECK.x0, d: DECK.z1 - DECK.z0, h: 0.6 }, tint: 0x9ec8e8,   // its stand-in when far but in view: a low slab the size of the deck
+    build() {
+      const group = new Group(); scene.add(group);
+      const built = buildPool(T, group);
+      faces.push(...built.faces); uses.push(...built.uses); pool = built;
+      return { putAway() { scene.remove(group); without(faces, built.faces); without(uses, built.uses); pool = null; } };
+    },
+  };
   // the fence round the back and both sides of the grounds
   plane(58, 1.5, psx(T.fence, { rx: 58 / 1.5, side: DoubleSide }), [0, 0.75, 30], [0, 0, 0], 1);
   for (const s of [-1, 1]) plane(50, 1.5, psx(T.fence, { rx: 50 / 1.5, side: DoubleSide }), [s * 29, 0.75, 5], [0, Math.PI / 2, 0], 1);
@@ -199,6 +215,7 @@ export function buildOutside(T, cards = []) {
   sadie.position.set(2.6, 2.4, -20.1); scene.add(sadie);
   // the town square: its birds, and Sadie watching them
   const square = buildSquare(T, scene, sadie);
+  faces.push(sadie, ...square.faces);
 
   if (free) {   // (turned with the plot, to face the middle of the square)
     const stake = new Group(); stake.position.set(free.x, 0, free.z); stake.rotation.y = free.yaw; scene.add(stake);
@@ -215,7 +232,7 @@ export function buildOutside(T, cards = []) {
   // tunnel. The rest of what's here is all at ground level for now.
   const P = WALKER, TALL = 1.6;
   const RECTS = [[-9, 9, 0, 10], [13, 19, 3, 9], [-7.3, -5.7, -9.8, -8.2], [-8.2, -2.6, 10, 11], [2.6, 8.2, 10, 11], [-1.2, 1.2, 10, 11.1],
-    ...pool.rects, [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
+    ...POOL_RECTS, [-29.05, 29.05, 29.95, 30.05], [-29.05, -28.95, -20, 30], [28.95, 29.05, -20, 30],
     ...HEDGES.map(([x, z, len]) => [x - 0.5, x + 0.5, z - len / 2, z + len / 2]),
     ...[-1, 1].map(s => [s * 2.6 - 0.45, s * 2.6 + 0.45, -20.45, -19.55]),
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
@@ -261,7 +278,7 @@ export function buildOutside(T, cards = []) {
   if (free) lots[LOTS.indexOf(free)].block(-1, 1, -1.1, -0.9);   // (its stake)
 
   return {
-    name: 'outside', scene, floor, doors: { front: door }, faces: [sadie, ...pool.faces, ...square.faces], sadie, uses: pool.uses, lots, grounds: GROUNDS, house,
+    name: 'outside', scene, floor, doors: { front: door }, faces, sadie, uses, things: [poolThing], lots, grounds: GROUNDS, house,
     // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r);
     // from y0 up to y1 (from the ground up, if it doesn't say). Each hands back how to take it away.
     block(x0, x1, z0, z1, y0, y1) { return keepIn(RECTS, [x0, x1, z0, z1, y0, y1]); },
@@ -278,7 +295,7 @@ export function buildOutside(T, cards = []) {
       // Sadie on the gatepost blinks now and then
       square.update(t, dt, ears);   // (it blinks Sadie on the gatepost too: she watches the birds)
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;
-      pool.update(t, dt, ears);
+      pool?.update(t, dt, ears);
     },
   };
 }
