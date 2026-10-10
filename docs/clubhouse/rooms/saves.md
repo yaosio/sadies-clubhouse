@@ -10,7 +10,8 @@ the browser's storage. Read when a room or activity saves anything.
 - An activity on a computer uses `saveBox('<id>')` from the toolbox. (Older keys from before the save director,
   `sadies-dropper-world.save`, a few starting `jellystack.`, and a few more starting `sadie.`, use `store`.)
 - Its card's `keeps` lists what its keys start with. The pause menu's start-over buttons and backups
-  use it, and a start-over erases all of it. The clubhouse's own keys start with `mansion.`.
+  use it, and a start-over erases all of it. EVERYTHING erases every card's `keeps` and the clubhouse's own
+  keys, never the rest of the browser's storage (other pages may share the address). The clubhouse's own keys start with `mansion.`.
 - **Never rename a key that's already in use:** everyone's saves would be lost.
 
 ## Saving on the way out

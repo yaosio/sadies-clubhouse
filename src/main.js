@@ -14,6 +14,7 @@
 // build splits them). If one won't come (the network hiccuped), it's tried again a few times, and if
 // it still won't, the page says so instead of staying blank.
 import cards from 'activities';
+import { oops } from './shared/oops.js';
 
 const BACK_STYLE = `
 #clubBack{position:fixed;left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));z-index:50;
@@ -28,8 +29,7 @@ async function fetchPiece(get) {
   for (let i = 0; ; i++) {
     try { return await get(); } catch (e) {
       if (i >= 3) {
-        document.body.insertAdjacentHTML('afterbegin', `<p id="clubOops" style="position:fixed;inset:40% 16px auto;margin:0;text-align:center;` +
-          `font:16px/1.4 system-ui,sans-serif;color:#3a2a8e">Part of the clubhouse didn't load. Check the internet connection and reload the page.</p>`);
+        oops("Part of the clubhouse didn't load. Check the internet connection and reload the page.");
         throw e;
       }
       await new Promise(ok => setTimeout(ok, 1000 * (i + 1)));
@@ -64,5 +64,6 @@ else {
   // can see them from the gate: their code is asked for now, alongside the clubhouse's, not one after
   // another once it's here. (If one doesn't come, the clubhouse asks again when it builds it.)
   for (const c of cards) if (c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds))) c.room().catch(() => {});
-  fetchPiece(() => import('./clubhouse/clubhouse.js')).then(clubhouse => clubhouse.open(cards, enter));
+  fetchPiece(() => import('./clubhouse/clubhouse.js')).then(clubhouse => clubhouse.open(cards, enter))
+    .catch(() => oops('Something went wrong starting the clubhouse. Reload the page to try again: anything you saved is still there.'));   // (a reason already on the page stays)
 }
