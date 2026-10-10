@@ -19,7 +19,9 @@ or comes back from one.
 - **The test version's label** goes where an activity's `page.html` (or the clubhouse's
   `clubhouse.html`) says `<!--@badge-->` (at the end of the page if none does).
 - If the clubhouse's file or an activity's own page won't load, it's tried again, and then the page
-  says it couldn't load rather than staying blank (`building-rooms.md`).
+  says it couldn't load rather than staying blank (`building-rooms.md`). The same plain-words note
+  (`src/shared/oops.js`) covers a browser that can't start 3D, the graphics being taken away, and
+  frames failing for a whole second running; the first note stays on the page.
 
 ## Fonts
 The game's fonts are files of its own (`src/shared/fonts/`, fetched once by `tools/fonts/get.mjs`,

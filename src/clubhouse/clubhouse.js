@@ -31,6 +31,7 @@ import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
 import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
+import { oops, unoops, NO_3D, STUCK } from '../shared/oops.js';
 import { store, tabNote, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading } from '../shared/storage.js';
 import { showCredits } from './credits.js';
 import { makeTheme } from './music/theme.js';
@@ -325,7 +326,11 @@ export async function open(cards, enter) {
   }
 
   const canvas = $('#view');
-  const renderer = new WebGLRenderer({ canvas, antialias: false });
+  let renderer;
+  try { renderer = new WebGLRenderer({ canvas, antialias: false }); } catch (e) { oops(NO_3D); throw e; }   // (no 3D here: say so, don't sit blank)
+  // the graphics card letting go of the picture (a phone short of memory): say so, and take it back down if it returns
+  on(canvas, 'webglcontextlost', e => { e.preventDefault(); oops(STUCK); });
+  on(canvas, 'webglcontextrestored', unoops);
   renderer.setPixelRatio(1);
   renderer.outputColorSpace = LinearSRGBColorSpace;
   // a picture per open doorway in view (the nearest few): each doorway shows its own
@@ -638,8 +643,11 @@ export async function open(cards, enter) {
     : 'W A S D: WALK &middot; ARROWS: WALK AND TURN<br>CLICK, THEN MOUSE: LOOK AROUND<br>E: USE &middot; ESC: PAUSE';
   // Starting over, from the pause menu: everything at once, or one thing at a time. Nothing is
   // erased until you say yes.
+  // (every save the game has: the clubhouse's own, and what each card keeps. Never the whole browser
+  // storage: on a shared address, other pages keep their things there)
+  const ALL = ['mansion.', ...cards.flatMap(c => c.keeps || [])];
   const resets = [
-    ['EVERYTHING', 'EVERYTHING IN THE CLUBHOUSE', () => forget()],
+    ['EVERYTHING', 'EVERYTHING IN THE CLUBHOUSE', () => forget(ALL)],
     ["SADIE'S INVITATION", "SADIE'S INVITATION", () => forget([INVITED])],
     ...cards.filter(c => c.keeps).map(c => [c.name.toUpperCase(), c.name.toUpperCase(), () => forget(c.keeps)]),
   ];
@@ -669,7 +677,6 @@ export async function open(cards, enter) {
   // Your saves (src/shared/storage.js): how much room they take, a warning when they're nearly
   // full (past that, a save quietly fails), and a backup: one file with every save in the
   // clubhouse, to keep anywhere and put back later, on any browser.
-  const ALL = ['mansion.', ...cards.flatMap(c => c.keeps || [])];
   function showSaves(say) {
     const r = saveRoom(), trouble = r.failed ? "A SAVE DIDN'T FIT!" : r.nearlyFull ? 'YOUR SAVES ARE NEARLY FULL!' : '';
     $('#saveNote').classList.toggle('full', !!trouble);
@@ -786,8 +793,12 @@ export async function open(cards, enter) {
   function guard(name, fn) {
     try { fn(); } catch (e) { if (!said.has(name)) { said.add(name); console.warn(`${name} failed in a frame:`, e); } }
   }
+  let broken = 0;   // frames failing one after another
   function tick(now) {
-    try { frame(now); } catch (e) { if (!said.has('frame')) { said.add('frame'); console.warn('a frame failed:', e); } }
+    try { frame(now); broken = 0; } catch (e) {
+      if (!said.has('frame')) { said.add('frame'); console.warn('a frame failed:', e); }
+      if (++broken === 60) oops(STUCK);   // (one slip is carried past; a whole second of them means the picture is stuck)
+    }
     raf = requestAnimationFrame(tick);
   }
 

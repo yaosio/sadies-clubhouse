@@ -17,6 +17,6 @@ guards nothing fatal. The reasons and the list of what was dropped are in
 - Opening, walking, doors into every room (indoors and out), every computer activity opening and
   coming back, a room put away and built again over and over with nothing piling up or leaking,
   one room's error not freezing the game, a room's file not loading.
-- Saves: unreadable ones put aside, old saves still load, backups, START OVER erasing only its own.
+- Saves: unreadable ones put aside, old saves still load, backups, START OVER erasing only the game's own saves (EVERYTHING included: another page on the same address keeps its things), no 3D saying so in words.
 - Each room: a short play-through that touches its main thing once and, where it saves, a reload.
 - Each room's headless tests (about a second each; a game's tuning sections can be left to run by hand).
