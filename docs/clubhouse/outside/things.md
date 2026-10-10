@@ -11,9 +11,10 @@ in `things` (its place, size, `near`, a stand-in slab, and `build()` that hands 
 `clubhouse.js` wires each listed thing to the keeper, builds what's near before the first picture,
 steps the keeper every frame, and when a thing is put away hands back everything it made to the
 graphics card (the same `made()` list rooms use) and takes its things to use and things that face you
-out of the outside's lists. The pool's `near` is 150 m, wider than the walk across the grounds, so in
-play it is always built and nothing looks different; the browser check pulls every range in
-(`__clubhouse.thingRange(k)`) to see it put away and built again, over and over, with nothing left
+out of the outside's lists. The pool is `watched: false` (the owner, 2026-10-10): it is built once at the start and its distance
+is not checked again, so in play it is always built and nothing looks different. The capability stays: `watch(id, true)` turns the
+checking on for a thing. The browser check does that and pulls every range in
+(`__clubhouse.thingWatch`, `thingRange(k)`) to see it put away and built again, over and over, with nothing left
 behind. Building the pool took 8 ms in headless Chrome on a desktop (the outside and the hall
 together take about 320 ms, mostly the rest of the outside); not a phone. The rest of the outside is
 still built whole, and `docs/clubhouse/decisions/known-limits.md` still says so.

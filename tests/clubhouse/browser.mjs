@@ -189,6 +189,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
       const here = () => p.evaluate(() => { const c = window.__clubhouse, o = c.outside(); return { pool: c.things().pool, kept: c.speed().kept, uses: o.uses.length, faces: o.faces.length, children: o.scene.children.length, water: c.floorAt('outside', 0, 22.7, 0) }; });
       const first = await here();
       check(`${device}: the pool is built as you start, and its water is solid`, first.pool === 'near' && first.uses > 0 && first.water === null, JSON.stringify(first));
+      await M('thingWatch', 'pool', true);   // (the pool isn't watched in play: the check turns the watching on)
       const rounds = [];
       for (let i = 0; i < 3; i++) {
         await M('thingRange', 0.05);

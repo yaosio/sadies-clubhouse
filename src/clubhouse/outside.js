@@ -197,6 +197,7 @@ export function buildOutside(T, cards = []) {
   const without = (list, xs) => { for (const x of xs) { const i = list.indexOf(x); if (i >= 0) list.splice(i, 1); } };
   const poolThing = {
     id: 'pool', x: (DECK.x0 + DECK.x1) / 2, z: (DECK.z0 + DECK.z1) / 2, r: Math.hypot(DECK.x1 - DECK.x0, DECK.z1 - DECK.z0) / 2,
+    watched: false,   // (the owner, 2026-10-10: stop checking its distance for now; the keeper can still be told to, `watch`)
     near: 150,   // (step 2: wider than the walk across the grounds, so in play it is always built; step 3 pulls it in)
     body: { w: DECK.x1 - DECK.x0, d: DECK.z1 - DECK.z0, h: 0.6 }, tint: 0x9ec8e8,   // its stand-in when far but in view: a low slab the size of the deck
     build() {

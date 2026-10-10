@@ -389,7 +389,7 @@ export async function open(cards, enter) {
   }
   for (const d of outside.things) {
     let handle = null, mine = null, block = null;
-    keeper.add({ id: d.id, x: d.x, z: d.z, r: d.r, near: d.near, busy: () => !!handle?.busy?.(),
+    keeper.add({ id: d.id, x: d.x, z: d.z, r: d.r, near: d.near, watched: d.watched, busy: () => !!handle?.busy?.(),
       show(state) {
         if (state === 'near') {
           if (!handle) {
@@ -918,6 +918,7 @@ export async function open(cards, enter) {
     // the things in the world and their states (near, far or gone); every range pulled in or pushed out by a factor
     things: () => keeper.states(),
     thingRange: k => keeper.setScale(k),
+    thingWatch: (id, on) => keeper.watch(id, on),
     houses: () => slots.filter(r => r.house?.group).map(r => ({ name: r.name, far: !r.house.group.visible })),
     // how quick the clubhouse is: ms to the first picture, ms to build each place, and what's held on
     // the graphics card (and in the kit's list of things to hand back)
