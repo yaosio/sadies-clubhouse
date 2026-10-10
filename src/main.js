@@ -12,9 +12,11 @@
 //
 // The clubhouse and every activity's code are files of their own, fetched when they're needed (the
 // build splits them). If one won't come (the network hiccuped), it's tried again a few times, and if
-// it still won't, the page says so instead of staying blank.
+// it still won't, the page says so instead of staying blank. Saves come first: they're read from the
+// browser's IndexedDB (src/shared/storage.js) before anything starts.
 import cards from 'activities';
 import { oops } from './shared/oops.js';
+import { ready } from './shared/storage.js';
 
 const BACK_STYLE = `
 #clubBack{position:fixed;left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));z-index:50;
@@ -58,12 +60,15 @@ async function enter(card) {
 }
 
 const wanted = cards.find(c => c.id === location.hash.slice(1) && c.start);   // (a game that lives in its room has no page of its own)
-if (wanted) enter(wanted);
-else {
-  // The buildings outside (on the town square, or in the grounds) are built before the clubhouse opens, as you
-  // can see them from the gate: their code is asked for now, alongside the clubhouse's, not one after
-  // another once it's here. (If one doesn't come, the clubhouse asks again when it builds it.)
-  for (const c of cards) if (c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds))) c.room().catch(() => {});
-  fetchPiece(() => import('./clubhouse/clubhouse.js')).then(clubhouse => clubhouse.open(cards, enter))
-    .catch(() => oops('Something went wrong starting the clubhouse. Reload the page to try again: anything you saved is still there.'));   // (a reason already on the page stays)
-}
+// (the saves are read in first: from then on everything asks for them as if they were always here)
+ready().then(() => {
+  if (wanted) enter(wanted);
+  else {
+    // The buildings outside (on the town square, or in the grounds) are built before the clubhouse opens, as you
+    // can see them from the gate: their code is asked for now, alongside the clubhouse's, not one after
+    // another once it's here. (If one doesn't come, the clubhouse asks again when it builds it.)
+    for (const c of cards) if (c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds))) c.room().catch(() => {});
+    fetchPiece(() => import('./clubhouse/clubhouse.js')).then(clubhouse => clubhouse.open(cards, enter))
+      .catch(() => oops('Something went wrong starting the clubhouse. Reload the page to try again: anything you saved is still there.'));   // (a reason already on the page stays)
+  }
+});

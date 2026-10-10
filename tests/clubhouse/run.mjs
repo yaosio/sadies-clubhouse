@@ -9,7 +9,7 @@ import { checkCards } from './cards.mjs';
 import * as WX from '../../src/clubhouse/weather/rules.js';
 import { strict, hallView, outsideView, realPlace } from '../../src/clubhouse/neighbours.js';
 import { ALL as SADIE_SAYS, RATE } from '../../src/clubhouse/weather/sounds.js';
-import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, onLeave, forget, reloading } from '../../src/shared/storage.js';
+import { store, saveBox, saveRoom, backup, inspectBackup, loadBackup, onLeave, forget, reloading, ready, flush, squeeze, unsqueeze } from '../../src/shared/storage.js';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { checker } from '../shared/check.mjs';
@@ -165,34 +165,48 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   performance.now = real;
 }
 
-// ---------- the save director (src/shared/storage.js), on a pretend browser storage ----------
+// ---------- the save director (src/shared/storage.js), on a pretend disk ----------
 {
-  // like a browser's: about 5 million letters of keys and saves, and a save past that fails
-  const data = new Map(), size = () => [...data].reduce((n, [k, v]) => n + k.length + v.length, 0);
-  globalThis.localStorage = {
-    get length() { return data.size; }, key: i => [...data.keys()][i] ?? null,
-    getItem: k => data.has(k) ? data.get(k) : null, removeItem: k => data.delete(k),
-    setItem(k, v) { v = String(v); if (size() - (data.has(k) ? k.length + data.get(k).length : 0) + k.length + v.length > 5e6) throw new Error('QuotaExceededError'); data.set(k, v); },
+  // like a browser's disk: saves go in as one all-or-nothing batch, and past its room a batch fails
+  // (the real one, IndexedDB, is checked in the browser). `slow` holds each write back a moment.
+  const disk = new Map([['someone.else', '"theirs"']]), ROOM = 5e6, delay = { ms: 0 };
+  const size = m => [...m].reduce((n, [k, v]) => n + k.length + v.length, 0);
+  const pretend = {
+    async load() { return new Map(disk); },
+    async write(batch) {
+      if (delay.ms) await new Promise(ok => setTimeout(ok, delay.ms));
+      const next = new Map(disk); for (const [k, v] of batch) { if (v == null) next.delete(k); else next.set(k, v); }
+      if (size(next) > ROOM) return false;
+      disk.clear(); for (const [k, v] of next) disk.set(k, v); return true;
+    },
   };
+  await ready(pretend);
+  const plain = () => globalThis.__saves.all();
   const box = saveBox('aquarium');
   box.set('ocean', { found: ['duck'] });
-  check('a room\'s saves are named after it, and come back as they went in', data.has('sadies-clubhouse.aquarium.ocean') && box.get('ocean').found[0] === 'duck');
-  data.set('sadies-clubhouse.aquarium.ocean', '{not a save');
+  check('a room\'s saves are named after it, and come back as they went in', box.get('ocean').found[0] === 'duck' && 'sadies-clubhouse.aquarium.ocean' in plain());
+  check('...and reach the disk once written', await flush() && disk.get('sadies-clubhouse.aquarium.ocean') === '{"found":["duck"]}');
+  check('...an older save already on the disk is there as soon as the game starts', store.get('someone.else') === 'theirs');
+  globalThis.__saves.set('sadies-clubhouse.aquarium.ocean', '{not a save');
   const back = box.get('ocean', 'fresh');
-  check('a save that can\'t be read is put aside, never wiped', back === 'fresh' && data.get('sadies-clubhouse.aquarium.ocean.unreadable') === '{not a save');
-  check('...and how much room the saves take is known', saveRoom().used > 0 && !saveRoom().nearlyFull && !saveRoom().failed);
+  check('a save that can\'t be read is put aside, never wiped', back === 'fresh' && plain()['sadies-clubhouse.aquarium.ocean.unreadable'] === '{not a save');
+  await flush();
+  check('...and the aside copy reaches the disk too', disk.get('sadies-clubhouse.aquarium.ocean.unreadable') === '{not a save');
+  check('...and how much the saves take is known', saveRoom().used > 0 && !saveRoom().nearlyFull && !saveRoom().failed && !saveRoom().lost);
   const PRE = ['mansion.', 'sadies-clubhouse.aquarium.'];
-  box.set('ocean', { found: ['duck', 'hat'] }); store.set('mansion.music', 'soft'); data.set('someone.else', 'theirs');
+  box.set('ocean', { found: ['duck', 'hat'] }); store.set('mansion.music', 'soft');
   const file = backup(PRE);
   box.set('ocean', { found: [] }); box.set('extra', 1); store.set('mansion.music', 'off');
-  const why = loadBackup(file, PRE);
+  const why = await loadBackup(file, PRE);
   check('a backup puts every save back as it was (and only the clubhouse\'s)', !why && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft'
-    && box.get('extra', null) === null && data.get('someone.else') === 'theirs' && !JSON.parse(file).saves['someone.else'], why);
-  check('...and something that isn\'t a backup changes nothing', loadBackup('hello', PRE) && loadBackup('{"format":"other"}', PRE) && box.get('ocean').found.length === 2);
+    && box.get('extra', null) === null && store.get('someone.else') === 'theirs' && !JSON.parse(file).saves['someone.else']
+    && disk.get('mansion.music') === '"soft"' && !disk.has('sadies-clubhouse.aquarium.extra'), why);
+  check('...and something that isn\'t a backup changes nothing', await loadBackup('hello', PRE) && await loadBackup('{"format":"other"}', PRE) && box.get('ocean').found.length === 2);
   const big = JSON.stringify({ format: 'sadies-clubhouse-backup/1', saves: { 'sadies-clubhouse.aquarium.huge': JSON.stringify('x'.repeat(5.1e6)) } });
-  check('...nor one too big to fit: all or nothing', loadBackup(big, PRE) && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft');
+  check('...nor one the disk has no room for: all or nothing', await loadBackup(big, PRE) && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft'
+    && box.get('huge', null) === null && !disk.has('sadies-clubhouse.aquarium.huge'));
   // a bad file is turned away before anything is touched, and saves put aside are never wiped
-  data.set('sadies-clubhouse.aquarium.old.unreadable', 'kept');
+  globalThis.__saves.set('sadies-clubhouse.aquarium.old.unreadable', 'kept');
   const mk = (saves, format = 'sadies-clubhouse-backup/1') => JSON.stringify({ format, made: '2026-01-02T03:04:05Z', saves });
   const bad = {
     'a backup with no saves in it': mk({}), 'one whose saves are a list': mk([]),
@@ -202,16 +216,28 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
     'one from a newer version': mk({ 'mansion.music': '"off"' }, 'sadies-clubhouse-backup/2'),
   };
   for (const [what, text] of Object.entries(bad))
-    check(`...${what} is turned away, and nothing is lost`, !!loadBackup(text, PRE) && !!inspectBackup(text, PRE).error && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft', inspectBackup(text, PRE).error);
+    check(`...${what} is turned away, and nothing is lost`, !!(await loadBackup(text, PRE)) && !!inspectBackup(text, PRE).error && box.get('ocean').found.length === 2 && store.get('mansion.music') === 'soft', inspectBackup(text, PRE).error);
   check('...a newer version\'s backup says so', /NEWER VERSION/.test(inspectBackup(bad['one from a newer version'], PRE).error));
   const good = inspectBackup(mk({ 'mansion.music': '"off"' }), PRE);
   check('...a good one says its date and how many saves it holds before it\'s loaded', !good.error && good.made === '2026-01-02' && good.saves.length === 1 && store.get('mansion.music') === 'soft');
-  check('...and loading never wipes a save put aside', !loadBackup(mk({ 'mansion.music': '"off"' }), PRE) && data.get('sadies-clubhouse.aquarium.old.unreadable') === 'kept' && store.get('mansion.music') === 'off');
+  check('...and loading never wipes a save put aside', !(await loadBackup(mk({ 'mansion.music': '"off"' }), PRE)) && plain()['sadies-clubhouse.aquarium.old.unreadable'] === 'kept' && store.get('mansion.music') === 'off');
   store.set('mansion.music', 'soft');
-  store.set('sadies-clubhouse.aquarium.fill', 'x'.repeat(4.2e6));
-  check('nearly full saves are noticed', saveRoom().nearlyFull && !saveRoom().failed);
-  check('...and a save that doesn\'t fit fails and is noticed', !store.set('sadies-clubhouse.aquarium.more', 'x'.repeat(1e6)) && saveRoom().failed);
-  data.delete('sadies-clubhouse.aquarium.fill');
+  // a write the disk has no room for fails, is noticed, and the save is still kept in memory and tried again
+  store.set('sadies-clubhouse.aquarium.fill', 'x'.repeat(5.1e6));
+  check('a save that doesn\'t fit is noticed (and not lost from the page)', !(await flush()) && saveRoom().failed && store.get('sadies-clubhouse.aquarium.fill').length === 5.1e6);
+  store.remove('sadies-clubhouse.aquarium.fill');
+  check('...and the next write goes through once it\'s gone', await flush() && !disk.has('sadies-clubhouse.aquarium.fill') && disk.get('mansion.music') === '"soft"');
+  // saves written one after another: the last one wins, even when an earlier write is still going
+  delay.ms = 30;
+  box.set('race', 1); const slowOne = flush(); box.set('race', 2); const quickOne = flush(true);
+  await Promise.all([slowOne, quickOne]); await flush();
+  delay.ms = 0;
+  check('a later save is never overwritten by an earlier one still being written', disk.get('sadies-clubhouse.aquarium.race') === '2');
+  // squeezing: a big save is stored smaller and comes back exactly; a small one is left alone
+  const bigText = JSON.stringify({ cells: Array.from({ length: 4000 }, (_, i) => ({ x: i % 40, y: i >> 6, c: 'brick' })) });
+  const sq = await squeeze(bigText), tiny = await squeeze('{"a":1}');
+  check('a big save is squeezed small and comes back exactly the same', typeof sq !== 'string' && sq.z.length < bigText.length / 4 && await unsqueeze(sq) === bigText, `${bigText.length} letters in ${sq.z?.length} bytes`);
+  check('...a small save is left as it is, and an unreadable record is turned away', tiny === '{"a":1}' && await unsqueeze(tiny) === tiny && await unsqueeze({ z: new Uint8Array([1, 2, 3]) }).then(() => false, () => true));
   // leaving the page: every room's save-on-the-way-out runs, until a start-over (last here: after
   // it, nothing more is saved by this page)
   const leave = {}; globalThis.addEventListener = (e, f) => { leave[e] = f; };
@@ -219,14 +245,34 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
   const stop = onLeave(() => { left++; box.set('ocean', { found: ['late'] }); }); onLeave(() => left++);
   leave.pagehide();
   check('as the page is closed, every room saves on its way out', left === 2 && box.get('ocean').found[0] === 'late');
+  await flush();
+  check('...and it reaches the disk', disk.get('sadies-clubhouse.aquarium.ocean') === '{"found":["late"]}');
   stop(); leave.pagehide();
   check('...but not one that\'s stopped (a room put away)', left === 3);
   onLeave(() => box.set('ocean', { found: ['too late'] }));
   forget(['sadies-clubhouse.aquarium.']); reloading();
   leave.pagehide(); box.set('again', 1);
-  check('a start-over erases its saves, and nothing saves them back as the page reloads', left === 3 && box.get('ocean', null) === null && box.get('again', null) === null
-    && store.get('mansion.music') === 'soft' && data.get('someone.else') === 'theirs');
-  delete globalThis.localStorage; delete globalThis.addEventListener;
+  await flush();
+  check('a start-over erases its saves (on the disk too), and nothing saves them back as the page reloads', left === 3 && box.get('ocean', null) === null && box.get('again', null) === null
+    && ![...disk.keys()].some(k => k.startsWith('sadies-clubhouse.aquarium.')) && store.get('mansion.music') === 'soft' && disk.get('someone.else') === '"theirs"');
+  // a page closed before the disk finished writing: the note it left (in localStorage) is finished by the next page
+  {
+    const note = new Map(); globalThis.localStorage = { getItem: k => note.get(k) ?? null, setItem: (k, v) => note.set(k, String(v)), removeItem: k => note.delete(k) };
+    const stuck = { async load() { return new Map([['mansion.music', '"old"']]); }, write: () => new Promise(() => {}) };   // (a disk that never finishes)
+    const one = await import('../../src/shared/storage.js?closed-early');
+    await one.ready(stuck); const listen = {}; globalThis.addEventListener = (e, f) => { listen[e] = f; };
+    one.onLeave(() => {}); one.store.set('mansion.music', 'new'); one.store.remove('mansion.gone');
+    listen.pagehide();
+    check('a page closed before the disk finished leaves a note of what was waiting', note.has('sadies-clubhouse-journal'));
+    delete globalThis.addEventListener;
+    const written = new Map(), two = await import('../../src/shared/storage.js?next-page');
+    await two.ready({ async load() { return new Map([['mansion.music', '"old"'], ['mansion.gone', '1']]); }, async write(b) { for (const [k, v] of b) v == null ? written.delete(k) : written.set(k, v); return true; } });
+    check('...and the next page finishes the job: nothing saved is lost', two.store.get('mansion.music') === 'new' && two.store.get('mansion.gone', 'erased') === 'erased');
+    await two.flush();
+    check('...writes it to the disk, and the note goes', written.get('mansion.music') === '"new"' && !note.has('sadies-clubhouse-journal'));
+    delete globalThis.localStorage;
+  }
+  delete globalThis.addEventListener;
 }
 
 // ---------- the weather (src/clubhouse/weather/): the world's, over everywhere out of doors ----------

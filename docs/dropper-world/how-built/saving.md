@@ -34,8 +34,7 @@ BACKUP keeps a copy of it with everything else. Each browser and device keeps it
 ## Size
 
 Piece positions are kept to 1/100 px; a 50-piece board is about 24 KB. The bedrock keeps the board
-to about 400 pieces however tall the tower gets (about 200 KB), far under the browser's ~5 MB
-limit. The bedrock is saved as its height every quarter block (193 numbers) plus the flecks
+to about 400 pieces however tall the tower gets (about 200 KB), far under any browser limit. The bedrock is saved as its height every quarter block (193 numbers) plus the flecks
 (`docs/dropper-world/tuning/bedrock.md`).
 
 ## What comes back

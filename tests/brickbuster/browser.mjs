@@ -10,7 +10,7 @@
 // heap gone, a new board), breaks it again and finds it mends itself after a reload, and in the test
 // version starts it over from the pause menu. Screenshots in dist/check/brickbuster/.
 // Any error on the page is a failure.
-import { bothDevices, pressPause } from '../shared/browser.mjs';
+import { bothDevices, pressPause, yesAndReload } from '../shared/browser.mjs';
 
 export default async function ({ browser, page, check, outDir }) {
   await bothDevices(browser, outDir, async ({ device, opts, ctx, p, errors, shot, M, up, walk, use, modeIs, until }) => {
@@ -211,7 +211,7 @@ export default async function ({ browser, page, check, outDir }) {
     await pressPause(p, opts);
     await p.waitForTimeout(200);
     await p.click('#resets button:has-text("BRICKBUSTER")');
-    await p.click('#sureYes');
+    await yesAndReload(p);
     await up();
     s = await B();
     check(`${device}: the pause menu can start Brickbuster over: Sadie's back, level 1, three lives, no high score`, !s.cracks && !s.broken && !s.pile && s.bricks >= 20 && s.sadie && !s.sign && !s.hall && s.level === 1 && s.lives === 3 && s.high === 0 && s.score === 0);

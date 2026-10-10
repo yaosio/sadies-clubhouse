@@ -34,7 +34,7 @@ import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
 import { strict, realPlace, hallView, outsideView, doorView } from './neighbours.js';
 import { oops, unoops, NO_3D, STUCK } from '../shared/oops.js';
-import { store, tabNote, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading } from '../shared/storage.js';
+import { store, tabNote, saveBox, saveRoom, backup, inspectBackup, loadBackup, forget, reloading, flush, room, lastBackup } from '../shared/storage.js';
 import { showCredits } from './credits.js';
 import { makeTheme } from './music/theme.js';
 import { makeWeather } from './weather/sky.js';
@@ -664,7 +664,7 @@ export async function open(cards, enter) {
   }
   function pause() {
     for (const w of ways) w.pause?.();
-    mode = 'menu'; held.clear(); $('#menu').hidden = false; showTarget(); showSaves();
+    mode = 'menu'; held.clear(); $('#menu').hidden = false; showTarget(); showSaves(); room().then(() => { if (mode === 'menu') showSaves(); });
     if (document.pointerLockElement) document.exitPointerLock();
   }
   function resume() {
@@ -735,17 +735,25 @@ export async function open(cards, enter) {
   }
   // (then the page starts afresh, with nothing saved on the way out: a room's last save would put
   // back what was just erased)
-  on($('#sureYes'), 'click', () => { if (undoing && undoing() !== false) { reloading(); location.reload(); } });
+  // (the erasing or the backup reaches the disk before the page starts afresh)
+  on($('#sureYes'), 'click', async () => {
+    if (!undoing || await undoing() === false) return;
+    reloading(); await flush(); location.reload();
+  });
   on($('#sureNo'), 'click', () => ask(false));
 
-  // Your saves (src/shared/storage.js): how much room they take, a warning when they're nearly
-  // full (past that, a save quietly fails), and a backup: one file with every save in the
-  // clubhouse, to keep anywhere and put back later, on any browser.
+  // Your saves (src/shared/storage.js): how much they take, warnings (the browser is nearly out of room,
+  // a save didn't fit, or the browser won't keep saves at all), when the last backup was, and a backup:
+  // one file with every save in the clubhouse, to keep anywhere and put back later, on any browser.
+  // The reminder turns yellow when the browser hasn't promised to keep the saves and the last backup
+  // is over a month old (or never): a gentle nudge, nothing more.
   function showSaves(say) {
-    const r = saveRoom(), trouble = r.failed ? "A SAVE DIDN'T FIT!" : r.nearlyFull ? 'YOUR SAVES ARE NEARLY FULL!' : '';
-    $('#saveNote').classList.toggle('full', !!trouble);
-    $('#saveNote').innerHTML = say || (trouble ? `${trouble}<br>SAVE A BACKUP, THEN START SOMETHING OVER.`
-      : `SAVES: ${r.used < 1e5 ? Math.max(1, Math.round(r.used / 1e3)) + ' KB' : (r.used / 1e6).toFixed(1) + ' MB'} OF ABOUT ${r.of / 1e6} MB`);
+    const r = saveRoom(), ago = r.lastBackup ? Math.floor((Date.now() - r.lastBackup) / 864e5) : -1;
+    const trouble = r.lost ? "THIS BROWSER WON'T KEEP YOUR SAVES!" : r.failed ? "A SAVE DIDN'T FIT!" : r.nearlyFull ? 'YOUR SAVES ARE NEARLY FULL!' : '';
+    const stale = r.kept !== true && (ago < 0 || ago > 30);
+    $('#saveNote').classList.toggle('full', !!trouble || (stale && !say));
+    $('#saveNote').innerHTML = say || (trouble ? `${trouble}<br>SAVE A BACKUP${r.lost ? ' BEFORE YOU GO' : ', THEN START SOMETHING OVER'}.`
+      : `SAVES: ${r.used < 1e5 ? Math.max(1, Math.round(r.used / 1e3)) + ' KB' : (r.used / 1e6).toFixed(1) + ' MB'}<br>LAST BACKUP: ${ago < 0 ? 'NEVER' : ago < 1 ? 'TODAY' : ago < 14 ? ago + ' DAY' + (ago > 1 ? 'S' : '') + ' AGO' : Math.floor(ago / 7) + ' WEEKS AGO'}`);
   }
   const backupName = () => `sadies-clubhouse-backup-${new Date().toISOString().slice(0, 10)}.json`;
   on($('#saveBackup'), 'click', async () => {
@@ -754,24 +762,23 @@ export async function open(cards, enter) {
     let files = null;
     try { files = await window.claude?.use?.('downloads'); } catch {}
     if (files) {
-      try { await files.save({ filename: name, data: text }); showSaves('BACKUP SAVED!'); }
+      try { await files.save({ filename: name, data: text }); lastBackup.now(); showSaves('BACKUP SAVED!'); }
       catch (e) { showSaves(e?.code === 'declined' ? 'NO BACKUP SAVED.' : "COULDN'T SAVE A BACKUP HERE."); }
       return;
     }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = name; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    showSaves('BACKUP SAVED!');
+    lastBackup.now(); showSaves('BACKUP SAVED!');
   });
   on($('#loadBackup'), 'click', () => { $('#backupFile').value = ''; $('#backupFile').click(); });
   on($('#backupFile'), 'change', async () => {
     const f = $('#backupFile').files[0];
     if (!f) return;
-    if (f.size > 6e6) { showSaves("THAT FILE'S TOO BIG TO BE A BACKUP."); return; }
     const text = await f.text().catch(() => '');
     const seen = inspectBackup(text, ALL);
     if (seen.error) { showSaves(seen.error + '.'); return; }
-    undoing = () => { const why = loadBackup(text, ALL); if (why) { ask(false); showSaves(why + '.'); return false; } };
+    undoing = async () => { const why = await loadBackup(text, ALL); if (why) { ask(false); showSaves(why + '.'); return false; } };
     $('#sureAsk').innerHTML = `PUT THIS BACKUP BACK?${seen.made ? `<br>MADE ${seen.made}, ${seen.saves.length} SAVES.` : ''}<br>WHAT'S SAVED NOW IS REPLACED.`;
     showSaves(); ask(true, 'YES, LOAD IT', $('#backups'));
   });

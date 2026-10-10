@@ -76,7 +76,7 @@ export async function oldSaves({ browser, page, card, check, root, skip = [] }) 
     // (the saves go in before the game starts, once: not again on a reload)
     await ctx.addInitScript(saves => {
       if (sessionStorage.getItem('saves-put-back')) return;
-      localStorage.clear(); for (const [k, v] of Object.entries(saves)) localStorage.setItem(k, v);
+      window.__plantSaves = saves;   // (the save director picks them up as it opens: src/shared/storage.js)
       sessionStorage.setItem('saves-put-back', '1');
     }, saves);
     const p = await ctx.newPage(), errors = [];
@@ -98,7 +98,7 @@ export async function oldSaves({ browser, page, card, check, root, skip = [] }) 
       await p.waitForTimeout(2500);
       await p.evaluate(() => dispatchEvent(new Event('pagehide'))).catch(() => {});
     }
-    const after = await p.evaluate(() => ({ ...localStorage })).catch(() => ({}));
+    const after = await p.evaluate(() => window.__saves?.all() || {}).catch(() => ({}));
     await ctx.close().catch(() => {});
     const before = Object.keys(saves).filter(k => ownKey(keeps, k)), now = Object.keys(after).filter(k => ownKey(keeps, k));
     const putAside = Object.keys(after).filter(k => k.endsWith('.unreadable') && !(k in saves));

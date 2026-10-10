@@ -25,8 +25,8 @@ each activity's browser checks.
 ## Saves stay small (`tools/check.mjs`, `SAVE_MAX`)
 - The fullest a room's own saves got while its checks played it must stay under 300 KB. The owner
   asked for this one back (2026-10-04): a save that doesn't fit is lost progress. The 300 KB is
-  Claude's choice (about 5 MB of browser room for every room together; the biggest board today is
-  about 206 KB); raise it if a room really needs more. It only measures what the checks make a room
+  Claude's choice, no longer tied to a browser limit (saves moved to IndexedDB, which has far more
+  room; the biggest board today is about 206 KB); raise or drop it if a room really needs more. It only measures what the checks make a room
   save: a room whose checks save little shows 0 KB, so it can't catch a save that only grows in long play.
 
 ## Dropped on purpose (2026-10-03)

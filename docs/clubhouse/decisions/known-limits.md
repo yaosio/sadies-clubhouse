@@ -4,8 +4,9 @@ Things that are fine today but will need work as the game grows. Add any new lim
 remove one once it's fixed. Each review also asks of every shared file (the clubhouse, the outside,
 the toolbox): is there anything here only one room uses, or that grows with every new kind of room?
 A limit that's written down still needs a plan for when it gets fixed, not just a line here.
-- **Saves:** all rooms share the browser's about 5 MB. The pause menu warns when it's nearly full,
-  but nothing makes room by itself; a room that saves a lot (pictures) should keep them small.
+- **Saves:** they live in IndexedDB (squeezed), which has far more room than the old 5 MB; the pause menu
+  warns if the browser says it's nearly out. No cap of ours on backups. A browser can still clear a
+  site's storage (asked to keep it; the backup reminder covers the rest).
 - **The outside is built whole.** It has levels now, but a town walkable as one space will need it
   to load in pieces as you walk, like rooms. (When the town starts growing.)
 - **Every building outside is built at the start** (only its room is ever put away; the house lives

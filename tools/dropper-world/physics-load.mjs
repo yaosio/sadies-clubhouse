@@ -18,8 +18,6 @@ import { join } from 'node:path';
 const root = new URL('../..', import.meta.url).pathname;
 let seed = 7;
 Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-const mem = {}; // the save is read from "localStorage", like in the browser
-globalThis.localStorage = { getItem: k => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: k => { delete mem[k]; } };
 const boards = join(root, 'dist/prepared/dropper-world');   // (where the checks keep theirs)
 const boardFile = existsSync(boards) && readdirSync(boards).find(f => /^fullboard-.*\.json$/.test(f));
 if (!boardFile) { console.error('no full board in dist/prepared/dropper-world/: run npm run check (or node tools/dropper-world/fullboard.mjs dist/prepared/dropper-world/fullboard-x.json) first'); process.exit(2); }
@@ -28,7 +26,8 @@ const src = new URL('../../src/activities/dropper-world/', import.meta.url);
 const { world } = await import(new URL('core/world.js', src));
 const { update } = await import(new URL('core/game.js', src));
 const { loadGame, SAVE_KEY } = await import(new URL('core/save.js', src));
-mem[SAVE_KEY] = readFileSync(join(boards, boardFile), 'utf8');
+await import(new URL('../../src/shared/storage.js', import.meta.url));   // (the save is read from the save director, like in the browser)
+globalThis.__saves.set(SAVE_KEY, readFileSync(join(boards, boardFile), 'utf8'));
 if (!loadGame()) { console.error('the full board could not be loaded'); process.exit(1); }
 
 for (let f = 0; f < 600; f++) update(1 / 60); // warm up (the first steps are slow while the code is compiled)
