@@ -239,19 +239,17 @@ export async function open(cards, enter) {
     return r => (r.place ? d.get(r.place) : Math.min(98, ...r.portals.map(p => d.get(p.wa) ?? 98)) + 1) ?? 99;
   }
   // every frame: build the nearest room not built yet (while you're still, or as you come up to its
-  // door), and put away rooms three doors off for a while (or the ones you were near longest ago,
-  // once there are more than MAX)
-  const FAR_DOORS = 3, FAR_SECS = 20, MAX = 16, NEAR_DOOR = 7, BITE = 6, TRIES = 6;
+  // door), and put away rooms three doors off for a while (there's no cap on how many stay built)
+  const FAR_DOORS = 3, FAR_SECS = 20, NEAR_DOOR = 7, BITE = 6, TRIES = 6;
   let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks: a room's built only as you walk up to its door, and never put away by itself)
   function tend(dt, doorFor) {
     const away = doorsAway();
     let next = null, best = 1e9;
-    const full = slots.filter(r => r.place).length >= MAX;   // (at the cap, only the door you walk up to builds a room: else the rest would be built and put away over and over)
     for (const r of slots) if (!r.place && !r.building && r.portals.length && again(r)) {
       const n = away(r); if (n > 2) continue;
       const dd = Math.min(99, ...r.portals.filter(p => p.wa === me.world).map(p => Math.hypot(me.x - p.a.pos.x, me.z - p.a.pos.z)));
       const score = n * 100 + dd;
-      if (doorFor === r || (!onlyDoors && !full && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
+      if (doorFor === r || (!onlyDoors && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
     }
     // (a building outside the gate that didn't build at the start has no door yet: tried again too)
     next ||= slots.find(r => !r.place && !r.building && !r.portals.length && outdoors(r.card) && again(r));
@@ -259,10 +257,6 @@ export async function open(cards, enter) {
     const built = slots.filter(r => r.place);
     for (const r of built) r.far = away(r) >= FAR_DOORS ? r.far + dt : 0;
     if (!onlyDoors) for (const r of built) if (r.far > FAR_SECS) putAway(r);
-    if (built.length > MAX) {
-      const spare = built.filter(r => r.place && away(r) >= 2).sort((a, b) => b.far - a.far);
-      for (const r of spare.slice(0, built.length - MAX)) putAway(r);
-    }
   }
   // A building outside the gate that's far off (FAR_HOUSE metres from where you are, or from the door
   // you're looking out of) is drawn as a plain block its size instead (made the first time it's
@@ -908,7 +902,7 @@ export async function open(cards, enter) {
     // the rooms built so far, whether they're all built, building one now (and waiting for that), and
     // putting one away now (as if you'd been far from it long enough)
     built: () => slots.filter(r => r.place).map(r => r.name),
-    settled: () => !slots.some(r => r.building) && (slots.filter(r => r.place).length >= MAX || slots.every(r => r.place || !(r.portals.length || outdoors(r.card)))),
+    settled: () => !slots.some(r => r.building) && slots.every(r => r.place || !(r.portals.length || outdoors(r.card))),
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
