@@ -14,6 +14,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { checker } from '../shared/check.mjs';
 import { checkPool } from './pool.mjs';
+import { checkThings } from './things.mjs';
 
 const { check, finish } = checker();
 
@@ -282,5 +283,6 @@ check('it never repeats: no eight bars come round the same again in an hour', !r
 }
 await checkCards(check);
 checkPool(check);
+await checkThings(check);
 
 finish('failed', 'all passed');

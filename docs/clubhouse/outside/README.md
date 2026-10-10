@@ -13,4 +13,5 @@ Everything outside the gate belongs to somebody else.
 - `buildings.md`: a building outside: what its kit has, the house it hands back, its sounds, when
   it's built.
 - `weather.md`: the world's weather, over every place out of doors.
+- `things.md`: things built when you're near and put away when you're far (the distance keeper).
 - `town.md`: walking on more than one level, and growing into a town.
