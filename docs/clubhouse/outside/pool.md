@@ -38,6 +38,8 @@ Everything is in `src/clubhouse/pool/`, one job a file:
 - `pool.js`, `art.js`: the drawing (flat pictures that face you, like the birds) and the pictures.
 - `sounds.js`: the sounds, played through the sound system's `outside` owner and only while you're
   outside.
+- It is a thing (`things.md`): `outside.js` builds it through the keeper, so it can be put away and
+  built again (its solids always stay on).
 - It only runs while the outside can be seen (you're out in it or looking out of an open door), so
   it costs nothing indoors. Marbles, the dog and the ball are a handful of flat pictures; the water's
   three pictures swap slowly. Light on phones.
