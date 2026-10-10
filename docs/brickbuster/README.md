@@ -11,7 +11,7 @@ the machine mends itself, and you can play again.
 ## Design pillars (the owner's rules; these win over any feature idea)
 
 - It's in the room, not on a separate screen. The room is tall (and the glass wide) because the game is.
-- Three lives; missing the paddle costs one. Out of lives is only GAME OVER: it never breaks the
+- Three lives once the machine has mended itself (before that, a miss cracks the glass instead); missing the paddle costs one. Out of lives is only GAME OVER: it never breaks the
   machine. The game goes on through endless levels, each faster than the last up to a limit, each a
   new board made from the game's seed (never the same boards every game).
 - Leave any time and come back to the same moment: the level, score, lives, board and the ball

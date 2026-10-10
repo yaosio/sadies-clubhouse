@@ -12,7 +12,7 @@ expect. Read before changing any of them.
   to 60 degrees off straight up (at its very ends); the keys move the paddle 6 m/s. Points: 80 for
   the top row down to 10 for the bottom one.
 - **Cracks**: one hit at the top cracks it (`CRACK_HITS` = 1, fast as it always was), 3 cracks break it. The ball rattles about above the bricks once it's through, so after a
-  hit at the top the next one waits until the ball's been back to the paddle. Cracks stay across levels. Once the machine has mended itself the glass never cracks again (Yaosio, 2026-10-10: after that it's regular Breakout). Missing at the bottom doesn't crack anything.
+  hit at the top the next one waits until the ball's been back to the paddle. Cracks stay across levels. Once the machine has mended itself the glass never cracks again (Yaosio, 2026-10-10: after that it's regular Breakout). On the old machine a miss cracks the glass at the bottom (3 break it, no life lost) and clearing the board breaks it; once mended neither happens.
 - **The heap**: 100 spots, 81 in three layers along the front of the machine and 19 down its right
   side; bricks are 0.21 m apart up a layer. A knocked-out brick takes a moment to fall inside the
   glass, then 0.55 s from the hatch to its spot. Once all 100 are taken the oldest is swapped.
@@ -42,6 +42,6 @@ expect. Read before changing any of them.
   2.8 s), the new board pops in at 10.4 s. It starts 2.2 s after the door shuts.
 - **What the tests expect**: a pretend player that never misses and aims for gaps gets three top
   cracks in about a minute (0.7 to 1 minute over five games; never under half a minute), a real
-  person takes a good few minutes. Leaving the paddle alone loses all three lives within a minute
-  (about 5 s) and never cracks the glass. The speed never passes 7.0 m/s at any level up to
+  person takes a good few minutes. On the old machine, leaving the paddle alone breaks it with three misses; once mended it loses all three lives within a minute
+  (about 5 s). The speed never passes 7.0 m/s at any level up to
   a hundred thousand, and the ball is still caught by the paddle at top speed.

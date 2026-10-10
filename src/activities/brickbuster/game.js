@@ -1,12 +1,13 @@
 // Brickbuster '96's game, with no screen: the yarn ball, the paddle, the bricks and the cracks in
 // the glass. Plain numbers, in metres, so the tests can play it in Node. room.js draws it.
 //
-// It's Breakout with three lives. Miss the paddle and the ball drops out of the bottom of the glass
-// (a life gone, a new ball on the paddle); lose the third and it's GAME OVER (and a fresh game, the
-// machine none the worse). Clear every brick and it's the next level: a new board (boards.js), the
-// ball a little faster. Once you've knocked a way through the bricks the ball hits the top of the
-// glass, and that cracks it: three cracks at the top and the glass breaks (they stay across levels; the
-// cracks stay from game to game too; once mended it never breaks again; room.js has the machine mend itself after a break).
+// The machine starts out as the old one: a missed ball cracks the glass at the bottom, a ball hitting
+// the top cracks it there, and three cracks on either side, or clearing the board, break it (room.js
+// has it mend itself after). Once mended (`mended`) it's regular Breakout for good, with three lives:
+// miss the paddle and the ball drops out of the bottom (a life gone, a new ball on the paddle); lose
+// the third and it's GAME OVER (and a fresh game). Clear every brick and it's the next level: a new
+// board (boards.js), the ball a little faster. Once you've knocked a way through the bricks the ball hits the top of the
+// glass, and that cracks it (only before the first mend: after that the glass just bounces the ball).
 // Up at the top the ball rattles between the glass and the bricks, so only its first hit there
 // cracks it: the next crack waits until the ball's been back to the paddle.
 //
@@ -34,7 +35,7 @@ export function makeGame(seed = 1, high = 0) {
     ball: { x: W / 2, y: 0, vx: 0, vy: 0, spin: 0 },
     paddle: W / 2,
     bricks: [],                        // every cell of the grid, with `alive` for the ones that are bricks now
-    cracks: { top: [] },               // each { x, seed }: where it hit, and how its lines run
+    cracks: { top: [], bottom: [] },   // each { x, seed }: where it hit, and how its lines run
     score: 0, high, lives: LIVES, level: 1, speed: speedFor(1), serving: true,
     seed: Math.max(1, Math.floor(seed)),   // this game's: its boards are made from it and the level
     rng: Math.max(1, Math.floor(seed) * 7919 % 2147483646),
@@ -116,11 +117,11 @@ function toPile(g, tone) {
   const slot = g.pileNext; g.pile[slot] = tone; g.pileNext = (slot + 1) % HEAP;
   return slot;
 }
-function breakGlass(g, out) {
+function breakGlass(g, out, why = 'top') {
   const spilled = g.bricks.filter(k => k.alive), slots = [];
   for (const k of spilled) { k.alive = false; slots.push(toPile(g, k.tone)); }
   g.broken = 'top';
-  out.push({ type: 'break', why: 'top', spilled, slots });
+  out.push({ type: 'break', why, spilled, slots });
 }
 
 function sub(g, dt, out) {
@@ -153,7 +154,8 @@ function sub(g, dt, out) {
     else b.vy = b.y < k.y + k.h / 2 ? -Math.abs(b.vy) : Math.abs(b.vy);
     const s = Math.hypot(b.vx, b.vy); b.vx *= g.speed / s; b.vy *= g.speed / s;
     out.push({ type: 'brick', brick: k, slot: toPile(g, k.tone) });   // slot: its place in the pile
-    if (bricksLeft(g) === 0) {   // the next level: a new board
+    if (bricksLeft(g) === 0 && !g.mended) breakGlass(g, out, 'cleared');   // (the old machine: clearing it breaks it, like the original)
+    else if (bricksLeft(g) === 0) {   // the next level: a new board
       g.level++; newBoard(g); serve(g); g.topReady = true; g.topHits = 0;
       out.push({ type: 'level', level: g.level });
     }
@@ -162,6 +164,15 @@ function sub(g, dt, out) {
 }
 
 function miss(g, out) {
+  if (!g.mended) {   // the machine's still the old one: a missed ball cracks the glass at the bottom, three and it breaks (no life lost)
+    const list = g.cracks.bottom;
+    list.push({ x: Math.max(0, Math.min(W, g.ball.x)), seed: 1 + Math.floor(random(g) * 99999) });
+    out.push({ type: 'crack', side: 'bottom', level: list.length, x: g.ball.x });
+    if (list.length >= CRACKS) { breakGlass(g, out, 'bottom'); return; }
+    out.push({ type: 'miss', lives: g.lives });
+    serve(g);
+    return;
+  }
   g.lives--;
   out.push({ type: 'miss', lives: g.lives });
   if (g.lives <= 0) { g.over = true; out.push({ type: 'over', score: g.score, high: g.high, record: g.score > 0 && g.score >= g.high }); }
@@ -217,7 +228,9 @@ export function load(g, s) {
   g.mended = !!s.mended && !s.broken;
   if (s.broken) g.broken = 'top';   // (the first one could also break at the bottom, or by clearing it: all just broken now)
   if (g.broken) for (const k of g.bricks) k.alive = false;
-  // the cracks at the top (the first one's cracks at the bottom are dropped)
+  // the cracks at the top and bottom
+  const lb = s.cracks?.bottom;
+  if (Array.isArray(lb) && !g.mended) g.cracks.bottom = lb.filter(c => c && Number.isFinite(+c.x) && Number.isFinite(+c.seed)).slice(0, CRACKS - 1).map(c => ({ x: +c.x, seed: +c.seed }));
   const l = s.cracks?.top;
   if (Array.isArray(l)) g.cracks.top = l.filter(c => c && Number.isFinite(+c.x) && Number.isFinite(+c.seed)).slice(0, CRACKS).map(c => ({ x: +c.x, seed: +c.seed }));
   if (typeof s.topReady === 'boolean') g.topReady = s.topReady;
@@ -242,7 +255,7 @@ export function load(g, s) {
 // the machine mends itself: the heap gone, the cracks gone, and the game carries on where it was
 // (the same level, score and lives, on a whole new board)
 export function mend(g) {
-  g.cracks = { top: [] }; g.topReady = true; g.topHits = 0; g.pile = []; g.pileNext = 0; g.broken = null; g.over = false; g.mended = true;
+  g.cracks = { top: [], bottom: [] }; g.topReady = true; g.topHits = 0; g.pile = []; g.pileNext = 0; g.broken = null; g.over = false; g.mended = true;
   newBoard(g);
   serve(g);
 }

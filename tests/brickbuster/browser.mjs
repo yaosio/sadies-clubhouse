@@ -65,15 +65,15 @@ export default async function ({ browser, page, check, outDir }) {
       check(`${device}: ...and walking doesn't (you're playing)`, Math.abs((await M('where')).x - stood.x) < 5);
     }
 
-    // missing: the ball drops out of the bottom, which costs a life (not a crack), with a sound, and a new ball on the paddle
+    // missing, on a machine that hasn't broken yet: the ball drops out of the bottom, which cracks the glass there (no life lost), with a sound, and a new ball on the paddle
     const { lives: lives0, sounds: played0 } = await B();
     const since = s => s.heard.slice(-(s.sounds - played0) || s.heard.length);   // (the sounds since: the log keeps the last 200)
     await p.evaluate(() => window.__brickbuster.loseLife());
     // (until it's happened, however slow the computer: a set wait could end before, or long after)
-    await until(n => window.__brickbuster.state().lives < n, lives0, 8000);
+    await until(() => window.__brickbuster.state().bottomCracks >= 1, null, 8000);
     s = await B();
     await shot('3-missed');
-    check(`${device}: missing costs a life, with a sound, and the glass is not cracked`, s.lives === lives0 - 1 && s.cracks === 0 && !s.broken && since(s).includes('miss'), `lives ${s.lives}, heard ${since(s).join(' ')}`);
+    check(`${device}: missing on a machine that hasn't broken cracks the glass at the bottom, with a sound, and costs no life`, s.lives === lives0 && s.bottomCracks === 1 && !s.broken && since(s).includes('crack1'), `lives ${s.lives}, heard ${since(s).join(' ')}`);
     check(`${device}: ...and a new ball waits on the paddle`, await until(() => window.__brickbuster.state().serving, null, 4000) || !(await B()).serving);
     check(`${device}: ...the marquee has the score, the level and the lives (nothing to see here, just no errors)`, (await B()).level === 1);
 
@@ -135,7 +135,7 @@ export default async function ({ browser, page, check, outDir }) {
     await until(() => window.__brickbuster.state().mended, null, 15000);
     await shot('6-mending');
     s = await B();
-    check(`${device}: ...the paddle goes back into the machine (a new game, the lives and level kept)`, s.mended && !s.broken && s.lives === lives0 - 1 && s.level === 1, `lives ${s.lives}, level ${s.level}`);
+    check(`${device}: ...the paddle goes back into the machine (a new game, the lives and level kept)`, s.mended && !s.broken && s.lives === lives0 && s.level === 1, `lives ${s.lives}, level ${s.level}`);
     await until(() => window.__brickbuster.state().glassBack, null, 15000);
     check(`${device}: ...the glass puts itself back together`, (await B()).glassBack);
     await until(() => !window.__brickbuster.state().fixing, null, 40000);
@@ -148,9 +148,14 @@ export default async function ({ browser, page, check, outDir }) {
     await p.waitForTimeout(300);
     check(`${device}: ...the case offers to play again`, /BRICKBUSTER/.test(await M('target') || ''), await M('target'));
 
-    // once mended it's mended for good: hitting the top again never cracks it, and that's kept across a reload
+    // from now on a miss costs a life, as in any Breakout
     await use();
     await modeIs('arcade');
+    await p.evaluate(() => window.__brickbuster.loseLife());
+    await until(n => window.__brickbuster.state().lives < n, lives0, 8000);
+    s = await B();
+    check(`${device}: once mended, missing costs a life and cracks nothing`, s.lives === lives0 - 1 && s.bottomCracks === 0 && !s.broken, `lives ${s.lives}`);
+    // once mended it's mended for good: hitting the top again never cracks it, and that's kept across a reload
     for (let i = 0; i < 4; i++) {
       await p.evaluate(() => window.__brickbuster.catchBall());
       await p.waitForTimeout(300);

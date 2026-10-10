@@ -25,7 +25,8 @@ It's Breakout with three lives. The marquee shows your SCORE and the HIGH score,
 the LEVEL and the lives left as little hearts. Idle, it says FULL VERSION 99 LEVELS, as it always did.
 
 - **Missing**: the ball drops out of the bottom of the glass (the paddle winces, a sad little slide
-  down), one life goes, and a new ball waits on the paddle. It never cracks the glass.
+  down) and a new ball waits on the paddle. On a machine that hasn't broken yet, a miss cracks the
+  glass at the bottom instead of costing a life (`the-break.md`); once mended, a miss costs one life.
 - **GAME OVER**: after the third miss the marquee says GAME OVER with your final score and the HIGH
   score (or NEW HIGH SCORE), the paddle looks sad, and a few seconds later the next game starts: level
   1, three lives, a new seed (so new boards). The high score stays, and so do any cracks on the

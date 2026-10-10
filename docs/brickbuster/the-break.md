@@ -12,6 +12,8 @@ to a corner well away from its way out and the door (wherever you'd started play
 floor: your view follows the yarn ball (no walking or looking away) until it's out of the room.
 The game isn't over: your level, score and lives are kept, and the machine mends itself. Once mended it is mended for good (Yaosio, 2026-10-10): the glass never cracks or breaks again, so the break happens once per machine (start-over in the pause menu makes it breakable again). The top still bounces the ball.
 
+How the old machine breaks, fast, like the original (Yaosio, 2026-10-10): a missed ball cracks the glass at the bottom (no life lost), the ball hitting the top cracks it there, three cracks on either side break it, and clearing the whole board breaks it too (no level-up). Only after the mend do misses cost lives and a cleared board mean the next level.
+
 ## The escape
 
 The yarn ball bounces round the room a few times, loudly (floor, wall, floor, high on the wall,

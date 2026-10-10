@@ -100,9 +100,17 @@ function play(seed, skill, secs, o = {}) {
   check('...and a ball coming back up from beneath it goes through', !step(g, 0.3).some(e => e.type === 'paddle') && g.ball.y > PADDLE.y + PADDLE.h / 2);
 }
 
-// 3. missing costs a life: three and it's GAME OVER (and the glass isn't touched)
+// 3a. before the machine has broken once, a miss cracks the glass at the bottom instead: three and it breaks, no life lost
 {
-  const g = makeGame(7); g.high = 40;
+  const g = makeGame(6), cr = [], br = [];
+  for (let t = 0; t < 120 && !g.broken; t += DT) { if (g.serving) launch(g); for (const e of step(g, DT)) { if (e.type === 'crack' && e.side === 'bottom') cr.push(e.level); if (e.type === 'break') br.push(e.why); } }
+  check('a fresh machine: each missed ball cracks the glass at the bottom (1, 2, 3), the third breaks it, and no life is lost', cr.join() === '1,2,3' && br.join() === 'bottom' && g.broken === 'top' && g.lives === LIVES && !g.over, `cracks ${cr.join(' ')}, broke ${br.join(' ')}, lives ${g.lives}`);
+  check('...and a mended machine never takes cracks at the bottom', (() => { mend(g); const e = []; for (let t = 0; t < 20 && !g.over; t += DT) { if (g.serving) launch(g); e.push(...step(g, DT)); } return g.over && !g.cracks.bottom.length && !e.some(x => x.type === 'crack'); })());
+}
+
+// 3. missing costs a life once mended: three and it's GAME OVER (and the glass isn't touched)
+{
+  const g = makeGame(7); g.high = 40; g.mended = true;
   const lives = [], overs = [];
   let t = 0;
   for (; t < 300 && !g.over; t += DT) { if (g.serving) launch(g); for (const e of step(g, DT)) { if (e.type === 'miss') lives.push(e.lives); if (e.type === 'over') overs.push(e); } }
@@ -138,6 +146,14 @@ function play(seed, skill, secs, o = {}) {
   Object.assign(g.ball, { x: k.x + k.w / 2, y: k.y - R - 0.02, vx: 0, vy: 4 });
   const ev = step(g, 0.05);
   check('knocking out a brick scores it, bounces the ball back and drops it on the floor', !k.alive && g.score > 0 && g.ball.vy < 0 && ev.some(e => e.type === 'brick' && e.brick === k) && g.pile.join() === String(k.tone) && g.high === g.score);
+  {   // (a fresh machine: clearing the board breaks it, like the original)
+    const f = makeGame(10); launch(f); const l = f.bricks.filter(b => b.alive).at(-1);
+    for (const b of f.bricks) if (b !== l) b.alive = false;
+    Object.assign(f.ball, { x: l.x + l.w / 2, y: l.y - R - 0.02, vx: 0, vy: 4 });
+    const e = step(f, 0.05);
+    check('a fresh machine: knocking out the last brick breaks the glass (no next level yet)', f.broken === 'top' && e.some(x => x.type === 'break' && x.why === 'cleared') && f.level === 1);
+  }
+  g.mended = true;
   const last = g.bricks.filter(b => b.alive).at(-1), was = g.board;
   g.cracks.top.push({ x: 1, seed: 2 });
   for (const b of g.bricks) if (b !== last) b.alive = false;
@@ -146,6 +162,7 @@ function play(seed, skill, secs, o = {}) {
   check('...and knocking out the last one is the next level: a new board, the cracks kept, a faster ball waiting on the paddle', ev2.some(e => e.type === 'level' && e.level === 2) && g.level === 2 && g.serving && !g.broken && bricksLeft(g) >= MIN_BRICKS && g.speed > speedFor(1) && g.lives === LIVES && g.cracks.top.length === 1, `${was} then ${g.board}`);
   // the heap holds HEAP bricks, and once full the oldest spot is swapped for the newest
   const h = makeGame(4), slots = new Set();
+  h.mended = true;
   let mx = 0;
   for (let i = 0; i < 400; i++) {
     let kk = h.bricks.find(b => b.alive);

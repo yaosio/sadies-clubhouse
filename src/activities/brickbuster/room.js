@@ -234,6 +234,7 @@ export async function buildRoom(m) {
   function drawCracks() {
     cg.clearRect(0, 0, CW, CH);
     game.cracks.top.forEach((c, i) => crackLines(cg, c, i + 1, 'top', CW, CH));
+    game.cracks.bottom.forEach((c, i) => crackLines(cg, c, i + 1, 'bottom', CW, CH));
     cracksTex.needsUpdate = true;
   }
   drawMarquee(); drawCracks();
@@ -289,7 +290,8 @@ export async function buildRoom(m) {
         feel('wince', 1.1); drawCracks(); keep_();
       } else if (e.type === 'miss') {
         // the ball dropped out of the bottom: a life gone (a new ball on the paddle in a moment)
-        sound.miss(); feel('wince', 0.9); wait = 1.1; keep_();
+        if (game.mended) sound.miss();   // (before the first break a miss cracks the glass instead, which has its own sound)
+        feel('wince', 0.9); wait = 1.1; keep_();
       } else if (e.type === 'level') {
         // a new board: its bricks pop in, one after another across the glass
         sound.level(); feel('happy', 1.4); wait = 1.3; newBoardLook(); keep_();
@@ -539,7 +541,7 @@ export async function buildRoom(m) {
         else { happen(step(game, dt)); dirty = true; }
         if (overAt && t > overAt) nextGame();
         // (the arcade music gets more exciting as the glass cracks)
-        music?.tick(Math.min(1, game.cracks.top.length / 2));
+        music?.tick(Math.min(1, (game.cracks.top.length + game.cracks.bottom.length) / 2));
         if (dirty && t - savedAt > 3) { savedAt = t; keep_(); }
       }
       // the bricks, the ball and the paddle where the game has them
@@ -604,7 +606,7 @@ export async function buildRoom(m) {
       // the paddle's face: calm while nobody's playing, focused while you are (nervous once the
       // glass has cracked), happy for a moment when it hits the ball, wincing at a crack; its eyes
       // follow the ball. Once it's broken: lying in the rubble, sad, sighing now and then.
-      const cracked = game.cracks.top.length;
+      const cracked = game.cracks.top.length + game.cracks.bottom.length;
       let name = t < mood.until ? mood.name : !active ? 'calm' : cracked ? 'nervous' : 'focus';
       if (game.broken && t >= mood.until) {
         const sigh = (t % 7) > 5.6;
@@ -632,6 +634,7 @@ export async function buildRoom(m) {
     edges.visible = shardsOnFloor.visible = false;
     if (m.saves.get('sadie', null) === 'out') {   // it broke before and mended itself: Sadie's still out chasing the ball
       sadie.visible = false; run = 'gone'; outInTheHall(false);
+      game.mended = true;   // (a save from before "mended for good" existed: it has broken once, so that's that)
     }
   }
 
@@ -640,7 +643,7 @@ export async function buildRoom(m) {
     state: () => ({ active, serving: game.serving, score: game.score, high: game.high, level: game.level, lives: game.lives, board: game.board, over: game.over,
       paddle: game.paddle, ball: { ...game.ball },
       bricks: game.bricks.filter(k => k.alive).length, pile: piled.filter(Boolean).length, broken: game.broken,
-      cracks: game.cracks.top.length, fixing, mended: !!repair?.home, glassBack: glass[0].visible,
+      cracks: game.cracks.top.length, bottomCracks: game.cracks.bottom.length, mendedForGood: game.mended, fixing, mended: !!repair?.home, glassBack: glass[0].visible,
       escape: escape === 'gone' ? 'gone' : escape ? 'hop ' + escape.i : null, sadie: sadie.visible, doorHeld: !!place.holding, sign: signUp,
       yarn: ball.getWorldPosition(new Vector3()).toArray(), watched: !!place.watch, canPlay: place.uses.length > 0,
       hall: loose?.ball ? { ball: [loose.ball.x, loose.ball.y, loose.ball.z], cat: [loose.cat.x, loose.cat.y, loose.cat.z], mode: loose.cat.mode,
