@@ -41,11 +41,17 @@ export default async function ({ browser, page, check, outDir }) {
     const stood = await M('where');
     await use();
     const playing = await modeIs('arcade');
-    await until(() => !window.__brickbuster.state().serving, null, 10000);   // (sent off by itself, however slow the computer)
+    // the ball waits on the paddle until you touch the screen (or click, or press a key)
+    await p.waitForTimeout(2500);
+    const waited = (await B()).serving;
+    await shot('2-waiting');
+    if (opts.hasTouch) await p.evaluate(() => { const c = document.querySelector('#clubhouse #view'); for (const t of ['pointerdown', 'pointerup']) c.dispatchEvent(new PointerEvent(t, { pointerId: 11, pointerType: 'touch', clientX: innerWidth / 2, clientY: innerHeight * 0.6, bubbles: true })); });
+    else await p.keyboard.press('Space');
+    await until(() => !window.__brickbuster.state().serving, null, 10000);   // (sent off once you do, however slow the computer)
     await shot('2-playing');
     let s = await B();
     check(`${device}: stepping up starts the game, the view eased back to fit the case`, playing && s.active && (await M('where')).z < stood.z - 0.3);
-    check(`${device}: ...and the yarn ball is sent off by itself`, !s.serving || s.lives < 3);
+    check(`${device}: ...the yarn ball waits on the paddle till you touch the screen or press a key, then it's sent off`, waited && (!s.serving || s.lives < 3));
     await p.evaluate(() => window.__brickbuster.catchBall());   // (so it can't miss on its own while we check other things)
 
     // the paddle: keys and the mouse on a desktop, a finger on a phone

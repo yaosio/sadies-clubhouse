@@ -16,8 +16,10 @@ You have to be within 8.5 m of the machine to play it.
 
 A/D or the arrows (or just moving the mouse) move the paddle; on a phone, sliding a finger anywhere
 moves it exactly as far as the finger goes. Esc, W or S (or Up/Down) (on a phone, hold the HOLD TO LEAVE button for a moment: a quick tap does nothing, because a sliding thumb hit it by accident) eases you back to
-where you stood, and the game waits, the ball hanging where it was. The ball starts on the paddle
-and is sent off by itself after a moment.
+where you stood, and the game waits, the ball hanging where it was. Every new ball (the first, after a miss, after a level)
+waits on the paddle, bobbing a little, until you touch the screen, click or press a key (Yaosio,
+2026-10-10: a ball that went off by itself caught players unready). The 1UP heart is small and shows
+where the ball hit.
 
 ## The game
 

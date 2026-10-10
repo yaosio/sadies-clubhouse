@@ -174,8 +174,9 @@ export async function buildRoom(m) {
     }
   });
   const upMat = psx(upTex, { unlit: 1, decal: true });
-  function showUp(x, y) {
-    const mesh = cplane(1.5, 1.5, upMat, [Math.max(0.9, Math.min(W - 0.9, x)), Math.max(1.0, Math.min(H - 1.2, y)), Z.glass + 0.06]);
+  function showUp(x, y) {   // (x, y: where the ball hit, in the game's own numbers)
+    const [px, py] = at(x, y);
+    const mesh = cplane(0.85, 0.85, upMat, [Math.max(-W / 2 + 0.5, Math.min(W / 2 - 0.5, px)), Math.max(0.5, Math.min(H - 0.5, py)), Z.glass + 0.06]);
     mesh.scale.setScalar(0.001);
     ups.push({ mesh, t0: now, y0: mesh.position.y });
   }
@@ -262,6 +263,7 @@ export async function buildRoom(m) {
   drawMarquee(); drawCracks();
 
   // ---------- playing ----------
+  let go = false, wasServing = false;   // (a new ball waits on the paddle until you touch the screen or press a key: `begin`)
   let wait = 0, overAt = 0, dirty = false, savedAt = 0, mood = { name: 'calm', until: 0 }, pop = 0, now = 0;
   // its sounds, through the clubhouse's sound system (stopped by the clubhouse when the room's put away)
   const sfx = soundsFor('room:' + card.id);
@@ -272,6 +274,7 @@ export async function buildRoom(m) {
   const clunk = () => { if (sound && now - lastTock > 0.07) { lastTock = now; sound.tock(); } };
   const play = {
     label: "PLAY BRICKBUSTER '96",
+    hint: { keys: '<kbd>A D</kbd> OR <kbd>MOUSE</kbd> MOVE &nbsp; <kbd>CLICK</kbd> OR <kbd>SPACE</kbd> SEND THE BALL &nbsp; <kbd>ESC</kbd> STEP BACK', touch: 'TOUCH TO SEND THE BALL, SLIDE TO MOVE' },
     holdToLeave: true,   // on a phone, STEP BACK has to be held a moment (a thumb sliding about hits it by accident)
     // what the view has to fit: the glass, and a bit of the case round it
     // (the glass, the marquee, and the floor in front, where the bricks come out onto the heap; the
@@ -287,12 +290,14 @@ export async function buildRoom(m) {
       if (!game.broken && !fixing) {
         if (game.over) nextGame();   // (stepped back at GAME OVER: the next game's ready)
         // (a game left half way carries on from the same moment, after a breath: the ball hangs where it was)
-        active = true; wait = game.serving ? 0.9 : 0.6; dirty = true;
+        active = true; wait = game.serving ? 0.9 : 0.6; dirty = true; go = false; wasServing = game.serving;
         // its arcade music (music/: the clubhouse's theme makes way for it by itself)
         (music ||= makeArcade(sfx)).play();
         drawMarquee();
       }
     },
+    // a touch, a click or a key: the waiting ball is sent off
+    begin() { if (active) go = true; },
     stop() { active = false; music?.stop(); if (dirty) keep_(); drawMarquee(); },
     steer(v, dt) { if (active && v) pushPaddle(game, v, dt); },
     nudge(dx) { if (active) movePaddle(game, game.paddle + dx); },
@@ -567,8 +572,9 @@ export async function buildRoom(m) {
     update(t, dt = 0) {
       now = t;
       if (active) {
+        if (game.serving !== wasServing) { wasServing = game.serving; if (game.serving) go = false; }   // (every new ball waits for you)
         if (wait > 0) wait -= dt;
-        else if (game.serving) launch(game);
+        else if (game.serving) { if (go) launch(game); }
         else { happen(step(game, dt)); dirty = true; }
         if (overAt && t > overAt) nextGame();
         // (the arcade music gets more exciting as the glass cracks)
@@ -583,7 +589,7 @@ export async function buildRoom(m) {
       });
       if (!game.broken) {
         const [bx, by] = at(game.ball.x, game.ball.y);
-        ball.position.set(bx, by, Z.play);
+        ball.position.set(bx, by + (active && game.serving && !go && wait <= 0 ? 0.06 + 0.06 * Math.sin(t * 5) : 0), Z.play);   // (it bobs on the paddle while it waits for you)
         ball.rotation.set(-game.ball.spin * Math.sign(game.ball.vy || 1) * 0.7, 0, -game.ball.spin * Math.sign(game.ball.vx || 1) * 0.7);
         paddle.position.x = at(game.paddle, 0)[0];
         pop = Math.max(0, pop - dt * 5);
@@ -598,9 +604,9 @@ export async function buildRoom(m) {
       // the extra-life signs: pop up big, float up, shrink away
       for (let i = ups.length - 1; i >= 0; i--) {
         const u = ups[i], k = t - u.t0;
-        const s = k < 0.25 ? k / 0.25 * 1.2 : k < 0.4 ? 1.2 - 0.2 * (k - 0.25) / 0.15 : k < 2.4 ? 1 + 0.05 * Math.sin(k * 6) : Math.max(0.001, 1 - (k - 2.4) / 0.4);
-        u.mesh.scale.setScalar(s); u.mesh.position.y = u.y0 + Math.min(k, 2.4) * 0.22;
-        if (k > 2.8) { cab.remove(u.mesh); ups.splice(i, 1); }
+        const s = k < 0.25 ? k / 0.25 * 1.2 : k < 0.4 ? 1.2 - 0.2 * (k - 0.25) / 0.15 : k < 1.6 ? 1 + 0.05 * Math.sin(k * 6) : Math.max(0.001, 1 - (k - 1.6) / 0.3);
+        u.mesh.scale.setScalar(s); u.mesh.position.y = u.y0 + Math.min(k, 1.6) * 0.12;
+        if (k > 1.95) { cab.remove(u.mesh); ups.splice(i, 1); }
       }
       // bits of brick falling inside the glass: down the slot, out of the hatch, onto the heap
       for (let i = falling.length - 1; i >= 0; i--) {

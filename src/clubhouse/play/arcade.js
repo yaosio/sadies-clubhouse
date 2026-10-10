@@ -62,13 +62,14 @@ export function arcade(you) {
       // Esc steps back
       if (pl.key) { if (!e.ctrlKey && !e.metaKey && !e.altKey && pl.key(e.code, true, e.repeat)) e.preventDefault(); return true; }
       const k = KEYS[e.code];
-      if (k === 'f' || k === 'b') { e.preventDefault(); stepBack(); } else if (k) { e.preventDefault(); held.add(k); }
+      if (k === 'f' || k === 'b') { e.preventDefault(); stepBack(); } else { pl.begin?.(); if (k) { e.preventDefault(); held.add(k); } }
       return true;
     },
     keyUp(e) { playing()?.key?.(e.code, false); },
     mouse(e) { if (you.locked()) playing()?.nudge?.(e.movementX * game.mpp); },
     press(e) {
       const pl = playing(); if (!pl) return false;
+      pl.begin?.();   // (a game that waits for a touch or a click: this is it)
       if (pl.touch) { pressing.add(e.pointerId); pl.touch(e.pointerId, you.pointAt(e), 'down'); }
       else if (drag.id === null) Object.assign(drag, { id: e.pointerId, x: e.clientX, y: e.clientY });
       else return true;
