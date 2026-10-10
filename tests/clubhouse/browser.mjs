@@ -13,7 +13,7 @@
 // anything that doesn't work, is a failure. Screenshots go in dist/check/clubhouse/.
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { walk as walkFor, rest, until, DEVICES, pressUse, pressPause } from '../shared/browser.mjs';
+import { walk as walkFor, rest, until, DEVICES, pressUse, pressPause, yesAndReload } from '../shared/browser.mjs';
 import { allKeeps, allCards } from './cards.mjs';
 import { DESKTOP } from '../shared/devices.mjs';
 
@@ -147,7 +147,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
     const all = (await M('places')).filter(n => n.startsWith('room:') && (!touched || touched.has(n.slice(5))));
     // (and nothing on the page, and none of its saves, changes: built again from its save, it's the
     // same room; each rebuild is as quick as the first build)
-    const saves = () => p.evaluate(() => JSON.stringify(Object.keys(localStorage).filter(k => !k.startsWith('mansion.')).sort().map(k => [k, localStorage.getItem(k)])));
+    const saves = () => p.evaluate(() => JSON.stringify(Object.keys(window.__saves.all()).filter(k => !k.startsWith('mansion.')).sort().map(k => [k, (window.__saves.all()[k] ?? null)])));
     for (const n of all) await M('build', n);   // (the ones put away just now)
     const saved0 = await saves();
     const refused = [], kept = [], onPage = [], heap = [], listeners = [];
@@ -265,44 +265,44 @@ export default async function ({ browser, page, check, outDir, touched = null })
     check(`${device}: ...START THE COUNT OVER empties it`, /NOTHING YET/.test(await p.evaluate(() => document.getElementById('speedLines').innerText)));
     await p.click('#speedBtn');
     check(`${device}: ...and SPEED closes it`, !(await p.isVisible('#speed')));
-    await p.evaluate(() => localStorage.setItem('mansion.music', '"on"'));   // (the backup below has one setting to put back)
+    await p.evaluate(() => window.__saves.set('mansion.music', '"on"'));   // (the backup below has one setting to put back)
     await p.click('#resets button:has-text("INVITATION")');
     await shot('9-sure');
     check(`${device}: a start-over button asks first`, await p.isVisible('#sureYes') && !(await p.isVisible('#resets')));
     await p.click('#sureNo');
-    check(`${device}: ...and NO keeps it`, await p.isVisible('#resets') && !(await p.isVisible('#sure')) && await p.evaluate(() => localStorage.getItem('mansion.invited') !== null));
+    check(`${device}: ...and NO keeps it`, await p.isVisible('#resets') && !(await p.isVisible('#sure')) && await p.evaluate(() => (window.__saves.all()['mansion.invited'] ?? null) !== null));
     // each activity's start-over button erases its own saves (all of its card's `keeps`) and nobody else's
     const marks = cards.flatMap(c => (c.keeps || []).map(k => k + 'zz-check')), wrongly = [];
     for (const c of cards.filter(c => c.keeps && mine(c))) {
-      await p.evaluate(ks => ks.forEach(k => localStorage.setItem(k, '1')), marks);
+      await p.evaluate(ks => ks.forEach(k => window.__saves.set(k, '1')), marks);
       if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
       await p.evaluate(name => [...document.querySelectorAll('#resets button')].find(b => b.textContent === name)?.click(), c.name.toUpperCase());
-      await p.click('#sureYes', { timeout: 3000 }).catch(() => wrongly.push(`${c.id} has no start-over button`));
+      await yesAndReload(p, { timeout: 3000 }).catch(() => wrongly.push(`${c.id} has no start-over button`));
       await up();
-      const left = await p.evaluate(ks => ks.filter(k => localStorage.getItem(k) !== null), marks), mine = c.keeps.map(k => k + 'zz-check');
+      const left = await p.evaluate(ks => ks.filter(k => (window.__saves.all()[k] ?? null) !== null), marks), mine = c.keeps.map(k => k + 'zz-check');
       if (left.some(k => mine.includes(k))) wrongly.push(`${c.id} kept some of its own`);
       const gone = marks.filter(k => !mine.includes(k) && !left.includes(k));
       if (gone.length) wrongly.push(`${c.id} erased ${gone.join(' ')}`);
     }
-    await p.evaluate(ks => ks.forEach(k => localStorage.removeItem(k)), marks);
+    await p.evaluate(ks => ks.forEach(k => window.__saves.remove(k)), marks);
     check(`${device}: each activity's START OVER erases its own saves and nobody else's (${cards.filter(c => c.keeps).length})`, !wrongly.length, wrongly.join(', '));
     if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
     // your saves: how much room they take, SAVE A BACKUP (a file with every save) and LOAD A BACKUP
     // (only once you say yes: every save goes back as it was in the file)
     const download = await Promise.all([p.waitForEvent('download', { timeout: 8000 }), p.click('#saveBackup')]).then(([d]) => d.path(), () => null);
     const file = download ? readFileSync(download, 'utf8') : '{}', made = JSON.parse(file);
-    const savedNow = await p.evaluate(() => Object.keys(localStorage).length);
+    const savedNow = await p.evaluate(() => Object.keys(window.__saves.all()).length);
     check(`${device}: ...SAVE A BACKUP gives a file with every save in it`, made.format && Object.keys(made.saves || {}).length === savedNow && made.saves['mansion.invited'], `${Object.keys(made.saves || {}).length} of ${savedNow} saves`);
-    await p.evaluate(k => { localStorage.setItem('mansion.music', '"off"'); localStorage.setItem(k + 'extra', '1'); }, junk);
+    await p.evaluate(k => { window.__saves.set('mansion.music', '"off"'); window.__saves.set(k + 'extra', '1'); }, junk);
     await p.setInputFiles('#backupFile', { name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(file) });
     await p.waitForSelector('#sure', { state: 'visible', timeout: 5000 }).catch(() => {});   // (the file's read first)
     await shot('8b-load-backup');
     // (right where you asked, in place of the backup buttons, not down under START OVER)
     const asked = await p.evaluate(() => document.querySelector('#saves #sure') !== null && document.querySelector('#backups').hidden && !document.querySelector('#resets').hidden);
     check(`${device}: ...LOAD A BACKUP asks first, right there under YOUR SAVES`, asked && await p.isVisible('#sure') && (await p.textContent('#sureYes')) === 'YES, LOAD IT', `${await p.isVisible('#sure')} ${await p.textContent('#sureYes')} ${await p.textContent('#saveNote')} ${await M('mode')}`);
-    await p.click('#sureYes');
+    await yesAndReload(p);
     await up();
-    const loaded = await p.evaluate(k => [localStorage.getItem('mansion.music'), localStorage.getItem(k + 'extra')], junk);
+    const loaded = await p.evaluate(k => [(window.__saves.all()['mansion.music'] ?? null), (window.__saves.all()[k + 'extra'] ?? null)], junk);
     check(`${device}: ...and puts every save back as it was`, loaded[0] === '"on"' && loaded[1] === null, JSON.stringify(loaded));
     await pressPause(p, opts);
     await p.waitForTimeout(200);
@@ -312,18 +312,18 @@ export default async function ({ browser, page, check, outDir, touched = null })
     await p.waitForTimeout(200);
     // every save written while walking round (and playing every computer's activity) belongs to someone: a card's
     // `keeps` or the clubhouse's own, so the start-over buttons can always find it
-    const keeps = await allKeeps(), keys = await p.evaluate(() => Object.keys(localStorage));
+    const keeps = await allKeeps(), keys = await p.evaluate(() => Object.keys(window.__saves.all()));
     const stray = keys.filter(k => !keeps.some(s => k.startsWith(s)));
     check(`${device}: every save belongs to an activity's card or the clubhouse`, keys.length && !stray.length, stray.join(', ') || `${keys.length} saves`);
     // EVERYTHING erases every save the game has and nothing else (another page on the same address keeps its things)
-    await p.evaluate(() => localStorage.setItem('zz-other-page.thing', '1'));
+    await p.evaluate(() => window.__saves.set('zz-other-page.thing', '1'));
     await p.evaluate(() => [...document.querySelectorAll('#resets button')].find(b => b.textContent === 'EVERYTHING')?.click());
-    await p.click('#sureYes');
+    await yesAndReload(p);
     await up();
     check(`${device}: YES starts everything over: Sadie's letter is back`, await M('mode') === 'letter');
-    const other = await p.evaluate(() => localStorage.getItem('zz-other-page.thing'));
+    const other = await p.evaluate(() => (window.__saves.all()['zz-other-page.thing'] ?? null));
     check(`${device}: ...and another page's saves on the same address are still there`, other === '1', String(other));
-    await p.evaluate(() => localStorage.removeItem('zz-other-page.thing'));
+    await p.evaluate(() => window.__saves.remove('zz-other-page.thing'));
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
     await ctx.close();
   }));

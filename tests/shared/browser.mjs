@@ -62,6 +62,14 @@ export const hintFits = p => p.evaluate(() => {
 
 // Wait for the clubhouse to open and every room to be built. It gets slower with every room: past 8 s
 // it says so (docs/clubhouse/decisions/known-limits.md, known limits: the plan for when it does).
+// YES to a start-over or a backup's put back: the page writes it to the disk, then reloads (so wait for
+// that, or the next move lands on the page that is going away)
+export async function yesAndReload(p, opts) {
+  const reloaded = p.waitForEvent('framenavigated', { timeout: 8000 }).catch(() => {});
+  await p.click('#sureYes', opts);
+  await reloaded;
+}
+
 export async function up(p) {
   const t = Date.now();
   const ok = await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10 && window.__clubhouse.settled(), null, { timeout: 15000 }).then(() => true, () => false);

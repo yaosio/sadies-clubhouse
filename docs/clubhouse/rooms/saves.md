@@ -3,6 +3,19 @@
 How anything saves, through the save director (`src/shared/storage.js`), the one thing that touches
 the browser's storage. Read when a room or activity saves anything.
 
+## Where saves live
+- In the browser's IndexedDB (database `sadies-clubhouse`), one record per save, gzip-squeezed when
+  over 1 KB (a plain fallback where the browser can't). Old saves from localStorage are NOT carried over.
+- Everything is answered at once from a copy in memory, so `get` and `set` stay plain, not async.
+  `src/main.js` waits for `ready()` (reads the lot in) before the clubhouse or an activity starts.
+- A change is written to the disk about a second later, and as the page is hidden or closed. IndexedDB
+  can be cut off mid-write as a page closes, so a note of what's unconfirmed is also left in
+  localStorage (`sadies-clubhouse-journal`) and finished by the next page.
+- If the browser won't keep saves at all, the game plays on and the pause menu says so.
+- The checks plant saves with `window.__plantSaves` and read them with `window.__saves.all()`.
+- The notes kept about the saves (`sadies-clubhouse-meta.`: when a backup was last made, whether
+  persistence was asked) aren't saves: no backup holds them and no start-over erases them.
+
 ## Saving
 - A room saves with its kit's box, `m.saves`: `get(name, fallback)`, `set(name, value)`,
   `remove(name)`, each kept as `sadies-clubhouse.<id>.<name>`. A room never touches storage itself
@@ -28,9 +41,11 @@ the way out then, so nothing erased comes back.
   someone's progress. Old saves are checked: `docs/clubhouse/checks/shared.md`.
 
 ## The pause menu's YOUR SAVES
-It says how full the browser's room for saves (about 5 MB for everything) is, warns when it's nearly
-full or a save didn't fit, and saves or loads a backup file of every save. Loading looks the file over first
-(`inspectBackup`) and turns it away, changing nothing, if it's too big (over 6 MB), isn't a backup,
+It says how much the saves take and when the last backup was (yellow when the browser hasn't promised
+to keep the saves and the last backup is over a month old or never: Claude's choice). It warns when the
+browser says it's nearly out of room, a save didn't fit, or the browser won't keep saves. The game asks
+the browser once to keep its saves (`navigator.storage.persist()`). It saves or loads a backup file of every save. Loading looks the file over first
+(`inspectBackup`) and turns it away, changing nothing, if it isn't a backup (a backup has no size cap),
 is from a newer version, has no saves in it or has any save that can't be read. Then it asks, saying
 the file's date and how many saves it holds. Loading is all or nothing and never wipes a save put
 aside as unreadable.

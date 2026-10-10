@@ -48,7 +48,7 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext(desktop ? DEVICES.desktop
   : DEVICES.phone);
 await ctx.addInitScript(([k, s]) => {
-  if (!sessionStorage.getItem('profile.planted')) { localStorage.setItem(k, s); sessionStorage.setItem('profile.planted', '1'); }
+  if (!sessionStorage.getItem('profile.planted')) { window.__plantSaves = { [k]: s }; sessionStorage.setItem('profile.planted', '1'); }
   // time every animation frame from outside the game: when it started and how long its work took
   const raf = window.requestAnimationFrame.bind(window); window.__frames = [];
   window.requestAnimationFrame = cb => raf(t => { const a = performance.now(); cb(t); window.__frames.push([t, performance.now() - a]); });

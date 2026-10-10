@@ -276,7 +276,7 @@ const watched = new Proxy(browser, {
     return async (...a) => {
       const ctx = await b.newContext(...a), close = ctx.close.bind(ctx);
       ctx.on('page', p => p.on('pageerror', e => pageErrors.push(e.message.split('\n')[0])));
-      const dump = () => Promise.all(ctx.pages().map(p => p.evaluate(() => ({ ...localStorage })).then(d => dumps.push(d), () => {})));
+      const dump = () => Promise.all(ctx.pages().map(p => p.evaluate(() => window.__saves?.all() || {}).then(d => dumps.push(d), () => {})));
       const every = keeping && setInterval(dump, 3000);
       ctx.close = async (...c) => { clearInterval(every); if (keeping) await dump(); return close(...c); };
       return ctx;
