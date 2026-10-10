@@ -44,6 +44,17 @@ and nothing says which part of town it belongs to, so moving it is changing its 
 `RANGE` in `things.js`: near 60 m, gap 15 m, seen 250 m, grace 5 s. A thing can name its own.
 No limit on how many things are built at once (add one only if a phone says it must, and say so).
 
+## Later (the owner's direction, 2026-10-10; not built)
+- The ranges stay wide: the keeper is a tool for heavy things and a big world, not something to
+  apply to everything now. He tried a test page with every range pulled in to a fifth: it worked,
+  and he saw both the stand-in block and the vanishing, and the swap showed as a pop.
+- Vanishing should follow the camera's real draw distance (`cam.far`, 300 m now) so it never happens
+  where you can still see, and moves out when height lets you see further. No big empty space.
+- A level-of-detail system, so far things look right from far off: it has to be delightfully 90s, not
+  perfect (chunky far pictures, a dithered dissolve like the see-through fade the material already
+  has). More work, so its own plan first.
+- Measure a real phone before tightening any range (the hidden speed readout in the review list).
+
 ## Checks
 `tests/clubhouse/things.mjs` (run by `tests/clubhouse/run.mjs`): no drawing, fake things and
 positions; fatal errors only.
