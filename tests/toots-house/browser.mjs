@@ -65,10 +65,10 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('7-tv');
     await M('put', ROOM, 'stairsSide'); await p.waitForTimeout(400);
     await shot('8-stairs');
-    // her backyard outside, from round the side: the fence, and her tree over it
+    // her backyard outside, from round the back: the fence, her tree over it, and the back window
     const L = { x: 14.13, z: -39.51, yaw: -1.0821 }, c = Math.cos(L.yaw), sn = Math.sin(L.yaw);
     const at = (lx, lz) => ({ x: L.x + c * lx + sn * lz, z: L.z - sn * lx + c * lz });
-    const from = at(11, -3), to = at(0, -8.5);
+    const from = at(7, -15), to = at(0, -6);
     await M('put', 'outside', { ...from, y: 0, yaw: Math.atan2(-(to.x - from.x), -(to.z - from.z)), pitch: 0.12 }); await p.waitForTimeout(500);
     await shot('9-backyard');
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
