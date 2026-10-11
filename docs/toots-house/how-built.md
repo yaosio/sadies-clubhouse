@@ -14,8 +14,12 @@
   stairs, chasing, bringing it back, following you between floors, hopping over things.
 - `room.js`: the inside, built from those, and the uses (THROW, PICK UP, TAKE, PAT). It picks her
   picture each frame from the way she's going and where you are.
+- `music.js`: her music inside (a composer in plain numbers, played through the toolbox's band).
 - `sounds/`: her roos. `roo-data.js` holds the cuts as text (4-bit ADPCM, decoded by the toolbox's
   `src/shared/adpcm.js`), made by `tools/toots-house/make-roo.mjs` from the owner's video.
+- `window.js` and the room share where she is (`house.shared.where`: 'window' or 'door'), so there's
+  only ever one of her.
+- `tools/toots-house/sprites.mjs`: every picture of her on one PNG, to look at without the game.
 
 ## Adding her activity later
 The room's file is the only one that changes: the backyard behind the big window is built already,
@@ -23,10 +27,11 @@ and everything Toots does inside is in `fetch.js`, separate from the drawing.
 
 ## Checks
 - `tests/toots-house/run.mjs`: the card; no front left leg in any picture of her, and her side views
-  never mirror copies; fetch in numbers (a throw comes back to your feet, on both floors); the roos
-  decode.
+  never mirror copies; fetch in numbers (a throw comes back to your feet, on both floors); only one
+  Toots (never at the window while you're inside); an hour of her music; the roos decode.
 - `tests/toots-house/browser.mjs`: walks out to the house, sees her in the window, goes in, takes a
-  ball, throws it, and waits for her to bring it back.
+  ball, throws it, and waits for her to bring it back; she's left the window and waits by the door,
+  and her music plays.
 
 ## Known limits
 - Like every building outside, the house is built at the start (one more of them).

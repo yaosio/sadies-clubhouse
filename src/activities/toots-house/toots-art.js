@@ -114,7 +114,7 @@ function head(o = {}) {
   p.oval(mx, my + 3.5, 5, 2.4, 'g');
   // gray eyebrows
   for (const s of [-1, 1]) { const ex = cx + s * 5 + l * 1.2; p.set(ex - 1, cy - 3.5 + up, 'G'); p.set(ex, cy - 4 + up, 'G'); p.set(ex + 1, cy - 3.5 + up, 'G'); }
-  // eyes: amber, soft, a little droopy on top (worried sweet eyebrows)
+  // eyes: amber and soft, smiling (her cheeks push up under them)
   for (const s of [-1, 1]) {
     const ex = cx + s * 5 + l * 1.2, ey = cy + up;
     if (blink) { p.rect(Math.round(ex - 2), Math.round(ey), 4, 1, 'K'); continue; }
@@ -125,7 +125,7 @@ function head(o = {}) {
     p.rect(px, Math.round(ey - 0.5), 1, 2, 'P'); p.set(px + 1, ey - 0.5, 'P');
     p.set(px, ey - 1, 'W');
     if (roo) p.rect(Math.round(ex - 2), Math.round(ey - 2), 5, 2, 'B');   // half shut, singing
-    else p.rect(Math.round(ex - 2), Math.round(ey - 2), 5, 1, 'B');
+    else p.rect(Math.round(ex - 1.5), Math.round(ey + 1.5), 3, 1, 'B');   // happy eyes: her cheeks push up under them
   }
   // her nose, with its shine
   const nx = mx + l * 0.4, ny = cy + 5.8 + up;
@@ -137,8 +137,13 @@ function head(o = {}) {
     p.oval(nx, ny + 5, 2.3, 2.8, 'm');
     p.oval(nx, ny + 6.5, 1.6, 1, 'M');
   } else {
-    p.line(nx, ny + 2, nx, ny + 3, 'K');
-    p.line(nx - 3.5, ny + 4, nx, ny + 3, 'K'); p.line(nx, ny + 3, nx + 3.5, ny + 4, 'K');
+    // a big happy smile, open, with her tongue out: the corners turned right up
+    p.oval(nx, ny + 3.8, 3.4, 1.6, 'm', (x, y) => y >= ny + 3);
+    p.oval(nx + 0.5, ny + 5.4, 1.7, 1.9, 'M');
+    p.set(nx + 0.5, ny + 5, 'm');
+    p.line(nx, ny + 2, nx, ny + 2.6, 'K');
+    p.line(nx - 4.6, ny + 1.6, nx - 2.6, ny + 3.2, 'K'); p.line(nx + 4.6, ny + 1.6, nx + 2.6, ny + 3.2, 'K');
+    p.line(nx - 2.6, ny + 3.2, nx + 2.6, ny + 3.2, 'K');
   }
   return p;
 }
@@ -230,7 +235,9 @@ export function sideToots(dir = 1, o = {}) {
   p.oval(65, hy + 5, 4, 1.6, 'g');
   p.oval(69.5, hy + 0.5, 1.6, 1.6, 'N');
   p.set(69, hy - 0.5, 'n');
-  p.line(63, hy + 4, 68, hy + 3.5, 'K');
+  // her smile: the corner turned up, and her tongue out (not with the ball in her mouth)
+  p.line(61.5, hy + 2.5, 63.5, hy + 4, 'K'); p.line(63.5, hy + 4, 68, hy + 4, 'K');
+  if (!ball) { p.oval(64.5, hy + 5.6, 1.4, 1.6, 'M'); p.set(64.5, hy + 4.6, 'm'); }
   // eye
   p.oval(61, hy - 2, 1.6, 1.3, 'K'); p.set(61, hy - 2, 'E'); p.set(62, hy - 2, look > 0 ? 'P' : 'E'); p.set(61 + (look > 0 ? 1 : 0), hy - 2, 'P'); p.set(61, hy - 3, 'B');
   p.set(60, hy - 4, 'G'); p.set(61, hy - 4.5, 'G');

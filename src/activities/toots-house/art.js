@@ -137,10 +137,10 @@ function drawInside(m, A) {
   // the pictures of her friends, each framed, with a name plate below
   A.plate = name => { const w = Math.max(40, name.length * 5 + 6); return tex(w, 8, g => { rect(g, '#8a5a10', 0, 0, w, 8); rect(g, '#ffd23a', 1, 1, w - 2, 6); words(g, name, w / 2, 2, 1, C.ink, { align: 'center' }); }); };
   // Sadie: her own picture, the same as everywhere, on pink
-  A.picSadie = tex(48, 44, g => { framed(g, 48, 44, '#ff8ec8'); g.drawImage(T.sadie.image, 0, 0, 58, 47, 6, 7, 36, 29); });
+  A.picSadie = tex(70, 60, g => { framed(g, 70, 60, '#ff8ec8'); g.drawImage(T.sadie.image, 6, 7); });   // (her picture dot for dot, never shrunk: shrunk, it blurs)
   // Marbles: the brown tabby who runs the barbershop, green eyes, the M on her forehead, a bow
   // upstairs, over her bed: Toots and Sadie together
-  A.picFriends = tex(96, 72, g => { framed(g, 96, 72, '#9ad0ff'); rect(g, '#5ac85a', 5, 52, 86, 15); paint(g, frontToots({ ears: 1, wag: 1 }), 4, 2); g.drawImage(T.sadie.image, 0, 0, 58, 47, 48, 28, 40, 32); });
+  A.picFriends = tex(120, 72, g => { framed(g, 120, 72, '#9ad0ff'); rect(g, '#5ac85a', 5, 52, 110, 15); paint(g, frontToots({ ears: 1, wag: 1 }), 4, 2); g.drawImage(T.sadie.image, 56, 19); });
   A.picMarbles = tex(48, 44, g => {
     framed(g, 48, 44, '#9ad0ff');
     const K = '#2b1d3c', B = '#a8743a', S = '#5a3618', L = '#e8c89a';
@@ -155,8 +155,10 @@ function drawInside(m, A) {
     rect(g, '#e8202a', 30, 9, 6, 3); rect(g, '#e8202a', 32, 7, 2, 7);
   });
   // Chooter: the black dog from the paint shop, white blaze, blue collar, his painter's cap
-  A.picChooter = tex(48, 44, g => {
-    framed(g, 48, 44, '#fff08a');
+  // (in a bigger frame, drawn a little way in and kept inside it)
+  A.picChooter = tex(64, 60, g => {
+    framed(g, 64, 60, '#fff08a');
+    g.save(); g.beginPath(); g.rect(5, 5, 54, 50); g.clip(); g.translate(8, 9);
     const K = '#1b1424', B = '#2d2733', H = '#4d4558', Wt = '#fffaf3';
     disc(g, K, 24, 34, 9); disc(g, B, 24, 34, 8); rect(g, Wt, 22, 31, 4, 4);
     disc(g, K, 24, 19, 9); disc(g, B, 24, 19, 8); disc(g, H, 21, 15, 2);
@@ -166,6 +168,36 @@ function drawInside(m, A) {
     rect(g, K, 21, 24, 7, 1); rect(g, '#ff7a9a', 23, 25, 3, 3);
     rect(g, '#3fa9e8', 17, 27, 15, 2); rect(g, '#ffd23f', 24, 29, 2, 2);
     rect(g, K, 16, 8, 15, 4); for (let x = 17; x < 30; x++) rect(g, ['#ff4fa3', '#ffd23a', '#2a78e8', '#58d04a'][Math.floor((x - 17) / 3) % 4], x, 9, 1, 2);
+    g.restore();
+  });
+  // upstairs: the bird channel on her TV (four pictures, swapped as it plays: a bluebird on a branch
+  // looks about, sings, hops along, and a red one drops in), a GOOD GIRL pennant, a shelf of books
+  const bird = (g, x, y, body, open, flip) => {
+    const f = flip ? -1 : 1;
+    rect(g, '#1b1424', x - 3, y - 2, 6, 4); rect(g, body, x - 2, y - 2, 4, 3); rect(g, '#ffd8b0', x - 1, y, 3, 1);
+    rect(g, '#1b1424', x + f * 2, y - 4, 2, 3); rect(g, body, x + f * 2, y - 4, 1, 2); rect(g, '#1b1424', x + f * 3, y - 4, 1, 1);
+    rect(g, '#ffb020', x + f * (open ? 4 : 4), y - 3, 1, 1); if (open) rect(g, '#ffb020', x + f * 4, y - 2, 1, 1);
+    rect(g, body, x - f * 4, y - 3, 2, 1); rect(g, '#5a3a22', x - 1, y + 2, 1, 1); rect(g, '#5a3a22', x + 1, y + 2, 1, 1);
+  };
+  A.birdTV = i => tex(32, 24, g => {
+    for (let y = 0; y < 24; y++) rect(g, y < 12 ? '#8ad0ff' : '#a8e0ff', 0, y, 32, 1);
+    disc(g, '#3aa04a', 27, 6, 5); disc(g, '#58c058', 4, 4, 4);
+    rect(g, '#7a4a2a', 0, 16, 32, 2); rect(g, '#5a3618', 22, 13, 2, 3);
+    const x = i === 2 ? 17 : 10;
+    bird(g, x, 13, '#3a7ae8', i === 1, false);
+    if (i === 3) bird(g, 24, 6, '#e8202a', false, true);
+    else if (i !== 0) { rect(g, '#ffffff', x + 6, 7, 1, 1); rect(g, '#ffffff', x + 8, 5, 1, 1); }
+    for (let y = 1; y < 24; y += 2) { g.fillStyle = 'rgba(0,0,40,0.12)'; g.fillRect(0, y, 32, 1); }   // (the screen's lines)
+  });
+  A.goodGirl = tex(64, 16, g => {
+    rect(g, '#ff8ec8', 0, 0, 64, 16); for (let x = 0; x < 64; x += 8) rect(g, '#ffd23a', x, 13, 4, 3);
+    paw(g, '#ffffff', 3, 5); paw(g, '#ffffff', 55, 5);
+    words(g, 'GOOD GIRL', 32, 4, 1, '#ffffff', { align: 'center', shadow: '#c0408a' });
+  });
+  A.books = tex(32, 36, g => {
+    rect(g, '#5a3618', 0, 0, 32, 36);
+    const cs = ['#e8202a', '#3a7ae8', '#ffd23a', '#3aa04a', '#ff8ec8', '#8a52b0', '#ff9a3a', '#ffffff'];
+    for (let row = 0; row < 3; row++) { let x = 1, k = row * 3; while (x < 30) { const w = 2 + (k * 7) % 3, h = 8 + (k * 5) % 3; rect(g, cs[k % cs.length], x, row * 12 + 11 - h, Math.min(w, 31 - x), h); x += w; k++; } rect(g, '#9a5a2a', 0, row * 12 + 11, 32, 1); }
   });
   // the backyard through the big window
   A.fence = tex(16, 16, g => { rect(g, '#ffffff', 0, 0, 16, 16); for (let x = 3; x < 16; x += 4) rect(g, '#d8d8e8', x, 0, 1, 16); rect(g, '#d8d8e8', 0, 5, 16, 1); rect(g, '#d8d8e8', 0, 12, 16, 1); });

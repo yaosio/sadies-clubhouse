@@ -5,7 +5,7 @@
 // backyard (where her activity will go one day), a round rug, the fireplace with her picture over it and
 // her friends' pictures either side (Sadie, Marbles, Chooter), her bowls, a basket of tennis balls, and
 // stairs up the left wall. Upstairs: her window seat at the front window (the one you see her in from
-// outside), her bed, and Sadie's bed with Sadie asleep in it.
+// outside), her bed, a second couch, and Sadie's bed, with Sadie on it watching the birds on TV.
 //
 // The toy: her tennis ball. Pick it up, throw it where you're looking, and she runs after it (up the
 // stairs and all, hopping on her three legs), brings it back and drops it at your feet. Pat her and she
@@ -13,7 +13,7 @@
 //
 // The clubhouse calls buildRoom(m) with its building kit, and with the outside and this activity's plot
 // on it (its card has a `lot`), so the house outside is built here too (house.js).
-import { Scene, Color, Mesh, Group, Vector3, PlaneGeometry, SphereGeometry, BoxGeometry, DoubleSide } from 'three';
+import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ShapeGeometry, PlaneGeometry, SphereGeometry, BoxGeometry, DoubleSide } from 'three';
 import { drawArt } from './art.js';
 import { buildHouse } from './house.js';
 import { windowPoses, roomPoses, frontToots, paint } from './toots-art.js';
@@ -21,6 +21,7 @@ import { RW, RD, L2, TOP, DW, DH, STAIRS, WINDOW, BACK, SOLIDS, ground } from '.
 import { makeBall, throwBall, stepBall, makeToots, BALL_R } from './fetch.js';
 import { makeSounds } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';
+import { makeMusic } from './music.js';
 
 const DOT = 0.0135;   // how big one of Toots' dots is inside, in metres (so she stands about as tall as your knee)
 
@@ -33,6 +34,8 @@ export async function buildRoom(m) {
   await m.breathe?.();
   // her voice belongs to the house, so she can roo at you from her window while the room's put away
   const voice = makeSounds(soundsFor('house:toots'));
+  // her music, only while you're inside (music.js)
+  const music = makeMusic(soundsFor('room:' + card.id));
   // (built again after being put away, the house outside is still there: the clubhouse hands it back)
   const house = m.house || (m.outside && m.lot ? buildHouse(m, A, winPoses, o => voice.roo(o)) : null);
 
@@ -43,13 +46,15 @@ export async function buildRoom(m) {
   const white = tint(0xffffff, { unlit: 0.3 });
 
   // ---------- out there: the sky, the grass, and her backyard through the big window ----------
-  const sky = mesh(new SphereGeometry(120, 16, 12), m.skyMat(), [0, 0, 0]); sky.renderOrder = -3;
-  mesh(new PlaneGeometry(200, 200, 16, 16), psx(T.grass, { rx: 100, ry: 100 }), [0, -0.02, 0], [-Math.PI / 2, 0, 0]).renderOrder = -2;
+  // (what lies flat on a floor is drawn in order, not by depth: the sky, then the ground and downstairs
+  // floor (-4), what lies on them (-3), the upstairs carpet (-2, which covers them), what lies on that (-1))
+  const sky = mesh(new SphereGeometry(120, 16, 12), m.skyMat(), [0, 0, 0]); sky.renderOrder = -5;
+  mesh(new PlaneGeometry(200, 200, 16, 16), psx(T.grass, { rx: 100, ry: 100 }), [0, -0.02, 0], [-Math.PI / 2, 0, 0]).renderOrder = -4;
   // a picket fence round the yard, a big tree, flower beds, a birdbath, and one of her balls out in the grass
   for (const [w, pos, ry] of [[30, [0, 0.55, -20], 0], [14, [-15, 0.55, -13], Math.PI / 2], [14, [15, 0.55, -13], Math.PI / 2]]) plane(w, 1.1, psx(A.fence, { rx: w / 1.6, unlit: 0.4, side: DoubleSide }), pos, [0, ry, 0], 2);
   cyl(0.35, 0.5, 4, 8, psx(T.bark, { rx: 2, ry: 3 }), [-5, 2, -13]);
   for (const [x, y, z, r] of [[-5, 5, -13, 2.6], [-6.2, 4.2, -12.4, 1.8], [-3.8, 4.4, -13.6, 1.9]]) mesh(new SphereGeometry(r, 8, 6), psx(T.leaf, { rx: 3, ry: 2 }), [x, y, z]);
-  for (const x of [-10, 9]) plane(5, 1.2, psx(T.flowers, { rx: 3, onFloor: true }), [x, 0.01, -18.6], [-Math.PI / 2, 0, 0], 2).renderOrder = -1;
+  for (const x of [-10, 9]) plane(5, 1.2, psx(T.flowers, { rx: 3, onFloor: true }), [x, 0.01, -18.6], [-Math.PI / 2, 0, 0], 2).renderOrder = -3;
   cyl(0.15, 0.25, 0.9, 8, tint(0xd8d8e8), [5, 0.45, -11]); cyl(0.7, 0.5, 0.2, 10, tint(0x9ad0ff, { unlit: 0.5 }), [5, 0.95, -11]);
   mesh(new SphereGeometry(0.08, 8, 6), psx(A.ball, { unlit: 0.5 }), [1.5, 0.08, -9]);
   await m.breathe?.();
@@ -75,14 +80,15 @@ export async function buildRoom(m) {
   box(BACK.x1 - BACK.x0 + 0.2, 0.12, 0.2, white, [0, BACK.y1 + 0.06, -RD + 0.05]);
   for (let i = 0; i <= 4; i++) box(0.1, BACK.y1 - BACK.y0, 0.12, white, [BACK.x0 + i * (BACK.x1 - BACK.x0) / 4, (BACK.y0 + BACK.y1) / 2, -RD + 0.03]);
   // wood panelling below a rail, all round
-  for (const [w, pos, ry] of [[2 * RW, [0, 0.5, RD - 0.03], Math.PI], [2 * RD, [-RW + 0.03, 0.5, 0], Math.PI / 2], [2 * RD, [RW - 0.03, 0.5, 0], -Math.PI / 2]])
+  const fw = RW - DW / 2 - 0.12;   // (either side of the front door and its trim, never across it)
+  for (const [w, pos, ry] of [[fw, [-(RW - fw / 2), 0.5, RD - 0.03], Math.PI], [fw, [RW - fw / 2, 0.5, RD - 0.03], Math.PI], [2 * RD, [-RW + 0.03, 0.5, 0], Math.PI / 2], [2 * RD, [RW - 0.03, 0.5, 0], -Math.PI / 2]])
     plane(w, 1.0, psx(A.panel, { rx: w / 1.2, unlit: 0.25, decal: true }), pos, [0, ry, 0], 2);
   // two windows either side of the front door
   for (const s of [-1, 1]) {
     plane(1.3, 1.6, psx(A.window, { unlit: 0.5, decal: true }), [s * 4.5, 1.8, RD - 0.03], [0, Math.PI, 0], 1);
     box(1.5, 0.08, 0.2, white, [s * 4.5, 0.96, RD - 0.08]);
   }
-  plane(2 * RW + 2 * O, 2 * RD + 2 * O, psx(A.boards, { rx: 2 * RW / 1.4, ry: 2 * RD / 1.4 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 8).renderOrder = -2;
+  plane(2 * RW + 2 * O, 2 * RD + 2 * O, psx(A.boards, { rx: 2 * RW / 1.4, ry: 2 * RD / 1.4 }), [0, 0, 0], [-Math.PI / 2, 0, 0], 8).renderOrder = -4;
   const door = doorway(scene, { pos: [0, 0, RD], yaw: Math.PI, w: DW, h: DH, leaves: [{ front: A.doorBack, back: A.door }], hinge: 1, trim: 0xffffff });
   await m.breathe?.();
 
@@ -94,7 +100,7 @@ export async function buildRoom(m) {
     [holeW, RD - STAIRS.z0, (STAIRS.x1 - RW) / 2, (RD + STAIRS.z0) / 2],
   ];
   for (const [w, d, x, z] of slabs) {
-    plane(w, d, psx(null, { tint: 0xfff8e0, unlit: 0.5 }), [x, L2 - 0.01, z], [Math.PI / 2, 0, 0], 4);
+    plane(w, d, psx(null, { tint: 0xfff8e0, unlit: 0.5 }), [x, L2 - 0.12, z], [Math.PI / 2, 0, 0], 4);   // (well under the carpet: the floor's thickness)
     plane(w, d, psx(A.carpet, { rx: w / 1.2, ry: d / 1.2 }), [x, L2, z], [-Math.PI / 2, 0, 0], 4).renderOrder = -2;
   }
   plane(2 * RW + 2 * O, 2 * RD + 2 * O, psx(null, { tint: 0xffffff, unlit: 0.55 }), [0, TOP, 0], [Math.PI / 2, 0, 0], 8);
@@ -106,12 +112,16 @@ export async function buildRoom(m) {
     box(holeW, 0.06, run, tread, [(STAIRS.x1 - RW) / 2, y - 0.03, z]);
     box(holeW, L2 / STEPS, 0.04, riser, [(STAIRS.x1 - RW) / 2, y - L2 / STEPS / 2, z + run / 2]);
   }
-  // the underside of the stairs, panelled (so downstairs they're a solid wall)
-  const under = new Mesh(keep(new PlaneGeometry(holeD, L2, 2, 2)), psx(A.panel, { rx: holeD / 1.2, ry: L2 / 1.2, unlit: 0.25, side: DoubleSide }));
-  under.position.set(STAIRS.x1, L2 / 2, (STAIRS.z0 + STAIRS.z1) / 2); under.rotation.y = Math.PI / 2; scene.add(under);
+  // the side of the stairs, under them, panelled: from the floor up to the steps (in meters:
+  // its pattern measured in meters too), set a hair in from the banister so they never flicker
+  const steps = [new Vector2(holeD / 2, 0), new Vector2(-holeD / 2, 0)];
+  for (let i = 0; i < STEPS; i++) steps.push(new Vector2(-holeD / 2 + i * run, (i + 1) * L2 / STEPS), new Vector2(-holeD / 2 + (i + 1) * run, (i + 1) * L2 / STEPS));
+  const side = new Shape(steps);   // (up under every step, so there's no gap beneath them)
+  const under = new Mesh(keep(new ShapeGeometry(side)), psx(A.panel, { rx: 1 / 1.2, ry: 1 / 1.2, unlit: 0.25, side: DoubleSide }));
+  under.position.set(STAIRS.x1 - 0.06, 0, (STAIRS.z0 + STAIRS.z1) / 2); under.rotation.y = Math.PI / 2; scene.add(under);
   const rail = tint(0x9a5a2a);
   const slope = Math.atan2(L2, holeD), len = Math.hypot(L2, holeD);
-  mesh(new BoxGeometry(0.08, 0.08, len), rail, [STAIRS.x1 + 0.05, L2 / 2 + 0.9, (STAIRS.z0 + STAIRS.z1) / 2], [-slope, 0, 0]);
+  mesh(new BoxGeometry(0.08, 0.08, len), rail, [STAIRS.x1 + 0.05, L2 / 2 + 0.9, (STAIRS.z0 + STAIRS.z1) / 2], [slope, 0, 0]);   // (rising towards the top, z1)
   for (let i = 0; i <= 8; i++) { const z = STAIRS.z0 - i * holeD / 8, y = (STAIRS.z0 - z) / holeD * L2; cyl(0.025, 0.025, 0.9, 4, white, [STAIRS.x1 + 0.05, y + 0.45, z]); }
   // upstairs, round the hole
   box(0.08, 0.08, holeD, rail, [STAIRS.x1 + 0.05, L2 + 0.95, (STAIRS.z0 + STAIRS.z1) / 2]);
@@ -126,7 +136,7 @@ export async function buildRoom(m) {
   box(3.8, 0.55, 0.25, couch, [0, 0.62, 0.92]);                  // its back (facing the window)
   for (const s of [-1, 1]) box(0.25, 0.65, 0.9, couch, [s * 1.85, 0.32, 0.55]);
   for (const x of [-1.2, 0, 1.2]) box(0.9, 0.12, 0.7, psx(A.couch, { unlit: 0.35 }), [x, 0.5, 0.5]);   // the cushions
-  plane(4.6, 4.6, psx(A.rug, { onFloor: true }), [0, 0.01, -2.4], [-Math.PI / 2, 0, 0], 4).renderOrder = -1;
+  plane(4.6, 4.6, psx(A.rug, { onFloor: true }), [0, 0.01, -2.4], [-Math.PI / 2, 0, 0], 4).renderOrder = -3;
   // the floor lamp by the couch, lit
   cyl(0.03, 0.03, 1.6, 4, tint(0x7a4a2a), [2.5, 0.8, 0.5]); cyl(0.2, 0.2, 0.04, 8, tint(0x7a4a2a), [2.5, 0.02, 0.5]);
   cyl(0.18, 0.32, 0.35, 8, tint(0xfff08a, { unlit: 0.9 }), [2.5, 1.75, 0.5]);
@@ -134,18 +144,18 @@ export async function buildRoom(m) {
   const brick = psx(A.brickIn, { rx: 2.5, ry: 2, unlit: 0.25 });
   box(0.75, 1.4, 2.4, brick, [RW - 0.37, 0.7, 0]);
   box(0.9, 0.12, 2.7, tint(0x7a4a2a), [RW - 0.45, 1.46, 0]);   // the mantel
-  plane(1.2, 0.75, psx(A.fire, { unlit: 0.9 }), [RW - 0.76, 0.5, 0], [0, -Math.PI / 2, 0], 1);
-  plane(2.4, 0.6, psx(A.homeSign, { unlit: 0.4 }), [0, DH + 0.55, RD - 0.04], [0, Math.PI, 0], 1);
+  plane(1.2, 0.75, psx(A.fire, { unlit: 0.9, decal: true }), [RW - 0.77, 0.5, 0], [0, -Math.PI / 2, 0], 1);
+  plane(2.4, 0.6, psx(A.homeSign, { unlit: 0.4, decal: true }), [0, DH + 0.55, RD - 0.04], [0, Math.PI, 0], 1);
   // the pictures: Toots herself over the mantel, her friends either side
   const portrait = tex(48, 70, g => {
     g.fillStyle = '#8a5a10'; g.fillRect(0, 0, 48, 70); g.fillStyle = '#ffd23a'; g.fillRect(1, 1, 46, 68); g.fillStyle = '#c89018'; g.fillRect(2, 2, 44, 66);
     g.fillStyle = '#ff8ec8'; g.fillRect(4, 4, 40, 62); paint(g, frontToots({ ears: 1, wag: 1 }), 0, 3);
   });
-  const hang = (t, w, h, z, y) => plane(w, h, psx(t, { unlit: 0.45 }), [RW - 0.04, y, z], [0, -Math.PI / 2, 0], 1);
+  const hang = (t, w, h, z, y) => plane(w, h, psx(t, { unlit: 0.45, decal: true }), [RW - 0.04, y, z], [0, -Math.PI / 2, 0], 1);
   hang(portrait, 0.95, 1.38, 0, 2.45);
   hang(A.plate('TOOTS'), 0.6, 0.12, 0, 1.68);
   for (const [pic, name, z] of [[A.picSadie, 'SADIE', -2.3], [A.picMarbles, 'MARBLES', 2.3], [A.picChooter, 'CHOOTER', 4.3]]) {
-    hang(pic, 1.1, 1.0, z, 2.25); hang(A.plate(name), 0.75, 0.15, z, 1.6);
+    hang(pic, 1.05 * pic.image.width / pic.image.height, 1.05, z, 2.25); hang(A.plate(name), 0.75, 0.15, z, 1.6);
   }
   // her bowls, by the front corner
   for (const [x, t] of [[6.2, A.bowl], [6.9, A.bowl2]]) { cyl(0.26, 0.2, 0.14, 10, psx(t, { rx: 2, unlit: 0.35 }), [x, 0.07, 4.6]); cyl(0.2, 0.2, 0.01, 10, tint(x < 6.5 ? 0x9a6a3a : 0x9ad0ff, { unlit: 0.5 }), [x, 0.135, 4.6]); }
@@ -174,32 +184,59 @@ export async function buildRoom(m) {
   for (const s of [-1, 1]) plane(0.45, WINDOW.y1 - WINDOW.y0 + 0.2, psx(A.curtain, { unlit: 0.35, side: DoubleSide }), [s * (ww + 0.15), (WINDOW.y0 + WINDOW.y1) / 2, RD - 0.12], [0, Math.PI, 0], 2);
   // her bed: big, round and red, with a ball in it
   cyl(0.85, 0.85, 0.22, 12, psx(A.bedTop, { rx: 4, unlit: 0.3 }), [3.6, L2 + 0.11, 3.4]);
-  cyl(0.65, 0.65, 0.05, 12, tint(0xfff4e4, { unlit: 0.3 }), [3.6, L2 + 0.2, 3.4]);
-  mesh(new SphereGeometry(0.08, 8, 6), psx(A.ball, { unlit: 0.5 }), [3.9, L2 + 0.3, 3.2]);
-  plane(1.45, 1.09, psx(A.picFriends, { unlit: 0.45 }), [3.6, L2 + 1.95, RD - 0.04], [0, Math.PI, 0], 1);
-  plane(1.4, 0.17, psx(A.plate('BEST FRIENDS'), { unlit: 0.4 }), [3.6, L2 + 1.25, RD - 0.04], [0, Math.PI, 0], 1);
-  plane(0.6, 0.12, psx(A.plate('TOOTS'), { unlit: 0.4 }), [3.6, L2 + 0.75, RD - 0.06], [0, Math.PI, 0], 1);
-  // Sadie's bed, in the back corner: a little proper bed with a quilt, and Sadie asleep in it
+  cyl(0.65, 0.65, 0.06, 12, tint(0xfff4e4, { unlit: 0.3 }), [3.6, L2 + 0.25, 3.4]);
+  mesh(new SphereGeometry(0.08, 8, 6), psx(A.ball, { unlit: 0.5 }), [3.9, L2 + 0.36, 3.2]);
+  plane(1.8, 1.08, psx(A.picFriends, { unlit: 0.45, decal: true }), [3.6, L2 + 1.95, RD - 0.04], [0, Math.PI, 0], 1);
+  plane(1.4, 0.17, psx(A.plate('BEST FRIENDS'), { unlit: 0.4, decal: true }), [3.6, L2 + 1.25, RD - 0.04], [0, Math.PI, 0], 1);
+  plane(0.6, 0.12, psx(A.plate('TOOTS'), { unlit: 0.4, decal: true }), [3.6, L2 + 0.75, RD - 0.06], [0, Math.PI, 0], 1);
+  // Sadie's bed, in the back corner: a little proper bed with a quilt, and Sadie on it
   const sb = SOLIDS.find(s => s.name === 'sadiesBed'), sx = (sb.x0 + sb.x1) / 2, sz = (sb.z0 + sb.z1) / 2;
   box(sb.x1 - sb.x0, 0.35, sb.z1 - sb.z0, tint(0x9a5a2a), [sx, L2 + 0.175, sz]);
   box(sb.x1 - sb.x0 - 0.06, 0.2, sb.z1 - sb.z0 - 0.06, psx(A.quilt, { rx: 2, ry: 3, unlit: 0.3 }), [sx, L2 + 0.45, sz + 0.03]);
   box(sb.x1 - sb.x0, 1.0, 0.1, tint(0x9a5a2a), [sx, L2 + 0.5, sb.z0 + 0.05]);   // the headboard
   box(0.9, 0.14, 0.4, white, [sx, L2 + 0.62, sb.z0 + 0.35]);                    // the pillow
-  plane(0.9, 0.22, psx(A.plate('SADIE'), { unlit: 0.4 }), [sx, L2 + 0.85, sb.z0 + 0.11], null, 1);
-  // Sadie, tucked in: her napping picture with the quilt pulled up over her legs, so she's lying in it
-  // (drawn as one picture, so it reads the same from wherever you look)
-  const tucked = tex(58, 47, g => {
-    g.drawImage(T.nap.image, 0, 0);
-    const cs = ['#ff8ec8', '#fff08a', '#9ad0ff', '#ffffff'];
-    for (let y = 31; y < 47; y += 4) for (let x = 0; x < 58; x += 4) { g.fillStyle = cs[((x + y) / 4 | 0) % 4]; g.fillRect(x, y, 4, 4); }
-    g.fillStyle = '#e0509a'; for (let x = 0; x < 58; x += 4) g.fillRect(x, 31, 1, 16);
-    g.fillStyle = '#ffffff'; g.fillRect(0, 29, 58, 3);   // the sheet, turned down over the quilt
-    g.fillStyle = '#c8c0d8'; g.fillRect(0, 32, 58, 1);
-  });
+  plane(0.9, 0.22, psx(A.plate('SADIE'), { unlit: 0.4, decal: true }), [sx, L2 + 0.85, sb.z0 + 0.11], null, 1);
+  // Sadie, sitting up on her bed watching the bird channel: side on, looking across at the TV (her
+  // picture turned to face left, and not turned round to face you)
+  const facing = im => tex(58, 47, g => { g.translate(58, 0); g.scale(-1, 1); g.drawImage(im, 0, 0); });
+  const watching = facing(T.sadie.image), blinking = facing(T.nap.image);
   const SW = 0.8, SH = SW * 47 / 58;
-  const sadie = new Mesh(keep(new PlaneGeometry(SW, SH).translate(0, SH / 2, 0)), psx(tucked, { unlit: 0.35 }));
-  sadie.position.set(sx, L2 + 0.55 - SH * 16 / 47 + 0.08, sb.z0 + 0.75); scene.add(sadie);
-  const zzz = mesh(new PlaneGeometry(0.35, 0.35), psx(T.zzz, { unlit: 0.8 }), [sx + 0.15, L2 + 1.2, sb.z0 + 0.75]);
+  const sadie = new Mesh(keep(new PlaneGeometry(SW, SH).translate(0, SH / 2, 0)), psx(watching, { unlit: 0.35 }));
+  sadie.position.set(sx, L2 + 0.55, sb.z1 - 0.5); scene.add(sadie);
+  // the TV: an old set on a low cabinet in the back corner, turned towards her bed (and half towards
+  // the room, so you can watch too), rabbit ears on top, and birds on a branch on the screen (no sound)
+  const tvAt = SOLIDS.find(s => s.name === 'tv'), tv = new Group();
+  tv.position.set((tvAt.x0 + tvAt.x1) / 2, L2, (tvAt.z0 + tvAt.z1) / 2); tv.rotation.y = 0.5; scene.add(tv);
+  mesh(new BoxGeometry(1.1, 0.5, 0.6), tint(0xb8783a), [0, 0.25, 0], null, tv);
+  mesh(new BoxGeometry(0.95, 0.72, 0.6), tint(0x7a6a88), [0, 0.86, 0], null, tv);
+  mesh(new BoxGeometry(0.2, 0.5, 0.02), tint(0x4a3a58), [0.36, 0.86, 0.305], null, tv);
+  for (const k of [0, 1, 2]) mesh(new SphereGeometry(0.03, 6, 4), tint(0xd8d8e8), [0.36, 0.98 - k * 0.12, 0.32], null, tv);
+  for (const s of [-1, 1]) mesh(new BoxGeometry(0.015, 0.55, 0.015), tint(0xc0c0d0), [s * 0.12, 1.42, 0], [0, 0, -s * 0.45], tv);
+  const birds = [0, 1, 2, 3].map(i => A.birdTV(i));
+  const screen = mesh(new PlaneGeometry(0.6, 0.48), psx(birds[0], { unlit: 0.95, decal: true }), [-0.1, 0.86, 0.302], null, tv);
+  // her seat to watch from: the end of her bed, and a second couch, upstairs, by the right wall
+  const purple = tint(0xb87ad8), purpleDark = tint(0x8a52b0);
+  box(0.8, 0.42, 2.0, purple, [RW - 0.45, L2 + 0.21, 1.3]);
+  box(0.25, 0.85, 2.0, purpleDark, [RW - 0.13, L2 + 0.42, 1.3]);
+  for (const z of [0.25, 2.35]) box(0.8, 0.6, 0.2, purpleDark, [RW - 0.45, L2 + 0.3, z]);
+  for (const z of [0.8, 1.8]) box(0.6, 0.1, 0.9, tint(0xd8a8f0), [RW - 0.5, L2 + 0.47, z]);
+  plane(2.2, 0.55, psx(A.goodGirl, { unlit: 0.45, decal: true }), [RW - 0.04, L2 + 1.9, 1.3], [0, -Math.PI / 2, 0], 1);
+  // a floor lamp by it, lit
+  cyl(0.03, 0.03, 1.5, 4, tint(0x7a4a2a), [RW - 0.5, L2 + 0.75, -0.3]); cyl(0.18, 0.18, 0.04, 8, tint(0x7a4a2a), [RW - 0.5, L2 + 0.02, -0.3]);
+  cyl(0.16, 0.28, 0.32, 8, tint(0xffb0d8, { unlit: 0.9 }), [RW - 0.5, L2 + 1.62, -0.3]);
+  // a bookshelf full of books (and a ball on top), on the left wall by the front
+  const shelf = SOLIDS.find(s => s.name === 'bookshelf');
+  box(shelf.x1 - shelf.x0, shelf.h, shelf.z1 - shelf.z0, tint(0x9a5a2a), [(shelf.x0 + shelf.x1) / 2, L2 + shelf.h / 2, (shelf.z0 + shelf.z1) / 2]);
+  plane(shelf.z1 - shelf.z0 - 0.12, shelf.h - 0.12, psx(A.books, { unlit: 0.35, decal: true }), [shelf.x1 + 0.005, L2 + shelf.h / 2, (shelf.z0 + shelf.z1) / 2], [0, Math.PI / 2, 0], 1);
+  mesh(new SphereGeometry(0.08, 8, 6), psx(A.ball, { unlit: 0.5 }), [(shelf.x0 + shelf.x1) / 2, L2 + shelf.h + 0.08, shelf.z0 + 0.4]);
+  // two potted plants in the corners
+  for (const name of ['plantFront', 'plantBack']) {
+    const pl = SOLIDS.find(s => s.name === name), x = (pl.x0 + pl.x1) / 2, z = (pl.z0 + pl.z1) / 2;
+    cyl(0.22, 0.17, 0.4, 8, tint(0xd86a3a), [x, L2 + 0.2, z]);
+    for (const [dx, dy, dz, r] of [[0, 0.75, 0, 0.32], [0.15, 0.6, 0.1, 0.22], [-0.12, 0.62, -0.1, 0.24], [0.02, 0.98, 0.04, 0.2]]) mesh(new SphereGeometry(r, 6, 4), tint(0x3aa04a), [x + dx, L2 + dy, z + dz]);
+  }
+  // her rope toy on the rug
+  for (const [dx, c] of [[-0.22, 0xe8202a], [0, 0xffffff], [0.22, 0x3a8ae8]]) box(0.22, 0.06, 0.07, tint(c), [2.6 + dx, L2 + 0.03, -0.9]);
   // a dresser, a rug, her toy box
   box(1.6, 1.1, 0.6, tint(0xe8b070), [-2.4, L2 + 0.55, -RD + 0.3]);
   for (const y of [0.3, 0.65, 0.95]) box(1.4, 0.02, 0.02, tint(0x7a4a2a), [-2.4, L2 + y, -RD + 0.61]);
@@ -231,7 +268,8 @@ export async function buildRoom(m) {
   const ball3d = mesh(new SphereGeometry(BALL_R, 8, 6), ballMat, [0, 0, 0]);
   const hand = mesh(new SphereGeometry(BALL_R, 8, 6), ballMat, [0, 0, 0]); hand.visible = false;
   const ball = makeBall(2.0, 4.2), dog = makeToots();
-  const faces = [toots, sadie, zzz];
+  const faces = [toots];
+  let blinkAt = 3, birdAt = 0, bird = 0;
 
   // ---------- what you can do: pick up the ball, throw it, take one from the basket, pat her ----------
   const throwUse = { pos: new Vector3(), reach: 3, label: 'THROW THE BALL', button: 'THROW', act: () => doThrow() };
@@ -263,6 +301,8 @@ export async function buildRoom(m) {
       stairs: { x: -7.1, z: 4.8, yaw: 0, pitch: 0.2, y: 0 },
       upstairs: { x: 0, z: 0, yaw: Math.PI, pitch: 0, y: L2 },
       beds: { x: 4.5, z: -1.5, yaw: -0.6, pitch: -0.2, y: L2 },
+      tv: { x: 2.3, z: -1.6, yaw: -0.55, pitch: -0.12, y: L2 },
+      stairsSide: { x: -2.6, z: 0.5, yaw: Math.PI / 2, pitch: 0.12, y: 0 },
     },
     floor: (x, z, y = 0) => ground(x, z, y, m.walker),
     update(t, dt = 0) {
@@ -270,7 +310,18 @@ export async function buildRoom(m) {
       const you = l ? { x: l.e.x, y: l.e.y - 1.6, z: l.e.z, yaw: l.e.yaw } : { x: 0, y: 0, z: RD - 1.2, yaw: 0 };
       // the lamp is on whichever floor you're on
       place.light.lamp[1] = you.y > L2 / 2 ? TOP - 0.6 : L2 - 0.6;
-      if (!m.paused?.()) {
+      // you're not in here: there's only one Toots. Up at her window (so not down here), or gone down
+      // to wait just inside the door for you (house.js says which); the ball goes back by the door
+      if (l && !music.playing) music.play();
+      if (!l && music.playing) music.stop();
+      music.tick();
+      const away = !l && (house?.shared.where ?? 'door');
+      toots.visible = away !== 'window';
+      if (away) {
+        const d = dog.t, [x, y, z] = away === 'door' ? [0.4, 0, RD - 1.5] : [0.8, L2, RD - 1.4];
+        Object.assign(d, { x, y, z, vx: 0, vz: 0, mode: 'idle', ball: false, hop: 0, hopT: -1, happy: away === 'door' ? 1 : 0 });
+        if (ball.held || !ball.rest) Object.assign(ball, { held: null, rest: true, x: -0.6, y: BALL_R, z: RD - 1.6, vx: 0, vy: 0, vz: 0 });
+      } else if (!m.paused?.()) {
         stepBall(ball, Math.min(dt, 0.05));
         const d = dog.update(Math.min(dt, 0.05), you, ball);
         if (d.dropped && ++roosOnDrop % 3 === 0) voice.roo({ at: { x: d.x, y: d.y, z: d.z } });
@@ -297,8 +348,10 @@ export async function buildRoom(m) {
         const { e, dir } = l, rx = Math.cos(e.yaw), rz = -Math.sin(e.yaw);
         hand.position.set(e.x + dir.x * 0.6 + rx * 0.22, e.y + dir.y * 0.6 - 0.2, e.z + dir.z * 0.6 + rz * 0.22);
       }
-      // Sadie snoozes; her Zs drift up
-      zzz.position.y = L2 + 1.15 + (t * 0.25 % 0.4);
+            // Sadie blinks now and then; the birds on TV hop about
+      sadie.material.uniforms.map.value = t > blinkAt ? blinking : watching;
+      if (t > blinkAt + 0.15) blinkAt = t + 2.5 + Math.random() * 4;
+      if (t > birdAt) { bird = (bird + 1) % birds.length; birdAt = t + (bird === 1 ? 0.35 : 0.7 + Math.random() * 0.9); screen.material.uniforms.map.value = birds[bird]; }
       // what you can use right now
       uses.length = 0;
       if (ball.held === 'you' && l) { throwUse.pos.set(l.e.x + l.dir.x, l.e.y + l.dir.y, l.e.z + l.dir.z); uses.push(throwUse); }
@@ -312,7 +365,7 @@ export async function buildRoom(m) {
 
   // for the checks (tests/toots-house/browser.mjs)
   m.checks('__toots', {
-    state: () => ({ ball: { x: ball.x, y: ball.y, z: ball.z, held: ball.held, rest: ball.rest }, toots: { x: dog.t.x, y: dog.t.y, z: dog.t.z, mode: dog.t.mode, fetched: dog.t.fetched }, heard: [...voice.log] }),
+    state: () => ({ ball: { x: ball.x, y: ball.y, z: ball.z, held: ball.held, rest: ball.rest }, toots: { x: dog.t.x, y: dog.t.y, z: dog.t.z, mode: dog.t.mode, fetched: dog.t.fetched }, heard: [...voice.log], music: { playing: music.playing, played: music.played(), barked: music.barked() }, where: house?.shared.where ?? null, tootsShown: toots.visible }),
     give: () => { ball.held = 'you'; ball.rest = false; },
     throwAt: (dx, dy, dz) => { const e = m.ears(); const n = Math.hypot(dx, dy, dz); throwBall(ball, { x: e.x, y: e.y, z: e.z }, { x: dx / n, y: dy / n, z: dz / n }); },
   });

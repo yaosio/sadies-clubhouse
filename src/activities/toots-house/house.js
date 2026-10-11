@@ -14,7 +14,8 @@ import { makeWatcher } from './window.js';
 export const DW = 1.3, DH = 2.4;   // the front door
 const W = 7.6, D = 6, H1 = 3.0, H2 = 2.8, HT = H1 + H2, RH = 2.3;   // the house: width, depth, each story, the roof
 const WIN = { w: 2.1, y0: H1 + 0.55, y1: H1 + 2.15 };   // her window
-const TOOTS = 1.35;   // her picture in the window, metres across (48 dots: about 3 cm a dot; bigger than life, so you can see her face from the square)
+const TOOTS = 1.35;   // her picture in the window, meters across (48 dots: about 3 cm a dot; bigger than life, so you can see her face from the square)
+const HOME = 'room:toots-house';   // her room inside (the card's id): while you're in there, so is she
 
 export function buildHouse(m, A, poses, roo) {
   const { T, psx, keep, kit, wallGeometry, doorway, outside, lot } = m;
@@ -134,14 +135,18 @@ export function buildHouse(m, A, poses, roo) {
   const watch = makeWatcher(() => roo?.({ at: { x: lot.x, y: WIN.y0 + 0.6, z: lot.z } }));
   const c = Math.cos(lot.yaw), s = Math.sin(lot.yaw);
   let shown = 'softC';
+  // where she is, for the room inside: 'window' (up there, so not downstairs), or 'door' (gone down to meet you)
+  const shared = { where: 'window' };
   return {
-    door, group: scene, body: [front], farTint: 0x9ccaf4,
+    shared, door, group: scene, body: [front], farTint: 0x9ccaf4,
     update(t, dt, ears) {
       // where you are, in the house's own terms (anywhere but outside, she can't see you)
-      const out = ears && outside.is(ears.place);
+      // (in her house, she's in there with you: there's only one Toots)
+      const out = ears && outside.is(ears.place), home = ears?.place?.name === HOME;
       const dx = out ? ears.x - lot.x : 0, dz = out ? ears.z - lot.z : 99;
-      const you = { x: c * dx - s * dz, z: s * dx + c * dz };
+      const you = home ? { home } : { x: c * dx - s * dz, z: s * dx + c * dz };
       const pose = watch(t, dt, you);
+      shared.where = pose.state === 'away' ? 'door' : 'window';
       if (pose.name !== shown && poses[pose.name]) { toots.material.uniforms.map.value = poses[pose.name]; shown = pose.name; }
       // (her breathing is a single dot up and down; dropping out of sight, she slides down behind the sill)
       toots.position.y = WIN.y0 + TOOTS / 2 - 0.02 + pose.bob * 0.02 - pose.sink * (TOOTS + 0.1);

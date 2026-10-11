@@ -9,3 +9,7 @@ How it was asked for. Never needed for a task; only read before undoing a choice
   the end of the clip cut out).
 - The owner asked to go inside: a big, really nice interior, two floors, fetch with a tennis ball,
   pictures of Sadie, Marbles and Chooter, beds for Toots and Sadie upstairs, with Sadie asleep.
+- After playing it, the owner asked for: the glitches fixed, Sadie watching a bird TV instead of
+  sleeping, more upstairs (another couch and other things), her own music with made-up barks, Toots
+  happy instead of frowning, sharper pictures, and only one Toots (not at the window and the door at
+  once).

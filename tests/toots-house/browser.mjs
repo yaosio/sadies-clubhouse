@@ -4,7 +4,8 @@
 //
 // It walks out across the town square to her house (she's in the upstairs window) and in through the
 // door, takes a ball from the basket (E, or the USE button on a phone), throws it across the room, and
-// waits for Toots to bring it back. Then a look at her friends' pictures, and upstairs. Screenshots in
+// waits for Toots to bring it back. On the way in, she's left her window and is waiting by the door,
+// and her music plays inside. Then a look at her friends' pictures, and upstairs. Screenshots in
 // dist/check/toots-house/. Any error on the page is a failure.
 import { bothDevices } from '../shared/browser.mjs';
 
@@ -29,8 +30,12 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('1-house');
     await walk(900); await p.waitForTimeout(500);
     check(`${device}: ...which opens onto her house`, await M('looking') === ROOM);
+    check(`${device}: ...and at her door, she's left the window to meet you (only one Toots)`, await until(() => window.__toots.state().where === 'door', null, 8000), JSON.stringify(await S()));
     await walk(1400);
     check(`${device}: walking through it, you're inside`, (await M('where')).place === ROOM);
+    let s = await S();
+    check(`${device}: ...and she's there by the door`, s.tootsShown && s.toots.z > 1.5, JSON.stringify(s.toots));
+    check(`${device}: ...her music plays in here`, s.music.playing, JSON.stringify(s.music));
     await p.waitForTimeout(400);
     await shot('2-inside');
 
@@ -54,6 +59,10 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('5-upstairs');
     await M('put', ROOM, 'beds'); await p.waitForTimeout(400);
     await shot('6-beds');
+    await M('put', ROOM, 'tv'); await p.waitForTimeout(400);
+    await shot('7-tv');
+    await M('put', ROOM, 'stairsSide'); await p.waitForTimeout(400);
+    await shot('8-stairs');
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
   });
 }

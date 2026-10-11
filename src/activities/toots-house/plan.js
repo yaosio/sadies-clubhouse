@@ -5,7 +5,7 @@
 // Downstairs: a big living room. The front door in the middle of the front wall (z = RD), the whole
 // back wall a big window onto the backyard, the stairs up the left wall, the fireplace and her friends'
 // pictures on the right. Upstairs, the same size: her window seat at the front window (the one you see
-// her in from outside), her bed, and Sadie's bed, with Sadie asleep in it.
+// her in from outside), her bed, Sadie's bed with Sadie on it watching birds on TV, a second couch.
 // (Bigger inside than outside, as rooms can be.)
 
 export const RW = 8, RD = 6;        // half the width and half the depth
@@ -30,6 +30,12 @@ export const SOLIDS = [
   { name: 'sadiesBed', level: 1, x0: 6.5, x1: RW, z0: -RD, z1: -3.8, h: 0.6 },
   { name: 'nightstand', level: 1, x0: 5.8, x1: 6.5, z0: -RD, z1: -5.35, h: 0.6 },
   { name: 'toybox', level: 1, x0: -3.05, x1: -2.15, z0: 5.2, z1: RD, h: 0.55 },
+  { name: 'tv', level: 1, x0: 4.05, x1: 5.25, z0: -RD, z1: -4.95, h: 1.2 },
+  { name: 'loveseat', level: 1, x0: 7.1, x1: RW, z0: 0.15, z1: 2.45, h: 0.8 },
+  { name: 'lampUp', level: 1, x0: 7.3, x1: 7.7, z0: -0.5, z1: -0.1, h: 1.8 },
+  { name: 'bookshelf', level: 1, x0: -RW, x1: -7.55, z0: 4.1, z1: 5.8, h: 1.9 },
+  { name: 'plantFront', level: 1, x0: 7.15, x1: 7.75, z0: 5.15, z1: 5.75, h: 0.6 },
+  { name: 'plantBack', level: 1, x0: -5.85, x1: -5.25, z0: -5.8, z1: -5.2, h: 0.6 },
   { name: 'dresser', level: 1, x0: -3.2, x1: -1.6, z0: -RD, z1: -5.4, h: 1.1 },
 ];
 
