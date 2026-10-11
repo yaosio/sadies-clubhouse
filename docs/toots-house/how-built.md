@@ -1,0 +1,33 @@
+# Toots' House: how it's built
+
+## Files (`src/activities/toots-house/`)
+- `card.js`: its plot (`lot` 3) and colour.
+- `house.js`: the house outside, built into the town (the clubhouse builds it at the start, like every
+  building outside). Toots in her window is a flat picture swapped pose by pose.
+- `window.js`: what she does in the window (watching, spotting you, thrilled, away), as plain numbers.
+- `toots-art.js`: every picture of Toots, dot by dot (`windowPoses`, `roomPoses`): the window, her two
+  side views (each drawn on its own, never flipped), front and back. `art.js`: the house's and the
+  room's pictures (siding, shutters, her friends' portraits, the backyard).
+- `plan.js`: the inside as numbers: the two floors, the stairs, what's solid. `ground` says where you
+  and she can stand, `ballGround` where the ball lands.
+- `fetch.js`: the ball and Toots inside, as numbers (no browser): throwing, bouncing, rolling down the
+  stairs, chasing, bringing it back, following you between floors, hopping over things.
+- `room.js`: the inside, built from those, and the uses (THROW, PICK UP, TAKE, PAT). It picks her
+  picture each frame from the way she's going and where you are.
+- `sounds/`: her roos. `roo-data.js` holds the cuts as text (4-bit ADPCM, decoded by the toolbox's
+  `src/shared/adpcm.js`), made by `tools/toots-house/make-roo.mjs` from the owner's video.
+
+## Adding her activity later
+The room's file is the only one that changes: the backyard behind the big window is built already,
+and everything Toots does inside is in `fetch.js`, separate from the drawing.
+
+## Checks
+- `tests/toots-house/run.mjs`: the card; no front left leg in any picture of her, and her side views
+  never mirror copies; fetch in numbers (a throw comes back to your feet, on both floors); the roos
+  decode.
+- `tests/toots-house/browser.mjs`: walks out to the house, sees her in the window, goes in, takes a
+  ball, throws it, and waits for her to bring it back.
+
+## Known limits
+- Like every building outside, the house is built at the start (one more of them).
+- Her friends' portraits are drawn here, not shared with their own rooms (rooms can't share files).

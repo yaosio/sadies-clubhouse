@@ -11,7 +11,8 @@ on purpose, change it there and in the code, and tell the owner. A new spot goes
 - `LOTS` (`src/clubhouse/town/layout.js`): plots round the town square (`x`, `z`: the middle of the
   front door's threshold; `y`: the ground's height; `yaw`: the way the door faces, towards the middle
   of the square). A plot is just a place and a facing, so a new one can go anywhere: beside one of the
-  paths out of the square, say. The next free one has a COMING SOON stake. Four so far.
+  paths out of the square, say. The next free one has a COMING SOON stake. Five so far (the fifth, past the path on the right,
+  was added for the stake when the fourth was taken).
 - `GROUNDS`: spots in the grounds round the house, for a building that isn't on a plot (`x`, `z`,
   `y`, and how much room: `w` across, `d` deep). 0 runs beside the house from the front garden to the
   backyard, on your left as you go out of the front door (on your right walking up from the gate).

@@ -3,7 +3,7 @@
 // Use: node tools/paint-shop/make-woo.mjs <video or audio file> <start secs> <end secs>
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-import { encode } from '../../src/activities/paint-shop/sounds/adpcm.js';
+import { encode } from '../../src/shared/adpcm.js';
 
 const [file, a, b] = process.argv.slice(2);
 if (!file || !(b > a)) { console.error('node tools/paint-shop/make-woo.mjs <file> <start> <end>'); process.exit(1); }
