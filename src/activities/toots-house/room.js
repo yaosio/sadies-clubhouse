@@ -17,7 +17,7 @@ import { Scene, Color, Mesh, Group, Vector2, Vector3, Shape, ShapeGeometry, Plan
 import { drawArt } from './art.js';
 import { buildHouse } from './house.js';
 import { windowPoses, roomPoses, frontToots, paint } from './toots-art.js';
-import { RW, RD, L2, TOP, DW, DH, STAIRS, WINDOW, BACK, SOLIDS, ground } from './plan.js';
+import { RW, RD, L2, TOP, DW, DH, STAIRS, WINDOW, BACK, SOLIDS, HEAD, ground } from './plan.js';
 import { makeBall, throwBall, stepBall, makeToots, BALL_R } from './fetch.js';
 import { makeSounds } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';
@@ -289,7 +289,7 @@ export async function buildRoom(m) {
   }
 
   // ---------- every frame ----------
-  let roosOnDrop = 0, shut = true;
+  let roosOnDrop = 0, shut = true, rush = 0;   // (rush: her coming running down to the door: 0 not, 1 on her way, 2 there)
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces, house, uses,
     light: { sun: 0.4, bulb: 0.7, lamp: [0, L2 - 0.6, 0] },
@@ -320,17 +320,26 @@ export async function buildRoom(m) {
       shut = door.amount === 0;
       const away = !l && (house?.shared.where ?? 'door');
       toots.visible = away !== 'window';
-      if (away) {
-        // (always parked just inside the door, even while she's up at her window and hidden: walk in
-        // before she's come down and she's there to meet you, never up on the floor above your head)
-        const d = dog.t, [x, y, z] = [0.4, 0, RD - 1.5];
-        Object.assign(d, { x, y, z, vx: 0, vz: 0, mode: 'idle', ball: false, hop: 0, hopT: -1, happy: away === 'door' ? 1 : 0 });
-        if (ball.held || !ball.rest) Object.assign(ball, { held: null, rest: true, x: -0.6, y: BALL_R, z: RD - 1.6, vx: 0, vy: 0, vz: 0 });
+      // the door opened before she'd come down from her window: she comes running, from the top of
+      // the stairs, down them and across to the door (or to you, if you're in by then)
+      if (away === 'window' || !house?.shared.ran) rush = 0;
+      if (away === 'door' && house?.shared.ran && rush === 0) {
+        Object.assign(dog.t, { x: HEAD.x, y: HEAD.y, z: HEAD.z, vx: 0, vz: 0, hop: 0, hopT: -1, happy: 0 });
+        dog.come(); rush = 1;
+      }
+      if (away && rush !== 1) {
+        // (otherwise she's waiting just inside the door: parked there even while she's up at her
+        // window and hidden, never up on the floor above it, where she'd poke through the ceiling)
+        const d = dog.t;
+        if (rush === 0) Object.assign(d, { x: 0.4, y: 0, z: RD - 1.5, happy: away === 'door' ? 1 : 0 });
+        Object.assign(d, { vx: 0, vz: 0, mode: 'idle', ball: false, hop: 0, hopT: -1 });
       } else if (!m.paused?.()) {
         stepBall(ball, Math.min(dt, 0.05));
-        const d = dog.update(Math.min(dt, 0.05), you, ball);
+        const d = dog.update(Math.min(dt, 0.05), away ? { x: 0, y: 0, z: RD, yaw: 0 } : you, ball);
+        if (rush === 1 && d.mode !== 'come') rush = 2;
         if (d.dropped && ++roosOnDrop % 3 === 0) voice.roo({ at: { x: d.x, y: d.y, z: d.z } });
       }
+      if (away && (ball.held || !ball.rest)) Object.assign(ball, { held: null, rest: true, x: -0.6, y: BALL_R, z: RD - 1.6, vx: 0, vy: 0, vz: 0 });
       // which of her pictures: going towards you (front), away (behind), across (from the side), or still (front, wagging)
       const d = dog.t, cx = (l?.e.x ?? 0) - d.x, cz = (l?.e.z ?? RD) - d.z, cl = Math.hypot(cx, cz) || 1;
       const v = Math.hypot(d.vx, d.vz), step = Math.floor(t * 8) % 4, b = d.ball ? 'Ball' : '';

@@ -159,7 +159,7 @@ export function buildHouse(m, A, poses, roo) {
   const c = Math.cos(lot.yaw), s = Math.sin(lot.yaw);
   let shown = 'softC';
   // where she is, for the room inside: 'window' (up there, so not downstairs), or 'door' (gone down to meet you)
-  const shared = { where: 'window' };
+  const shared = { where: 'window', ran: false };
   return {
     shared, door, group: scene, body: [front], farTint: 0x9ccaf4,
     update(t, dt, ears) {
@@ -167,9 +167,11 @@ export function buildHouse(m, A, poses, roo) {
       // (in her house, she's in there with you: there's only one Toots)
       const out = ears && outside.is(ears.place), home = ears?.place?.name === HOME;
       const dx = out ? ears.x - lot.x : 0, dz = out ? ears.z - lot.z : 99;
-      const you = home ? { home } : { x: c * dx - s * dz, z: s * dx + c * dz };
-      const pose = watch(t, dt, you);
+      const you = home ? { home } : { x: c * dx - s * dz, z: s * dx + c * dz, door: door.amount > 0 };
+      const was = shared.where, pose = watch(t, dt, you);
       shared.where = pose.state === 'away' ? 'door' : 'window';
+      // (still up here when the door opened: she's on her way down, room.js has her come running)
+      if (was === 'window' && shared.where === 'door') shared.ran = you.door && !home;
       // the door opening from out here: she's right behind it (from in there, room.js has her roo)
       if (shut && door.amount > 0 && out) roo?.({ at: { x: lot.x, y: 0.5, z: lot.z } });
       shut = door.amount === 0;

@@ -1,6 +1,6 @@
 // Walking straight in at Toots' door before she's had time to leave her window (npm run build first):
-// where her picture is inside on every frame as you come through. It should be downstairs by the
-// door the moment you're in, never up on the floor above (it used to poke through the ceiling).
+// she should come running, from the top of the stairs, down them and over to you, never popping up
+// by the door out of nowhere. Prints where she is every half second from the door opening.
 //   node tools/toots-house/rush.mjs
 import { serve } from '../serve.mjs';
 import { launch, DEVICES } from '../browser.mjs';
@@ -18,9 +18,11 @@ await M('faceDoor', 'outside', 'toots-house', 30);   // (far off: she's in her w
 await p.waitForFunction(() => window.__toots, null, { timeout: 30000 }).catch(() => {});
 await p.waitForTimeout(1500);
 await M('faceDoor', 'outside', 'toots-house', 2.5);   // (then straight up to the door, and in)
-await p.evaluate(() => { window.__seen = []; const f = () => { const s = window.__toots?.state(); if (s) window.__seen.push([window.__clubhouse.where().place, s.where, s.tootsShown, +s.toots.y.toFixed(2)]); if (window.__seen.length < 200) requestAnimationFrame(f); }; f(); });
-await p.keyboard.down('KeyW'); await p.waitForTimeout(2500); await p.keyboard.up('KeyW');
-const seen = await p.evaluate(() => window.__seen), inside = seen.filter(s => s[0] === 'room:toots-house');
-console.log(`${seen.length} frames, ${inside.length} inside; first few inside:`, JSON.stringify(inside.slice(0, 4)));
-console.log(inside.length && inside.every(s => !s[2] || s[3] < 1) ? 'OK: never upstairs while you were coming in' : 'PROBLEM: shown upstairs');
+await p.keyboard.down('KeyW');
+for (let i = 0; i < 14; i++) {
+  if (i === 3) await p.keyboard.up('KeyW');
+  const s = await p.evaluate(() => ({ place: window.__clubhouse.where().place, ...window.__toots.state() }));
+  console.log(`${(i / 2).toFixed(1)} s: you ${s.place === 'outside' ? 'outside' : 'inside'}, she's ${s.where === 'window' ? 'at her window' : `at ${s.toots.x.toFixed(1)}, ${s.toots.y.toFixed(1)}, ${s.toots.z.toFixed(1)} (${s.toots.mode})`}`);
+  await p.waitForTimeout(500);
+}
 await browser.close(); server.close();

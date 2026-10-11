@@ -33,6 +33,8 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: ...and at her door, she's left the window to meet you (only one Toots)`, await until(() => window.__toots.state().where === 'door', null, 8000), JSON.stringify(await S()));
     await walk(1400);
     check(`${device}: walking through it, you're inside`, (await M('where')).place === ROOM);
+    // (there already, or coming running down the stairs if the door opened before she'd left her window)
+    await until(() => { const t = window.__toots.state().toots; return t.y < 1 && t.z > 1.5; }, null, 8000);
     let s = await S();
     check(`${device}: ...and she's there by the door`, s.tootsShown && s.toots.z > 1.5 && s.toots.y < 1, JSON.stringify(s.toots));
     check(`${device}: ...her music plays in here`, s.music.playing, JSON.stringify(s.music));
