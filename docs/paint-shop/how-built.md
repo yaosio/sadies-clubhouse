@@ -32,7 +32,7 @@ and its checks. Read before changing its code.
   `sadie.js` (mrrp), all made with the toolbox's kit (`src/shared/retro.js`), `index.js` (plays
   them on the sound system; Sadie's and Chooter's on VOICES). The one exception: `chooter.js` (his
   woo) is a recording, the owner's own, stored as text (`woo-data.js`, about 8 KB: 4-bit ADPCM,
-  `adpcm.js` decodes it); `tools/paint-shop/make-woo.mjs` cuts it from the video (seconds 0.02 to
+  the toolbox's `src/shared/adpcm.js` decodes it); `tools/paint-shop/make-woo.mjs` cuts it from the video (seconds 0.02 to
   1.10 of the owner's clip) and rewrites `woo-data.js`.
 
 ## The clubhouse's part (`brush`)

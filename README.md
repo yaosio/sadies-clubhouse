@@ -12,8 +12,8 @@ WASD and the mouse, or a thumb stick on a phone. It saves as you go, in your own
 ## What's inside
 
 Sadie's Dropper World, TypeFitter Deluxe 3.1, Brickbuster '96, the Music Room, the aquarium (and an
-ocean), Cats Only, Space Adventure, the Hedge Maze, Clyde's House, Chooter's Paint Shop and Marbles'
-Cut & Curl. Each one's own page in `docs/<name>/README.md` says what it is.
+ocean), Cats Only, Space Adventure, the Hedge Maze, Clyde's House, Chooter's Paint Shop, Marbles'
+Cut & Curl and Toots' House. Each one's own page in `docs/<name>/README.md` says what it is.
 
 ## For the curious
 

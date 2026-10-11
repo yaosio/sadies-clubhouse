@@ -42,7 +42,7 @@ const EDGE = {
 export function buildOutside(T, cards = []) {
   const scene = new Scene(); scene.background = new Color(0x1a1a80);
   const { add, box, plane, cyl, ball, cone } = kit(scene);
-  const sky = new Mesh(keep(new SphereGeometry(200, 16, 12)), skyMat()); sky.renderOrder = -3; scene.add(sky);
+  const sky = new Mesh(keep(new SphereGeometry(200, 16, 12)), skyMat()); sky.renderOrder = -3; sky.userData.sky = true; scene.add(sky);   // (a snapshot of the whole outside leaves it out)
   const hills = new Mesh(keep(new CylinderGeometry(120, 120, 30, 24, 1, true)), psx(T.hills, { unlit: 0.6, side: 1, rx: 6 }));
   hills.position.y = 8; scene.add(hills);
   plane(12, 12, psx(T.sun, { unlit: 1 }), [-60, 55, 110], [0, Math.atan2(-60, 110) + Math.PI, 0], 1);

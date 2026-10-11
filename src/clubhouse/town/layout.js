@@ -16,8 +16,9 @@ const plot = deg => ({ x: round(at(deg).x, 100), y: 0, z: round(at(deg).z, 100),
 // The plots: the same numbers, in the same order, as the cards' `lot` (never reordered: a new one goes on
 // the end). Each is the middle of a front door's threshold, with `yaw`: the way the door faces
 // (towards the middle of the square).
-// 0 Clyde's House (and his weather machine, out to its left), 1 Chooter's Paint Shop, 2 the barbershop, 3 the next free one.
-export const LOTS = [plot(-23), plot(23), plot(-66), plot(62)];
+// 0 Clyde's House (and his weather machine, out to its left), 1 Chooter's Paint Shop, 2 the barbershop,
+// 3 Toots' House (beside the paint shop), 4 the next free one (past the path on the right).
+export const LOTS = [plot(-23), plot(23), plot(-66), plot(62), plot(105)];
 
 // The paths out of the square, between the buildings: `at` the angle they leave in, `bend` how far they
 // turn half way along (so they wind a little), and `to` how far from the middle they go before they

@@ -12,6 +12,11 @@ What the rooms' sounds are made with (plain numbers: 8-bit 11 kHz samples):
 The rooms share it: never a copy of it in a room, and nothing in it only one room uses (a room's
 harder sound of its own stays in its folder).
 
+## Recordings (`src/shared/adpcm.js`)
+A real recording (the owner's own) lives in the game files as text: 4-bit ADPCM, 11 kHz, cut from a
+video by a room's tool (`tools/<id>/make-*.mjs`) and decoded when it's first played. Only ever the
+animal: listen for people in the background before using a cut.
+
 ## The band (`src/shared/band.js`)
 What a room's own music plays through: a music line, an echo, and parts that fade in and out with
 their share of the echo. The room keeps its notes and when they're due; a new room's music starts
