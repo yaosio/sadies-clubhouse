@@ -321,7 +321,9 @@ export async function buildRoom(m) {
       const away = !l && (house?.shared.where ?? 'door');
       toots.visible = away !== 'window';
       if (away) {
-        const d = dog.t, [x, y, z] = away === 'door' ? [0.4, 0, RD - 1.5] : [0.8, L2, RD - 1.4];
+        // (always parked just inside the door, even while she's up at her window and hidden: walk in
+        // before she's come down and she's there to meet you, never up on the floor above your head)
+        const d = dog.t, [x, y, z] = [0.4, 0, RD - 1.5];
         Object.assign(d, { x, y, z, vx: 0, vz: 0, mode: 'idle', ball: false, hop: 0, hopT: -1, happy: away === 'door' ? 1 : 0 });
         if (ball.held || !ball.rest) Object.assign(ball, { held: null, rest: true, x: -0.6, y: BALL_R, z: RD - 1.6, vx: 0, vy: 0, vz: 0 });
       } else if (!m.paused?.()) {

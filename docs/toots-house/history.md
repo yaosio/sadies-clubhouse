@@ -16,3 +16,5 @@ How it was asked for. Never needed for a task; only read before undoing a choice
 - Then: the town all round out of every window (four snapshots), the fence joined to the house, a
   stutter at her door fixed (her pictures drawn a few at a time), and her roo only as her door opens
   (not from the window over and over), with every pat a roo once the last one's finished.
+- Then a painted-on window on the back of the house outside, and a fix for her picture poking
+  through the downstairs ceiling for a moment when you walked in before she'd left her window.

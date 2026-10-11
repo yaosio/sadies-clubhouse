@@ -34,7 +34,7 @@ export default async function ({ browser, page, check, outDir }) {
     await walk(1400);
     check(`${device}: walking through it, you're inside`, (await M('where')).place === ROOM);
     let s = await S();
-    check(`${device}: ...and she's there by the door`, s.tootsShown && s.toots.z > 1.5, JSON.stringify(s.toots));
+    check(`${device}: ...and she's there by the door`, s.tootsShown && s.toots.z > 1.5 && s.toots.y < 1, JSON.stringify(s.toots));
     check(`${device}: ...her music plays in here`, s.music.playing, JSON.stringify(s.music));
     check(`${device}: ...and she rooed as her door opened`, s.heard.some(k => k.startsWith('roo')), JSON.stringify(s.heard));
     check(`${device}: ...and the town's out there, all round (pictures of it)`, s.views.sky, JSON.stringify(s.views));
