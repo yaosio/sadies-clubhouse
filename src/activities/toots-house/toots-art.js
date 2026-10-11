@@ -299,37 +299,38 @@ export function backToots(o = {}) {
   return p.outlined();
 }
 
-// every picture the window uses, by name (the game would make these once)
-export function windowPoses() {
+// every picture the window uses, by name (the game would make these once). `make`: how each is
+// made: straight away (the tests), or handed over still to make (the room, a breath between each)
+export function windowPoses(make = f => f()) {
   const P = {};
   for (const [k, look] of [['L', -1], ['C', 0], ['R', 1]]) {
-    P['soft' + k] = windowToots({ look });
-    P['perk' + k] = windowToots({ look, ears: 1 });
+    P['soft' + k] = make(() => windowToots({ look }));
+    P['perk' + k] = make(() => windowToots({ look, ears: 1 }));
   }
-  P.blink = windowToots({ ears: 1, blink: true });
-  P.blinkSoft = windowToots({ blink: true });
-  P.tiltL = windowToots({ ears: 1, tilt: 1 });
-  P.tiltR = windowToots({ ears: 1, tilt: -1 });
-  P.roo = windowToots({ ears: 0, mouth: 'roo' });
-  P.rooL = windowToots({ look: -1, mouth: 'roo' });
-  P.rooR = windowToots({ look: 1, mouth: 'roo' });
-  P.bounce = windowToots({ ears: 1, lift: 1, look: 0 });
+  P.blink = make(() => windowToots({ ears: 1, blink: true }));
+  P.blinkSoft = make(() => windowToots({ blink: true }));
+  P.tiltL = make(() => windowToots({ ears: 1, tilt: 1 }));
+  P.tiltR = make(() => windowToots({ ears: 1, tilt: -1 }));
+  P.roo = make(() => windowToots({ ears: 0, mouth: 'roo' }));
+  P.rooL = make(() => windowToots({ look: -1, mouth: 'roo' }));
+  P.rooR = make(() => windowToots({ look: 1, mouth: 'roo' }));
+  P.bounce = make(() => windowToots({ ears: 1, lift: 1, look: 0 }));
   return P;
 }
 
 // every picture of her inside the house, by name: walking each way (four steps), with and without the
 // ball, from the front (tail one way and the other, a blink, a roo) and from behind
-export function roomPoses() {
+export function roomPoses(make = f => f()) {
   const P = {};
   for (const ball of [false, true]) for (let i = 0; i < 4; i++) {
     const wag = [-1, 0, 1, 0][i], b = ball ? 'Ball' : '';
-    P[`right${b}${i}`] = sideToots(1, { step: i, wag, ball });
-    P[`left${b}${i}`] = sideToots(-1, { step: i, wag, ball });
+    P[`right${b}${i}`] = make(() => sideToots(1, { step: i, wag, ball }));
+    P[`left${b}${i}`] = make(() => sideToots(-1, { step: i, wag, ball }));
   }
-  for (const ball of [false, true]) for (const [k, wag] of [['A', -1], ['B', 1]]) P[`front${ball ? 'Ball' : ''}${k}`] = frontToots({ wag, ears: 1, ball });
-  P.frontBlink = frontToots({ wag: 0, ears: 1, blink: true });
-  P.frontRoo = frontToots({ mouth: 'roo' });
-  for (let i = 0; i < 4; i++) P[`back${i}`] = backToots({ step: i, wag: [-1, 0, 1, 0][i] });
+  for (const ball of [false, true]) for (const [k, wag] of [['A', -1], ['B', 1]]) P[`front${ball ? 'Ball' : ''}${k}`] = make(() => frontToots({ wag, ears: 1, ball }));
+  P.frontBlink = make(() => frontToots({ wag: 0, ears: 1, blink: true }));
+  P.frontRoo = make(() => frontToots({ mouth: 'roo' }));
+  for (let i = 0; i < 4; i++) P[`back${i}`] = make(() => backToots({ step: i, wag: [-1, 0, 1, 0][i] }));
   return P;
 }
 

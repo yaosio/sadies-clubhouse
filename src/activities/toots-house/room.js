@@ -28,10 +28,10 @@ const DOT = 0.0135;   // how big one of Toots' dots is inside, in metres (so she
 export async function buildRoom(m) {
   const { psx, keep, kit, wallGeometry, doorway, card, tex, T } = m;
   const A = drawArt(m);
+  await m.breathe?.();   // (drawing all her pictures is a lot of dots: a breath after each lot, so walking up to her door never hitches)
   // her pictures: in the window (outside) and about the house (inside), each made once
-  const pix = (o) => Object.fromEntries(Object.entries(o).map(([k, p]) => [k, tex(p.w, p.h, g => paint(g, p))]));
-  const winPoses = pix(windowPoses()), poses = pix(roomPoses());
-  await m.breathe?.();
+  const pix = async (o) => { const out = {}; for (const [k, f] of Object.entries(o)) { const p = f(); out[k] = tex(p.w, p.h, g => paint(g, p)); await m.breathe?.(); } return out; };
+  const winPoses = await pix(windowPoses(f => f)), poses = await pix(roomPoses(f => f));
   // her voice belongs to the house, so she can roo at you from her window while the room's put away
   const voice = makeSounds(soundsFor('house:toots'));
   // her music, only while you're inside (music.js)
