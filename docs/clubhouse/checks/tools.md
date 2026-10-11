@@ -50,4 +50,4 @@ The tools that take pictures of the clubhouse or measure it are in `look-tools.m
     World's) never from its `render/`, `ui/` or `input/` (its own small rule, `clubhouse/own-folder`,
     in the same file), nor using the page's own words (`document`, `window`: only what Node has too).
   - `npm run check` runs it first, every time (a few seconds), and fails if it finds anything.
-  - `art/` (the old mockups) isn't checked.
+  - `art/` (the picture generators and old mockups) isn't checked.

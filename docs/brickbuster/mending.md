@@ -1,7 +1,6 @@
 # Mending itself
 
-Your view is held for the whole event (Yaosio, 2026-10-10: it was too easy to miss that it fixes
-itself): it follows the yarn ball out, then Sadie running after it, until she's out and the door has
+Your view is held for the whole event: it follows the yarn ball out, then Sadie running after it, until she's out and the door has
 shut. Then the game glides you to the far end of the room, looking at the middle of the machine so
 all of it shows (`WATCH_ALL` in `room.js`), and as soon as you're there the mending starts (at most
 4 s later, if something stops the glide). You're let go when it's all done. You can't walk or look
@@ -34,8 +33,7 @@ To a whimsical little waltz (`sounds.md`), about 14 seconds:
 ## What it keeps
 
 The game carries on where it was: the same level, score, high score and lives, on a whole new board
-for that level, a new ball on the paddle, no cracks and no heap. (A game from the first Brickbuster
-starts at level 1 with its old score as the high score.) The save is written as the paddle goes
+for that level, a new ball on the paddle, no cracks and no heap. The save is written as the paddle goes
 home, so leaving halfway through finds it mended.
 
 ## Rules

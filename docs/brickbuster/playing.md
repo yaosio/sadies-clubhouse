@@ -17,8 +17,8 @@ You have to be within 8.5 m of the machine to play it.
 A/D or the arrows (or just moving the mouse) move the paddle; on a phone, sliding a finger anywhere
 moves it exactly as far as the finger goes. Esc, W or S (or Up/Down) (on a phone, hold the HOLD TO LEAVE button for a moment: a quick tap does nothing, because a sliding thumb hit it by accident) eases you back to
 where you stood, and the game waits, the ball hanging where it was. Every new ball (the first, after a miss, after a level)
-waits on the paddle, bobbing a little, until you touch the screen, click or press a key (Yaosio,
-2026-10-10: a ball that went off by itself caught players unready). The 1UP heart is small and shows
+waits on the paddle, bobbing a little, until you touch the screen, click or press a key (a ball that
+went off by itself would catch players unready). The 1UP heart is small and shows
 where the ball hit.
 
 ## The game
@@ -29,7 +29,7 @@ the LEVEL and the lives left as little hearts. Idle, it says FULL VERSION 99 LEV
 - **Missing**: the ball drops out of the bottom of the glass (the paddle winces, a sad little slide
   down) and a new ball waits on the paddle. On a machine that hasn't broken yet, a miss cracks the
   glass at the bottom instead of costing a life (`the-break.md`); once mended, a miss costs one life.
-- **Extra life** (Yaosio, 2026-10-10): every 3000 points one life comes back, if one is missing (never
+- **Extra life**: every 3000 points one life comes back, if one is missing (never
   more than three). A big pink heart with 1UP under it in fat letters pops up where the ball hit,
   floats up and shrinks away, with a happy little run of notes and the paddle smiling. The heart
   says it first, because the main player has trouble reading. (`EXTRA_LIFE` in `game.js`.)

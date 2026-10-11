@@ -20,6 +20,8 @@
 - `window.js` and the room share where she is (`house.shared.where`: 'window' or 'door'), so there's
   only ever one of her.
 - `tools/toots-house/sprites.mjs`: every picture of her on one PNG, to look at without the game.
+  `door.mjs` times every frame walking in at her door (looking for a hitch); `rush.mjs` walks in
+  before she has left her window and prints where she is, to see she comes running down the stairs.
 
 ## The views out
 `room.js` takes four pictures of the whole outside with the kit's `snapshot` (passing `null`: the
