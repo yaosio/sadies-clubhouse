@@ -18,3 +18,5 @@ How it was asked for. Never needed for a task; only read before undoing a choice
   (not from the window over and over), with every pat a roo once the last one's finished.
 - Then a painted-on window on the back of the house outside, and a fix for her picture poking
   through the downstairs ceiling for a moment when you walked in before she'd left her window.
+- Then her window picture cut off at the seat as she drops out of sight (it used to slide on down
+  below the seat, and showed for a few frames).
