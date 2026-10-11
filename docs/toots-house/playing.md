@@ -4,8 +4,9 @@
 - Sky-blue siding, a red shingle roof, a red front door with a dog flap, shutters with bones cut out,
   WELCOME EVERYBODY on the mat, paw-print stepping stones, tennis balls in the gutter and the grass, a
   round attic window drawn as a tennis ball, her mailbox and sign, a fire hydrant on the lawn and a
-  GUESTS doghouse that's a tiny copy of the house. Behind it, her backyard: a white picket fence joined to the house,
-  with her big tree poking up over the roof (smaller than the yard through her big window inside).
+  GUESTS doghouse that's a tiny copy of the house. Behind it, her backyard: a white picket fence
+  joined to the house, her big tree poking up over the roof (smaller than the yard through her big
+  window inside), and a big painted-on window on the back wall (no view in).
 - Toots is always in her upstairs window, bigger than life (about 3 cm a dot) so you can see her face
   from the square. One paw on the sill: her right one (on your left as you look).
 - Over 22 m away she watches the town. Closer, she spots you: ears up, eyes following you, the odd

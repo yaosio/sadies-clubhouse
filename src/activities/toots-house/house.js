@@ -3,7 +3,7 @@
 // Bone shutters, a red door with a dog flap, WELCOME EVERYBODY on the mat, paw-print stepping stones,
 // tennis balls stuck in the gutter, a tennis-ball attic window, her mailbox, a fire hydrant on the lawn
 // for an ornament, and a little guest house (a doghouse that's a tiny copy of hers).
-// Upstairs in the middle, her big window, with her in it.
+// Upstairs in the middle, her big window, with her in it. Round the back, a big painted-on window.
 //
 // Built into the outside's own scene, in a group of its own on the plot turned to face the square (x
 // across, z out from the front door); the front door is a doorway into the room, like every door in the
@@ -40,6 +40,10 @@ export function buildHouse(m, A, poses, roo) {
     box(w + 0.2, 0.08, 0.16, white, [x, y - h / 2 - 0.04, 0.06]);
   };
   for (const s of [-1, 1]) win(s * 2.55, 1.55, 1.05, 1.3);
+  // round the back, the big window onto her backyard (the one that's the whole back wall inside):
+  // painted on, three windows wide, with a sill (no view in: rooms are bigger inside)
+  plane(5.4, 1.9, psx(A.window, { rx: 3, unlit: 0.45 }), [0, 1.5, -D - 0.04], [0, Math.PI, 0], 1);
+  box(5.6, 0.08, 0.16, white, [0, 1.5 - 0.95 - 0.04, -D - 0.06]);
   // the white band between the floors, and the corner boards
   box(W + 0.1, 0.16, 0.1, white, [0, H1, 0.03]);
   for (const s of [-1, 1]) for (const z of [0, -D]) box(0.14, HT + 0.05, 0.14, white, [s * W / 2, HT / 2, z]);
