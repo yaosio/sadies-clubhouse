@@ -196,8 +196,8 @@ export async function buildRoom(m) {
   box(sb.x1 - sb.x0, 1.0, 0.1, tint(0x9a5a2a), [sx, L2 + 0.5, sb.z0 + 0.05]);   // the headboard
   box(0.9, 0.14, 0.4, white, [sx, L2 + 0.62, sb.z0 + 0.35]);                    // the pillow
   plane(0.9, 0.22, psx(A.plate('SADIE'), { unlit: 0.4, decal: true }), [sx, L2 + 0.85, sb.z0 + 0.11], null, 1);
-  // Sadie, sitting up on her bed watching the bird channel: side on, looking across at the TV (her
-  // picture turned to face left, and not turned round to face you)
+  // Sadie, sitting up on her bed watching the bird channel: her picture turned to look left, across
+  // at the TV, and turned round to face you wherever you are, like Toots (the owner's ask)
   const facing = im => tex(58, 47, g => { g.translate(58, 0); g.scale(-1, 1); g.drawImage(im, 0, 0); });
   const watching = facing(T.sadie.image), blinking = facing(T.nap.image);
   const SW = 0.8, SH = SW * 47 / 58;
@@ -268,7 +268,7 @@ export async function buildRoom(m) {
   const ball3d = mesh(new SphereGeometry(BALL_R, 8, 6), ballMat, [0, 0, 0]);
   const hand = mesh(new SphereGeometry(BALL_R, 8, 6), ballMat, [0, 0, 0]); hand.visible = false;
   const ball = makeBall(2.0, 4.2), dog = makeToots();
-  const faces = [toots];
+  const faces = [toots, sadie];
   let blinkAt = 3, birdAt = 0, bird = 0;
 
   // ---------- what you can do: pick up the ball, throw it, take one from the basket, pat her ----------

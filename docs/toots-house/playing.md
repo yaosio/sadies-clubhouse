@@ -28,7 +28,7 @@ Bigger inside than out (16 m by 12 m, two floors).
   or weather moving in it).
 - Upstairs: her window seat at the front window (the one you see her in from outside), her round red
   bed with a ball in it under a BEST FRIENDS picture of her and Sadie, and Sadie's little bed, with
-  Sadie sitting on it watching the bird channel on an old TV (birds hopping on a branch, no sound).
+  Sadie sitting on it watching the bird channel on an old TV (birds hopping on a branch, no sound), turned to face you.
   A purple couch under a GOOD GIRL pennant, a lamp, a bookshelf, plants, a dresser, her toy box, her
   rope toy on a rug. White panelling and tennis-ball wallpaper.
 
