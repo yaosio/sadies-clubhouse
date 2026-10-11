@@ -374,6 +374,7 @@ export async function buildRoom(m) {
     const world = (lx, ly, lz) => [x + c * lx + s * lz, ly, z - s * lx + c * lz];   // (the house's own terms, to the town's)
     const T60 = Math.tan(Math.PI / 3);   // (each picture 90 degrees across and 120 high)
     for (const [dx, dz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+      await m.breathe?.();   // (each picture is a whole drawing of the town: a breath between them, so you never feel it)
       const pic = m.snapshot(null, m.outside, { from: world(0, Y, -3), at: world(dx, Y, -3 + dz), fov: 120, w: 320, h: Math.round(320 * T60), without: [house.group] });
       const mt = psx(pic, { unlit: 1 }); mt.depthTest = false; mt.depthWrite = false;
       mesh(new PlaneGeometry(2 * R, 2 * R * T60, 4, 4), mt, [dx * R, Y, dz * R], [0, Math.atan2(-dx, -dz), 0]).renderOrder = -4.5;
