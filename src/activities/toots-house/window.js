@@ -19,11 +19,12 @@ export function makeWatcher(rand = Math.random) {
   let blinkAt = 2, gone = 0, glance = 0, glanceAt = 0;
   return function update(t, dt, you) {
     // you: { x, z } where you are in the house's own terms (x across, z out from the front door; the
-    // window is at x 0, a little way up), or { home: true } when you're inside her house
+    // window is at x 0, a little way up), or { home: true } when you're inside her house; `door`:
+    // her front door's open (she's heard it: she's gone from the window, on her way down)
     const d = you.home ? 0 : Math.hypot(you.x, you.z), look = Math.max(-1, Math.min(1, you.x / Math.max(2, you.z) * 2.2));
     const pose = { name: 'softC', sink: gone, bob: Math.sin(t * 2.1) > 0.92 ? 1 : 0 };
     const was = state;
-    if (you.home) { state = 'away'; gone = 1; }
+    if (you.home || you.door) { state = 'away'; gone = 1; }   // (in her house, or her door's open: she's not up here)
     else if (state === 'away') { if (d > 10) state = 'back'; }
     else if (state === 'back') { gone = Math.max(0, gone - dt * 1.4); if (!gone) state = d < SPOT ? 'seen' : 'watch'; }
     else if (d < THRILL && you.z > 0) state = 'thrilled';

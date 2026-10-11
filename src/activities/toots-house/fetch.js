@@ -8,7 +8,7 @@
 import { ground, ballGround, ceiling, onStairs, stairY, levelOf, FOOT, HEAD, RW, RD } from './plan.js';
 
 export const BALL_R = 0.07;
-const G = 9.8, SPEED = { follow: 2.4, chase: 3.4, bring: 2.6 }, ME = 0.3;
+const G = 9.8, SPEED = { follow: 2.4, chase: 3.4, bring: 2.6, come: 4.2 }, ME = 0.3;
 
 export function makeBall(x = 2.0, z = 4.5) { return { x, y: BALL_R, z, vx: 0, vy: 0, vz: 0, rest: true, held: null }; }
 
@@ -61,8 +61,10 @@ export function makeToots() {
     if (a === b) return to;
     if (a === 's') return b === 1 ? HEAD : FOOT;
     if (b === 's') return a === 1 ? (near(t, HEAD, 0.4) ? to : HEAD) : (near(t, FOOT, 0.4) ? to : FOOT);
-    if (a === 0) return near(t, FOOT, 0.4) ? HEAD : FOOT;
-    return near(t, HEAD, 0.4) ? FOOT : HEAD;
+    // (at the foot or the head, on for the stairs: near enough is a step off them, so she never
+    // turns back between the bottom step and the spot she was heading for)
+    if (a === 0) return near(t, FOOT, 0.9) ? HEAD : FOOT;
+    return near(t, HEAD, 0.9) ? FOOT : HEAD;
   }
   // walk towards `to` at `speed`, round what's in the way; stuck a moment, and she hops over it
   function walk(to, speed, dt, stopAt) {
@@ -91,6 +93,8 @@ export function makeToots() {
     t,
     // she's been patted: a happy wiggle (and room.js might hear a roo)
     pat() { t.happy = 1.4; },
+    // she's heard the front door: down the stairs and across to you as fast as she can go
+    come() { Object.assign(t, { mode: 'come', ball: false, wait: 0 }); },
     update(dt, you, ball) {
       t.happy = Math.max(0, t.happy - dt);
       // a hop in progress: an arc from where she was to where she's going
@@ -107,7 +111,9 @@ export function makeToots() {
       if (ball.held === 'you' && t.mode !== 'idle') t.mode = 'idle';
       // the ball's been thrown: after it!
       if (!ball.held && !ball.rest && t.mode === 'idle' && t.wait <= 0) t.mode = 'chase';
-      if (t.mode === 'chase') {
+      if (t.mode === 'come') {
+        if (walk(you, SPEED.come, dt, 1.3)) { t.mode = 'idle'; t.happy = 1.8; }
+      } else if (t.mode === 'chase') {
         if (ball.held) { t.mode = 'idle'; return t; }
         walk(ball, SPEED.chase, dt, 0);
         const flat = Math.hypot(ball.x - t.x, ball.z - t.z), up = ball.y - BALL_R - t.y;

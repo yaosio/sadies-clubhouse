@@ -12,7 +12,9 @@
 - Over 22 m away she watches the town. Closer, she spots you: ears up, eyes following you, the odd
   head tilt (no roo up here: the owner didn't want it over and over across the square). Within 7 m
   she's thrilled (her paw bounces), then drops out of sight, off downstairs to wait just inside the
-  door; walk away (over 10 m) and she's back. Those numbers are Claude's, changeable.
+  door; walk away (over 10 m) and she's back. Beat her to it (open the door before she's left the
+  window) and she comes bounding down the stairs and across to meet you. Those numbers are Claude's,
+  changeable.
 - There's only one Toots: while she's at the window she isn't downstairs, and while you're in her
   house she isn't at the window.
 - She always looks happy: a big open smile with her tongue out.

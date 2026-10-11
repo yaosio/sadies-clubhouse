@@ -20,3 +20,5 @@ How it was asked for. Never needed for a task; only read before undoing a choice
   through the downstairs ceiling for a moment when you walked in before she'd left her window.
 - Then her window picture cut off at the seat as she drops out of sight (it used to slide on down
   below the seat, and showed for a few frames).
+- Then, if you beat her to the door, she comes bounding down the stairs to meet you (she used to just
+  pop in a moment after the door opened).
