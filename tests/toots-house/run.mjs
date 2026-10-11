@@ -63,7 +63,7 @@ check('the stairs join the floors: you can stand at the bottom, half way and the
 
 // 4. only one Toots: inside her house she isn't at the window, and she comes back to it only once you've wandered off
 {
-  const w = makeWatcher(() => {}, seeded(1)), dt = 1 / 30;
+  const w = makeWatcher(seeded(1)), dt = 1 / 30;
   let t = 0, pose;
   for (; t < 3; t += dt) pose = w(t, dt, { x: 0, z: 30 });
   const before = pose.sink;

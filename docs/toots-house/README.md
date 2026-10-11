@@ -4,7 +4,7 @@ The fourth building round the town square outside Sadie's front gate (`src/activ
 on the plot beside Chooter's Paint Shop (`lot` 3), with the path out of the square between them.
 An ordinary two-story house that's plainly a dog's. Toots was the owner's dog: a black pit mix with a
 gray muzzle who loved everybody and loved tennis balls. She watches you from her upstairs window,
-talks to you with her own real roo, and inside she plays fetch. Her real activity is still to come
+roos with her own real voice as her door opens, and inside she plays fetch. Her real activity is still to come
 (the owner has one in mind: looking out the big back window into the backyard).
 
 ## Design pillars (these win over any feature idea)

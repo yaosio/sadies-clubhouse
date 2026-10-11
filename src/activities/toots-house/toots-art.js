@@ -311,9 +311,6 @@ export function windowPoses(make = f => f()) {
   P.blinkSoft = make(() => windowToots({ blink: true }));
   P.tiltL = make(() => windowToots({ ears: 1, tilt: 1 }));
   P.tiltR = make(() => windowToots({ ears: 1, tilt: -1 }));
-  P.roo = make(() => windowToots({ ears: 0, mouth: 'roo' }));
-  P.rooL = make(() => windowToots({ look: -1, mouth: 'roo' }));
-  P.rooR = make(() => windowToots({ look: 1, mouth: 'roo' }));
   P.bounce = make(() => windowToots({ ears: 1, lift: 1, look: 0 }));
   return P;
 }

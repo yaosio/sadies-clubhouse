@@ -3,7 +3,7 @@
 // the clubhouse changes too.
 //
 // It walks out across the town square to her house (she's in the upstairs window) and in through the
-// door, takes a ball from the basket (E, or the USE button on a phone), throws it across the room, and
+// door (she roos as it opens), takes a ball from the basket (E, or the USE button on a phone), throws it across the room, and
 // waits for Toots to bring it back. On the way in, she's left her window and is waiting by the door,
 // and her music plays inside. Then a look at her friends' pictures, and upstairs. Screenshots in
 // dist/check/toots-house/. Any error on the page is a failure.
@@ -36,6 +36,7 @@ export default async function ({ browser, page, check, outDir }) {
     let s = await S();
     check(`${device}: ...and she's there by the door`, s.tootsShown && s.toots.z > 1.5, JSON.stringify(s.toots));
     check(`${device}: ...her music plays in here`, s.music.playing, JSON.stringify(s.music));
+    check(`${device}: ...and she rooed as her door opened`, s.heard.some(k => k.startsWith('roo')), JSON.stringify(s.heard));
     check(`${device}: ...and the town's out there, all round (pictures of it)`, s.views.sky, JSON.stringify(s.views));
     await p.waitForTimeout(400);
     await shot('2-inside');

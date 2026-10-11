@@ -9,7 +9,7 @@
 - Toots is always in her upstairs window, bigger than life (about 3 cm a dot) so you can see her face
   from the square. One paw on the sill: her right one (on your left as you look).
 - Over 22 m away she watches the town. Closer, she spots you: ears up, eyes following you, the odd
-  head tilt, and her roo (the first time you come near, then at most every 25 to 45 s). Within 7 m
+  head tilt (no roo up here: the owner didn't want it over and over across the square). Within 7 m
   she's thrilled (her paw bounces), then drops out of sight, off downstairs to wait just inside the
   door; walk away (over 10 m) and she's back. Those numbers are Claude's, changeable.
 - There's only one Toots: while she's at the window she isn't downstairs, and while you're in her
@@ -38,7 +38,7 @@ Bigger inside than out (16 m by 12 m, two floors).
 - Toots runs after it, picks it up and brings it back to your feet. She follows you about between
   throws, up and down the stairs too, and hops over anything in her way. PAT TOOTS when she's close.
 - She walks with a little hop at the front, the way three-legged dogs do.
-- Now and then (every third fetch, and sometimes when patted) she roos.
+- She roos as her front door opens (from either side), every time you pat her, and every third fetch.
 - Nothing is saved.
 
 ## Her music
@@ -49,5 +49,6 @@ Nothing outside.
 
 ## Her sounds
 Two cuts of her real roo from the owner's window video (the voice at its very end is cut out), played
-at slightly different speeds so they're never quite the same. At most one every 5 s, soft, fading
-with distance, on the voices bus. Outside they belong to the house, so you hear her from the square.
+at slightly different speeds so they're never quite the same. Never two at once: an ask while one's
+still going gets none, and the next ask after it ends gets one straight away. Soft, fading with
+distance, on the voices bus. Outside they belong to the house: you hear her as her door opens.

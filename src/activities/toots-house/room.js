@@ -275,7 +275,7 @@ export async function buildRoom(m) {
   const throwUse = { pos: new Vector3(), reach: 3, label: 'THROW THE BALL', button: 'THROW', act: () => doThrow() };
   const pickUse = { pos: new Vector3(), reach: 2.4, label: 'PICK UP THE BALL', button: 'PICK UP', act: () => { ball.held = 'you'; ball.rest = false; } };
   const basketUse = { pos: new Vector3(bx, 0.5, bz), reach: 2.4, label: 'TAKE A BALL', button: 'TAKE', act: () => { ball.held = 'you'; ball.rest = false; dog.t.ball = false; } };
-  const patUse = { pos: new Vector3(), reach: 2.2, label: 'PAT TOOTS', button: 'PAT', act: () => { dog.pat(); if (Math.random() < 0.4) voice.roo({ at: { x: dog.t.x, y: dog.t.y, z: dog.t.z } }); } };
+  const patUse = { pos: new Vector3(), reach: 2.2, label: 'PAT TOOTS', button: 'PAT', act: () => { dog.pat(); voice.roo({ at: { x: dog.t.x, y: dog.t.y, z: dog.t.z } }); } };   // (every pat, once her last roo's finished)
   const uses = [];
   const look = () => {
     const e = m.ears?.();
@@ -289,7 +289,7 @@ export async function buildRoom(m) {
   }
 
   // ---------- every frame ----------
-  let roosOnDrop = 0;
+  let roosOnDrop = 0, shut = true;
   const place = {
     name: 'room:' + card.id, card, scene, doors: { door }, faces, house, uses,
     light: { sun: 0.4, bulb: 0.7, lamp: [0, L2 - 0.6, 0] },
@@ -315,6 +315,9 @@ export async function buildRoom(m) {
       if (l && !music.playing) music.play();
       if (!l && music.playing) music.stop();
       music.tick();
+      // the front door opening from in here: she roos (from out there, house.js has her roo)
+      if (l && shut && door.amount > 0) voice.roo({ at: { x: dog.t.x, y: dog.t.y, z: dog.t.z } });
+      shut = door.amount === 0;
       const away = !l && (house?.shared.where ?? 'door');
       toots.visible = away !== 'window';
       if (away) {

@@ -147,7 +147,8 @@ export function buildHouse(m, A, poses, roo) {
   lot.blockRound(5.2, 0.6, 0.75);
 
   // ---------- every frame: her, at the window ----------
-  const watch = makeWatcher(() => roo?.({ at: { x: lot.x, y: WIN.y0 + 0.6, z: lot.z } }));
+  const watch = makeWatcher();
+  let shut = true;   // (her front door: she roos as it opens, from just inside it, where she's waiting)
   const c = Math.cos(lot.yaw), s = Math.sin(lot.yaw);
   let shown = 'softC';
   // where she is, for the room inside: 'window' (up there, so not downstairs), or 'door' (gone down to meet you)
@@ -162,6 +163,9 @@ export function buildHouse(m, A, poses, roo) {
       const you = home ? { home } : { x: c * dx - s * dz, z: s * dx + c * dz };
       const pose = watch(t, dt, you);
       shared.where = pose.state === 'away' ? 'door' : 'window';
+      // the door opening from out here: she's right behind it (from in there, room.js has her roo)
+      if (shut && door.amount > 0 && out) roo?.({ at: { x: lot.x, y: 0.5, z: lot.z } });
+      shut = door.amount === 0;
       if (pose.name !== shown && poses[pose.name]) { toots.material.uniforms.map.value = poses[pose.name]; shown = pose.name; }
       // (her breathing is a single dot up and down; dropping out of sight, she slides down behind the sill)
       toots.position.y = WIN.y0 + TOOTS / 2 - 0.02 + pose.bob * 0.02 - pose.sink * (TOOTS + 0.1);
