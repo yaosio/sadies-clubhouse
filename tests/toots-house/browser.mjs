@@ -36,6 +36,7 @@ export default async function ({ browser, page, check, outDir }) {
     let s = await S();
     check(`${device}: ...and she's there by the door`, s.tootsShown && s.toots.z > 1.5, JSON.stringify(s.toots));
     check(`${device}: ...her music plays in here`, s.music.playing, JSON.stringify(s.music));
+    check(`${device}: ...and the town's out there: pictures of it out of her front window and past the backyard`, s.views.front && s.views.back, JSON.stringify(s.views));
     await p.waitForTimeout(400);
     await shot('2-inside');
 
@@ -63,6 +64,12 @@ export default async function ({ browser, page, check, outDir }) {
     await shot('7-tv');
     await M('put', ROOM, 'stairsSide'); await p.waitForTimeout(400);
     await shot('8-stairs');
+    // her backyard outside, from round the side: the fence, and her tree over it
+    const L = { x: 14.13, z: -39.51, yaw: -1.0821 }, c = Math.cos(L.yaw), sn = Math.sin(L.yaw);
+    const at = (lx, lz) => ({ x: L.x + c * lx + sn * lz, z: L.z - sn * lx + c * lz });
+    const from = at(11, -3), to = at(0, -8.5);
+    await M('put', 'outside', { ...from, y: 0, yaw: Math.atan2(-(to.x - from.x), -(to.z - from.z)), pitch: 0.12 }); await p.waitForTimeout(500);
+    await shot('9-backyard');
     check(`${device}: no errors on the page`, !errors.length, errors.slice(0, 3).join(' | '));
   });
 }

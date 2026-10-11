@@ -363,9 +363,26 @@ export async function buildRoom(m) {
     },
   };
 
+  // ---------- what's really out there: pictures of the town, taken once as the house is built ----------
+  // (m.snapshot: the whole outside as it is, bar its sky.) Out of her front window upstairs, the town
+  // square as it is from her window, right up against the glass. Beyond the backyard's fence, far off,
+  // whatever's really behind her house (past the little backyard outside), above the grass's edge.
+  const views = { front: false, back: false };
+  if (m.snapshot && m.outside && m.lot) {
+    const { x, z, yaw } = m.lot, c = Math.cos(yaw), s = Math.sin(yaw);
+    const at = (lx, ly, lz) => [x + c * lx + s * lz, ly, z - s * lx + c * lz];   // (the house's own terms, to the town's)
+    const front = m.snapshot(null, m.outside, { from: at(0, 4.35, 0.7), at: at(0, 3.6, 12), fov: 52, w: 320, h: 240 });
+    plane(4.4, 3.3, psx(front, { unlit: 1 }), [0, (WINDOW.y0 + WINDOW.y1) / 2, RD + 0.45], [0, Math.PI, 0], 1);
+    const FAR = 60, fov = 36, back = m.snapshot(null, m.outside, { from: at(0, 1.6, -13), at: at(0, 1.6, -40), fov, w: 512, h: 256 });
+    const bh = 2 * FAR * Math.tan(fov * Math.PI / 360), bm = psx(back, { unlit: 1 });
+    bm.depthTest = false; bm.depthWrite = false;   // (drawn after the sky, under the grass, the fence and the tree)
+    mesh(new PlaneGeometry(bh * 2, bh, 4, 4), bm, [0, 1.6, -FAR]).renderOrder = -4.5;
+    views.front = views.back = true;
+  }
+
   // for the checks (tests/toots-house/browser.mjs)
   m.checks('__toots', {
-    state: () => ({ ball: { x: ball.x, y: ball.y, z: ball.z, held: ball.held, rest: ball.rest }, toots: { x: dog.t.x, y: dog.t.y, z: dog.t.z, mode: dog.t.mode, fetched: dog.t.fetched }, heard: [...voice.log], music: { playing: music.playing, played: music.played(), barked: music.barked() }, where: house?.shared.where ?? null, tootsShown: toots.visible }),
+    state: () => ({ ball: { x: ball.x, y: ball.y, z: ball.z, held: ball.held, rest: ball.rest }, toots: { x: dog.t.x, y: dog.t.y, z: dog.t.z, mode: dog.t.mode, fetched: dog.t.fetched }, heard: [...voice.log], music: { playing: music.playing, played: music.played(), barked: music.barked() }, where: house?.shared.where ?? null, tootsShown: toots.visible, views }),
     give: () => { ball.held = 'you'; ball.rest = false; },
     throwAt: (dx, dy, dz) => { const e = m.ears(); const n = Math.hypot(dx, dy, dz); throwBall(ball, { x: e.x, y: e.y, z: e.z }, { x: dx / n, y: dy / n, z: dz / n }); },
   });

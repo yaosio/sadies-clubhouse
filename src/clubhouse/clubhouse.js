@@ -298,15 +298,18 @@ export async function open(cards, enter) {
   // A picture of something in a place, taken once (not every frame): `obj` on its own (nothing else in
   // its place shows; the rest is see-through), from `from` looking at `at`, `fov` degrees tall, w x h
   // pixels, lit as `place` is. A place that can't see the real thing shows the picture instead, so
-  // it's never out of date: the hedge maze's view of the clubhouse over its hedges.
+  // it's never out of date: the hedge maze's view of the clubhouse over its hedges. `obj` null: the
+  // whole place as it is, bar its sky (see-through, so the room's own sky shows): a window's view out.
   function snapshot(obj, place, { from, at, fov = 40, w = 256, h = 256 }) {
     place = realPlace(place);   // (a room has the outside lent to it: neighbours.js)
     const target = keep(new WebGLRenderTarget(w, h, { minFilter: NearestFilter, magFilter: NearestFilter }));
     const c = new PerspectiveCamera(fov, w / h, 0.5, 400); c.position.set(...from); c.lookAt(...at); c.updateMatrixWorld();
     const was = res.clone(), alpha = renderer.getClearAlpha(), hid = [];
-    obj.parent?.updateMatrixWorld(true);
-    // (only it: everything else in its place hidden for a moment)
-    for (const o of obj.parent?.children || []) if (o !== obj && o.visible) { o.visible = false; hid.push(o); }
+    // (only it: everything else in its place hidden for a moment; or, the whole place, only its sky)
+    const scene = place.scene;
+    (obj ? obj.parent : scene)?.updateMatrixWorld(true);
+    const hide = obj ? (obj.parent?.children || []).filter(o => o !== obj) : scene.children.filter(o => o.userData.sky);
+    for (const o of hide) if (o.visible) { o.visible = false; hid.push(o); }
     const bg = place.scene.background; place.scene.background = null;
     res.set(w, h); light(place.light); renderer.setClearAlpha(0);
     renderer.setRenderTarget(target); renderer.clear(); renderer.render(place.scene, c); renderer.setRenderTarget(null);

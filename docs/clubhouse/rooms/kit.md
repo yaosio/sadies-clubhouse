@@ -17,7 +17,7 @@ from the clubhouse.
 - `breathe()`: a pause between big parts while building (`docs/clubhouse/world/building-rooms.md`).
 - `card` (its card), its door's `leaf`, its door's picture (`doorImage`).
 - `snapshot(obj, place, { from, at, fov, w, h })`: a picture of one thing in a place, taken once,
-  with everything else see-through. `skyMat`: the outside's sky, for a room that's out of doors.
+  with everything else see-through; `obj` null, the whole place bar its sky (a window's view out). `skyMat`: the outside's sky, for a room that's out of doors.
 
 ## Saving, sound, the page
 - `saves`: its save box (`saves.md`). Sounds come from the toolbox, not the kit

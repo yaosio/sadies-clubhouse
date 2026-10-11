@@ -4,7 +4,8 @@
 - Sky-blue siding, a red shingle roof, a red front door with a dog flap, shutters with bones cut out,
   WELCOME EVERYBODY on the mat, paw-print stepping stones, tennis balls in the gutter and the grass, a
   round attic window drawn as a tennis ball, her mailbox and sign, a fire hydrant on the lawn and a
-  GUESTS doghouse that's a tiny copy of the house.
+  GUESTS doghouse that's a tiny copy of the house. Behind it, her backyard: a white picket fence
+  with her big tree poking up over the roof (smaller than the yard through her big window inside).
 - Toots is always in her upstairs window, bigger than life (about 3 cm a dot) so you can see her face
   from the square. One paw on the sill: her right one (on your left as you look).
 - Over 22 m away she watches the town. Closer, she spots you: ears up, eyes following you, the odd
@@ -22,6 +23,9 @@ Bigger inside than out (16 m by 12 m, two floors).
   wall, framed pictures of her friends Sadie, Marbles and Chooter, each with a gold name plate. Her
   food and water bowls, a basket of tennis balls, a lamp, EVERYBODY IS WELCOME HERE over the door.
 - The stairs run up the left wall.
+- Out of her upstairs front window: the real town square, as it is from her window. Past the
+  backyard's fence, far off: what's really behind her house. Both are still pictures, taken once as
+  the house is built (so no birds or weather moving in them).
 - Upstairs: her window seat at the front window (the one you see her in from outside), her round red
   bed with a ball in it under a BEST FRIENDS picture of her and Sadie, and Sadie's little bed, with
   Sadie sitting on it watching the bird channel on an old TV (birds hopping on a branch, no sound).
