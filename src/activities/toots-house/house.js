@@ -67,7 +67,10 @@ export function buildHouse(m, A, poses, roo) {
   box(WIN.w + 0.3, 0.12, 0.14, white, [0, WIN.y1 + 0.06, 0.04]);
   for (const s of [-1, 1]) box(0.12, wh + 0.2, 0.14, white, [s * (WIN.w / 2 + 0.09), wy, 0.04]);
   // her, in it: a flat picture facing out (not turning: she's in a window), her pose picked every frame
-  const toots = mesh(new PlaneGeometry(TOOTS, TOOTS), psx(poses.softC, { unlit: 0.55 }), [0, WIN.y0 + TOOTS / 2 - 0.02, -0.38]);
+  // (its picture drawn from the seat up: dropping out of sight, it's cut off at the seat, never drawn below it)
+  const toots = mesh(new PlaneGeometry(TOOTS, TOOTS).translate(0, TOOTS / 2, 0), psx(poses.softC, { unlit: 0.55 }), [0, WIN.y0 - 0.02, -0.38]);
+  const tp = toots.geometry.attributes.position, tuv = toots.geometry.attributes.uv;
+  let kept = 1;
   toots.renderOrder = 1;
   // the glass, with her nose prints on it
   plane(WIN.w, wh, psx(A.glass, { fade: 0.35, unlit: 0.6 }), [0, wy, 0.0], null, 2).renderOrder = 3;
@@ -171,9 +174,18 @@ export function buildHouse(m, A, poses, roo) {
       if (shut && door.amount > 0 && out) roo?.({ at: { x: lot.x, y: 0.5, z: lot.z } });
       shut = door.amount === 0;
       if (pose.name !== shown && poses[pose.name]) { toots.material.uniforms.map.value = poses[pose.name]; shown = pose.name; }
-      // (her breathing is a single dot up and down; dropping out of sight, she slides down behind the sill)
-      toots.position.y = WIN.y0 + TOOTS / 2 - 0.02 + pose.bob * 0.02 - pose.sink * (TOOTS + 0.1);
-      toots.visible = pose.sink < 1;
+      // (her breathing is a single dot up and down; dropping out of sight, she slides down behind the
+      // sill: only the part of her still above the seat is drawn, so none of her ever shows below it)
+      toots.position.y = WIN.y0 - 0.02 + pose.bob * 0.02;
+      const keep = Math.max(0, 1 - pose.sink);
+      if (keep !== kept) {
+        for (let i = 0; i < tp.count; i++) {
+          const top = i < tp.count / 2;   // (a plane's top row of corners comes first)
+          tp.setY(i, top ? TOOTS * keep : 0); tuv.setY(i, top ? 1 : 1 - keep);
+        }
+        tp.needsUpdate = true; tuv.needsUpdate = true; kept = keep;
+      }
+      toots.visible = keep > 0;
       return pose;
     },
   };
