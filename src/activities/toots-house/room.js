@@ -49,7 +49,7 @@ export async function buildRoom(m) {
   // (what lies flat on a floor is drawn in order, not by depth: the sky, then the ground and downstairs
   // floor (-4), what lies on them (-3), the upstairs carpet (-2, which covers them), what lies on that (-1))
   const sky = mesh(new SphereGeometry(120, 16, 12), m.skyMat(), [0, 0, 0]); sky.renderOrder = -5;
-  mesh(new PlaneGeometry(200, 200, 16, 16), psx(T.grass, { rx: 100, ry: 100 }), [0, -0.02, 0], [-Math.PI / 2, 0, 0]).renderOrder = -4;
+  mesh(new PlaneGeometry(200, 100, 16, 8), psx(T.grass, { rx: 100, ry: 50 }), [0, -0.02, -50], [-Math.PI / 2, 0, 0]).renderOrder = -4;   // (only behind: out of the front, the town's own ground)
   // a picket fence round the yard, a big tree, flower beds, a birdbath, and one of her balls out in the grass
   for (const [w, pos, ry] of [[30, [0, 0.55, -20], 0], [14, [-15, 0.55, -13], Math.PI / 2], [14, [15, 0.55, -13], Math.PI / 2]]) plane(w, 1.1, psx(A.fence, { rx: w / 1.6, unlit: 0.4, side: DoubleSide }), pos, [0, ry, 0], 2);
   cyl(0.35, 0.5, 4, 8, psx(T.bark, { rx: 2, ry: 3 }), [-5, 2, -13]);
@@ -363,21 +363,22 @@ export async function buildRoom(m) {
     },
   };
 
-  // ---------- what's really out there: pictures of the town, taken once as the house is built ----------
-  // (m.snapshot: the whole outside as it is, bar its sky.) Out of her front window upstairs, the town
-  // square as it is from her window, right up against the glass. Beyond the backyard's fence, far off,
-  // whatever's really behind her house (past the little backyard outside), above the grass's edge.
-  const views = { front: false, back: false };
-  if (m.snapshot && m.outside && m.lot) {
-    const { x, z, yaw } = m.lot, c = Math.cos(yaw), s = Math.sin(yaw);
-    const at = (lx, ly, lz) => [x + c * lx + s * lz, ly, z - s * lx + c * lz];   // (the house's own terms, to the town's)
-    const front = m.snapshot(null, m.outside, { from: at(0, 4.35, 0.7), at: at(0, 3.6, 12), fov: 52, w: 320, h: 240 });
-    plane(4.4, 3.3, psx(front, { unlit: 1 }), [0, (WINDOW.y0 + WINDOW.y1) / 2, RD + 0.45], [0, Math.PI, 0], 1);
-    const FAR = 60, fov = 36, back = m.snapshot(null, m.outside, { from: at(0, 1.6, -13), at: at(0, 1.6, -40), fov, w: 512, h: 256 });
-    const bh = 2 * FAR * Math.tan(fov * Math.PI / 360), bm = psx(back, { unlit: 1 });
-    bm.depthTest = false; bm.depthWrite = false;   // (drawn after the sky, under the grass, the fence and the tree)
-    mesh(new PlaneGeometry(bh * 2, bh, 4, 4), bm, [0, 1.6, -FAR]).renderOrder = -4.5;
-    views.front = views.back = true;
+  // ---------- what's really out there: the town all round, in pictures taken once as the house is built ----------
+  // (m.snapshot of the whole outside, bar its sky and her own house: four pictures, one each way, from
+  // the middle of where her house stands, a little way up.) Hung all round 60 m off, drawn after the
+  // sky and before everything else, they're the town out of every window: the square out of the
+  // front, what's really behind the house past the backyard's fence. No cost each frame.
+  const views = { sky: false };
+  if (m.snapshot && m.outside && m.lot && house) {
+    const { x, z, yaw } = m.lot, c = Math.cos(yaw), s = Math.sin(yaw), Y = 3, R = 60;
+    const world = (lx, ly, lz) => [x + c * lx + s * lz, ly, z - s * lx + c * lz];   // (the house's own terms, to the town's)
+    const T60 = Math.tan(Math.PI / 3);   // (each picture 90 degrees across and 120 high)
+    for (const [dx, dz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+      const pic = m.snapshot(null, m.outside, { from: world(0, Y, -3), at: world(dx, Y, -3 + dz), fov: 120, w: 320, h: Math.round(320 * T60), without: [house.group] });
+      const mt = psx(pic, { unlit: 1 }); mt.depthTest = false; mt.depthWrite = false;
+      mesh(new PlaneGeometry(2 * R, 2 * R * T60, 4, 4), mt, [dx * R, Y, dz * R], [0, Math.atan2(-dx, -dz), 0]).renderOrder = -4.5;
+    }
+    views.sky = true;
   }
 
   // for the checks (tests/toots-house/browser.mjs)

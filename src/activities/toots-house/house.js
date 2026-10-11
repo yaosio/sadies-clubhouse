@@ -129,10 +129,14 @@ export function buildHouse(m, A, poses, roo) {
   // ---------- her backyard, behind the house ----------
   // a white picket fence round it and her big tree poking up over the roof (not the size of the one
   // through her big window inside: rooms are bigger inside, and that's fine)
+  // (a little wider than the house, joined to its back corners)
   const YD = 5, YW = W / 2 + 1.2;
   const fence = (w, pos, ry) => plane(w, 1.1, psx(A.fence, { rx: w / 1.6, unlit: 0.4, side: DoubleSide }), pos, [0, ry, 0], 2);
   fence(2 * YW, [0, 0.55, -D - YD], 0);
-  for (const s of [-1, 1]) fence(YD, [s * YW, 0.55, -D - YD / 2], Math.PI / 2);
+  for (const s of [-1, 1]) {
+    fence(YD, [s * YW, 0.55, -D - YD / 2], Math.PI / 2);
+    fence(YW - W / 2 + 0.05, [s * (W / 2 + YW) / 2, 0.55, -D + 0.02], 0);
+  }
   mesh(new CylinderGeometry(0.35, 0.5, 6, 8), psx(T.bark, { rx: 2, ry: 4 }), [-1.8, 3, -D - 2.6]);
   for (const [x, y, z, r] of [[-1.8, 7, -D - 2.6, 2.8], [-3.1, 6.1, -D - 2, 2], [-0.6, 6.3, -D - 3.2, 2.1]]) mesh(new SphereGeometry(r, 8, 6), psx(T.leaf, { rx: 3, ry: 2 }), [x, y, z]);
 

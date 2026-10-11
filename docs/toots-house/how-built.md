@@ -22,12 +22,13 @@
 - `tools/toots-house/sprites.mjs`: every picture of her on one PNG, to look at without the game.
 
 ## The views out
-`room.js` takes two pictures of the whole outside with the kit's `snapshot` (passing `null`: the
-whole place bar its sky) as it's built: from her window looking at the square, hung right against
-the upstairs front window; and from past the backyard looking away, hung 60 m off behind the
-backyard (under the grass, after the sky). Drawn once, so they cost nothing each frame; a live
-doorway-style view would draw the outside again every frame and take one of the three live
-doorway pictures.
+`room.js` takes four pictures of the whole outside with the kit's `snapshot` (passing `null`: the
+whole place bar its sky, and `without` her own house), from just behind her house looking front,
+back, left and right, 120 degrees wide each so they overlap. They're hung as a box 60 m out all
+round the room, drawn after the sky and under everything else, so every window shows the real town
+in the right direction, and it shifts as you walk like a far view should. The inside grass only
+covers the backyard. Drawn once, so they cost nothing each frame; a live doorway-style view would
+draw the outside again every frame and take one of the three live doorway pictures.
 
 ## Adding her activity later
 The room's file is the only one that changes: the backyard behind the big window is built already,

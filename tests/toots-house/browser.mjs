@@ -36,7 +36,7 @@ export default async function ({ browser, page, check, outDir }) {
     let s = await S();
     check(`${device}: ...and she's there by the door`, s.tootsShown && s.toots.z > 1.5, JSON.stringify(s.toots));
     check(`${device}: ...her music plays in here`, s.music.playing, JSON.stringify(s.music));
-    check(`${device}: ...and the town's out there: pictures of it out of her front window and past the backyard`, s.views.front && s.views.back, JSON.stringify(s.views));
+    check(`${device}: ...and the town's out there, all round (pictures of it)`, s.views.sky, JSON.stringify(s.views));
     await p.waitForTimeout(400);
     await shot('2-inside');
 
