@@ -26,10 +26,10 @@ check('...and keeps nothing (nothing is saved)', card.keeps === undefined);
 const count = (pix, x0, x1, y0, y1, c) => { let n = 0; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (pix.d[y]?.[x] === c) n++; return n; };
 const poses = roomPoses(), bad = [];
 for (const [name, pix] of Object.entries(poses)) {
-  // facing right you see her left side: no near front leg (black), just her right one behind (dark)
-  if (name.startsWith('right') && (count(pix, 40, 52, 37, 46, 'B') || !count(pix, 40, 52, 37, 46, 'D'))) bad.push(name);
-  // facing left you see her right side: the near front leg (black), and nothing behind it (no dark)
-  if (name.startsWith('left') && (!count(pix, 19, 31, 37, 46, 'B') || count(pix, 19, 31, 37, 46, 'D'))) bad.push(name);
+  // facing right you see her right side: the near front leg (black), and nothing behind it (no dark)
+  if (name.startsWith('right') && (!count(pix, 40, 52, 37, 46, 'B') || count(pix, 40, 52, 37, 46, 'D'))) bad.push(name);
+  // facing left you see her left side: no near front leg (black), just her right one behind (dark)
+  if (name.startsWith('left') && (count(pix, 19, 31, 37, 46, 'B') || !count(pix, 19, 31, 37, 46, 'D'))) bad.push(name);
   // from the front: one leg on your left, nothing reaching the floor on your right
   if (name.startsWith('front') && (!count(pix, 15, 24, 56, 61, 'B') || count(pix, 26, 40, 56, 63, 'B') + count(pix, 26, 40, 56, 63, 'D'))) bad.push(name);
 }
