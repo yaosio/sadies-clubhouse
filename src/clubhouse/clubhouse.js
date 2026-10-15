@@ -761,11 +761,11 @@ export async function open(cards, enter) {
   }
   const backupName = () => `sadies-clubhouse-backup-${new Date().toISOString().slice(0, 10)}.json`;
   on($('#saveBackup'), 'click', async () => {
-    const text = backup(ALL), name = backupName();
+    const text = backup(ALL), touch = matchMedia('(pointer: coarse)').matches, name = backupName();
     // on a phone or tablet: the "send to" sheet. It turns away .json files but takes .txt (same contents, only
     // the name and type differ; LOAD A BACKUP takes both). A cancel does nothing; if sharing isn't there or
     // fails, fall through to the normal way below.
-    if (matchMedia('(pointer: coarse)').matches && navigator.share && navigator.canShare) {
+    if (touch && navigator.share && navigator.canShare) {
       try {
         const file = new File([text], name.replace(/\.json$/, '.txt'), { type: 'text/plain' });
         if (navigator.canShare({ files: [file] })) {
@@ -781,7 +781,8 @@ export async function open(cards, enter) {
     let files = null;
     try { files = await window.claude?.use?.('downloads'); } catch {}
     if (files) {
-      try { await files.save({ filename: name, data: text }); lastBackup.now(); showSaves('BACKUP SAVED!'); }
+      // (inside the Claude app the phone's own share sheet comes up from this, and it wants a .txt too)
+      try { await files.save({ filename: touch ? name.replace(/\.json$/, '.txt') : name, data: text }); lastBackup.now(); showSaves('BACKUP SAVED!'); }
       catch (e) { showSaves(e?.code === 'declined' ? 'NO BACKUP SAVED.' : "COULDN'T SAVE A BACKUP HERE."); }
       return;
     }
