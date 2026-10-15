@@ -1,5 +1,5 @@
-// Toots, drawn dot by dot: a black pit mix with a gray muzzle, amber eyes, soft folded ears and a red
-// collar. She has three legs: her FRONT LEFT leg is never drawn, in any picture.
+// Toots, drawn dot by dot: a sleek black pit mix with a gray chin (nothing gray above her mouth), brown eyes,
+// soft folded ears, one small white splotch on her upper chest and a red collar. She has three legs: her FRONT LEFT leg is never drawn, in any picture.
 //
 // Every picture is a grid of palette letters ('.' is see-through), drawn without a browser, so a check
 // can read them (tests/toots-house/run.mjs looks for a front left leg in each). The outline is added
@@ -15,12 +15,13 @@ export const PAL = {
   B: '#2e2f3a',   // her coat
   H: '#4a4d5e',   // shine on her coat
   D: '#1d1e26',   // shade
-  G: '#8e8e98',   // gray muzzle
-  g: '#bcbcc4',   // light gray chin
-  E: '#c07a2e',   // amber eyes
-  e: '#7a4418',   // darker amber
+  G: '#80808c',   // gray muzzle
+  g: '#a2a2ae',   // light gray chin
+  E: '#6e4b30',   // brown eyes
+  e: '#432d1c',   // darker brown
   P: '#140a06',   // pupil
-  W: '#ffffff',   // glint
+  W: '#d9bfa0',   // glint (warm, not white)
+  Q: '#f4f4f6',   // the white splotch on her chest
   N: '#0a0a0c',   // nose
   n: '#5c5e6c',   // shine on her nose
   R: '#e8202a',   // collar
@@ -84,9 +85,6 @@ class Pix {
   rows() { return this.d.map(r => r.join('')); }
 }
 
-// a little dither: every other dot, for the edge between two colours
-const checker = (x, y) => (x + y) % 2 === 0;
-
 // ---------- her head, from the front ----------
 // look: -1 (your left) to 1 (your right); ears: 0 soft and folded, 1 perked up; mouth: 'shut' or 'roo'
 // (open and round, head up, eyes half shut: her talking howl); blink.
@@ -98,23 +96,25 @@ function head(o = {}) {
   for (const s of [-1, 1]) {
     const bx = cx + s * 7 + l * 0.8, by = cy - 6 + up;
     // (perked, the base lifts and the tip still flops over: rose ears never stand straight up)
-    const tip = ears ? [cx + s * 11.5 + l, cy - 10.5 + up] : [cx + s * 14 + l * 0.5, cy - 5 + up];
+    const tip = ears ? [cx + s * 10 + l, cy - 9.5 + up] : [cx + s * 11.5 + l * 0.5, cy - 4 + up];
     p.poly([[bx - s * 3, by + 3], [bx + s * 1.5, by - 2.5], tip, [bx + s * 4.5, by + 4]], 'B');
-    const fold = ears ? [cx + s * 14.5 + l, cy - 6 + up] : [cx + s * 14 + l * 0.5, cy - 1 + up];
+    const fold = ears ? [cx + s * 12 + l, cy - 6 + up] : [cx + s * 11.5 + l * 0.5, cy - 1 + up];
     p.poly([tip, fold, [tip[0] - s * 1.5, tip[1] + 4]], 'D');
   }
   // the skull and cheeks: broad, a pittie's head
-  p.oval(cx + l * 0.6, cy + up, 10.5, 9, 'B');
-  p.oval(cx + l * 0.8, cy + 5.5 + up, 11.5, 6.5, 'B');
+  p.oval(cx + l * 0.6, cy + up, 9.5, 8.5, 'B');
+  p.oval(cx + l * 0.8, cy + 5.5 + up, 10, 6, 'B');
   p.oval(cx - 3 + l, cy - 5 + up, 4, 2, 'H');   // shine on her forehead
   p.oval(cx + 3 + l * 1.2, cy - 6 + up, 1.6, 1, 'H');
-  // the gray muzzle (she was a grand old lady), going into the black above with a dither
+  // the gray chin and jaw (she was a grand old lady): only below her mouth
   const mx = cx + l * 1.6, my = cy + 8.5 + up;
-  p.oval(mx, my, 7, 5.5, 'G', (x, y) => y >= my - 2 || checker(x, y));
-  p.oval(mx, my + 3.5, 5, 2.4, 'g');
+  p.oval(mx, my, 6.5, 5, 'B');
+  // gray only on her chin and jaw, below her mouth (none above it)
+  const gy = cy + 5.8 + up + 3.4;
+  p.oval(mx, gy + 2.5, 6, 3.6, 'G', (x, y) => y >= gy);
+  p.oval(mx, gy + 4.6, 4.2, 1.6, 'g');
   // gray eyebrows
-  for (const s of [-1, 1]) { const ex = cx + s * 5 + l * 1.2; p.set(ex - 1, cy - 3.5 + up, 'G'); p.set(ex, cy - 4 + up, 'G'); p.set(ex + 1, cy - 3.5 + up, 'G'); }
-  // eyes: amber and soft, smiling (her cheeks push up under them)
+  // eyes: brown and soft, smiling (her cheeks push up under them)
   for (const s of [-1, 1]) {
     const ex = cx + s * 5 + l * 1.2, ey = cy + up;
     if (blink) { p.rect(Math.round(ex - 2), Math.round(ey), 4, 1, 'K'); continue; }
@@ -124,7 +124,7 @@ function head(o = {}) {
     const px = Math.round(ex - 0.5 + l * 0.8);
     p.rect(px, Math.round(ey - 0.5), 1, 2, 'P'); p.set(px + 1, ey - 0.5, 'P');
     p.set(px, ey - 1, 'W');
-    if (roo) p.rect(Math.round(ex - 2), Math.round(ey - 2), 5, 2, 'B');   // half shut, singing
+    if (roo) { p.oval(ex, ey, 3, 2.4, 'B'); p.set(ex - 2, ey, 'K'); p.set(ex - 1, ey - 1, 'K'); p.set(ex, ey - 1, 'K'); p.set(ex + 1, ey - 1, 'K'); p.set(ex + 2, ey, 'K'); }   // eyes shut in a happy arc, singing
     else p.rect(Math.round(ex - 1.5), Math.round(ey + 1.5), 3, 1, 'B');   // happy eyes: her cheeks push up under them
   }
   // her nose, with its shine
@@ -134,8 +134,9 @@ function head(o = {}) {
   p.set(nx - 2, ny + 0.3, 'D'); p.set(nx + 1, ny + 0.3, 'D');
   // her mouth
   if (roo) {
-    p.oval(nx, ny + 5, 2.3, 2.8, 'm');
-    p.oval(nx, ny + 6.5, 1.6, 1, 'M');
+    p.oval(nx, ny + 4.6, 2.6, 2.6, 'm');
+    p.oval(nx, ny + 6, 1.7, 1.2, 'M');
+    p.line(nx - 3.4, ny + 2.4, nx - 2.4, ny + 3.2, 'K'); p.line(nx + 3.4, ny + 2.4, nx + 2.4, ny + 3.2, 'K');
   } else {
     // a big happy smile, open, with her tongue out: the corners turned right up
     p.oval(nx, ny + 3.8, 3.4, 1.6, 'm', (x, y) => y >= ny + 3);
@@ -157,13 +158,14 @@ export function windowToots(o = {}) {
   const body = new Pix(W, H);
   // neck, shoulders and chest, going on down behind the sill (the picture's bottom edge)
   body.rect(16, 22, 16, 8, 'B');
-  body.poly([[8, 48], [11, 38], [16, 29], [32, 29], [37, 38], [40, 48]], 'B');
-  body.oval(36, 42, 4, 5, 'D', (x, y) => checker(x, y));    // her left side: smooth, no leg
+  body.poly([[10, 48], [13, 38], [17, 29], [31, 29], [35, 38], [38, 48]], 'B');
+  body.oval(34, 42, 3, 5, 'D');    // her left side: smooth, no leg
   // her collar, and its tag
   body.poly([[15, 29], [33, 29], [34, 32], [24, 34.5], [14, 32]], 'R');
   body.line(15, 30, 24, 32.5, 'S'); body.line(24, 32.5, 33, 30, 'S');
   body.line(16, 32, 24, 34, 'r'); body.line(24, 34, 33, 32, 'r');
   body.oval(24, 36.2, 1.6, 1.8, 'T');
+  body.oval(24, 40.5, 2, 1.5, 'Q');   // her white splotch, just below the collar
   p.over(body.outlined(), 0, sink);
   // her right front leg and paw, on your left, resting on the sill (its own outline, so it reads in front of her chest)
   const leg = new Pix(W, H), ly = Math.round(-lift * 4);
@@ -179,15 +181,15 @@ export function windowToots(o = {}) {
 }
 
 // ---------- from the side ----------
-// dir 1: facing your right, so you see her LEFT side: the near front leg is the missing one, and her
+// dir 1: facing your right, so you see her RIGHT side: the near front leg is there, the far one isn't.
+// dir -1: facing your left, you see her LEFT side: the near front leg is the missing one, and her
 // right front leg shows a little behind, darker, tucked in under her chest (where a three-legged dog
-// carries it). dir -1: facing your left, you see her RIGHT side: the near front leg is there, the far
-// one isn't. step: 0..3, a walk; wag: -1..1, her tail.
+// carries it). step: 0..3, a walk; wag: -1..1, her tail.
 export function sideToots(dir = 1, o = {}) {
   const { step = 0, wag = 0, look = 0, ball = false } = o;
   const W = 72, H = 50, p = new Pix(W, H);
   const hop = [0, -1, -2, -1][step % 4];   // her front hops with each step
-  const near = dir < 0;                   // drawn facing right, flipped at the end: is the near front leg there?
+  const near = dir > 0;                   // drawn facing right (you see her RIGHT side), flipped at the end: is the near front leg there?
   const legsBack = (x, phase, c) => {
     const sw = [0, 1.5, 0, -1.5][(step + phase) % 4];
     p.poly([[x - 3, 27], [x + 3, 27], [x + 2 + sw, 36], [x + 4 + sw, 44], [x + 1 + sw, 44], [x - 2 + sw * 0.5, 36]], c);
@@ -195,7 +197,7 @@ export function sideToots(dir = 1, o = {}) {
   };
   // far legs first (darker)
   legsBack(25, 2, 'D');
-  // the far front leg: her RIGHT front leg when she faces right; when she faces left, the far one is her
+  // the far front leg: her RIGHT front leg when she faces left; when she faces right, the far one is her
   // missing left leg, so nothing
   const fsw = [0, 2, 0, -2][step % 4];
   if (!near) {
@@ -210,7 +212,7 @@ export function sideToots(dir = 1, o = {}) {
   p.oval(45, 26 + hop * 0.6, 8, 8.5, 'B');
   p.oval(21, 23, 7.5, 7.5, 'B');
   p.line(18, 17.5, 42, 17.5 + hop * 0.5, 'H');   // shine along her back
-  p.oval(30, 30, 9, 1.4, 'D', (x, y) => checker(x, y));
+  p.oval(30, 30, 9, 1.4, 'D');
   // the near hind leg
   legsBack(22, 0, 'B');
   // the near front leg: only when it's her right one (facing left)
@@ -219,29 +221,30 @@ export function sideToots(dir = 1, o = {}) {
     p.oval(46.5 - fsw, 44.5, 2.6, 1.5, 'B');
   } else {
     // where her left leg was: a smooth shoulder, a little shine
-    p.oval(45, 27 + hop, 3.5, 3, 'H', (x, y) => checker(x, y));
+    p.oval(45, 27 + hop, 3.5, 3, 'H');
   }
   // neck and collar
   p.poly([[44, 16 + hop], [53, 9 + hop], [58, 15 + hop], [52, 26 + hop]], 'B');
   p.poly([[50, 12 + hop], [53, 10.5 + hop], [57, 19 + hop], [54, 21 + hop]], 'R');
+  p.oval(51.5, 24 + hop, 1.3, 1.3, 'Q');   // the white splotch on her chest, below the collar
   p.line(51, 12 + hop, 55, 20 + hop, 'S');
   p.oval(55, 22.5 + hop, 1.3, 1.5, 'T');
   // her head
   const hy = 9 + hop;
   p.oval(58, hy, 7, 6, 'B');
   p.oval(55, hy - 3, 3, 1.5, 'H');
-  p.poly([[60, hy - 1], [69, hy], [70, hy + 4], [61, hy + 6]], 'G');
+  p.poly([[60, hy - 1], [69, hy], [70, hy + 4], [61, hy + 6]], 'B');
+  p.poly([[61, hy + 4.5], [69, hy + 4.5], [70, hy + 4], [61, hy + 6]], 'G');   // gray only on her chin, below her mouth
   p.poly([[60, hy - 1.5], [68, hy - 0.5], [67, hy + 1], [60, hy + 1]], 'B');
   p.oval(65, hy + 5, 4, 1.6, 'g');
   p.oval(69.5, hy + 0.5, 1.6, 1.6, 'N');
   p.set(69, hy - 0.5, 'n');
   // her smile: the corner turned up, and her tongue out (not with the ball in her mouth)
   p.line(61.5, hy + 2.5, 63.5, hy + 4, 'K'); p.line(63.5, hy + 4, 68, hy + 4, 'K');
-  if (!ball) { p.oval(64.5, hy + 5.6, 1.4, 1.6, 'M'); p.set(64.5, hy + 4.6, 'm'); }
+  if (!ball) { p.oval(70.2, hy + 5, 1.9, 1.3, 'M'); p.set(68, hy + 4.4, 'm'); p.set(69, hy + 4.4, 'm'); }
   // eye
   p.oval(61, hy - 2, 1.6, 1.3, 'K'); p.set(61, hy - 2, 'E'); p.set(62, hy - 2, look > 0 ? 'P' : 'E'); p.set(61 + (look > 0 ? 1 : 0), hy - 2, 'P'); p.set(61, hy - 3, 'B');
-  p.set(60, hy - 4, 'G'); p.set(61, hy - 4.5, 'G');
-  // her ear: soft, folded back
+    // her ear: soft, folded back
   p.poly([[54, hy - 5], [57, hy - 7], [52, hy - 4], [50, hy - 1]], 'D');
   p.poly([[54, hy - 5.5], [57.5, hy - 6.5], [55, hy - 3]], 'B');
   if (ball) { p.oval(67, hy + 5.5, 2.8, 2.8, 'Y'); p.set(66, hy + 4.5, 'y'); p.set(68, hy + 6.5, 'y'); }
@@ -260,8 +263,8 @@ export function frontToots(o = {}) {
   // (only their paws show, tucked behind her: so the one front leg is the only leg you see)
   for (const sd of [-1, 1]) p.oval(24 + sd * 7, 53.5, 2.6, 1.5, 'D');
   // chest and body
-  p.oval(24, 44, 10, 8.5, 'B');
-  p.oval(31, 46, 4, 5, 'D', (x, y) => checker(x, y));   // her left shoulder: smooth, no leg
+  p.oval(24, 44, 9, 8.5, 'B');
+  p.oval(30, 46, 3, 5, 'D');   // her left shoulder: smooth, no leg
   // her right front leg, on your left, set in toward the middle the way she carried it, nearest you
   const leg = new Pix(W, H);
   leg.rect(17, 45, 6, 14, 'B'); leg.rect(17, 46, 2, 10, 'H');
@@ -271,6 +274,7 @@ export function frontToots(o = {}) {
   p.poly([[15, 33], [33, 33], [34, 36], [24, 38.5], [14, 36]], 'R');
   p.line(15, 34, 24, 36.5, 'S'); p.line(24, 36.5, 33, 34, 'S');
   p.oval(24, 40, 1.6, 1.8, 'T');
+  p.oval(24, 44, 2, 1.5, 'Q');   // her white splotch, just below the collar
   p.over(head({ look, ears, mouth, blink }).outlined(), 0, 3);
   if (ball) { const b = new Pix(W, H); b.oval(24 + look * 1.6, 31.5, 3.3, 3.1, 'Y'); b.set(23 + look * 1.6, 30, 'y'); b.set(25 + look * 1.6, 33, 'y'); p.over(b.outlined()); }
   return p.outlined();

@@ -23,7 +23,7 @@ import { makeSounds } from './sounds/index.js';
 import { soundsFor } from '../../shared/sound.js';
 import { makeMusic } from './music.js';
 
-const DOT = 0.0135;   // how big one of Toots' dots is inside, in metres (so she stands about as tall as your knee)
+const DOT = 0.017;   // how big one of Toots' dots is inside, in metres (a bit bigger than knee height, so she's easy to see and pat)
 
 export async function buildRoom(m) {
   const { psx, keep, kit, wallGeometry, doorway, card, tex, T } = m;
