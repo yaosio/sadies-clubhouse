@@ -762,6 +762,21 @@ export async function open(cards, enter) {
   const backupName = () => `sadies-clubhouse-backup-${new Date().toISOString().slice(0, 10)}.json`;
   on($('#saveBackup'), 'click', async () => {
     const text = backup(ALL), name = backupName();
+    // on a phone or tablet: the "send to" sheet. It turns away .json files but takes .txt (same contents, only
+    // the name and type differ; LOAD A BACKUP takes both). A cancel does nothing; if sharing isn't there or
+    // fails, fall through to the normal way below.
+    if (matchMedia('(pointer: coarse)').matches && navigator.share && navigator.canShare) {
+      try {
+        const file = new File([text], name.replace(/\.json$/, '.txt'), { type: 'text/plain' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Sadie\'s Clubhouse backup' });
+          lastBackup.now(); showSaves('BACKUP SAVED!');
+          return;
+        }
+      } catch (e) {
+        if (e?.name === 'AbortError') { showSaves('NO BACKUP SAVED.'); return; }
+      }
+    }
     // on the game page, the page asks first (claude.ai's own way to hand you a file); anywhere else, a plain download
     let files = null;
     try { files = await window.claude?.use?.('downloads'); } catch {}

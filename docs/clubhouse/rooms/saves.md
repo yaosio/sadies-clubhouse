@@ -44,7 +44,7 @@ the way out then, so nothing erased comes back.
 It says how much the saves take and when the last backup was (yellow when the browser hasn't promised
 to keep the saves and the last backup is over a month old or never: Claude's choice). It warns when the
 browser says it's nearly out of room, a save didn't fit, or the browser won't keep saves. The game asks
-the browser once to keep its saves (`navigator.storage.persist()`). It saves or loads a backup file of every save. Loading looks the file over first
+the browser once to keep its saves (`navigator.storage.persist()`). It saves or loads a backup file of every save. On a touch device SAVE A BACKUP opens the phone's share sheet with the same contents as a `.txt` file (share sheets turn `.json` away); a cancel saves nothing, and no share support or a failed share falls back to the normal download. Loading takes `.json` or `.txt`. Loading looks the file over first
 (`inspectBackup`) and turns it away, changing nothing, if it isn't a backup (a backup has no size cap),
 is from a newer version, has no saves in it or has any save that can't be read. Then it asks, saying
 the file's date and how many saves it holds. Loading is all or nothing and never wipes a save put
