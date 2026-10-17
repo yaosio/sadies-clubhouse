@@ -25,10 +25,10 @@ export default async function ({ browser, page, check, outDir }) {
     await p.click('#ok');
 
     // out of the gate, across the square, and in
-    check(`${device}: Toots' house is on the town square, with its door`, await M('faceDoor', 'outside', 'toots-house', 6));
+    check(`${device}: Toots' house is on the town square, with its door`, await M('faceDoor', 'outside', 'toots-house', 3));   // (her ledge on the hydrant is only about 3 m deep in front of the door)
     await p.waitForTimeout(700);
     await shot('1-house');
-    await walk(900); await p.waitForTimeout(500);
+    await walk(300); await p.waitForTimeout(500);
     check(`${device}: ...which opens onto her house`, await M('looking') === ROOM);
     check(`${device}: ...and at her door, she's left the window to meet you (only one Toots)`, await until(() => window.__toots.state().where === 'door', null, 8000), JSON.stringify(await S()));
     await walk(1400);

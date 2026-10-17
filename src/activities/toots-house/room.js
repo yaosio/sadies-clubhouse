@@ -385,7 +385,7 @@ export async function buildRoom(m) {
   const views = { sky: false };
   if (m.snapshot && m.outside && m.lot && house) {
     const { x, z, yaw } = m.lot, c = Math.cos(yaw), s = Math.sin(yaw), Y = 3, R = 60;
-    const world = (lx, ly, lz) => [x + c * lx + s * lz, ly, z - s * lx + c * lz];   // (the house's own terms, to the town's)
+    const world = (lx, ly, lz) => [x + c * lx + s * lz, m.lot.y + ly, z - s * lx + c * lz];   // (the house's own terms, to the town's: her ledge's height is part of it)
     const T60 = Math.tan(Math.PI / 3);   // (each picture 90 degrees across and 120 high)
     for (const [dx, dz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
       await m.breathe?.();   // (each picture is a whole drawing of the town: a breath between them, so you never feel it)

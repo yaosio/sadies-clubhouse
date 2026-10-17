@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs';
 import { walk as walkFor, rest, until, DEVICES, pressUse, pressPause, yesAndReload } from '../shared/browser.mjs';
 import { allKeeps, allCards } from './cards.mjs';
 import { DESKTOP } from '../shared/devices.mjs';
+import { checkHydrant } from './hydrant.mjs';
 
 const LEAK_MB = 3;   // (how much the page's memory may grow over two more rounds of putting every room away and building it again)
 
@@ -76,6 +77,8 @@ export default async function ({ browser, page, check, outDir, touched = null })
     const edge = await M('where');
     await shot('2b-pool');
     check(`${device}: you walk in at the pool's gate and stop at the water's edge, not in it`, edge.place === 'outside' && edge.z > 17 && edge.z < 20.1, `got to z ${edge.z.toFixed(1)}`);
+
+    await checkHydrant({ p, M, walk, check, shot, device });
 
     // in through the front door: it opens as you come up, and the hall shows through it
     await M('faceDoor', 'outside', 'front', 2.4);
