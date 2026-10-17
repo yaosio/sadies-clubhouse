@@ -6,8 +6,8 @@ the hydrant, its doors, or what stands on its landings.
 - Numbers: `HYDRANT` and `HYDRANT_DOORS` in `src/clubhouse/town/layout.js`. Walking: `hydrant-walk.js`
   (pure numbers: the ramp's height at every turn, the ledges, the deck). Drawing: `hydrant.js` and
   `hydrant-art.js` (signs and textures).
-- **The ramp** winds up round the barrel from a foot on the square's side. At each landing it levels
-  off into a ledge; a dog's building stands there. The top is the lookout deck. There is no edge to
+- **The ramp** winds up round the barrel from a foot a little round from the square's side (`th0` is turned so the row of four doors at the base, which fans the other way, sits dead ahead as you come from the square). At each landing it levels
+  off into a ledge; a dog's building stands there, its front door facing the hydrant, in line with the door that comes out of the barrel (`HOUSE_AT`), so you step out looking at its front. The top is the lookout deck. There is no edge to
   walk off: the floor just stops (rails are for looking at). Near the foot the ground is not a floor
   (`onTheFoot`), or you'd stay on the ground and never climb.
 - **Landings are plots.** Lots 1 and 3 (two dogs' buildings) are on ledges (`ledge(i)`
@@ -17,7 +17,7 @@ the hydrant, its doors, or what stands on its landings.
 - **The doors** are four pairs of portals: one at the foot and one on its landing (or the deck). They
   are plain portals, not rooms: no card, no activity, nothing for the room system to know. They are
   the clubhouse's ordinary portals (`outside.links`, a portal each in `clubhouse.js`), joining two
-  places in the same outside. Step through one and you stand by its partner.
+  places in the same outside. Step through one and you stand by its partner. The barrel has no flare at its foot: it showed up through the doors.
   The lookout door faces the clubhouse.
 - Their ids are `dog-city.<id>.down` and `.up` (`DOOR_SIDES`).
 - The plots those two used by the square are empty. A new one goes on the end of

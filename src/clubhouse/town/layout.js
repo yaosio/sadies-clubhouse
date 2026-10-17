@@ -23,28 +23,30 @@ export const HYDRANT = {
   x: 31, z: -66,
   barrel: 10,            // how wide the barrel is (radius)
   lane: [10, 13.5],      // the ramp's lane: from the barrel out to here
-  ledge: 29,             // how far out a landing's ledge goes
+  ledge: 31,             // how far out a landing's ledge goes
   deck: [8, 19],         // the lookout deck round the cap: in to out
   top: 30,               // how high the deck is
   half: 0.5,             // a landing's half width, in radians of turn
   end: 28.4,             // where the ramp meets the deck (turn)
   stops: [
-    { who: 'chooter', turn: 7.3, y: 8, door: 22.5 },
-    { who: 'toots', turn: 15.7, y: 15, door: 25.5 },
-    { who: 'lily', turn: 24.1, y: 22, door: 22.5 },   // (her ledge is waiting for her house: lot 5)
+    { who: 'chooter', turn: 7.3, y: 8, door: 20.5 },
+    { who: 'toots', turn: 15.7, y: 15, door: 21.5 },
+    { who: 'lily', turn: 24.1, y: 22, door: 21.5 },   // (her ledge is waiting for her house: lot 5)
   ],
 };
-HYDRANT.th0 = Math.atan2(SQUARE.z - HYDRANT.z, SQUARE.x - HYDRANT.x);   // the way from the hydrant to the square: where the ramp starts
+// where the ramp starts: round from the way to the square, so the row of doors beside its foot (they go the other way) sits dead ahead as you come from the square
+HYDRANT.th0 = Math.atan2(SQUARE.z - HYDRANT.z, SQUARE.x - HYDRANT.x) + 0.875;
+const HOUSE_AT = -0.2;   // each house stands a little before its landing's middle, in line with the door that comes out of the hydrant (so you step out facing its front)
 const polar = (r, th) => ({ x: HYDRANT.x + r * Math.cos(th), z: HYDRANT.z + r * Math.sin(th) });
-// a landing's front door as a plot: where its threshold is, how high, and the way it faces (straight out from the hydrant)
+// a landing's front door as a plot: where its threshold is, how high, and the way it faces (in at the hydrant)
 const ledge = i => {
-  const s = HYDRANT.stops[i], th = HYDRANT.th0 + s.turn, p = polar(s.door, th);
-  return { x: round(p.x, 100), y: s.y, z: round(p.z, 100), yaw: round(Math.atan2(Math.sin(Math.PI / 2 - th), Math.cos(Math.PI / 2 - th)), 10000) };
+  const s = HYDRANT.stops[i], th = HYDRANT.th0 + s.turn + HOUSE_AT, p = polar(s.door, th);
+  return { x: round(p.x, 100), y: s.y, z: round(p.z, 100), yaw: round(Math.atan2(Math.sin(Math.PI * 1.5 - th), Math.cos(Math.PI * 1.5 - th)), 10000) };   // (the front door faces the hydrant)
 };
 
 // The plots: the same numbers, in the same order, as the cards' `lot` (never reordered: a new one goes on
 // the end). Each is the middle of a front door's threshold, with `yaw`: the way the door faces
-// (towards the middle of the square, or out from the hydrant).
+// (towards the middle of the square, or in at the hydrant).
 // 0 Clyde's House (and his weather machine, out to its left), 1 Chooter's Paint Shop (Dog City, the
 // lowest landing), 2 the barbershop, 3 Toots' House (Dog City, the middle landing), 4 the next free
 // one (past the path on the right), 5 Lily's House (Dog City, the top landing).
@@ -58,9 +60,9 @@ export const LILY_LOT = 5;   // (held for Lily's house: its ledge has its own si
 // `up`: its place round the hydrant (the lookout's faces the clubhouse), as a turn from the foot.
 const toward = (x, z) => Math.atan2(z - HYDRANT.z, x - HYDRANT.x);
 export const HYDRANT_DOORS = [
-  { id: 'chooter', label: "CHOOTER'S PAINT SHOP", color: 0xff8ec8, base: -0.35, stop: 0, up: 6.9 },
-  { id: 'toots', label: "TOOTS' HOUSE", color: 0x7ab8f0, base: -0.7, stop: 1, up: 15.3 },
-  { id: 'lily', label: "LILY'S HOUSE", color: 0xffb0d0, base: -1.05, stop: 2, up: 23.7 },
+  { id: 'chooter', label: "CHOOTER'S PAINT SHOP", color: 0xff8ec8, base: -0.35, stop: 0, up: 7.3 + HOUSE_AT },
+  { id: 'toots', label: "TOOTS' HOUSE", color: 0x7ab8f0, base: -0.7, stop: 1, up: 15.7 + HOUSE_AT },
+  { id: 'lily', label: "LILY'S HOUSE", color: 0xffb0d0, base: -1.05, stop: 2, up: 24.1 + HOUSE_AT },
   { id: 'lookout', label: 'THE LOOKOUT', color: 0xffd23a, base: -1.4, stop: -1, up: toward(0, 5) - HYDRANT.th0 },   // (looking at the clubhouse, over the town)
 ];
 

@@ -68,7 +68,7 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   const red = psx(A.red, { rx: 14, ry: 6, side: DoubleSide }), redDark = psx(A.redDark, { rx: 8, ry: 2, side: DoubleSide });
   const lathe = (pts, mat, seg = 32) => { const m = new Mesh(keep(new LatheGeometry(pts.map(([r, y]) => new Vector2(r, y)), seg)), mat); m.position.set(H.x, 0, H.z); return put(m); };
   const B = H.barrel, TOP = H.top;
-  lathe([[0.01, 0.02], [B + 0.35, 0.02], [B + 0.35, 0.3], [B, 0.8], [B, TOP - 0.05], [H.deck[0], TOP - 0.05]], red);   // the barrel, with a low flare at its foot
+  lathe([[0.01, 0.02], [B, 0.02], [B, TOP - 0.05], [H.deck[0], TOP - 0.05]], red);   // the barrel (no flare at its foot: it showed up through the doors)
   // the cap: a rotunda with DOG CITY round it, a rim, the dome and the nut on top
   const rotunda = new Mesh(keep(new CylinderGeometry(8, 8, 4, 32, 1, true)), psx(A.capBand, { rx: 4, side: DoubleSide })); rotunda.position.set(H.x, TOP + 2, H.z); put(rotunda);
   lathe([[8, TOP + 4], [9.3, TOP + 4], [9.3, TOP + 5.3], [8, TOP + 5.3]], redDark);
@@ -134,7 +134,7 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   const near = (t, u, gap) => Math.abs(Math.atan2(Math.sin(t - u), Math.cos(t - u))) < gap;   // (turn t is within gap of turn u, going round)
   for (let t = 0.3; t < slotFrom - 0.3; t += 1.5) {
     if (H.stops.some(s => Math.abs(t - s.turn) < H.half + 0.2)) continue;
-    if (HYDRANT_DOORS.some(d => near(t, d.base, 0.45)) || near(t, 0.32, 0.3)) continue;   // (not in front of a door, or the sign)
+    if (HYDRANT_DOORS.some(d => near(t, d.base, 0.45) || (d.stop >= 0 && near(t, d.up, 0.5))) || near(t, 0.32, 0.3)) continue;   // (not in front of a door, or the sign)
     const q = P(R1 - 0.45, t, 0), h = rampHeight(t) - 0.5, top = P(R1 - 0.45, t, h);
     under.rod([q[0], 0, q[2]], top, 0.55);
     solid.circles.push([q[0], q[2], 0.3, undefined, h]);

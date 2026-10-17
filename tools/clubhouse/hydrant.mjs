@@ -20,15 +20,17 @@ const VIEWS = {
   'far': { from: [-8, -10, 0], to: [H.x, 14, H.z] },
   'foot': { from: stand(21, 0.1, 0), to: look(12, 0.9, 3) },
   'doors': { from: stand(22, -0.7, 0), to: look(10, -0.75, 2) },
-  'ledge-chooter': { from: stand(27, H.stops[0].turn, H.stops[0].y), to: look(18, H.stops[0].turn, H.stops[0].y + 2) },
-  'ledge-toots': { from: stand(28, H.stops[1].turn, H.stops[1].y), to: look(20, H.stops[1].turn, H.stops[1].y + 2) },
-  'ledge-lily': { from: stand(27.5, H.stops[2].turn, H.stops[2].y), to: look(20, H.stops[2].turn, H.stops[2].y + 1) },
+  // on a landing, a few steps from the door that comes out of the hydrant, looking at the house's front
+  'ledge-chooter': { from: stand(15, H.stops[0].turn - 0.2, H.stops[0].y), to: look(21, H.stops[0].turn - 0.2, H.stops[0].y + 2) },
+  'ledge-toots': { from: stand(15, H.stops[1].turn - 0.2, H.stops[1].y), to: look(22, H.stops[1].turn - 0.2, H.stops[1].y + 2) },
+  'ledge-lily': { from: stand(15, H.stops[2].turn - 0.2, H.stops[2].y), to: look(22, H.stops[2].turn - 0.2, H.stops[2].y + 1) },
   'lookout': { from: stand(14.5, 0.4, H.top), to: [0, 3, -10] },
   'cap': { from: stand(17.5, 2.2, H.top), to: [H.x, H.top + 8, H.z] },
   'ramp': { from: stand(11.8, 3.0, 4), to: look(11.8, 3.6, 5.5) },
 };
 // in front of each door, 2.5 m out, looking at it
 for (const s of DOOR_SIDES) { const p = around(s.r0 + 1.9 + 2.5, s.th), q = around(s.r0, s.th); VIEWS[`door-${s.id}`] = { from: [p.x, p.z, s.y], to: [q.x, s.y + 1.6, q.z] }; }
+VIEWS['out-of-toots'] = { from: stand(12.6, H.stops[1].turn - 0.2, H.stops[1].y), to: look(22, H.stops[1].turn - 0.2, H.stops[1].y + 0.3) };   // just stepped out of the door
 const wanted = process.argv.slice(2);
 const server = await serve();
 const browser = await launch();
