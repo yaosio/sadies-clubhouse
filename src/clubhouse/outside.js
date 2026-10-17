@@ -19,7 +19,7 @@ import { psx, keep, skyMat, tex, sadieSprite } from './look.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
 import { LOTS, SQUARE, HYDRANT, LILY_LOT } from './town/layout.js';
 import { buildHydrant } from './town/hydrant.js';
-import { onTheFoot } from './town/hydrant-walk.js';
+import { onTheFoot, onLedge } from './town/hydrant-walk.js';
 import { buildSquare } from './town/square.js';
 import { buildPool } from './pool/pool.js';
 import { DECK, RECTS as POOL_RECTS } from './pool/layout.js';
@@ -300,7 +300,7 @@ export function buildOutside(T, cards = []) {
     // A house on a raised plot (a landing on the hydrant): its flat pictures on the ground (the path to its
     // door, stepping stones), which are drawn with no depth test just after the grass, are drawn just
     // after the ledge's top instead (a ledge draws after the ground's own pictures, so they don't show through it).
-    raise(group) { group.traverse(o => { if (o.renderOrder < 0 && o.material?.depthTest === false) o.renderOrder = -0.25; }); },
+    raise(group, y) { const order = onLedge(Math.max(0, HYDRANT.stops.findIndex(s => s.y === y))); group.traverse(o => { if (o.renderOrder < 0 && o.material?.depthTest === false) o.renderOrder = order; }); },
     light: { sun: 0.5, bulb: 0, lamp: [0, 20, -40] },
     // out of doors (the weather: weather/sky.js): the cloud cover just inside the sun and just outside
     // the hills, so it hides the sun and its edge is behind the hills; a second sun comes up over the

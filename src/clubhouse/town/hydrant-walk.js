@@ -9,6 +9,14 @@
 import { HYDRANT as H, HYDRANT_DOORS } from './layout.js';
 
 const TAU = Math.PI * 2;
+
+// Draw orders of the flat pictures (no depth test) on each landing. Everything on the ground below is -1
+// to -0.4 (the square, the paths, the pool's water, the snow), so a ledge's floor is drawn after all of
+// that; and each landing higher up is a step later still, so a path on a low landing is never painted
+// over a higher one's floor (it would show through, seen from above).
+export const ledgeTop = i => -0.35 + 0.04 * i;
+export const onLedge = i => ledgeTop(i) + 0.02;   // (what stands on landing i: a house's path, a pad)
+
 export const TURNS = Math.ceil(H.end / TAU);   // how many times round it goes (the most heights at one spot)
 
 // the ramp's height at a turn: climbing between the landings, level on them

@@ -32,6 +32,7 @@ const VIEWS = {
 for (const s of DOOR_SIDES) { const p = around(s.r0 + 1.9 + 2.5, s.th), q = around(s.r0, s.th); VIEWS[`door-${s.id}`] = { from: [p.x, p.z, s.y], to: [q.x, s.y + 1.6, q.z] }; }
 VIEWS['out-of-toots'] = { from: stand(12.6, H.stops[1].turn - 0.2, H.stops[1].y), to: look(22, H.stops[1].turn - 0.2, H.stops[1].y + 0.3) };   // just stepped out of the door
 VIEWS['lily-to-the-pool'] = { from: stand(27, H.stops[2].turn - 0.2, H.stops[2].y), to: [0, 0, 22.7] };   // the ledge floor must hide the pool's water (a flat picture drawn with no depth test)
+VIEWS['lily-over-chooter'] = { from: stand(27, H.stops[2].turn - 0.2, H.stops[2].y), to: look(20.5, H.stops[0].turn - 0.2, H.stops[0].y) };   // a low landing's path must not show through a higher floor
 const wanted = process.argv.slice(2);
 const server = await serve();
 const browser = await launch();

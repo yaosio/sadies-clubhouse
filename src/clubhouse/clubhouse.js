@@ -152,7 +152,7 @@ export async function open(cards, enter) {
         const p = { a: d, wa: outside, open: 0, slot: r, key }; portals.push(p); r.portals.push(p);
       }
       r.house = w.house;   // (kept when the room's put away: it's part of the outside)
-      if (w.house?.group && Number.isInteger(c.lot) && outside.lots[c.lot].y > 0) outside.raise(w.house.group);
+      if (w.house?.group && Number.isInteger(c.lot) && outside.lots[c.lot].y > 0) outside.raise(w.house.group, outside.lots[c.lot].y);
       for (const p of r.portals) {
         p.b = w.doors[p.key]; p.wb = w; p.open = 0;
         p.b.swing = -1;   // every door swings into the place further in

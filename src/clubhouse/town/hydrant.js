@@ -10,14 +10,13 @@ import { Mesh, Group, BufferGeometry, Float32BufferAttribute, LatheGeometry, Vec
 import { psx, keep } from '../look.js';
 import { kit, doorway, wallGeometry } from '../build.js';
 import { HYDRANT as H, HYDRANT_DOORS, LOTS, LILY_LOT, SQUARE, PATHS } from './layout.js';
-import { rampHeight, around, surfaces, DOOR_SIDES } from './hydrant-walk.js';
+import { rampHeight, around, surfaces, DOOR_SIDES, ledgeTop, onLedge } from './hydrant-walk.js';
 import { hydrantArt, signboard, doorLeaf } from './hydrant-art.js';
 
 const TAU = Math.PI * 2;
 const [R0, R1] = H.lane, RL = H.ledge;
 const DOOR = { w: 1.7, h: 2.8 };                    // a door in the hydrant
 const HOUSING = { w: 3.0, h: 3.4, deep: 1.9 };      // the red box a door sits in, sticking out of the wall
-const LEDGE = -0.35;                                // draw order of a ledge top: after every flat picture on the ground (they have no depth test and would show through it: the square, the paths -1 to -0.9, the pool -0.5 to -0.4, the snow -0.5), before the ones on the ledge (outside.raise: -0.25)
 const SLOT = 1.9;                                   // how many radians of the ramp's last stretch the deck leaves open above it
 const P = (r, turn, y) => { const th = H.th0 + turn; return [H.x + r * Math.cos(th), y, H.z + r * Math.sin(th)]; };
 const out = turn => { const th = H.th0 + turn; return [Math.cos(th), 0, Math.sin(th)]; };   // straight out from the barrel there
@@ -59,7 +58,7 @@ function rail(S, pts, tall = 1.1) {
 
 export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   const A = hydrantArt();
-  const { plane, cyl } = kit(scene);
+  const { cyl } = kit(scene);
   const solid = { surfaces: surfaces(), circles: [], turned: [], links: [] };
   const lit = psx(T.lantern, { unlit: 1 }), iron = psx(null, { tint: 0x221a44 });
   const put = (m, order) => { if (order !== undefined) m.renderOrder = order; scene.add(m); return m; };
@@ -78,7 +77,7 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   solid.circles.push([H.x, H.z, H.deck[0], TOP - 0.1, TOP + 6]);      // the cap's wall, on the deck
 
   // ---------- the pieces of concrete ----------
-  const tops = new Soup(), ledgeTops = new Soup(), under = new Soup(), rails = new Soup(), paws = new Soup();
+  const tops = new Soup(), ledgeTops = H.stops.map(() => new Soup()), under = new Soup(), rails = new Soup(), paws = new Soup();
   const UP = [0, 1, 0], DOWN = [0, -1, 0];
   const inLanding = t => H.stops.some(s => Math.abs(t - s.turn) < H.half - 1e-6);
   // the ramp: a lane round the barrel, level on each landing (with its face, and its underside)
@@ -90,11 +89,11 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
     if (!inLanding(t + STEP / 2)) under.quad(P(R1, t, ha - 0.5), P(R1, q, hb - 0.5), P(R1, q, hb), P(R1, t, ha), out(t + STEP / 2));
   }
   // each landing's ledge, out past the lane: flat on top, held up from below by a bracket
-  for (const s of H.stops) {
+  for (const [k, s] of H.stops.entries()) {
     const n = 20, y = s.y + 0.02;
     for (let i = 0; i < n; i++) {
       const a = s.turn - H.half + 2 * H.half * i / n, b = s.turn - H.half + 2 * H.half * (i + 1) / n;
-      ledgeTops.quad(P(R1, a, y), P(RL, a, y), P(RL, b, y), P(R1, b, y), UP);
+      ledgeTops[k].quad(P(R1, a, y), P(RL, a, y), P(RL, b, y), P(R1, b, y), UP);
       under.quad(P(R1, a, y - 4.5), P(RL, a, y - 0.8), P(RL, b, y - 0.8), P(R1, b, y - 4.5), DOWN);
       under.quad(P(RL, a, y - 0.8), P(RL, b, y - 0.8), P(RL, b, y), P(RL, a, y), out((a + b) / 2));
     }
@@ -152,7 +151,7 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   }
   const concrete = psx(A.concrete, { rx: 1, ry: 1, side: DoubleSide }), concreteSide = psx(A.concreteSide, { side: DoubleSide });
   // (a ledge's top is drawn after the ground's flat pictures (paths, the puddle), so they can't show through it)
-  put(tops.mesh(concrete)); put(ledgeTops.mesh(psx(A.concrete, { side: DoubleSide })), LEDGE);
+  put(tops.mesh(concrete)); ledgeTops.forEach((t, k) => put(t.mesh(psx(A.concrete, { side: DoubleSide })), ledgeTop(k)));
   put(under.mesh(concreteSide));
   put(rails.mesh(psx(null, { tint: 0xf4f0ff, side: DoubleSide })));
   put(paws.mesh(psx(A.paw, { decal: true, unlit: 0.6, side: DoubleSide })));
@@ -244,7 +243,7 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   if (!taken.has(LILY_LOT)) {
     const f = LOTS[LILY_LOT], g = new Group(); g.position.set(f.x, f.y, f.z); g.rotation.y = f.yaw; scene.add(g);
     const k = kit(g);
-    k.plane(8, 6.5, psx(T.stone, { rx: 5, ry: 4, onFloor: true }), [0, 0.03, -2.6], [-Math.PI / 2, 0, 0], 2).renderOrder = LEDGE + 0.25;
+    k.plane(8, 6.5, psx(T.stone, { rx: 5, ry: 4, onFloor: true }), [0, 0.03, -2.6], [-Math.PI / 2, 0, 0], 2).renderOrder = onLedge(H.stops.length - 1) + 0.01;
     for (const [x, z] of [[-4, 0.6], [4, 0.6], [-4, -5.8], [4, -5.8]]) { k.box(0.12, 1.1, 0.12, psx(A.stake), [x, 0.55, z]); k.box(0.7, 0.35, 0.04, psx(A.pennant, { unlit: 0.6 }), [x + 0.4, 0.8, z]); }
     board(g, signboard(["LILY'S HOUSE", 'COMING SOON'], { color: 0xffb0d0, s: 3, light: true }), [0, 0.9, 1.9], 0);
     for (const e of [-1, 1]) k.box(0.2, 1.4, 0.2, psx(A.stake), [e * 2.6, 0.7, 1.85]);
@@ -252,16 +251,36 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
     const th = H.th0 + lily.turn, bp = around(B + 7, th), ban = signboard(["LILY'S HOUSE", 'COMING SOON'], { color: 0xffb0d0, s: 3, light: true });
     const bg = new Group(); bg.position.set(bp.x, 25, bp.z); bg.rotation.y = Math.PI / 2 - th; scene.add(bg);
     const bk = kit(bg), bw = ban.image.width / 40, bh = ban.image.height / 40;
-    bk.plane(bw, bh, psx(ban, { unlit: 0.55, side: DoubleSide }), [0, 0, 0], null, 1);
+    for (const e of [0, Math.PI]) bk.plane(bw, bh, psx(ban, { unlit: 0.55 }), [0, 0, e ? -0.02 : 0], [0, e, 0], 1);   // (a face each way: the back of one board was black)
     for (const e of [-1, 1]) bk.box(0.08, 1.4, 0.08, iron, [e * (bw / 2 - 0.3), bh / 2 + 0.7, 0]);
   }
 
   // ---------- the path from the square to the foot ----------
+  // It leaves the square's 43 degree path, swings out in front of the row of doors (with a paved apron
+  // there to stand on) and curves in to the foot of the ramp, so there's no straight run to it.
   { const p = PATHS.find(q => q.at === 43), r0 = SQUARE.r - 0.6, half = (p.to - r0) / 2, a1 = p.at * Math.PI / 180, a2 = (p.at + p.bend) * Math.PI / 180;
     const x0 = SQUARE.x + r0 * Math.sin(a1), z0 = SQUARE.z - r0 * Math.cos(a1), x1 = x0 + Math.sin(a1) * half, z1 = z0 - Math.cos(a1) * half;
-    const ex = x1 + Math.sin(a2) * half, ez = z1 - Math.cos(a2) * half, f = around(R1, H.th0);
-    const dx = f.x - ex, dz = f.z - ez, len = Math.hypot(dx, dz), a = Math.atan2(dx, -dz);
-    plane(2, len + 0.5, psx(T.path, { rx: 1.3, ry: len * 0.67, onFloor: true }), [(ex + f.x) / 2, 0, (ez + f.z) / 2], [-Math.PI / 2, 0, -a], 4).renderOrder = -0.95;
+    const end = [x1 + Math.sin(a2) * half, z1 - Math.cos(a2) * half];
+    const mid = H.th0 + HYDRANT_DOORS.reduce((m, d) => m + d.base, 0) / HYDRANT_DOORS.length;   // (the way the row of doors faces)
+    // the way in: from the path's end, to a spot out in front of the doors, then in a curve (closing in on the barrel) to the foot
+    let line = [end, around(19.5, mid), around(17.2, mid + 0.5), around(15.2, mid + 0.75), around(13.4, mid + 0.82), around(11.9, H.th0 + 0.04)].map(q => (Array.isArray(q) ? q : [q.x, q.z]));
+    for (let k = 0; k < 3; k++) line = [line[0], ...line.slice(0, -1).flatMap((q, i) => { const n = line[i + 1]; return [[q[0] * 0.75 + n[0] * 0.25, q[1] * 0.75 + n[1] * 0.25], [q[0] * 0.25 + n[0] * 0.75, q[1] * 0.25 + n[1] * 0.75]]; }), line[line.length - 1]];
+    const W = 1.1, pos = [], uv = [], idx = []; let run = 0;
+    line.forEach((q, i) => {
+      const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, nx = -dz / l, nz = dx / l;
+      if (i) run += Math.hypot(q[0] - line[i - 1][0], q[1] - line[i - 1][1]);
+      pos.push(q[0] + nx * W, 0.01, q[1] + nz * W, q[0] - nx * W, 0.01, q[1] - nz * W); uv.push(0, run / 1.5, 1.4, run / 1.5);
+      if (i) { const k = i * 2; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); }
+    });
+    const geo = new BufferGeometry(); geo.setAttribute('position', new Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.setAttribute('normal', new Float32BufferAttribute(pos.map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
+    put(new Mesh(keep(geo), psx(T.path, { onFloor: true, side: DoubleSide })), -0.95);
+    // the apron in front of the doors: a paved band round the barrel, the width of the row
+    const spread = HYDRANT_DOORS.map(d => d.base), lo = Math.min(...spread) - 0.3, hi = Math.max(...spread) + 0.3;
+    const apron = new RingGeometry(12.4, 15.4, 24, 1, 0, hi - lo); const ap = apron.attributes.position;
+    for (let i = 0; i < ap.count; i++) { const x = ap.getX(i), y = ap.getY(i), th = H.th0 + lo + Math.atan2(y, x) ; const r = Math.hypot(x, y); ap.setXYZ(i, H.x + r * Math.cos(th), 0.015, H.z + r * Math.sin(th)); }
+    apron.setAttribute('normal', new Float32BufferAttribute(Array.from({ length: ap.count * 3 }, (_, i) => (i % 3 === 1 ? 1 : 0)), 3));
+    const uvs = apron.attributes.uv; for (let i = 0; i < uvs.count; i++) uvs.setXY(i, uvs.getX(i) * 6, uvs.getY(i) * 2);
+    put(new Mesh(keep(apron), psx(T.stone, { onFloor: true, side: DoubleSide })), -0.97);
   }
 
   solid.update = t => {

@@ -25,3 +25,5 @@ the hydrant, its doors, or what stands on its landings.
 - Checked by `checkHydrant` (`tests/clubhouse/hydrant.mjs`): the lookout and every ledge are reachable
   on foot, nothing past an edge is, the foot is clear, and every door pair walks through both ways.
 - Pictures for looking at it: `node tools/clubhouse/hydrant.mjs`, into `dist/shots/hydrant/`.
+- **The path** from the square's 43 degree path is its own curve (`hydrant.js`, "the path from the square to the foot"): out in front of the row of doors, where a paved apron lets you stand, then curving in to the ramp's foot. It isn't built from straight pieces.
+- **Flat pictures on a landing** (a house's path, the pad) have no depth test, so each landing has its own draw order (`ledgeTop(i)`, `onLedge(i)` in `hydrant-walk.js`): above everything on the ground, and each higher landing a step later, so nothing painted on a low floor shows through a higher one. A house on a landing is lifted into its tier by `outside.raise(group, y)`.
