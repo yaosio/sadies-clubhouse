@@ -3,14 +3,14 @@
 Where a building outside goes. Read when placing a new building outside or changing the outside's
 layout.
 
-**Plots stay put once placed. That is Claude's own rule, not the owner's** (made 2026-09-30 so a
+**Plots stay put once placed (lots 1 and 3 were moved onto the hydrant on purpose, 2026-10-17). That is Claude's own rule, not the owner's** (made 2026-09-30 so a
 change can't shift a building by accident; changeable). The check
 (`tests/clubhouse/spots.json`, listing every spot) only guards against an accidental move: to move one
 on purpose, change it there and in the code, and tell the owner. A new spot goes on the end of its list.
 - `LOTS` (`src/clubhouse/town/layout.js`): plots round the town square (`x`, `z`: the middle of the
   front door's threshold; `y`: the ground's height; `yaw`: the way the door faces, towards the middle
   of the square). A plot is just a place and a facing, so a new one can go anywhere: beside one of the
-  paths out of the square, say. The next free one has a COMING SOON stake. Five so far, the last one holding the stake.
+  paths out of the square, say. The next free one has a COMING SOON stake. Six so far: 1 and 3 stand on the hydrant's ledges (`dog-city.md`), 5 is Lily's ledge holding the stake.
 - `GROUNDS`: spots in the grounds round the house, for a building that isn't on a plot (`x`, `z`,
   `y`, and how much room: `w` across, `d` deep). 0 runs beside the house from the front garden to the
   backyard, on your left as you go out of the front door (on your right walking up from the gate).

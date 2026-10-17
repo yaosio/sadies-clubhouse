@@ -13,6 +13,7 @@ working as rooms come and go.
 - It opens at the gate with Sadie's letter (and only the first time).
 - Walking: keys, and the thumb stick.
 - Walking into the pool's gate in the backyard, and stopping at the water's edge (not in it).
+- Dog City: climbing the hydrant, its landings, and walking through each pair of doors (`tests/clubhouse/hydrant.mjs`).
 - Walking through the front door into the hall.
 - Climbing the stairs to the landing and on round to the second.
 
