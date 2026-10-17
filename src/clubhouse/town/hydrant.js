@@ -17,7 +17,7 @@ const TAU = Math.PI * 2;
 const [R0, R1] = H.lane, RL = H.ledge;
 const DOOR = { w: 1.7, h: 2.8 };                    // a door in the hydrant
 const HOUSING = { w: 3.0, h: 3.4, deep: 1.9 };      // the red box a door sits in, sticking out of the wall
-const LEDGE = -0.5;                                 // draw order of a ledge's top: after the ground's flat pictures (-1), before the ones on the ledge (outside.raise)
+const LEDGE = -0.35;                                // draw order of a ledge top: after every flat picture on the ground (they have no depth test and would show through it: the square, the paths -1 to -0.9, the pool -0.5 to -0.4, the snow -0.5), before the ones on the ledge (outside.raise: -0.25)
 const SLOT = 1.9;                                   // how many radians of the ramp's last stretch the deck leaves open above it
 const P = (r, turn, y) => { const th = H.th0 + turn; return [H.x + r * Math.cos(th), y, H.z + r * Math.sin(th)]; };
 const out = turn => { const th = H.th0 + turn; return [Math.cos(th), 0, Math.sin(th)]; };   // straight out from the barrel there
