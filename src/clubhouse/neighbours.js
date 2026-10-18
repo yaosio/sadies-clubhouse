@@ -63,7 +63,7 @@ export function hallView(hall, outside) {
 // `surface`), and the clubhouse's own house (`house`: for a picture of it).
 export function outsideView(outside) {
   return lend(outside, 'outside', {
-    block: outside.block, blockRound: outside.blockRound, surface: outside.surface, house: outside.house,
+    block: outside.block, blockRound: outside.blockRound, surface: outside.surface, bounce: outside.bounce, house: outside.house,
   });
 }
 

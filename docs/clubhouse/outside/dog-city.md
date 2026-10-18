@@ -11,8 +11,8 @@ the hydrant, its doors, or what stands on its landings.
   walk off: the floor just stops (rails are for looking at). Near the foot the ground is not a floor
   (`onTheFoot`), or you'd stay on the ground and never climb.
 - **Landings are plots.** Lots 1 and 3 (two dogs' buildings) are on ledges (`ledge(i)`
-  in `layout.js`, with their height as the plot's `y`). Lot 5 is Lily's ledge, held with a COMING
-  SOON sign until she gets a house (`LILY_LOT`; the outside skips it when choosing the next free plot).
+  in `layout.js`, with their height as the plot's `y`). Lot 5 is Lily's ledge (`LILY_LOT`): with no
+  card on it, it shows a COMING SOON sign, and the outside never offers it as the next free plot.
   Buildings on raised plots are lifted by `outside.raise(group)`.
 - **The doors** are four pairs of portals: one at the foot and one on its landing (or the deck). They
   are plain portals, not rooms: no card, no activity, nothing for the room system to know. They are

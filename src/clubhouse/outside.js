@@ -247,6 +247,7 @@ export function buildOutside(T, cards = []) {
   const SURFACES = [...hydrant.surfaces], TURNED = [...hydrant.turned];   // (TURNED: solid boxes on a plot, turned with it: lots below)
   for (const c of square.circles) CIRCLES.push(c);
   for (const c of hydrant.circles) CIRCLES.push(c);
+  const BOUNCY = [];   // springy floors (a trampoline): each (x, z, y) => true where it's springy
   const keepIn = (list, it) => { list.push(it); return () => { const i = list.indexOf(it); if (i >= 0) list.splice(i, 1); }; };   // more to walk on: each (x, z) => its height there, or null
   function ground(x, z) {
     if (Math.abs(x) > EDGE.x || z < EDGE.z0 || z > EDGE.z1 || onTheFoot(x, z)) return null;   // (the ramp's first stretch is its own floor: hydrant-walk.js)
@@ -297,6 +298,9 @@ export function buildOutside(T, cards = []) {
     blockRound(x, z, r, y0, y1) { return keepIn(CIRCLES, [x, z, r, y0, y1]); },
     // somewhere more to walk on: (x, z) => its height there, or null where it isn't
     surface(at) { return keepIn(SURFACES, at); },
+    // a springy floor (a trampoline): (x, z, y) => true where it is; standing there, you bounce (clubhouse.js)
+    bounce(at) { return keepIn(BOUNCY, at); },
+    bouncy: (x, z, y) => BOUNCY.some(b => b(x, z, y)),
     // A house on a raised plot (a landing on the hydrant): its flat pictures on the ground (the path to its
     // door, stepping stones), which are drawn with no depth test just after the grass, are drawn just
     // after the ledge's top instead (a ledge draws after the ground's own pictures, so they don't show through it).

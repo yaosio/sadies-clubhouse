@@ -12,6 +12,9 @@ landings changes (the hall skips it).
     ground up unless it says);
   - `surface((x, z) => height or null)` for somewhere more to walk on, a bridge or a balcony (each of
     these hands back how to take it away);
+  - `bounce((x, z, y) => true where springy)`: a springy floor (a trampoline, with a `surface` under it):
+    standing there you bounce up and down on your own (`clubhouse.js`, `HOP`); `ears().hop` is how
+    high you are in the bounce;
   - `is(place)`: whether a place (like `ears().place`) is the outside;
   - `house`: the clubhouse itself (for a picture of it).
 - `lot` (its plot) or `ground` (its spot, with `joins`: where its little paths meet the outside's).

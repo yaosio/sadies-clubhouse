@@ -1,0 +1,18 @@
+/* the game buttons on a phone (a game with `pad`): round picture buttons along the bottom, left and right
+   on the left, up and down (stacked) and a bigger jump on the right; and while they're up, STEP BACK goes
+   to the top left, well away from them, so a thumb can't hit it by accident */
+#clubhouse #pad{left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end;
+  padding:0 calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left));pointer-events:none}
+#clubhouse #pad[hidden]{display:none}
+#clubhouse #pad .side,#clubhouse #pad .ud{display:flex;gap:10px;align-items:center}
+#clubhouse #pad .ud{flex-direction:column;gap:6px}
+#clubhouse #pad button{pointer-events:auto;width:62px;height:62px;border-radius:50%;border:3px solid #ffffffa0;background:#ff6fb460;
+  display:grid;place-items:center;padding:0;cursor:pointer;touch-action:none}
+#clubhouse #pad .ud button{width:52px;height:46px;border-radius:12px}
+#clubhouse #pad button[data-b="jump"]{width:72px;height:72px;background:#3ec4e860}
+#clubhouse #pad button.on{background:#ff6fb4c0}
+#clubhouse #pad button[data-b="jump"].on{background:#3ec4e8c0}
+#clubhouse #pad button[hidden]{display:none}
+#clubhouse #pad svg{width:28px;height:28px;fill:#fff}
+#clubhouse #use.top{right:auto;bottom:auto;left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));
+  min-width:0;height:34px;border-radius:4px;font-size:10px;padding:0 10px}

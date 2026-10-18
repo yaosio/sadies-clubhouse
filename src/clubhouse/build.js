@@ -3,7 +3,7 @@
 // hole where the place on the other side shows).
 import {
   Mesh, Group, Shape, Path, ShapeGeometry, PlaneGeometry, BoxGeometry, CylinderGeometry, SphereGeometry, ConeGeometry,
-  Vector3,
+  Vector3, Matrix4,
 } from 'three';
 import { psx, keep, doorwayMat } from './look.js';
 
@@ -68,8 +68,11 @@ export function doorway(scene, { pos, yaw, w, h, leaves, hinge = -1, trim = 0xff
   // The see-through box is a little wider and taller than the hole, so its sides and top hide behind
   // the wall and the frame, and its bottom stands 2 cm off the floor that runs on under the doorway
   // (a bottom exactly on that floor fights it: the PS1 corner snapping moves the two a little differently).
-  const see = new Mesh(keep(new BoxGeometry(w + 0.02, h - 0.01, D)), doorwayMat(null));
+  const see = new Mesh(keep(new BoxGeometry(w + 0.02, h - 0.01, D)), doorwayMat(null, new Vector3((w + 0.02) / 2, (h - 0.01) / 2, D / 2)));
   see.position.set(0, h / 2 + 0.015, -D / 2); group.add(see);
+  // (where the camera is in the box's own terms, each time it's drawn: only what's seen through its hole shows)
+  const inv = new Matrix4();
+  see.onBeforeRender = (r, sc, camera) => { see.material.uniforms.uCam.value.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(inv.copy(see.matrixWorld).invert()); };
   const trimMat = psx(null, { tint: trim });
   for (const [bw, bh, x, y] of [[0.12, h + 0.12, -w / 2 - 0.06, h / 2], [0.12, h + 0.12, w / 2 + 0.06, h / 2], [w + 0.24, 0.12, 0, h + 0.06]]) {
     const b = new Mesh(keep(new BoxGeometry(bw, bh, 0.07)), trimMat); b.position.set(x, y, 0.035); group.add(b);   // (from the wall's face out: never into the see-through box, whose sides it would share)

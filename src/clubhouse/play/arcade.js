@@ -3,10 +3,14 @@
 // whole game fits the screen, looking at it square on. Then the controls go to the game: steering
 // with the keys, nudging with the mouse or a finger; or, for a game that wants them (`key`, `touch`:
 // an instrument), every key and every press on the screen. Stepping back (Esc, W, S or STEP BACK):
-// back to where you stood. The game is told when to start and stop.
+// back to where you stood. The game is told when to start and stop. A game can ask for buttons on a
+// phone (`pad`: some of left, right, up, down, jump): pictures along the bottom, each pressed and let
+// go as a key (`key`), with the view lifted to leave them room, and STEP BACK moved to the top left.
 //
 // Any place, inside or out, can have a use with `play`: nothing here knows which game it is.
 // `you` is what the clubhouse lends a way of playing (see clubhouse.js, "ways of playing").
+import padHtml from './pad.html';
+import padCss from './pad.css';
 const TILT = 0.12;   // the view looks up at it a little, from a bit below its middle
 // (or, if the game says `down`, looks down on it from that far above: a keyboard lying flat)
 
@@ -14,17 +18,36 @@ export function arcade(you) {
   const { $, canvas, cam, touchy, me, held, drag, EYE, KEYS } = you;
   const HINT = touchy ? 'SLIDE A FINGER TO MOVE' : '<kbd>A D</kbd> OR <kbd>MOUSE</kbd> MOVE &nbsp; <kbd>ESC</kbd> STEP BACK';
   $('#arcadeHint').innerHTML = HINT;
+  $('#flash').insertAdjacentHTML('beforebegin', padHtml);
+  const style = document.createElement('style'); style.textContent = padCss; $('#flash').before(style);
+  // the phone's game buttons, each pressed and let go as the key it stands for
+  const PAD = { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', down: 'ArrowDown', jump: 'Space' };
+  const pad = $('#pad'), padOn = u => touchy && !!u.play.pad;
+  for (const b of pad.querySelectorAll('button')) {
+    const code = PAD[b.dataset.b], down = new Set();
+    you.on(b, 'pointerdown', e => { e.preventDefault(); e.stopPropagation(); const pl = playing(); if (!pl) return; try { b.setPointerCapture(e.pointerId); } catch {} if (!down.size) pl.key?.(code, true, false); down.add(e.pointerId); b.classList.add('on'); });
+    const up = e => { if (!down.delete(e.pointerId) || down.size) return; b.classList.remove('on'); playing()?.key?.(code, false); };
+    for (const ev of ['pointerup', 'pointercancel']) you.on(b, ev, up);
+  }
+  function showPad(u) {
+    const on = !!u && padOn(u);
+    pad.hidden = !on; $('#use').classList.toggle('top', on);
+    if (on) for (const b of pad.querySelectorAll('button')) b.hidden = !u.play.pad.includes(b.dataset.b);
+    if (!on) for (const b of pad.querySelectorAll('button.on')) b.classList.remove('on');
+  }
   let game = null;
   const pressing = new Set();
   // held keys that steer: -1 left, 1 right
   const steering = () => (held.has('r') || held.has('tr') ? 1 : 0) - (held.has('l') || held.has('tl') ? 1 : 0);
   function view(u) {
     const v = u.play.view, tv = Math.tan(cam.fov * Math.PI / 360), th = tv * cam.aspect, a = v.down ?? -TILT;
-    const dist = Math.max(v.h / 2 / tv, v.w / 2 / th) * 1.04;
+    // (with the phone's game buttons up, the bottom of the screen is theirs: the game fits above them)
+    const room = padOn(u) ? 0.28 : 0;
+    const dist = Math.max(v.h / (1 - room) / 2 / tv, v.w / 2 / th) * 1.04, low = dist * tv * room;
     const x = v.center.x + v.normal.x * dist * Math.cos(a), z = v.center.z + v.normal.z * dist * Math.cos(a);
     // metres along the game per pixel on the screen, so things move exactly as far as your finger
     if (game) game.mpp = 2 * dist * th / Math.max(1, canvas.clientWidth);
-    return { x, z, eye: v.center.y + dist * Math.sin(a) - EYE, yaw: Math.atan2(v.normal.x, v.normal.z), pitch: -a };
+    return { x, z, eye: v.center.y - low + dist * Math.sin(a) - EYE, yaw: Math.atan2(v.normal.x, v.normal.z), pitch: -a };
   }
   function stepUp(u) {
     held.clear();
@@ -33,6 +56,7 @@ export function arcade(you) {
     // (a game that takes presses needs the mouse free to point with)
     if (u.play.touch && document.pointerLockElement) document.exitPointerLock();
     $('#arcadeHint').innerHTML = (touchy ? u.play.hint?.touch : u.play.hint?.keys) || HINT;
+    showPad(u);
     you.glideTo(view(u), 0.8, () => { you.mode = 'arcade'; you.showTarget(); });
   }
   function stepBack() {
@@ -42,6 +66,7 @@ export function arcade(you) {
     // back where you stood, or (the game's over) where it says to watch from; on the floor either way
     const after = game.u.play.over && game.u.play.after;
     const back = after ? { ...after, eye: me.y } : game.from;
+    showPad(null);
     you.glideTo(back, 0.6, () => { game = null; you.mode = 'play'; you.showTarget(); });
   }
   const playing = () => you.mode === 'arcade' ? game.u.play : null;
@@ -92,8 +117,8 @@ export function arcade(you) {
       pl.steer?.(steering(), dt);
       if (pl.over) stepBack();         // the game's over (Brickbuster broke): step back and watch
     },
-    pause() { playing()?.stop(); },
+    pause() { playing()?.stop(); showPad(null); },
     // back from the pause menu: straight back into the game, if you were at one
-    resume() { if (!game) return false; you.mode = 'arcade'; game.u.play.start(); return true; },
+    resume() { if (!game) return false; you.mode = 'arcade'; game.u.play.start(); showPad(game.u); return true; },
   };
 }
