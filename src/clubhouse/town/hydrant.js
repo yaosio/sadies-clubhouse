@@ -88,16 +88,16 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
     under.quad(P(R0, t, ha - 0.5), P(R1, t, ha - 0.5), P(R1, q, hb - 0.5), P(R0, q, hb - 0.5), DOWN);
     if (!inLanding(t + STEP / 2)) under.quad(P(R1, t, ha - 0.5), P(R1, q, hb - 0.5), P(R1, q, hb), P(R1, t, ha), out(t + STEP / 2));
   }
-  // each landing's ledge, out past the lane: flat on top, held up from below by a bracket
+  // each landing's ledge, out past the lane: flat on top, a solid block below (nothing to see into from the ramp)
   for (const [k, s] of H.stops.entries()) {
     const n = 20, y = s.y + 0.02;
     for (let i = 0; i < n; i++) {
       const a = s.turn - H.half + 2 * H.half * i / n, b = s.turn - H.half + 2 * H.half * (i + 1) / n;
       ledgeTops[k].quad(P(R1, a, y), P(RL, a, y), P(RL, b, y), P(R1, b, y), UP);
-      under.quad(P(R1, a, y - 4.5), P(RL, a, y - 0.8), P(RL, b, y - 0.8), P(R1, b, y - 4.5), DOWN);
-      under.quad(P(RL, a, y - 0.8), P(RL, b, y - 0.8), P(RL, b, y), P(RL, a, y), out((a + b) / 2));
+      under.quad(P(R1, a, y - 4.5), P(RL, a, y - 4.5), P(RL, b, y - 4.5), P(R1, b, y - 4.5), DOWN);
+      under.quad(P(RL, a, y - 4.5), P(RL, b, y - 4.5), P(RL, b, y), P(RL, a, y), out((a + b) / 2));
     }
-    for (const e of [-1, 1]) { const a = s.turn + e * H.half; under.quad(P(R1, a, y - 4.5), P(RL, a, y - 0.8), P(RL, a, y), P(R1, a, y), side(a).map(c => c * e)); }
+    for (const e of [-1, 1]) { const a = s.turn + e * H.half; under.quad(P(R1, a, y - 4.5), P(RL, a, y - 4.5), P(RL, a, y), P(R1, a, y), side(a).map(c => c * e)); }
     const arc = []; for (let i = 0; i <= 12; i++) arc.push(P(RL - 0.12, s.turn - H.half + 2 * H.half * i / 12, y));
     rail(rails, arc);
     for (const e of [-1, 1]) { const a = s.turn + e * (H.half - 0.01), run = []; for (let i = 0; i <= 5; i++) run.push(P(R1 + (RL - R1) * i / 5, a, y)); rail(rails, run); }
@@ -208,7 +208,7 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
     return { g, W, Hh };
   };
   // the way up, beside the foot of the ramp
-  { const bp = P(16, 0.32, 0), yaw = Math.PI / 2 - H.th0 - 0.3, g = new Group(); g.position.set(bp[0], 0, bp[2]); g.rotation.y = yaw; scene.add(g);
+  { const bp = P(16, 0.32, 0), yaw = Math.atan2(SQUARE.x - bp[0], SQUARE.z - bp[2]), g = new Group(); g.position.set(bp[0], 0, bp[2]); g.rotation.y = yaw; scene.add(g);
     const b = board(g, signboard(['DOG CITY', 'THIS WAY UP'], { color: 0xd8261e, s: 3 }), [0, 1.9, 0], 0);
     for (const e of [-1, 1]) kit(g).box(0.22, 2.2, 0.22, psx(A.stake), [e * (b.W / 2 - 0.5), 1.1, -0.05]);
     solid.circles.push([bp[0] + Math.cos(yaw) * (b.W / 2 - 0.5), bp[2] - Math.sin(yaw) * (b.W / 2 - 0.5), 0.3, undefined, 2.5]);
@@ -261,15 +261,16 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   { const p = PATHS.find(q => q.at === 43), r0 = SQUARE.r - 0.6, half = (p.to - r0) / 2, a1 = p.at * Math.PI / 180, a2 = (p.at + p.bend) * Math.PI / 180;
     const x0 = SQUARE.x + r0 * Math.sin(a1), z0 = SQUARE.z - r0 * Math.cos(a1), x1 = x0 + Math.sin(a1) * half, z1 = z0 - Math.cos(a1) * half;
     const end = [x1 + Math.sin(a2) * half, z1 - Math.cos(a2) * half];
+    const dir = [Math.sin(a2), -Math.cos(a2)];   // (the way the square's path is heading as it ends: ours carries on that way before it turns, so there's no step where they meet)
     const mid = H.th0 + HYDRANT_DOORS.reduce((m, d) => m + d.base, 0) / HYDRANT_DOORS.length;   // (the way the row of doors faces)
     // the way in: from the path's end, to a spot out in front of the doors, then in a curve (closing in on the barrel) to the foot
-    let line = [end, around(19.5, mid), around(17.2, mid + 0.5), around(15.2, mid + 0.75), around(13.4, mid + 0.82), around(11.9, H.th0 + 0.04)].map(q => (Array.isArray(q) ? q : [q.x, q.z]));
+    let line = [[end[0] - dir[0] * 0.6, end[1] - dir[1] * 0.6], [end[0] + dir[0] * 2.5, end[1] + dir[1] * 2.5], around(19.5, mid), around(17.2, mid + 0.5), around(15.2, mid + 0.75), around(13.4, mid + 0.82), around(11.9, H.th0 + 0.04)].map(q => (Array.isArray(q) ? q : [q.x, q.z]));
     for (let k = 0; k < 3; k++) line = [line[0], ...line.slice(0, -1).flatMap((q, i) => { const n = line[i + 1]; return [[q[0] * 0.75 + n[0] * 0.25, q[1] * 0.75 + n[1] * 0.25], [q[0] * 0.25 + n[0] * 0.75, q[1] * 0.25 + n[1] * 0.75]]; }), line[line.length - 1]];
-    const W = 1.1, pos = [], uv = [], idx = []; let run = 0;
+    const W = 1.0, pos = [], uv = [], idx = []; let run = 0;
     line.forEach((q, i) => {
       const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, nx = -dz / l, nz = dx / l;
       if (i) run += Math.hypot(q[0] - line[i - 1][0], q[1] - line[i - 1][1]);
-      pos.push(q[0] + nx * W, 0.01, q[1] + nz * W, q[0] - nx * W, 0.01, q[1] - nz * W); uv.push(0, run / 1.5, 1.4, run / 1.5);
+      pos.push(q[0] + nx * W, 0.01, q[1] + nz * W, q[0] - nx * W, 0.01, q[1] - nz * W); uv.push(0, run / 1.5, 1.3, run / 1.5);
       if (i) { const k = i * 2; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); }
     });
     const geo = new BufferGeometry(); geo.setAttribute('position', new Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.setAttribute('normal', new Float32BufferAttribute(pos.map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));

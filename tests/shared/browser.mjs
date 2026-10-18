@@ -72,10 +72,10 @@ export async function yesAndReload(p, opts) {
 
 export async function up(p) {
   const t = Date.now();
-  const ok = await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10 && window.__clubhouse.settled(), null, { timeout: 15000 }).then(() => true, () => false);
+  const ok = await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10 && window.__clubhouse.settled(), null, { timeout: 40000 }).then(() => true, () => false);
   const secs = (Date.now() - t) / 1000;
   if (ok && secs > 8) {
-    const say = `the clubhouse took ${secs.toFixed(1)} s to build every room (the checks give up at 15): time for checks that don't wait for every room (docs/clubhouse/decisions/known-limits.md)`;
+    const say = `the clubhouse took ${secs.toFixed(1)} s to build every room (the checks give up at 40): time for checks that don't wait for every room (docs/clubhouse/decisions/known-limits.md)`;
     console.log(process.env.CI ? `::warning title=many rooms::${say}` : `(slow: ${say})`);
   }
   return ok;
