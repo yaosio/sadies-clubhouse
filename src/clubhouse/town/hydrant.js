@@ -88,16 +88,16 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
     under.quad(P(R0, t, ha - 0.5), P(R1, t, ha - 0.5), P(R1, q, hb - 0.5), P(R0, q, hb - 0.5), DOWN);
     if (!inLanding(t + STEP / 2)) under.quad(P(R1, t, ha - 0.5), P(R1, q, hb - 0.5), P(R1, q, hb), P(R1, t, ha), out(t + STEP / 2));
   }
-  // each landing's ledge, out past the lane: flat on top, held up from below by a bracket
+  // each landing's ledge, out past the lane: flat on top, a solid block below (nothing to see into from the ramp)
   for (const [k, s] of H.stops.entries()) {
     const n = 20, y = s.y + 0.02;
     for (let i = 0; i < n; i++) {
       const a = s.turn - H.half + 2 * H.half * i / n, b = s.turn - H.half + 2 * H.half * (i + 1) / n;
       ledgeTops[k].quad(P(R1, a, y), P(RL, a, y), P(RL, b, y), P(R1, b, y), UP);
-      under.quad(P(R1, a, y - 4.5), P(RL, a, y - 0.8), P(RL, b, y - 0.8), P(R1, b, y - 4.5), DOWN);
-      under.quad(P(RL, a, y - 0.8), P(RL, b, y - 0.8), P(RL, b, y), P(RL, a, y), out((a + b) / 2));
+      under.quad(P(R1, a, y - 4.5), P(RL, a, y - 4.5), P(RL, b, y - 4.5), P(R1, b, y - 4.5), DOWN);
+      under.quad(P(RL, a, y - 4.5), P(RL, b, y - 4.5), P(RL, b, y), P(RL, a, y), out((a + b) / 2));
     }
-    for (const e of [-1, 1]) { const a = s.turn + e * H.half; under.quad(P(R1, a, y - 4.5), P(RL, a, y - 0.8), P(RL, a, y), P(R1, a, y), side(a).map(c => c * e)); }
+    for (const e of [-1, 1]) { const a = s.turn + e * H.half; under.quad(P(R1, a, y - 4.5), P(RL, a, y - 4.5), P(RL, a, y), P(R1, a, y), side(a).map(c => c * e)); }
     const arc = []; for (let i = 0; i <= 12; i++) arc.push(P(RL - 0.12, s.turn - H.half + 2 * H.half * i / 12, y));
     rail(rails, arc);
     for (const e of [-1, 1]) { const a = s.turn + e * (H.half - 0.01), run = []; for (let i = 0; i <= 5; i++) run.push(P(R1 + (RL - R1) * i / 5, a, y)); rail(rails, run); }
@@ -208,7 +208,7 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
     return { g, W, Hh };
   };
   // the way up, beside the foot of the ramp
-  { const bp = P(16, 0.32, 0), yaw = Math.PI / 2 - H.th0 - 0.3, g = new Group(); g.position.set(bp[0], 0, bp[2]); g.rotation.y = yaw; scene.add(g);
+  { const bp = P(16, 0.32, 0), yaw = Math.atan2(SQUARE.x - bp[0], SQUARE.z - bp[2]), g = new Group(); g.position.set(bp[0], 0, bp[2]); g.rotation.y = yaw; scene.add(g);
     const b = board(g, signboard(['DOG CITY', 'THIS WAY UP'], { color: 0xd8261e, s: 3 }), [0, 1.9, 0], 0);
     for (const e of [-1, 1]) kit(g).box(0.22, 2.2, 0.22, psx(A.stake), [e * (b.W / 2 - 0.5), 1.1, -0.05]);
     solid.circles.push([bp[0] + Math.cos(yaw) * (b.W / 2 - 0.5), bp[2] - Math.sin(yaw) * (b.W / 2 - 0.5), 0.3, undefined, 2.5]);

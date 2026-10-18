@@ -7,7 +7,7 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { launch, DEVICES } from '../browser.mjs';
 import { HYDRANT as H, SQUARE, PATHS } from '../../src/clubhouse/town/layout.js';
-import { around, DOOR_SIDES } from '../../src/clubhouse/town/hydrant-walk.js';
+import { around, rampHeight, DOOR_SIDES } from '../../src/clubhouse/town/hydrant-walk.js';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/hydrant');
 mkdirSync(out, { recursive: true });
@@ -39,6 +39,8 @@ VIEWS['lily-over-chooter'] = { from: stand(27, H.stops[2].turn - 0.2, H.stops[2]
   const ex = x1 + Math.sin(a2) * half, ez = z1 - Math.cos(a2) * half;
   VIEWS['path-join'] = { from: [ex - Math.sin(a2) * 9, ez + Math.cos(a2) * 9, 0], to: [ex + Math.sin(a2) * 8, 0.3, ez - Math.cos(a2) * 8] };
 }
+// on the ramp just before each landing, looking out at its ledge from the side (nothing of the ledge's inside shows)
+H.stops.forEach(st => { const t = st.turn - 1.3; VIEWS[`ramp-to-${st.who}`] = { from: stand(12, t, rampHeight(t)), to: look(22, st.turn - 0.4, st.y - 1.5) }; });
 const wanted = process.argv.slice(2);
 const server = await serve();
 const browser = await launch();
