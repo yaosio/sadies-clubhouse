@@ -261,15 +261,16 @@ export function buildHydrant(T, scene, { taken = new Set() } = {}) {
   { const p = PATHS.find(q => q.at === 43), r0 = SQUARE.r - 0.6, half = (p.to - r0) / 2, a1 = p.at * Math.PI / 180, a2 = (p.at + p.bend) * Math.PI / 180;
     const x0 = SQUARE.x + r0 * Math.sin(a1), z0 = SQUARE.z - r0 * Math.cos(a1), x1 = x0 + Math.sin(a1) * half, z1 = z0 - Math.cos(a1) * half;
     const end = [x1 + Math.sin(a2) * half, z1 - Math.cos(a2) * half];
+    const dir = [Math.sin(a2), -Math.cos(a2)];   // (the way the square's path is heading as it ends: ours carries on that way before it turns, so there's no step where they meet)
     const mid = H.th0 + HYDRANT_DOORS.reduce((m, d) => m + d.base, 0) / HYDRANT_DOORS.length;   // (the way the row of doors faces)
     // the way in: from the path's end, to a spot out in front of the doors, then in a curve (closing in on the barrel) to the foot
-    let line = [end, around(19.5, mid), around(17.2, mid + 0.5), around(15.2, mid + 0.75), around(13.4, mid + 0.82), around(11.9, H.th0 + 0.04)].map(q => (Array.isArray(q) ? q : [q.x, q.z]));
+    let line = [[end[0] - dir[0] * 0.6, end[1] - dir[1] * 0.6], [end[0] + dir[0] * 2.5, end[1] + dir[1] * 2.5], around(19.5, mid), around(17.2, mid + 0.5), around(15.2, mid + 0.75), around(13.4, mid + 0.82), around(11.9, H.th0 + 0.04)].map(q => (Array.isArray(q) ? q : [q.x, q.z]));
     for (let k = 0; k < 3; k++) line = [line[0], ...line.slice(0, -1).flatMap((q, i) => { const n = line[i + 1]; return [[q[0] * 0.75 + n[0] * 0.25, q[1] * 0.75 + n[1] * 0.25], [q[0] * 0.25 + n[0] * 0.75, q[1] * 0.25 + n[1] * 0.75]]; }), line[line.length - 1]];
-    const W = 1.1, pos = [], uv = [], idx = []; let run = 0;
+    const W = 1.0, pos = [], uv = [], idx = []; let run = 0;
     line.forEach((q, i) => {
       const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, nx = -dz / l, nz = dx / l;
       if (i) run += Math.hypot(q[0] - line[i - 1][0], q[1] - line[i - 1][1]);
-      pos.push(q[0] + nx * W, 0.01, q[1] + nz * W, q[0] - nx * W, 0.01, q[1] - nz * W); uv.push(0, run / 1.5, 1.4, run / 1.5);
+      pos.push(q[0] + nx * W, 0.01, q[1] + nz * W, q[0] - nx * W, 0.01, q[1] - nz * W); uv.push(0, run / 1.5, 1.3, run / 1.5);
       if (i) { const k = i * 2; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); }
     });
     const geo = new BufferGeometry(); geo.setAttribute('position', new Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.setAttribute('normal', new Float32BufferAttribute(pos.map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));

@@ -6,7 +6,7 @@ import { serve } from '../serve.mjs';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { launch, DEVICES } from '../browser.mjs';
-import { HYDRANT as H } from '../../src/clubhouse/town/layout.js';
+import { HYDRANT as H, SQUARE, PATHS } from '../../src/clubhouse/town/layout.js';
 import { around, DOOR_SIDES } from '../../src/clubhouse/town/hydrant-walk.js';
 
 const root = new URL('../..', import.meta.url).pathname, out = join(root, 'dist/shots/hydrant');
@@ -33,6 +33,12 @@ for (const s of DOOR_SIDES) { const p = around(s.r0 + 1.9 + 2.5, s.th), q = arou
 VIEWS['out-of-toots'] = { from: stand(12.6, H.stops[1].turn - 0.2, H.stops[1].y), to: look(22, H.stops[1].turn - 0.2, H.stops[1].y + 0.3) };   // just stepped out of the door
 VIEWS['lily-to-the-pool'] = { from: stand(27, H.stops[2].turn - 0.2, H.stops[2].y), to: [0, 0, 22.7] };   // the ledge floor must hide the pool's water (a flat picture drawn with no depth test)
 VIEWS['lily-over-chooter'] = { from: stand(27, H.stops[2].turn - 0.2, H.stops[2].y), to: look(20.5, H.stops[0].turn - 0.2, H.stops[0].y) };   // a low landing's path must not show through a higher floor
+{ // the path from the square, where it joins the curved one, from the square's side: no step or break
+  const p = PATHS.find(q => q.at === 43), a1 = p.at * Math.PI / 180, a2 = (p.at + p.bend) * Math.PI / 180, half = (p.to - (SQUARE.r - 0.6)) / 2;
+  const x1 = SQUARE.x + (SQUARE.r - 0.6) * Math.sin(a1) + Math.sin(a1) * half, z1 = SQUARE.z - (SQUARE.r - 0.6) * Math.cos(a1) - Math.cos(a1) * half;
+  const ex = x1 + Math.sin(a2) * half, ez = z1 - Math.cos(a2) * half;
+  VIEWS['path-join'] = { from: [ex - Math.sin(a2) * 9, ez + Math.cos(a2) * 9, 0], to: [ex + Math.sin(a2) * 8, 0.3, ez - Math.cos(a2) * 8] };
+}
 const wanted = process.argv.slice(2);
 const server = await serve();
 const browser = await launch();
