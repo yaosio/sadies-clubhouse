@@ -19,7 +19,8 @@
   the game's `play` (with `key` and `pad`, see `docs/clubhouse/rooms/controls.md`) and the fanfare;
   the window views (four `snapshot`s of the town hung 60 m all round, as in Toots' house).
 - The trampoline outside (`house.js`, `TR`) is a `surface` you step onto and a `bounce`
-  (`docs/clubhouse/outside/buildings.md`).
+  (`docs/clubhouse/outside/buildings.md`), with a round solid under it from the ledge up: you stand on
+  the floor nearest your feet, so without it the ledge would win and you'd walk through the mat.
 
 ## Shared
 The phone's game buttons are the clubhouse's (`src/clubhouse/play/arcade.js`, `pad.html`, `pad.css`),
@@ -30,6 +31,7 @@ for any game that asks with `pad`. Chooter's portrait is copied into Toots' hous
 - `climb-bot.mjs`: plays many games in Node and prints wins, hits and times (tuning).
 - `climb-sheet.mjs`, `sprites.mjs`: the game's pictures and Lily's, on one PNG each.
 - `toots-pic.mjs`, `chooter-pic.mjs`: the frozen picture copies above.
+- `trampoline.mjs`: walks onto the trampoline from each side, printing your height and bounce.
 
 ## Checks
 - `tests/lily-house/run.mjs`: the card; every ladder joins two girders; a game starts; each hammer can

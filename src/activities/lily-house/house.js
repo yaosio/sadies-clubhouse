@@ -94,6 +94,10 @@ export function buildHouse(m, A, poses) {
   const onIt = (x, z) => { const [lx, lz] = local(x, z); return Math.hypot(lx - TR.x, lz - TR.z) < TR.r - 0.15; };
   outside.surface((x, z) => onIt(x, z) ? lot.y + TR.y : null);
   outside.bounce((x, z, y) => onIt(x, z) && Math.abs(y - lot.y - TR.y) < 0.05);
+  // (and no ledge under it to stand on: you stand on whichever floor is nearest your feet, so with the
+  // ledge still there you'd walk straight through it. Something solid from the ledge to just under the
+  // mat, as wide as the mat less how far round you things keep you: the mat's the only floor there.)
+  lot.blockRound(TR.x, TR.z, TR.r - 0.15 - 0.35, undefined, lot.y + TR.y - 0.1);
   for (const s of [-1, 1]) {
     cyl(0.28, 0.2, 0.4, 8, psx(A.pot, { unlit: 0.4 }), [s * 1.25, 0.2, 0.45]);
     plane(0.7, 0.6, psx(A.flowers, { unlit: 0.4, side: DoubleSide }), [s * 1.25, 0.65, 0.45], null, 1);

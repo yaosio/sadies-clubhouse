@@ -25,12 +25,18 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: Lily's house is on the hydrant, with its door`, await M('faceDoor', 'outside', 'lily-house', 3));
     await p.waitForTimeout(700);
     await shot('1-house');
-    // up onto her trampoline: you bounce
+    // walk up onto her trampoline from the ledge beside it: you step up, and bounce
     {
       const tr = await p.evaluate(() => window.__lily.trampoline());
-      await M('put', 'outside', { x: tr.x, z: tr.z, y: tr.y, yaw: tr.yaw + 0.5, pitch: -0.3 });   // (looking at her house)
-      let most = 0; for (let i = 0; i < 12; i++) { await p.waitForTimeout(80); most = Math.max(most, (await M('where')).hop); }
-      check(`${device}: standing on her trampoline, you bounce`, most > 0.3, `up ${most.toFixed(2)} m`);
+      const x = tr.x, z = tr.z + 2.5, floor = await M('floorAt', 'outside', x, z, tr.y - 0.42);
+      await M('put', 'outside', { x, z, y: floor ?? tr.y - 0.42, yaw: 0, pitch: -0.3 });   // (facing it)
+      await p.waitForTimeout(300);
+      let on = false, most = 0;
+      for (let i = 0; i < 10 && !(on && most > 0.3); i++) {
+        await walk(150);
+        const w = await M('where'); on ||= Math.abs(w.y - tr.y) < 0.05; if (on) most = Math.max(most, w.hop);
+      }
+      check(`${device}: walking onto her trampoline, you step up and bounce`, on && most > 0.3, `on it: ${on}, up ${most.toFixed(2)} m`);
       await shot('1b-trampoline');
       await M('faceDoor', 'outside', 'lily-house', 3); await p.waitForTimeout(500);
     }
