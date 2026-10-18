@@ -54,6 +54,14 @@ export function makeLily(x = 0, z = 0) {
     }
     return false;
   };
+  // the same, but by way of the big doorway when it's in the other room (she'd stick on the wall)
+  const toward = (tx, tz, speed, dt, near) => {
+    const here = L.z < LR_Z, there = tz < LR_Z;
+    if (here === there) return go(tx, tz, speed, dt, near);
+    if (Math.abs(L.x) > 0.5) go(0, LR_Z + (here ? -1 : 1), speed, dt, 0.05);   // (in front of it, lined up...)
+    else go(0, LR_Z + (here ? 1 : -1), speed, dt, 0.05);                       // (...then straight through)
+    return false;
+  };
   // the prance: a loop round the middle of whichever room she's in
   let loopA = 0, loopC = null, zoomTo = null, zoomUntil = 0;
   // a random spot in whichever room she's in (the living room, or the game room)
@@ -64,7 +72,7 @@ export function makeLily(x = 0, z = 0) {
     L.h = 0; L.pose = 'walk';
     switch (L.mode) {
       case 'come':
-        if (go(me.x, me.z, RUN, dt, 1.3)) { L.mode = 'bounce'; L.t = 0; }
+        if (toward(me.x, me.z, RUN, dt, 1.3)) { L.mode = 'bounce'; L.t = 0; }
         else L.h = Math.abs(Math.sin(L.walked * 2.6)) * 0.12;   // a bouncy run
         break;
       case 'bounce': {
@@ -100,7 +108,7 @@ export function makeLily(x = 0, z = 0) {
         break;
       }
       case 'chase': {   // after it! She grabs it once it's low enough (on the floor, or just bouncing)
-        const there = go(chicken.x, chicken.z, RUN * 1.15, dt, 0.35);
+        const there = toward(chicken.x, chicken.z, RUN * 1.15, dt, 0.35);
         L.h = Math.abs(Math.sin(L.walked * 2.6)) * 0.14;
         if (chicken.where === 'floor' && L.t > 6 && there) { chicken.take(); L.chick = true; }   // (never stuck)
         if ((there || Math.hypot(chicken.x - L.x, chicken.z - L.z) < 0.5) && chicken.y < 0.5 && chicken.where !== 'lily') { chicken.take(); L.chick = true; }
@@ -121,7 +129,7 @@ export function makeLily(x = 0, z = 0) {
         break;
       }
       case 'bring':
-        if (go(me.x, me.z, TROT * 1.3, dt, 1.0)) { L.chick = false; chicken.drop(L.x + (me.x - L.x) * 0.4, L.z + (me.z - L.z) * 0.4); L.mode = 'bounce'; L.t = 0; }
+        if (toward(me.x, me.z, TROT * 1.3, dt, 1.0)) { L.chick = false; chicken.drop(L.x + (me.x - L.x) * 0.4, L.z + (me.z - L.z) * 0.4); L.mode = 'bounce'; L.t = 0; }
         break;
     }
     return L;
