@@ -28,7 +28,7 @@ Its tests and its picture tool. Read before changing what's checked, or when a c
   it (stepped back to watch and let go once the ball's out, the heap, the sign), the machine mending
   itself (the paddle home, the glass back, the heap gone, a new board, the sign off, playable again),
   breaking again (Sadie already out) and being left broken: fixed itself after a reload, put away and
-  built again with the ball and Sadie in the hall, and the pause menu's start-over button (the
+  built again with the ball and Sadie in the hall, and the pause menu's EXTRAS start-over button (the
   music, the winces, Sadie's sounds in the hall and the poster are not checked in the browser).
 - **`tools/brickbuster/shots.mjs`**: pictures of the room and the game from the built page:
   `dist/shots/brickbuster/` (including the machine mending itself).

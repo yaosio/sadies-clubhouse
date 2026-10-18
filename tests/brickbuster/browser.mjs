@@ -210,6 +210,7 @@ export default async function ({ browser, page, check, outDir }) {
     // the pause menu can start it over (after asking)
     await pressPause(p, opts);
     await p.waitForTimeout(200);
+    await p.click('#extrasBtn');
     await p.click('#resets button:has-text("BRICKBUSTER")');
     await yesAndReload(p);
     await up();

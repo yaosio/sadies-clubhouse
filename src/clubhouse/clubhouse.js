@@ -679,7 +679,7 @@ export async function open(cards, enter) {
     if (document.pointerLockElement) document.exitPointerLock();
   }
   function resume() {
-    $('#menu').hidden = true; $('#credits').hidden = true; $('#speed').hidden = true; ask(false);
+    $('#menu').hidden = true; $('#credits').hidden = true; $('#speed').hidden = true; $('#extras').hidden = true; ask(false);
     if (!ways.some(w => w.resume?.())) mode = 'play';
     showTarget();
   }
@@ -709,6 +709,8 @@ export async function open(cards, enter) {
   }
   on($('#speedBtn'), 'click', () => { const box = $('#speed'); if (box.hidden) { showSpeed(); box.hidden = false; box.scrollIntoView?.({ block: 'nearest' }); } else box.hidden = true; });
   on($('#speedClear'), 'click', () => { meter.clear(); showSpeed(); });
+  // EXTRAS: the start-over buttons live in here
+  on($('#extrasBtn'), 'click', () => { const box = $('#extras'); box.hidden = !box.hidden; if (!box.hidden) box.scrollIntoView?.({ block: 'nearest' }); else ask(false); });
   // how loud: MUSIC, SOUNDS and VOICES (Sadie, Clyde), each ON, SOFT or OFF (src/shared/sound.js)
   const showVolumes = () => { for (const b of BUSES) $('#vol-' + b).textContent = `${b.toUpperCase()}: ${loud[b].toUpperCase()}`; };
   for (const b of BUSES) on($('#vol-' + b), 'click', () => setLoud(b, { on: 'soft', soft: 'off', off: 'on' }[loud[b]]));
