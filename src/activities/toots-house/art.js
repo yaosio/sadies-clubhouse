@@ -5,6 +5,7 @@
 // Inside: the wallpaper, the floors, the rugs, the couch, her bowls and beds, Sadie's quilt, and the
 // framed pictures of her friends (Sadie, Marbles, Chooter).
 import { frontToots, paint } from './toots-art.js';
+import { CHOOTER, CHOOTER_PAL } from './chooter-pic.js';
 const rect = (g, c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 function dith(g, a, b, x, y, w, h, amt) { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) rect(g, BAYER[((y + j) % 4) * 4 + ((x + i) % 4)] / 16 < amt ? b : a, x + i, y + j); }
@@ -154,21 +155,11 @@ function drawInside(m, A) {
     rect(g, '#fff', 9, 21, 5, 1); rect(g, '#fff', 34, 21, 5, 1);
     rect(g, '#e8202a', 30, 9, 6, 3); rect(g, '#e8202a', 32, 7, 2, 7);
   });
-  // Chooter: the black dog from the paint shop, white blaze, blue collar, his painter's cap
-  // (in a bigger frame, drawn a little way in and kept inside it)
+  // Chooter: the black dog from the paint shop, white blaze, blue collar with its gold tag, his big
+  // grin (the same portrait as on Lily's wall, copied dot for dot: chooter-pic.js), in a bigger frame
   A.picChooter = tex(64, 60, g => {
     framed(g, 64, 60, '#fff08a');
-    g.save(); g.beginPath(); g.rect(5, 5, 54, 50); g.clip(); g.translate(8, 9);
-    const K = '#1b1424', B = '#2d2733', H = '#4d4558', Wt = '#fffaf3';
-    disc(g, K, 24, 34, 9); disc(g, B, 24, 34, 8); rect(g, Wt, 22, 31, 4, 4);
-    disc(g, K, 24, 19, 9); disc(g, B, 24, 19, 8); disc(g, H, 21, 15, 2);
-    for (const [x, d] of [[14, 1], [32, -1]]) { rect(g, K, x - 1, 13, 4, 11); rect(g, '#1b1620', x, 14, 2, 9); rect(g, '#1b1620', x + d, 22, 2, 2); }
-    rect(g, Wt, 24, 12, 1, 7); rect(g, H, 19, 20, 11, 5); rect(g, '#120d16', 22, 19, 4, 2); rect(g, '#ffffff', 22, 19, 1, 1);
-    for (const x of [19, 27]) { rect(g, Wt, x, 15, 2, 2); rect(g, '#5a3a22', x + 1, 16, 1, 1); }
-    rect(g, K, 21, 24, 7, 1); rect(g, '#ff7a9a', 23, 25, 3, 3);
-    rect(g, '#3fa9e8', 17, 27, 15, 2); rect(g, '#ffd23f', 24, 29, 2, 2);
-    rect(g, K, 16, 8, 15, 4); for (let x = 17; x < 30; x++) rect(g, ['#ff4fa3', '#ffd23a', '#2a78e8', '#58d04a'][Math.floor((x - 17) / 3) % 4], x, 9, 1, 2);
-    g.restore();
+    CHOOTER.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] !== '.' && 7 + y < 55) rect(g, CHOOTER_PAL[row[x]], 8 + x, 7 + y); });
   });
   // upstairs: the bird channel on her TV (four pictures, swapped as it plays: a bluebird on a branch
   // looks about, sings, hops along, and a red one drops in), a GOOD GIRL pennant, a shelf of books
