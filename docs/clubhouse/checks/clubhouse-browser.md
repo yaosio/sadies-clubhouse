@@ -39,7 +39,7 @@ Found from the cards, so a new room is checked with no new test:
   last two rounds, and no listener may be left on the window or the page.
 
 ## The pause menu and saves
-- The start-over buttons: NO keeps things, YES starts the letter over, and each activity's START
+- The start-over buttons sit behind EXTRAS in the pause menu: NO keeps things, YES starts the letter over, and each activity's START
   OVER erases its own saves and nobody else's.
 - YOUR SAVES: a backup file holding every save, loading one asking first and putting it all back.
 - Every save written along the way belongs to a card's `keeps` or the clubhouse.

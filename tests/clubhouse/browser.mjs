@@ -258,7 +258,9 @@ export default async function ({ browser, page, check, outDir, touched = null })
     await p.waitForTimeout(200);
     await shot('8-paused');
     check(`${device}: ${opts.hasTouch ? 'the pause button' : 'Escape'} pauses`, await M('mode') === 'menu' && await p.isVisible('#menu'));
-    check(`${device}: ...with the start-over buttons`, await p.isVisible('#resets button:has-text("INVITATION")'));
+    check(`${device}: ...with the start-over buttons tucked away until EXTRAS is pressed`, !(await p.isVisible('#resets')));
+    await p.click('#extrasBtn');
+    check(`${device}: ...then EXTRAS shows the start-over buttons`, await p.isVisible('#resets button:has-text("INVITATION")'));
     // SPEED: hidden until opened, then frames a second, memory and the slowest place in words; it closes again
     check(`${device}: the speed readout is hidden until SPEED is pressed`, !(await p.isVisible('#speed')));
     await p.click('#speedBtn');
@@ -279,6 +281,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
     for (const c of cards.filter(c => c.keeps && mine(c))) {
       await p.evaluate(ks => ks.forEach(k => window.__saves.set(k, '1')), marks);
       if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
+      await p.evaluate(() => document.getElementById('extras').hidden && document.getElementById('extrasBtn').click());
       await p.evaluate(name => [...document.querySelectorAll('#resets button')].find(b => b.textContent === name)?.click(), c.name.toUpperCase());
       await yesAndReload(p, { timeout: 10000 }).catch(() => wrongly.push(`${c.id} has no start-over button`));
       await up();
@@ -320,6 +323,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
     check(`${device}: every save belongs to an activity's card or the clubhouse`, keys.length && !stray.length, stray.join(', ') || `${keys.length} saves`);
     // EVERYTHING erases every save the game has and nothing else (another page on the same address keeps its things)
     await p.evaluate(() => window.__saves.set('zz-other-page.thing', '1'));
+    await p.evaluate(() => document.getElementById('extras').hidden && document.getElementById('extrasBtn').click());
     await p.evaluate(() => [...document.querySelectorAll('#resets button')].find(b => b.textContent === 'EVERYTHING')?.click());
     await yesAndReload(p);
     await up();
