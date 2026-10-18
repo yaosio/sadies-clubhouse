@@ -173,7 +173,7 @@ export function buildHouse(m, A, poses, roo) {
       // (still up here when the door opened: she's on her way down, room.js has her come running)
       if (was === 'window' && shared.where === 'door') shared.ran = you.door && !home;
       // the door opening from out here: she's right behind it (from in there, room.js has her roo)
-      if (shut && door.amount > 0 && out) roo?.({ at: { x: lot.x, y: 0.5, z: lot.z } });
+      if (shut && door.amount > 0 && out) roo?.({ at: { x: lot.x, y: lot.y + 0.5, z: lot.z } });
       shut = door.amount === 0;
       if (pose.name !== shown && poses[pose.name]) { toots.material.uniforms.map.value = poses[pose.name]; shown = pose.name; }
       // (her breathing is a single dot up and down; dropping out of sight, she slides down behind the

@@ -95,6 +95,8 @@ export async function open(cards, enter) {
   // `key`: which of the room's own doors each one leads to)
   const slots = cards.map((c, i) => ({ card: c, i, name: 'room:' + c.id, place: null, building: null, far: 0, portals: [] }));
   const portals = [{ a: outside.doors.front, wa: outside, b: hall.doors.front, wb: hall, open: 0 }];
+  // (and the doors that just get you about Dog City: no room behind them, both ends are out in the open)
+  for (const l of outside.links) portals.push({ a: l.a, wa: outside, b: l.b, wb: outside, open: 0 });
   for (const r of slots) if (hall.doors[r.card.id]) { const p = { a: hall.doors[r.card.id], wa: hall, b: null, wb: null, open: 0, slot: r, key: 'door' }; portals.push(p); r.portals.push(p); }
   // a building of its own outside: on a plot round the town square (`lot`) or in the grounds round the house (`grounds`)
   const outdoors = c => !!c.room && (Number.isInteger(c.lot) || Number.isInteger(c.grounds));
@@ -150,6 +152,7 @@ export async function open(cards, enter) {
         const p = { a: d, wa: outside, open: 0, slot: r, key }; portals.push(p); r.portals.push(p);
       }
       r.house = w.house;   // (kept when the room's put away: it's part of the outside)
+      if (w.house?.group && Number.isInteger(c.lot) && outside.lots[c.lot].y > 0) outside.raise(w.house.group, outside.lots[c.lot].y);
       for (const p of r.portals) {
         p.b = w.doors[p.key]; p.wb = w; p.open = 0;
         p.b.swing = -1;   // every door swings into the place further in
@@ -547,6 +550,9 @@ export async function open(cards, enter) {
       lookThrough(s);
       light(s.tw.light);
       s.to.group.visible = false;   // the far side's frame, leaves and doorway box: never seen from behind
+      // (a doorway that shows this very picture, because both its ends are in the one place, lets go of it
+      // while it's drawn: a picture can't be drawn into and read from at once)
+      for (const x of sides) { const u = x.d.see.material.uniforms; if (u.pic.value === throughs[i].texture) u.pic.value = null; }
       renderer.setRenderTarget(throughs[i]); renderer.render(s.tw.scene, vcam); renderer.setRenderTarget(null);
       s.to.group.visible = true;
       s.d.see.material.uniforms.pic.value = throughs[i].texture;

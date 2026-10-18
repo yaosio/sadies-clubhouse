@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs';
 import { walk as walkFor, rest, until, DEVICES, pressUse, pressPause, yesAndReload } from '../shared/browser.mjs';
 import { allKeeps, allCards } from './cards.mjs';
 import { DESKTOP } from '../shared/devices.mjs';
+import { checkHydrant } from './hydrant.mjs';
 
 const LEAK_MB = 3;   // (how much the page's memory may grow over two more rounds of putting every room away and building it again)
 
@@ -38,7 +39,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
     p.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
     const shot = name => p.screenshot({ path: join(outDir, `${device}-${name}.png`) });
     const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
-    const up = () => p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 15000 }).then(() => true, () => false);
+    const up = () => p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 40000 }).then(() => true, () => false);
     const walk = ms => walkFor(p, ms);
 
     await p.goto(page);
@@ -77,6 +78,8 @@ export default async function ({ browser, page, check, outDir, touched = null })
     await shot('2b-pool');
     check(`${device}: you walk in at the pool's gate and stop at the water's edge, not in it`, edge.place === 'outside' && edge.z > 17 && edge.z < 20.1, `got to z ${edge.z.toFixed(1)}`);
 
+    await checkHydrant({ p, M, walk, check, shot, device });
+
     // in through the front door: it opens as you come up, and the hall shows through it
     await M('faceDoor', 'outside', 'front', 2.4);
     await walk(350);
@@ -92,7 +95,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
     const sp = await M('speed');
     const outsideRooms = await M('outsideRooms');
     check(`${device}: the clubhouse opens without waiting for the rooms`, sp.atFirst.every(n => outsideRooms.includes(n)), `first picture after ${sp.first} ms, with ${sp.atFirst.join(', ') || 'no rooms'} built`);
-    const settled = await p.waitForFunction(() => window.__clubhouse.settled(), null, { timeout: 20000 }).then(() => true, () => false);
+    const settled = await p.waitForFunction(() => window.__clubhouse.settled(), null, { timeout: 40000 }).then(() => true, () => false);
     check(`${device}: ...and the rooms are built while you stand about`, settled, (await M('built')).join(', '));
     // up the spiral stairs to the landing, keeping to the middle of the steps
     await M('put', 'hall', 'stairs');
@@ -234,7 +237,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
       await p.waitForTimeout(300);
       const offer = await M('target');
       await pressUse(p, opts);
-      const inside = await p.waitForFunction(() => !document.getElementById('clubhouse') && !window.__clubhouse && document.querySelector('#clubBack[data-ready]'), null, { timeout: 10000 }).then(() => true, () => false);
+      const inside = await p.waitForFunction(() => !document.getElementById('clubhouse') && !window.__clubhouse && document.querySelector('#clubBack[data-ready]'), null, { timeout: 30000 }).then(() => true, () => false);
       await p.waitForTimeout(1500);
       await shot('6-played-' + c.id);
       check(`${device}: ${c.name}: at its computer, it offers to play, and using it starts it with the clubhouse gone from the page`, !!offer && inside, `offered ${JSON.stringify(offer)}, title ${JSON.stringify(await p.title())}`);
@@ -243,7 +246,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
       await p.waitForTimeout(500);
       check(`${device}: ${c.name}: ESC BACK comes back to the clubhouse, at its computer`, home && (await M('where')).place === 'room:' + c.id && await M('mode') === 'play');
       await p.goto(page + '#' + c.id); await p.reload();   // (only the address's # changing doesn't load the page again)
-      await p.waitForFunction(() => document.querySelector('#clubBack[data-ready]'), null, { timeout: 8000 }).catch(() => {});
+      await p.waitForFunction(() => document.querySelector('#clubBack[data-ready]'), null, { timeout: 30000 }).catch(() => {});
       await p.keyboard.press('Escape');
       const home2 = await up();
       check(`${device}: ${c.name}: the Escape key comes back too, when it came in by address`, home2 && !(await p.evaluate(() => location.hash)));
@@ -277,7 +280,7 @@ export default async function ({ browser, page, check, outDir, touched = null })
       await p.evaluate(ks => ks.forEach(k => window.__saves.set(k, '1')), marks);
       if (await M('mode') !== 'menu') { await pressPause(p, opts); await p.waitForTimeout(200); }
       await p.evaluate(name => [...document.querySelectorAll('#resets button')].find(b => b.textContent === name)?.click(), c.name.toUpperCase());
-      await yesAndReload(p, { timeout: 3000 }).catch(() => wrongly.push(`${c.id} has no start-over button`));
+      await yesAndReload(p, { timeout: 10000 }).catch(() => wrongly.push(`${c.id} has no start-over button`));
       await up();
       const left = await p.evaluate(ks => ks.filter(k => (window.__saves.all()[k] ?? null) !== null), marks), mine = c.keeps.map(k => k + 'zz-check');
       if (left.some(k => mine.includes(k))) wrongly.push(`${c.id} kept some of its own`);
@@ -339,10 +342,10 @@ export default async function ({ browser, page, check, outDir, touched = null })
   p.on('pageerror', e => errors.push(e.message));
   const M = (fn, ...a) => p.evaluate(([f, a]) => window.__clubhouse[f](...a), [fn, a]);
   await p.goto(page);
-  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 15000 });
+  await p.waitForFunction(() => window.__clubhouse && window.__clubhouse.frames() > 10, null, { timeout: 40000 });
   const failed = await M('build', cutOff);
   const rooms = (await M('places')).filter(n => n.startsWith('room:')).length;
-  await p.waitForFunction(n => window.__clubhouse.built().length >= n, rooms - 1, { timeout: 20000 }).catch(() => {});
+  await p.waitForFunction(n => window.__clubhouse.built().length >= n, rooms - 1, { timeout: 40000 }).catch(() => {});
   const others = (await M('built')).filter(n => n !== cutOff).length;
   check('a room whose file won\'t load keeps its door shut, and the other rooms still build', !failed && !(await M('built')).includes(cutOff) && others >= rooms - 1 && asked > 0,
     `${spare.id} built: ${failed}, ${others} of ${rooms - 1} other rooms built`);

@@ -17,7 +17,9 @@
 import { Mesh, Group, Scene, Color, SphereGeometry, CylinderGeometry, Shape, ShapeGeometry, DoubleSide } from 'three';
 import { psx, keep, skyMat, tex, sadieSprite } from './look.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
-import { LOTS, SQUARE } from './town/layout.js';
+import { LOTS, SQUARE, HYDRANT, LILY_LOT } from './town/layout.js';
+import { buildHydrant } from './town/hydrant.js';
+import { onTheFoot, onLedge } from './town/hydrant-walk.js';
 import { buildSquare } from './town/square.js';
 import { buildPool } from './pool/pool.js';
 import { DECK, RECTS as POOL_RECTS } from './pool/layout.js';
@@ -35,8 +37,8 @@ export { LOTS };
 export const GROUNDS = [{ x: -20, y: 0, z: 4, w: 8, d: 10, joins: { front: { x: -1.5, z: -3.4 }, back: { x: -20, z: 12.6 } } }];
 // how far the outside goes: round every plot and spot, with room to walk up to it
 const EDGE = {
-  x: Math.max(30, ...LOTS.map(l => Math.abs(l.x) + 6), ...GROUNDS.map(g => Math.abs(g.x) + g.w / 2 + 6)),
-  z0: Math.min(-50, ...LOTS.map(l => l.z - 13)), z1: 32,
+  x: Math.max(30, ...LOTS.map(l => Math.abs(l.x) + 6), ...GROUNDS.map(g => Math.abs(g.x) + g.w / 2 + 6), HYDRANT.x + HYDRANT.ledge + 2),
+  z0: Math.min(-50, ...LOTS.map(l => l.z - 13), HYDRANT.z - HYDRANT.ledge - 2), z1: 32,
 };
 
 export function buildOutside(T, cards = []) {
@@ -54,7 +56,7 @@ export function buildOutside(T, cards = []) {
   plane(3, -gateWay, psx(T.path, { rx: 2, ry: -gateWay * 2 / 3, onFloor: true }), [0, 0, gateWay / 2], [-Math.PI / 2, 0, 0], 12).renderOrder = -1;
   // (and a stake on the next free plot, below)
   const taken = new Set(cards.filter(c => Number.isInteger(c.lot)).map(c => c.lot));
-  const free = LOTS.find((_, i) => !taken.has(i));
+  const free = LOTS.find((_, i) => !taken.has(i) && i !== LILY_LOT);
 
   // A wall's own picture with its windows painted in: `base` tiled (one tile every `tile` metres) over
   // w x h metres, and each window { t, u, y, w, h } (u: its middle across, 0-1, wrapping round; y:
@@ -218,6 +220,10 @@ export function buildOutside(T, cards = []) {
   const square = buildSquare(T, scene, sadie);
   faces.push(sadie, ...square.faces);
 
+  // Dog City, the giant hydrant (town/hydrant.js): its ramp and ledges to walk on, what's solid, and
+  // its doors (each a real doorway, but both ends out here: `links`). Lily's ledge has a sign until her house is built.
+  const hydrant = buildHydrant(T, scene, { taken });
+
   if (free) {   // (turned with the plot, to face the middle of the square)
     const stake = new Group(); stake.position.set(free.x, 0, free.z); stake.rotation.y = free.yaw; scene.add(stake);
     const post = psx(T.wood, { tint: 0xffe0c0 }), k = kit(stake);
@@ -238,11 +244,12 @@ export function buildOutside(T, cards = []) {
     ...[-1, 1].map(s => [s * 2.6 - 0.45, s * 2.6 + 0.45, -20.45, -19.55]),
     [-40, -2.15, -20.05, -19.95], [2.15, 40, -20.05, -19.95]];
   const CIRCLES = [[-9, 0.4, 1.6], [9, 0.4, 1.6], [-2, -2.6, 0.3], [2, -2.6, 0.3], ...[...TREES, ...YARD_TREES].map(([x, z, s]) => [x, z, 0.4 * s])];
-  const SURFACES = [], TURNED = [];   // (TURNED: solid boxes on a plot, turned with it: lots below)
+  const SURFACES = [...hydrant.surfaces], TURNED = [...hydrant.turned];   // (TURNED: solid boxes on a plot, turned with it: lots below)
   for (const c of square.circles) CIRCLES.push(c);
+  for (const c of hydrant.circles) CIRCLES.push(c);
   const keepIn = (list, it) => { list.push(it); return () => { const i = list.indexOf(it); if (i >= 0) list.splice(i, 1); }; };   // more to walk on: each (x, z) => its height there, or null
   function ground(x, z) {
-    if (Math.abs(x) > EDGE.x || z < EDGE.z0 || z > EDGE.z1) return null;
+    if (Math.abs(x) > EDGE.x || z < EDGE.z0 || z > EDGE.z1 || onTheFoot(x, z)) return null;   // (the ramp's first stretch is its own floor: hydrant-walk.js)
     let h = 0;
     for (const s of STEPS) if (Math.abs(x) < s.w / 2 && Math.abs(z - s.z) < s.d / 2) h = Math.max(h, s.top);
     return h;
@@ -269,23 +276,31 @@ export function buildOutside(T, cards = []) {
   // and z out from its door, as [x, z] on the outside), and `block` / `blockRound` (what's solid, in the same terms).
   const lots = LOTS.map(l => {
     const c = Math.cos(l.yaw), s = Math.sin(l.yaw), at = (x, z) => [l.x + x * c + z * s, l.z - x * s + z * c];
+    // (a house up on a landing only gets in the way of someone up there, not of you walking below it)
+    const from = y0 => y0 ?? (l.y > 0 ? l.y - 0.05 : undefined);
     return {
       ...l, at,
-      block: (x0, x1, z0, z1, y0, y1) => keepIn(TURNED, { x0, x1, z0, z1, y0, y1, X: l.x, Z: l.z, c, s }),
-      blockRound: (x, z, r, y0, y1) => keepIn(CIRCLES, [...at(x, z), r, y0, y1]),
+      block: (x0, x1, z0, z1, y0, y1) => keepIn(TURNED, { x0, x1, z0, z1, y0: from(y0), y1, X: l.x, Z: l.z, c, s }),
+      blockRound: (x, z, r, y0, y1) => keepIn(CIRCLES, [...at(x, z), r, from(y0), y1]),
     };
   });
 
   if (free) lots[LOTS.indexOf(free)].block(-1, 1, -1.1, -0.9);   // (its stake)
 
   return {
-    name: 'outside', scene, floor, doors: { front: door }, faces, sadie, uses, things: [poolThing], lots, grounds: GROUNDS, house,
+    name: 'outside', scene, floor, doors: { front: door, ...Object.fromEntries(hydrant.links.flatMap(l => [['dog-city.' + l.id + '.down', l.a], ['dog-city.' + l.id + '.up', l.b]])) }, faces, sadie, uses, things: [poolThing], lots, grounds: GROUNDS, house,
+    // doors that only get you about the hydrant (both ends out here): each { id, label, a, b }
+    links: hydrant.links,
     // something solid a house puts on its plot: x0 to x1 across, z0 to z1 deep, or round (x, z, r);
     // from y0 up to y1 (from the ground up, if it doesn't say). Each hands back how to take it away.
     block(x0, x1, z0, z1, y0, y1) { return keepIn(RECTS, [x0, x1, z0, z1, y0, y1]); },
     blockRound(x, z, r, y0, y1) { return keepIn(CIRCLES, [x, z, r, y0, y1]); },
     // somewhere more to walk on: (x, z) => its height there, or null where it isn't
     surface(at) { return keepIn(SURFACES, at); },
+    // A house on a raised plot (a landing on the hydrant): its flat pictures on the ground (the path to its
+    // door, stepping stones), which are drawn with no depth test just after the grass, are drawn just
+    // after the ledge's top instead (a ledge draws after the ground's own pictures, so they don't show through it).
+    raise(group, y) { const order = onLedge(Math.max(0, HYDRANT.stops.findIndex(s => s.y === y))); group.traverse(o => { if (o.renderOrder < 0 && o.material?.depthTest === false) o.renderOrder = order; }); },
     light: { sun: 0.5, bulb: 0, lamp: [0, 20, -40] },
     // out of doors (the weather: weather/sky.js): the cloud cover just inside the sun and just outside
     // the hills, so it hides the sun and its edge is behind the hills; a second sun comes up over the
@@ -296,6 +311,7 @@ export function buildOutside(T, cards = []) {
       // Sadie on the gatepost blinks now and then
       square.update(t, dt, ears);   // (it blinks Sadie on the gatepost too: she watches the birds)
       tarp.rotation.z = 0.05 + Math.sin(t * 2) * 0.04;
+      hydrant.update(t);
       pool?.update(t, dt, ears);
     },
   };
