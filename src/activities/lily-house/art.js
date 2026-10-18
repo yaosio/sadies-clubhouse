@@ -63,7 +63,7 @@ export function drawArt(m) {
   A.basketSign = tex(48, 10, g => { rect(g, C.ink, 0, 0, 48, 10); rect(g, '#ffe23a', 1, 1, 46, 8); words(g, 'CHICKENS', 24, 2, 1, C.ink, { align: 'center' }); });
   A.bowl = tex(24, 8, g => { rect(g, '#ff6fb4', 0, 0, 24, 8); words(g, 'LILY', 12, 2, 1, '#ffffff', { align: 'center' }); });
   A.bowl2 = tex(24, 8, g => { rect(g, '#ff9a2a', 0, 0, 24, 8); paw(g, '#ffffff', 10, 1); });
-  A.picLily = tex(64, 72, g => { framed(g, 64, 72, '#9ad0ff'); rect(g, '#e8dcc4', 5, 50, 54, 17); paint(g, frontLily({ pose: 'up', wag: 1 }), 4, 6); });
+  A.picLily = tex(66, 82, g => { framed(g, 66, 82, '#9ad0ff'); rect(g, '#e8dcc4', 5, 58, 56, 19); paint(g, frontLily({ pose: 'up', wag: 1 }), 5, 12); });   // (room above her bow and below her paws: she's 56 x 64)
   // Chooter, head and shoulders, on paint-shop mint (painted dot by dot in his own colours)
   A.picChooter = tex(58, 56, g => { framed(g, 58, 56, '#9ae8c8'); const p = chooterPortrait(); for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) { const c = p.d[y][x]; if (c !== '.' && 5 + y < 51) { g.fillStyle = CHOOTER[c]; g.fillRect(5 + x, 5 + y, 1, 1); } } });
   // Sadie: her own picture, the same as everywhere, on pink (dot for dot, never shrunk: shrunk, it blurs)

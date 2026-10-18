@@ -15,6 +15,7 @@ export const DW = 1.3, DH = 2.4;                       // the front door
 const W = 9, D = 7.5, H1 = 3.4, RH = 3.2;             // the house: width, depth, walls, the roof's rise
 export const WIN = [{ x: -2.7, y: 1.75, r: 0.85, lily: true }, { x: 2.7, y: 1.75, r: 0.85 }];
 const DOT = 0.022;                                     // her window picture: 56 dots, about 1.2 m
+export const TR = { x: 3.4, z: 3.6, r: 1.25, y: 0.42 };   // the trampoline in her yard (its mat's height: low enough to step up onto)
 const HOME = 'room:lily-house';                        // her room inside (the card's id): while you're in there, so is she
 
 export function buildHouse(m, A, poses) {
@@ -81,12 +82,18 @@ export function buildHouse(m, A, poses) {
   vane.add(new Mesh(keep(new PlaneGeometry(1.2, 0.6)), psx(A.chicken, { unlit: 0.5, side: DoubleSide })));
 
   // ---------- the yard: trampoline (with her chicken on it), flower pots, doormat, her sign ----------
-  const TR = { x: 3.4, z: 3.6, r: 1.25 };
-  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + 0.4; box(0.08, 0.55, 0.08, psx(null, { tint: 0x8a8aa0 }), [TR.x + Math.cos(a) * TR.r * 0.9, 0.27, TR.z + Math.sin(a) * TR.r * 0.9]); }
-  cyl(TR.r, TR.r, 0.14, 16, psx(A.pad, { rx: 6, unlit: 0.4 }), [TR.x, 0.6, TR.z], null, true);
-  add(new Mesh(keep(new CircleGeometry(TR.r * 0.86, 16)), psx(A.mat2, { rx: 2, ry: 2, unlit: 0.3 })), [TR.x, 0.6, TR.z], [-Math.PI / 2, 0, 0]);
+  // (low enough to step up onto, and springy: stand on it and you bounce, the chicken with you)
+  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + 0.4; box(0.08, TR.y - 0.05, 0.08, psx(null, { tint: 0x8a8aa0 }), [TR.x + Math.cos(a) * TR.r * 0.9, (TR.y - 0.05) / 2, TR.z + Math.sin(a) * TR.r * 0.9]); }
+  cyl(TR.r, TR.r, 0.14, 16, psx(A.pad, { rx: 6, unlit: 0.4, side: DoubleSide }), [TR.x, TR.y - 0.06, TR.z], null, true);   // (both sides: its far edge is seen from inside)
+  add(new Mesh(keep(new CircleGeometry(TR.r * 0.86, 16)), psx(A.mat2, { rx: 2, ry: 2, unlit: 0.3 })), [TR.x, TR.y - 0.06, TR.z], [-Math.PI / 2, 0, 0]);
   const toy = new Mesh(keep(new PlaneGeometry(0.64, 0.32).translate(0, 0.16, 0)), psx(A.chicken, { unlit: 0.5, side: DoubleSide }));
-  toy.position.set(TR.x - 0.2, 0.61, TR.z + 0.1); place.add(toy);
+  toy.position.set(TR.x - 0.2, TR.y - 0.05, TR.z + 0.1); place.add(toy);
+  // on it, in the house's own terms (x across, z out from the door), from where you are out there
+  const c = Math.cos(lot.yaw), s = Math.sin(lot.yaw);
+  const local = (x, z) => { const dx = x - lot.x, dz = z - lot.z; return [dx * c - dz * s, dx * s + dz * c]; };
+  const onIt = (x, z) => { const [lx, lz] = local(x, z); return Math.hypot(lx - TR.x, lz - TR.z) < TR.r - 0.15; };
+  outside.surface((x, z) => onIt(x, z) ? lot.y + TR.y : null);
+  outside.bounce((x, z, y) => onIt(x, z) && Math.abs(y - lot.y - TR.y) < 0.05);
   for (const s of [-1, 1]) {
     cyl(0.28, 0.2, 0.4, 8, psx(A.pot, { unlit: 0.4 }), [s * 1.25, 0.2, 0.45]);
     plane(0.7, 0.6, psx(A.flowers, { unlit: 0.4, side: DoubleSide }), [s * 1.25, 0.65, 0.45], null, 1);
@@ -96,16 +103,15 @@ export function buildHouse(m, A, poses) {
   for (const s of [-1, 1]) box(0.12, 1.3, 0.12, psx(null, { tint: 0x7a4a2a }), [-3.6 + s * 0.6, 0.65, 2.4]);
   plane(1.6, 0.6, psx(A.sign, { unlit: 0.4, side: DoubleSide }), [-3.6, 1.2, 2.5], null, 1);
 
-  // what's solid: the house, the trampoline, the sign posts, the pots
+  // what's solid: the house, the sign posts, the pots (the trampoline you can climb on)
   lot.block(-W / 2, W / 2, -D, 0);
-  lot.blockRound(TR.x, TR.z, TR.r + 0.1);
   for (const s of [-1, 1]) lot.blockRound(s * 1.25, 0.45, 0.3);
   lot.blockRound(-3.6, 2.4, 0.8);
 
   // ---------- Lily in her window: jumping up to see out ----------
   // In bursts of three to six jumps, a rest between; when you're up on her ledge, she never stops.
   // She looks your way at the top of each jump.
-  const win = WIN[0], c = Math.cos(lot.yaw), s = Math.sin(lot.yaw);
+  const win = WIN[0];
   let jumps = 4, rest = 0, t0 = 0;
   const shared = { bow: Math.random() < 0.5 ? 'pink' : 'orange' };
   bowA.uniforms.tint.value.setHex(BOW_HEX[shared.bow][0]); bowB.uniforms.tint.value.setHex(BOW_HEX[shared.bow][1]);
@@ -113,6 +119,9 @@ export function buildHouse(m, A, poses) {
     shared, door: dw, group: scene, body: [front], farTint: 0xffc89e,
     update(t, dt, ears) {
       vane.rotation.y = Math.sin(t * 0.3) * 1.2 + Math.sin(t * 0.83) * 0.4;
+      // her chicken on the trampoline: tossed up and down as you bounce (it lands as you do)
+      const hop = ears && outside.is(ears.place) && onIt(ears.x, ears.z) ? ears.hop || 0 : 0;
+      toy.position.y = TR.y - 0.05 + hop * 0.7; toy.rotation.z = hop * 0.8;
       // (in her house, she's in there with you: there's only one Lily)
       lily.visible = ears?.place?.name !== HOME;
       if (!lily.visible) return;

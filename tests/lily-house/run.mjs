@@ -1,12 +1,16 @@
 // Lily's House's headless checks: the card (Lily's ledge on the hydrant, nothing saved), and Lily's
 // Big Climb in numbers: it starts, she can jump up to a hammer and can't climb while she holds it,
 // every ladder joins two girders, reaching her chicken wins (and the game ends after the fanfare),
-// and a simple player wins a few games out of a small handful (so the level can be won).
+// and a simple player wins a few games out of a small handful (so the level can be won). Her
+// chicken thrown: she chases it, has her zoomies with it, and brings it back. The game's music: short
+// notes only (nothing drones), with breaths between pieces.
 // Run in Node, in about a second.
 //
 //   node tests/lily-house/run.mjs
 import { makeClimb, GIRDERS, LADDERS, HAMMERS, CHICKEN, gy } from '../../src/activities/lily-house/climb.js';
 import card from '../../src/activities/lily-house/card.js';
+import { makeLily, makeChicken } from '../../src/activities/lily-house/moves.js';
+import { makeComposer } from '../../src/activities/lily-house/music.js';
 import { checker } from '../shared/check.mjs';
 
 const { check, finish } = checker();
@@ -70,6 +74,30 @@ for (const h of HAMMERS) {
     if (T.won) wins++;
   }
   check('a simple player wins some games out of eight (the level can be won)', wins >= 2, `${wins} of 8`);
+}
+
+// 7. the chicken, thrown across the living room: she chases it, zooms about with it, brings it back
+{
+  const L = makeLily(0, 2.5), C = makeChicken(), me = { x: 0, z: 3.5, yaw: 0, fx: 0, fz: -1 };
+  L.mode = 'bounce';
+  C.toss(me.x, 1.3, me.z - 0.5, 0, 0, -1); L.fetch();
+  const seen = new Set(); let far = 0;
+  for (let i = 0; i < 60 * 30 && !(seen.has('zoomies') && L.mode === 'bounce'); i++) {
+    C.step(1 / 60); L.step(i / 60, 1 / 60, me, C); seen.add(L.mode);
+    if (C.where === 'air') far = Math.max(far, Math.hypot(C.x - me.x, C.z - me.z));
+  }
+  check('a thrown chicken flies a good way; she chases it, has her zoomies, and brings it back to your feet',
+    far > 3 && seen.has('chase') && seen.has('zoomies') && L.mode === 'bounce' && C.where === 'floor' && Math.hypot(C.x - me.x, C.z - me.z) < 1.3,
+    JSON.stringify({ far: far.toFixed(1), modes: [...seen], now: L.mode, chicken: C.where }));
+}
+
+// 8. the game's music: every note short (nothing drones), a breath between pieces
+{
+  const M = makeComposer(() => 0.37), notes = [];
+  for (let n = M.next(); n.at < 300; n = M.next()) notes.push(n);
+  let breaths = 0; for (let i = 1; i < notes.length; i++) if (notes[i].at - notes[i - 1].at > 1.5) breaths++;
+  const pieces = new Set(notes.map(n => n.piece)).size;
+  check('the game\'s music: every note short, a breath between pieces', notes.every(n => n.len < 1) && breaths >= pieces - 1 && pieces > 1, `${pieces} pieces, ${notes.length} notes, ${breaths} breaths`);
 }
 
 finish();

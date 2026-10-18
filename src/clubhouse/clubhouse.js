@@ -47,6 +47,7 @@ import page from './clubhouse.html';
 import styles from './clubhouse.css';
 
 const EYE = 1.6, SPEED = 3.2, TURN = 2.2, STICK = 40;   // STICK: how far the thumb stick's knob goes, in screen pixels
+const HOP = 0.7;   // one bounce on a springy floor, in seconds (up about 0.9 m)
 // things that happen once, remembered in the browser (the pause menu can undo each)
 const INVITED = 'mansion.invited';
 const BACK = 'mansion.back';          // which activity you left for (kept only until the page comes back)
@@ -363,9 +364,9 @@ export async function open(cards, enter) {
 
   // you (declared before any room's built: its kit's `ears()` and `paused()` read them), and where
   // your ears are: your eye, where you're looking, and where outside is seen from (`outside`)
-  const me = { world: outside, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, eye: 0, bob: 0 };
+  const me = { world: outside, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, eye: 0, bob: 0, hop: 0, hopT: 0 };
   let mode = 'play';           // 'letter', 'play', 'menu', 'going' (into an activity), 'arcade' (playing a game in its room) or 'gliding' (easing your view somewhere)
-  function ears() { return { place: me.world, x: me.x, y: me.eye + EYE, z: me.z, yaw: me.yaw, pitch: me.pitch, outside: seenFrom }; }
+  function ears() { return { place: me.world, x: me.x, y: me.eye + EYE + me.hop, z: me.z, yaw: me.yaw, pitch: me.pitch, outside: seenFrom, hop: me.hop }; }
 
   // you start at the gate, or (coming back from an activity) at its computer: that room's built first
   let back = null;
@@ -522,7 +523,7 @@ export async function open(cards, enter) {
     // how far you can see: a place can say (the open sea, from the aquarium)
     const far = me.world.far || 300;
     if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); }
-    cam.position.set(me.x, me.eye + EYE + Math.sin(me.bob) * 0.03, me.z);
+    cam.position.set(me.x, me.eye + EYE + me.hop + Math.sin(me.bob) * 0.03, me.z);
     // exactly on a doorway's line (to a tenth of a millimetre) the drawing maths has nothing to work
     // with, so draw from that far off it: far too little to see
     for (const s of sides) if (s.w === me.world) {
@@ -850,6 +851,12 @@ export async function open(cards, enter) {
     else if (mode === 'gliding') glideOn(dt);
     for (const w of ways) w.frame?.(dt);
     if (mode !== 'going' && mode !== 'gliding' && !game.at()) me.eye += (me.y - me.eye) * Math.min(1, dt * 12);   // smooth over steps
+    // a springy floor (a place's `bouncy`: a trampoline): standing on it you bounce, up and down, until
+    // you walk off (then the bounce you're in finishes and you're down)
+    if (mode === 'play' && me.world.bouncy?.(me.x, me.z, me.y)) me.hopT += dt;
+    else if (me.hop > 0.01) me.hopT = Math.min(me.hopT + dt, Math.ceil(me.hopT / HOP - 1e-6) * HOP);
+    else me.hopT = 0;
+    me.hop = Math.sin((me.hopT / HOP % 1) * Math.PI) * 0.9;
     if (!hintGone && ((moved && now - born > 4000) || now - born > 15000)) { hintGone = true; $('#keysHint').style.opacity = 0; }
     // a door opens as you come up to it facing it (only one at a time), and closes behind you
     const opening = doorAhead();
@@ -920,7 +927,7 @@ export async function open(cards, enter) {
     frames: () => frames,
     played: () => played,   // (seconds the game has run: slower than the clock when frames are slow)
     mode: () => mode,
-    where: () => ({ place: me.world.name, x: me.x, y: me.y, z: me.z, yaw: me.yaw }),
+    where: () => ({ place: me.world.name, x: me.x, y: me.y, z: me.z, yaw: me.yaw, hop: me.hop }),
     target: () => target?.label || null,
     looking: () => viewing ? viewing.tw.name : null,
     // how many doorways are showing what's through them right now (not black)

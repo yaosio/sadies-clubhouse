@@ -2,8 +2,9 @@
 // its own) with the built page. It's built into the clubhouse (outside the gate), so these run whenever
 // the clubhouse changes too.
 //
-// It walks up to her house on the top ledge of Dog City's hydrant and in through the door, looks at her
-// friends' pictures, then goes through to the game room and steps up to Lily's Big Climb: the view eases
+// It stands on her trampoline (you bounce), walks up to her house on the top ledge of Dog City's
+// hydrant and in through the door, looks at her
+// friends' pictures, throws her chicken (she chases it and has her zoomies), then goes through to the game room and steps up to Lily's Big Climb: the view eases
 // back to fit the wall, the game starts, and on a phone the picture buttons are up (STEP BACK moved to the
 // top left, away from them), on a desktop they're not. A press moves her. Then a win (put there by
 // the check): the fanfare plays and you step back on your own. Screenshots in dist/check/lily-house/.
@@ -24,14 +25,35 @@ export default async function ({ browser, page, check, outDir }) {
     check(`${device}: Lily's house is on the hydrant, with its door`, await M('faceDoor', 'outside', 'lily-house', 3));
     await p.waitForTimeout(700);
     await shot('1-house');
+    // up onto her trampoline: you bounce
+    {
+      const tr = await p.evaluate(() => window.__lily.trampoline());
+      await M('put', 'outside', { x: tr.x, z: tr.z, y: tr.y, yaw: tr.yaw + 0.5, pitch: -0.3 });   // (looking at her house)
+      let most = 0; for (let i = 0; i < 12; i++) { await p.waitForTimeout(80); most = Math.max(most, (await M('where')).hop); }
+      check(`${device}: standing on her trampoline, you bounce`, most > 0.3, `up ${most.toFixed(2)} m`);
+      await shot('1b-trampoline');
+      await M('faceDoor', 'outside', 'lily-house', 3); await p.waitForTimeout(500);
+    }
     await walk(300); await p.waitForTimeout(500);
     check(`${device}: ...which opens onto her house`, await M('looking') === ROOM);
     await walk(1400);
     check(`${device}: walking through it, you're inside`, (await M('where')).place === ROOM);
     await p.waitForTimeout(400);
     await shot('2-inside');
+    await M('put', ROOM, { x: 0, z: -2, yaw: Math.PI, pitch: 0.05 }); await p.waitForTimeout(400);
+    check(`${device}: ...and the town's out of her windows (pictures of it)`, (await S()).views.town);
+    await shot('2b-windows');
     await M('put', ROOM, 'pictures'); await p.waitForTimeout(400);
     await shot('3-pictures');
+
+    // her chicken, thrown: she's off after it
+    await M('put', ROOM, { x: 0, z: 3.5, yaw: 0, pitch: 0 }); await p.waitForTimeout(400);
+    check(`${device}: looking ahead with her chicken, you can throw it`, await M('target') === 'THROW THE CHICKEN', await M('target'));
+    await use(); await p.waitForTimeout(500);
+    let st = await S();
+    check(`${device}: ...it flies, and she's after it`, st.thrown === 1 && ['chase', 'zoomies'].includes(st.lily.mode), JSON.stringify(st.lily));
+    check(`${device}: ...and she grabs it and has her zoomies`, await until(() => window.__lily.state().lily.mode === 'zoomies', null, 8000), JSON.stringify((await S()).lily));
+    await shot('3b-zoomies');
 
     // the game room: step up to the wall
     await M('put', ROOM, 'play'); await p.waitForTimeout(400);
@@ -42,6 +64,7 @@ export default async function ({ browser, page, check, outDir }) {
     const pad = await p.evaluate(() => ({ pad: !document.querySelector('#clubhouse #pad').hidden, top: document.querySelector('#clubhouse #use').classList.contains('top') }));
     check(`${device}: ${opts.hasTouch ? 'the picture buttons are up, and STEP BACK moved to the top left' : 'no picture buttons on a computer'}`, opts.hasTouch ? pad.pad && pad.top : !pad.pad && !pad.top, JSON.stringify(pad));
     await until(() => window.__lily.state().game.state === 'play', null, 6000);
+    check(`${device}: ...with its music playing`, await until(() => window.__lily.state().music.playing, null, 3000), JSON.stringify((await S()).music));
     await shot('4-playing');
     // a press moves her (the right button on a phone, the right arrow on a computer)
     const x0 = await p.evaluate(() => window.__lily.state().game);

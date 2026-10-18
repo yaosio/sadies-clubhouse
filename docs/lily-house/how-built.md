@@ -9,12 +9,17 @@
   and Chooter's portrait. `art.js`: the house's and room's pictures. `toots-pic.js`: Toots for her
   picture, a frozen copy made by `tools/lily-house/toots-pic.mjs` (rooms can't share files).
 - `plan.js`: the two rooms as numbers (`ground`: where you can stand). `moves.js`: Lily inside, as
-  numbers (following you, the chicken leap).
+  numbers (following you, the chicken leap, chasing a thrown one and her zoomies), and the chicken
+  itself (`makeChicken`: flying, bouncing, skidding).
+- `music.js`: the game's tune, made up as it plays, through the toolbox's band (`src/shared/band.js`).
 - `climb.js`: the game as plain numbers (no browser): the level, Lily, Marbles, the things, suds,
   hammers, scores. `climb-art.js`: its little pictures. `climb-view.js`: draws a frame onto the wall's
   canvas (the clubhouse's `words` handed in).
-- `room.js`: the inside, built from those; the uses (PLAY, HOLD UP THE CHICKEN); the game's `play`
-  (with `key` and `pad`, see `docs/clubhouse/rooms/controls.md`) and the fanfare.
+- `room.js`: the inside, built from those; the uses (PLAY, HOLD UP THE CHICKEN, THROW THE CHICKEN);
+  the game's `play` (with `key` and `pad`, see `docs/clubhouse/rooms/controls.md`) and the fanfare;
+  the window views (four `snapshot`s of the town hung 60 m all round, as in Toots' house).
+- The trampoline outside (`house.js`, `TR`) is a `surface` you step onto and a `bounce`
+  (`docs/clubhouse/outside/buildings.md`).
 
 ## Shared
 The phone's game buttons are the clubhouse's (`src/clubhouse/play/arcade.js`, `pad.html`, `pad.css`),
@@ -28,6 +33,7 @@ for any game that asks with `pad`. Chooter's portrait is copied into Toots' hous
 
 ## Checks
 - `tests/lily-house/run.mjs`: the card; every ladder joins two girders; a game starts; each hammer can
-  be reached and blocks climbing; reaching the chicken wins; a simple player wins some of 8 games.
-- `tests/lily-house/browser.mjs`: in through her door, the pictures, PLAY, the phone buttons (and
-  none on a computer), a win with the fanfare, and stepping back after.
+  be reached and blocks climbing; reaching the chicken wins; a simple player wins some of 8 games; a
+  thrown chicken is chased, zoomed about with and brought back; the music's notes are all short.
+- `tests/lily-house/browser.mjs`: bouncing on the trampoline, in through her door, a throw, the pictures, PLAY, the phone buttons (and
+  none on a computer), the music, a win with the fanfare, and stepping back after.

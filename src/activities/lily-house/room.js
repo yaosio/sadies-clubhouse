@@ -9,12 +9,13 @@
 //
 // The clubhouse calls buildRoom(m) with its building kit, and with the outside and this activity's plot
 // on it (its card has a `lot`), so the house outside is built here too (house.js).
-import { Scene, Color, Mesh, Vector3, PlaneGeometry, CircleGeometry, Shape, ShapeGeometry, Path, DoubleSide } from 'three';
+import { Scene, Color, Mesh, Vector3, PlaneGeometry, SphereGeometry, CircleGeometry, Shape, ShapeGeometry, Path, DoubleSide } from 'three';
 import { drawArt } from './art.js';
-import { buildHouse, WIN } from './house.js';
+import { buildHouse, WIN, TR } from './house.js';
 import { lilyPoses, paint } from './lily-art.js';
 import { LR, ARCH, GR, DW, DH, PLAY, BASKET, BED, ground, inGameRoom } from './plan.js';
-import { makeLily } from './moves.js';
+import { makeLily, makeChicken } from './moves.js';
+import { makeMusic } from './music.js';
 import { makeClimb, W as CW, H as CH } from './climb.js';
 import { drawClimb } from './climb-view.js';
 import { soundsFor } from '../../shared/sound.js';
@@ -50,9 +51,6 @@ export async function buildRoom(m) {
     plane(w.r * 2 + 0.24, w.r * 2 + 0.24, psx(A.ring, { unlit: 0.4 }), [w.x, w.y, LR.d - 0.04], [0, Math.PI, 0], 1);
     box(w.r * 2 + 0.3, 0.08, 0.3, tint(0xffffff), [w.x, w.y - w.r - 0.05, LR.d - 0.12]);
   }
-  // out of the windows: the sky, and the hydrant's red barrel just across the ledge
-  plane(16, 4, psx(null, { tint: 0x8ad0ff, unlit: 0.9 }), [0, 1.75, LR.d + 3], [0, Math.PI, 0], 1);
-  plane(16, 1.2, tint(0xd8261e, { unlit: 0.5 }), [0, 1.2, LR.d + 2.5], [0, Math.PI, 0], 1);
   // the side walls
   for (const s of [-1, 1]) plane(2 * LR.d + 2 * O, LR.h, psx(A.wall, { rx: (2 * LR.d) / 1.6, ry: LR.h / 1.6, unlit: 0.3 }), [s * LR.w, LR.h / 2, 0], [0, -s * Math.PI / 2, 0]);
   // the back wall, round the big doorway
@@ -91,7 +89,7 @@ export async function buildRoom(m) {
   // her bowls
   for (const [x, pic] of [[3.2, A.bowl], [3.9, A.bowl2]]) cyl(0.24, 0.18, 0.13, 10, psx(pic, { unlit: 0.4 }), [x, 0.065, -4.55]);
   // her friends' pictures on the right wall, and her own over the couch
-  for (const [pic, name, z, w, h] of [...friends, [A.picLily, 'LILY', null, 0.9, 1.0]]) {
+  for (const [pic, name, z, w, h] of [...friends, [A.picLily, 'LILY', null, 0.9, 0.9 * 82 / 66]]) {
     const onLeft = z === null, x = onLeft ? -LR.w + 0.04 : LR.w - 0.04, zz = onLeft ? 0 : z, ry = onLeft ? Math.PI / 2 : -Math.PI / 2;
     plane(w, h, psx(pic, { unlit: 0.45, decal: true }), [x, 1.95, zz], [0, ry, 0], 1);
     const p = A.plate(name); plane(p.image.width / 80, 0.1, psx(p, { unlit: 0.5, decal: true }), [x, 1.95 - h / 2 - 0.12, zz], [0, ry, 0], 1);
@@ -115,6 +113,7 @@ export async function buildRoom(m) {
   for (const x of [-GR.w + 0.15, GR.w - 0.15]) plane(0.3, GR.h, psx(A.tape, { rx: 1, ry: GR.h / 1.2, unlit: 0.6, decal: true }), [x, GR.h / 2, GR.z1 + 0.04], null, 2);
   const game = makeClimb(1 + Math.floor(Math.random() * 99999));
   const sfx = soundsFor('room:' + card.id);
+  const music = makeMusic(sfx);   // (its tune while you play: music.js)
   // where you'd stand to play: a circle on the carpet
   plane(2, 2, psx(A.spot, { onFloor: true }), [PLAY.x, 0.01, PLAY.z], [-Math.PI / 2, 0, 0], 1).renderOrder = -3;
   // string lights along the top of the side walls
@@ -128,7 +127,7 @@ export async function buildRoom(m) {
   const L = makeLily(0, 2.5);
   // her chicken: in your hand (held up), in her mouth, or on the floor where she dropped it
   const toy = new Mesh(keep(new PlaneGeometry(0.6, 0.3)), psx(A.chicken, { unlit: 0.5, side: DoubleSide })); scene.add(toy);
-  const chicken = { where: 'you', x: 0, z: 0, take() { this.where = 'lily'; }, drop(x, z) { this.where = 'floor'; this.x = x; this.z = z; } };
+  const chicken = makeChicken();
   let shown = null;
   const pick = (me) => {
     // which picture: the way she's heading, against the way you're looking at her
@@ -138,10 +137,10 @@ export async function buildRoom(m) {
     const C = L.chick ? 'Chick' : '';
     if (L.pose === 'up') return ['up', 'up'];
     if (L.pose === 'fly') return ['fly', 'front'];
-    if (L.pose === 'crouch') return [across < 0 ? 'rightCrouch' : 'leftCrouch', 'side'];
+    if (L.pose === 'crouch') return [across > 0 ? 'rightCrouch' : 'leftCrouch', 'side'];
     if (L.pose === 'front' || along < -0.75) return ['front' + C + wag, 'front'];
     if (along > 0.75) return ['back' + step, 'back'];
-    return [(across < 0 ? 'right' : 'left') + C + step, 'side'];
+    return [(across > 0 ? 'right' : 'left') + C + step, 'side'];
   };
 
   // ---------- her game: PLAY from anywhere in the game room (the same button starts it again once it's over) ----------
@@ -164,7 +163,18 @@ export async function buildRoom(m) {
     },
   };
   const playUse = { pos: new Vector3(0, 4, GR.z1), reach: 24, label: "PLAY LILY'S BIG CLIMB", play };
+  // her chicken, in your hand: look down at her and hold it up (she jumps for it), or look ahead and throw it
+  // (she chases it). Each is a spot just ahead of you, one low and one at eye height: the one you look at.
   const holdUse = { pos: new Vector3(), reach: 3, label: 'HOLD UP THE CHICKEN', button: 'HOLD UP', act: () => { if (chicken.where === 'you') L.want(); } };
+  const throwUse = {
+    pos: new Vector3(), reach: 4, label: 'THROW THE CHICKEN', button: 'THROW',
+    act: () => {
+      const e = look(); if (!e || chicken.where !== 'you') return;
+      const cp = Math.cos(e.pitch), fx = -Math.sin(e.yaw) * cp, fz = -Math.cos(e.yaw) * cp, fy = Math.sin(e.pitch);
+      chicken.toss(e.x + fx * 0.5, e.y - 0.3, e.z + fz * 0.5, fx, fy, fz);
+      L.fetch();
+    },
+  };
   const uses = [];
   const look = () => { const e = m.ears?.(); return e && e.place === place ? e : null; };
 
@@ -188,18 +198,26 @@ export async function buildRoom(m) {
       // the game: it only moves while you're at it (stepped back or paused, it waits)
       if (playing && !m.paused()) {
         game.step(Math.min(dt, 0.05), input); input.jump = false;
-        if (game.events.includes('win')) sfx.play('fanfare', fanfare, { bus: 'music' });
+        if (game.events.includes('win')) { music.stop(0.3); sfx.play('fanfare', fanfare, { bus: 'music' }); }
         if (game.state === 'done' || game.state === 'over') { overFor += dt; if (overFor > (game.state === 'done' ? 0.6 : 2)) { play.over = true; overFor = 0; } } else overFor = 0;
       }
+      // its music: only while a game's going and you're at it
+      if (playing && !m.paused() && (game.state === 'ready' || game.state === 'play')) music.play(); else music.stop();
+      music.tick();
       if (e || playing) { drawClimb(ctx2d, game, bow, t, words); screen.needsUpdate = true; }
-      // what you can use here: PLAY in the game room, HOLD UP THE CHICKEN in the living room (while it's in your hand)
+      // what you can use here: PLAY in the game room; in the living room, with the chicken in your hand,
+      // HOLD UP (looking down at her) or THROW (looking ahead)
       uses.length = 0;
       if (e && inGameRoom(e.z)) uses.push(playUse);
-      else if (e && chicken.where === 'you' && L.mode !== 'leap' && L.mode !== 'crouch' && L.mode !== 'aim') { holdUse.pos.set(e.x + me.fx * 1.2, e.y - 0.2, e.z + me.fz * 1.2); uses.push(holdUse); }
+      else if (e && chicken.where === 'you' && L.mode !== 'leap' && L.mode !== 'crouch' && L.mode !== 'aim') {
+        holdUse.pos.set(e.x + me.fx * 1.2, e.y - 0.8, e.z + me.fz * 1.2); uses.push(holdUse);
+        throwUse.pos.set(e.x + me.fx * 3, e.y, e.z + me.fz * 3); uses.push(throwUse);
+      }
       // Lily: while you're playing, she's in the game
       lily.visible = !playing;
       if (playing) { toy.visible = false; return; }
       if (!e) return;
+      chicken.step(Math.min(dt, 0.05));
       L.step(t, Math.min(dt, 0.05), me, chicken);
       const [name, kind] = pick(me);
       const pic = poses[bow][name];
@@ -207,18 +225,41 @@ export async function buildRoom(m) {
       lily.position.set(L.x, L.h - lily.userData.feet, L.z); lily.rotation.y = e.yaw;
       // the chicken: pick it up again where she dropped it (once she's back with you)
       if (chicken.where === 'floor' && Math.hypot(me.x - chicken.x, me.z - chicken.z) < 1.3 && L.mode === 'bounce') chicken.where = 'you';
-      // in your hand you only see it once you hold it up (high, over her head); dropped, it lies on the floor
+      // in your hand you only see it once you hold it up (high, over her head); thrown, it tumbles
+      // through the air; dropped, it lies on the floor
       const up = chicken.where === 'you' && (L.mode === 'aim' || L.mode === 'crouch' || L.mode === 'leap');
-      toy.visible = up || chicken.where === 'floor';
+      toy.visible = up || chicken.where === 'floor' || chicken.where === 'air';
       if (up) { toy.position.set(me.x + me.fx * 1.1, 1.95, me.z + me.fz * 1.1); toy.rotation.set(0, e.yaw, Math.sin(t * 9) * 0.15); }
+      else if (chicken.where === 'air') { toy.position.set(chicken.x, chicken.y + 0.16, chicken.z); toy.rotation.set(0, e.yaw, chicken.spin); }
       else if (chicken.where === 'floor') { toy.position.set(chicken.x, 0.16, chicken.z); toy.rotation.set(0, e.yaw, 0); }
     },
   };
   let overFor = 0;
 
+  // ---------- out of the windows: the real town, in pictures taken once as the house is built ----------
+  // (as in Toots' house: m.snapshot of the whole outside, bar its sky and her own house, four pictures,
+  // one each way, from the middle of where her house stands; hung all round 60 m off, drawn before
+  // everything else, so the round windows show what's really out there. No cost each frame.)
+  const views = { town: false };
+  if (m.snapshot && m.outside && m.lot && house) {
+    const { x, z, yaw } = m.lot, c = Math.cos(yaw), s = Math.sin(yaw), Y = 1.75, R = 60;
+    const world = (lx, ly, lz) => [x + c * lx + s * lz, m.lot.y + ly, z - s * lx + c * lz];   // (the house's own terms, to the town's)
+    const T60 = Math.tan(Math.PI / 3);   // (each picture 90 degrees across and 120 high)
+    if (m.skyMat) add(new Mesh(keep(new SphereGeometry(120, 16, 12)), m.skyMat()), [0, 0, 0]).renderOrder = -5;   // (the sky behind them: the pictures leave it out)
+    for (const [dx, dz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+      await m.breathe?.();
+      const pic = m.snapshot(null, m.outside, { from: world(0, Y, -3), at: world(dx, Y, -3 + dz), fov: 120, w: 320, h: Math.round(320 * T60), without: [house.group] });
+      const mt = psx(pic, { unlit: 1 }); mt.depthTest = false; mt.depthWrite = false;
+      add(new Mesh(keep(new PlaneGeometry(2 * R, 2 * R * T60, 4, 4)), mt), [dx * R, Y, dz * R], [0, Math.atan2(-dx, -dz), 0]).renderOrder = -4.5;
+    }
+    views.town = true;
+  }
+
   // for the checks (tests/lily-house/browser.mjs)
   m.checks('__lily', {
-    state: () => ({ lily: { x: L.x, z: L.z, mode: L.mode, chick: L.chick }, chicken: chicken.where, game: { state: game.state, score: game.score, lives: game.lives, g: game.lily.g, x: game.lily.x }, playing, uses: uses.map(u => u.label), heard: [...sfx.log], bow }),
+    state: () => ({ lily: { x: L.x, z: L.z, mode: L.mode, chick: L.chick }, chicken: chicken.where, thrown: chicken.thrown, music: { playing: music.playing, played: music.played() }, game: { state: game.state, score: game.score, lives: game.lives, g: game.lily.g, x: game.lily.x }, playing, uses: uses.map(u => u.label), heard: [...sfx.log], bow, views }),
+    // the middle of her trampoline, out there (for standing on it)
+    trampoline: () => { const l = m.lot; if (!l) return null; const c = Math.cos(l.yaw), s = Math.sin(l.yaw); return { x: l.x + TR.x * c + TR.z * s, z: l.z - TR.x * s + TR.z * c, y: l.y + TR.y, yaw: l.yaw }; },
     win: () => { const G = game; G.lily.g = 6; G.lily.x = 64; G.lily.y = 46; G.lily.air = false; G.lily.climb = null; },
   });
   return place;
