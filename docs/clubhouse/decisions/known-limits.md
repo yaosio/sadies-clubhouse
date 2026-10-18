@@ -22,7 +22,7 @@ A limit that's written down still needs a plan for when it gets fixed, not just 
   houses or things to use outside.
 - **The every-room check gets longer with every room**; split it across computers when it's slow
   (the 180 s warning in `tools/check.mjs` says when).
-- **Every room's browser checks wait for every room to be built** (`up()`, 15 s). Fine at ten
+- **Every room's browser checks wait for every room to be built** (`up()`, 40 s). Fine at ten
   rooms; at a few dozen it fails, and once the house loads in pieces "every room built" never
   happens. Plan: `up()` waits for just the clubhouse, the room's own check walks up to its door
   (which builds it), and the every-room loops walk to each room. `up()` warns (on GitHub too) once
