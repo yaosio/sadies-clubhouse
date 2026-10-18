@@ -83,13 +83,23 @@ export function psx(map, o = {}) {
 
 // A doorway: the inside of a shallow box behind the door's hole, showing the place on the other
 // side, which was drawn into a picture the size of the screen just before. It's looked up by screen
-// position, so every side of the box shows exactly what's through the door.
-export function doorwayMat(picture) {
+// position, so every side of the box shows exactly what's through the door. Only what's seen through
+// the hole itself is drawn: the box pokes out behind the wall, so through a window beside the door
+// you'd see its far side (`half`: the box's half size; `cam`: where the camera is, in the box's own
+// terms, kept up to date as it's drawn: build.js; `half` is a word GLSL keeps for itself, so uHalf).
+export function doorwayMat(picture, half = new Vector3(1, 1, 1)) {
   return keep(new ShaderMaterial({
-    uniforms: { pic: { value: picture }, uRes: { value: res }, uOn: { value: 0 } },
-    vertexShader: `void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    fragmentShader: `uniform sampler2D pic; uniform vec2 uRes; uniform float uOn;
-      void main(){ gl_FragColor = uOn > 0.5 ? texture2D(pic, gl_FragCoord.xy / uRes) : vec4(0.04, 0.02, 0.1, 1.0); }`,
+    uniforms: { pic: { value: picture }, uRes: { value: res }, uOn: { value: 0 }, uHalf: { value: half }, uCam: { value: new Vector3(0, 0, 99) } },
+    vertexShader: `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform sampler2D pic; uniform vec2 uRes; uniform float uOn; uniform vec3 uHalf; uniform vec3 uCam; varying vec3 vP;
+      void main(){
+        // (from in front of the hole, where the line to here crosses the hole's plane must be in the hole)
+        if (uCam.z > uHalf.z) {
+          vec3 q = uCam + (vP - uCam) * ((uHalf.z - uCam.z) / (vP.z - uCam.z));
+          if (abs(q.x) > uHalf.x + 0.01 || abs(q.y) > uHalf.y + 0.01) discard;
+        }
+        gl_FragColor = uOn > 0.5 ? texture2D(pic, gl_FragCoord.xy / uRes) : vec4(0.04, 0.02, 0.1, 1.0);
+      }`,
     side: BackSide,
     // (a floor or ground that runs on under the doorway sits exactly on the box's bottom: the box wins
     // by a few depth steps, so the two never fight. Not by slope: its sides are seen nearly edge on)

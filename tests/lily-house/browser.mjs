@@ -43,6 +43,8 @@ export default async function ({ browser, page, check, outDir }) {
     await M('put', ROOM, { x: 0, z: -2, yaw: Math.PI, pitch: 0.05 }); await p.waitForTimeout(400);
     check(`${device}: ...and the town's out of her windows (pictures of it)`, (await S()).views.town);
     await shot('2b-windows');
+    await M('put', ROOM, { x: -4.6, z: 3.4, yaw: Math.atan2(-1.9, -1.6), pitch: 0.05 }); await p.waitForTimeout(400);
+    await shot('2c-window-side');   // (through a window at a slant: nothing of the doorway's view in it)
     await M('put', ROOM, 'pictures'); await p.waitForTimeout(400);
     await shot('3-pictures');
 
