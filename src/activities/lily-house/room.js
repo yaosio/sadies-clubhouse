@@ -150,7 +150,7 @@ export async function buildRoom(m) {
   let playing = false;
   const play = {
     view: { center: new Vector3(0, SY, GR.z1), normal: new Vector3(0, 0, 1), w: SW + 0.5, h: SH + 0.4 },
-    pad: ['left', 'right', 'up', 'down', 'jump'],
+    pad: ['stick', 'jump'],
     hint: { keys: '<kbd>A D</kbd> MOVE &nbsp; <kbd>W S</kbd> CLIMB &nbsp; <kbd>SPACE</kbd> JUMP &nbsp; <kbd>ESC</kbd> STEP BACK', touch: 'GET HER CHICKEN!' },
     over: false,
     // (called stepping up, and again coming back from the pause menu: a game still going carries on)
