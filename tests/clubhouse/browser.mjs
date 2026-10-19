@@ -314,6 +314,38 @@ export default async function ({ browser, page, check, outDir, touched = null })
     await p.waitForTimeout(200);
     await p.click('#resume');
     check(`${device}: RESUME carries on`, await M('mode') === 'play');
+    // LIVE STATS: off until switched on in the pause menu, then a strip that stays up while playing, small, clear of the
+    // pause button, opening to the full list when tapped (and the P key on a computer)
+    check(`${device}: the live stats strip is off until switched on`, !(await p.isVisible('#live')));
+    await pressPause(p, opts);
+    await p.waitForTimeout(200);
+    await p.click('#liveBtn');
+    check(`${device}: LIVE STATS in the pause menu says ON`, /ON/.test(await p.evaluate(() => document.getElementById('liveBtn').textContent)));
+    await p.click('#resume');
+    await p.waitForTimeout(1500);
+    const liveText = await p.evaluate(() => document.getElementById('live').innerText);
+    check(`${device}: ...then the strip shows on screen while playing, with frames a second and draw calls`, await p.isVisible('#live') && /FPS/.test(liveText) && /\d+ CALLS/.test(liveText), liveText.slice(0, 200));
+    const boxes = await p.evaluate(() => { const r = document.getElementById('live').getBoundingClientRect(), b = document.getElementById('pause').getBoundingClientRect(); return { right: r.right, bottom: r.bottom, pauseLeft: b.left, w: innerWidth, h: innerHeight }; });
+    check(`${device}: ...clear of the pause button and not covering much of the screen`, boxes.right < boxes.pauseLeft && boxes.bottom < boxes.h / 2, JSON.stringify(boxes));
+    await shot('8c-live-strip');
+    if (opts.hasTouch) await p.click('#live');   // (on a computer it starts open; on a phone a tap opens it)
+    await p.waitForTimeout(700);
+    const listText = await p.evaluate(() => document.getElementById('live').innerText);
+    const size = await p.evaluate(() => document.getElementById('live').getBoundingClientRect().height / innerHeight);
+    check(`${device}: ...the full list (open on a computer, a tap opens it on a phone: room, doorways, memory, hitches), under a third of the screen`, /DRAW CALLS/.test(listText) && /LAST HITCH/.test(listText) && size < 0.4, `${Math.round(size * 100)}%: ${listText.slice(0, 160)}`);
+    await shot('8d-live-list');
+    check(`${device}: ...and it didn't turn the walker or pause the game`, await M('mode') === 'play');
+    if (!opts.hasTouch) {
+      await p.keyboard.press('KeyP');
+      check(`${device}: ...the P key switches it off again`, !(await p.isVisible('#live')));
+      await p.keyboard.press('KeyP');
+      await p.waitForTimeout(500);
+    }
+    await pressPause(p, opts);
+    await p.waitForTimeout(200);
+    await p.click('#liveBtn');
+    await p.click('#resume');
+    check(`${device}: LIVE STATS can be switched off in the pause menu`, !(await p.isVisible('#live')) && await M('mode') === 'play');
     await pressPause(p, opts);
     await p.waitForTimeout(200);
     // every save written while walking round (and playing every computer's activity) belongs to someone: a card's
