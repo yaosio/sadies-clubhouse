@@ -30,8 +30,9 @@ its checks. Read before changing its code.
 ## How a look is drawn
 Sadie is the kit's flat Sadie picture (`m.sadie`). What she wears is a second see-through picture
 laid over her as a child of her sprite (so it turns to face you with her), redrawn only when a pick
-changes (and once a second for glitter). A tail colour works on the dots of her tail, found once by
-reading her picture when the room is built (`willReadFrequently`). Hats use each hairdo's height.
+changes (and once a second for glitter). A tail colour works on the dots of her tail, written down in
+`room.js` (`TAIL_DOTS`, rows of her picture; reading them off the picture when the room was built stalled it for
+up to 2 seconds, so don't read pixels back at build time). Hats use each hairdo's height.
 
 ## Being put away
 Nothing is saved, so `putAway()` only stops the music; everything else the room made is handed back

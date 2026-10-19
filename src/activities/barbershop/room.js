@@ -98,14 +98,12 @@ export async function buildRoom(m) {
   const lookH = SADIE_W * LH / LW;
   const wear = new Mesh(keep(new PlaneGeometry(SADIE_W, lookH).translate(0, lookH / 2, 0.004)), psx(lookTex, { unlit: 0.3, decal: true }));
   sadie.add(wear);
-  // (Sadie's tail's own dots: some taildos colour them in. Read off her picture once.)
-  const mask = [];
-  {
-    const probe = document.createElement('canvas'); probe.width = 58; probe.height = 47;
-    const pg = probe.getContext('2d', { willReadFrequently: true }); pg.drawImage(m.T.sadie.image, 0, 0);
-    const d = pg.getImageData(0, 0, 58, 47).data;
-    for (let y = 10; y < 31; y++) for (let x = 5; x < 14; x++) { const i = (y * 58 + x) * 4; if (d[i + 3] >= 200 && d[i] + d[i + 1] + d[i + 2] >= 200) mask.push([x, y]); }
-  }
+  // (Sadie's tail's own dots: some taildos colour them in. Written down here as rows [y, first x, last x] of her
+  // picture, because reading them off the picture when the room was built stalled it for up to 2 seconds. Her
+  // tail doesn't change; if her picture is ever redrawn, they're the pixels at x 5-13, y 10-30 that are solid and
+  // light.)
+  const TAIL_DOTS = [[12,9,10],[13,8,11],[14,8,11],[15,8,10],[16,7,10],[17,7,10],[18,7,9],[19,7,9],[20,6,9],[21,6,9],[22,6,9],[23,6,9],[24,7,9],[25,7,10],[26,7,11],[27,8,13],[28,8,13],[29,9,12],[30,11,12]];
+  const mask = TAIL_DOTS.flatMap(([y, a, b]) => Array.from({ length: b - a + 1 }, (_, i) => [a + i, y]));
   const pick = { hair: 0, tail: 0, outfit: 0 };
   let sparkleAt = -1;
   const redraw = (t = 0) => { drawLook(lookG, pick, mask, t); lookTex.needsUpdate = true; };
