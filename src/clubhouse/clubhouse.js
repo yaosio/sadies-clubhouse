@@ -726,7 +726,7 @@ export async function open(cards, enter) {
     const mem = performance.memory, info = renderer.info.memory;
     return { heap: mem ? mem.usedJSHeapSize : 0, shapes: info.geometries, pictures: info.textures, rooms: slots.filter(r => r.place).length, slots: slots.length, ticking: places.length };
   } });
-  const showLive = () => { $('#liveBtn').textContent = `LIVE STATS: ${live.on() ? 'ON' : 'OFF'}` };
+  const showLive = () => { $('#liveBtn').textContent = `LIVE STATS: ${live.on() ? 'ON' : 'OFF'}`; };
   on($('#liveBtn'), 'click', () => { live.toggle(); });
   live.onChange(showLive); showLive();
   const mb = n => (n / 1e6).toFixed(1);
