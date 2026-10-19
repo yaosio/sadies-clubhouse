@@ -321,8 +321,17 @@ export default async function ({ browser, page, check, outDir, touched = null })
     await p.waitForTimeout(200);
     await p.click('#liveBtn');
     check(`${device}: LIVE STATS in the pause menu says ON`, /ON/.test(await p.evaluate(() => document.getElementById('liveBtn').textContent)));
+    check(`${device}: ...and SAVE LOG shows in the pause menu`, await p.isVisible('#logBtn'));
     await p.click('#resume');
     await p.waitForTimeout(1500);
+    await pressPause(p, opts);
+    await p.waitForTimeout(200);
+    await p.click('#logBtn');
+    await p.waitForTimeout(500);
+    const logSaid = await p.evaluate(() => document.getElementById('logNote').textContent);
+    check(`${device}: ...SAVE LOG says what happened (saved, or why not)`, /LOG/.test(logSaid), logSaid);
+    await p.click('#resume');
+    await p.waitForTimeout(500);
     const liveText = await p.evaluate(() => document.getElementById('live').innerText);
     check(`${device}: ...then the strip shows on screen while playing, with frames a second and draw calls`, await p.isVisible('#live') && /FPS/.test(liveText) && /\d+ CALLS/.test(liveText), liveText.slice(0, 200));
     const boxes = await p.evaluate(() => { const r = document.getElementById('live').getBoundingClientRect(), b = document.getElementById('pause').getBoundingClientRect(); return { right: r.right, bottom: r.bottom, pauseLeft: b.left, w: innerWidth, h: innerHeight }; });

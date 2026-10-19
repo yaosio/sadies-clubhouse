@@ -51,6 +51,15 @@ sums and has no screen, `liveBox` shows them); the clubhouse's frame hands it ea
   2 or 3 times a second. A number read with it on is very slightly worse than with it off.
 - **What it can't see:** how long the graphics chip takes (not readable from a page on most phones).
   Draw calls, doorways drawn through and a small "work" with a big frame length point at it.
+- **SAVE LOG** (in the pause menu while LIVE STATS is on): every frame since the strip went on is also
+  written down as a line (time, frame length, our work, drawing, the chip's own time, calls, doorways,
+  place, a room built, page memory, memory fell) and handed over as a `.txt` file (the phone's share
+  sheet, the Claude app's own way to save a file, or a plain download), to be sent in and read. The
+  last 20000 frames are kept. Why: "our work" only times our own code, not the graphics chip, so a
+  device's real unevenness (doorway pictures, memory cleanup) can only be read from its own log.
+- **The chip's time** (`src/clubhouse/gpu.js`): where the device allows it (Chrome and Android's
+  usually do, iPhones don't), the chip is asked how long a frame's drawing took; the answer arrives a
+  few frames late and fills in its log line. Shown as THE CHIP in the list and in the log (-1: unknown).
 - Claude's numbers (changeable): 100 bars, 1.5 times the screen's own frame for red, 50 ms for a hitch,
   400 ms between refreshes. SPEED stays as the long view (all together, slowest place, graphics chip).
 - Checks: `tests/clubhouse/meter.mjs` (the sums, with fake frames) and the clubhouse's browser check

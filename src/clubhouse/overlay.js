@@ -6,10 +6,15 @@
 // Claude's numbers (changeable): the graph is of each frame's length against the screen's own speed (the
 // quickest quarter of recent frames, so a 144 Hz phone and a 60 Hz one both read right), a bar goes red
 // at 1.5 times that; a frame over 50 ms is a "hitch" and is kept; the words refresh 2 or 3 times a second.
-export const BARS = 100, SHOW_EVERY = 400, HITCH_MS = 50, RED_AT = 1.5;
+//
+// The log (SAVE LOG in the pause menu): while the strip is on, every frame is also written down as one line
+// (time, frame length, our work, drawing, the graphics chip's own time where the phone will say, calls,
+// doorways, place, whether a room was built, page memory), up to the last LOG_MAX frames, for sending in
+// to be read. Claude's number (changeable): 20000 frames is about 3 minutes at 120 a second.
+export const BARS = 100, SHOW_EVERY = 400, HITCH_MS = 50, RED_AT = 1.5, LOG_MAX = 20000;
 
 export function makeLive() {
-  let gaps = [], win = fresh(), shown = null, hitch = null, built = -1, here = '';
+  let gaps = [], win = fresh(), shown = null, hitch = null, built = -1, here = '', log = [], prevHeap = 0;
   const places = new Map();
   function fresh() { return { n: 0, gap: 0, work: 0, draw: 0, calls: 0, main: 0, tris: 0, doors: 0 }; }
   return {
@@ -20,8 +25,19 @@ export function makeLive() {
       win.n++; win.gap += s.gap; win.work += s.work; win.draw += s.draw; win.calls += s.calls; win.main += s.main; win.tris += s.tris; win.doors += s.doors;
       here = s.place;
       if (s.gap > HITCH_MS && built >= 0) hitch = { place: s.place, gap: s.gap, update: s.work - s.draw, draw: s.draw, built: s.built !== built };
+      // (the log line; the chip's time arrives a few frames late, in `s.gpu.ms`, so it's read when the log is written)
+      const heap = s.heap || 0, row = [s.t === undefined ? 0 : s.t, s.gap, s.work, s.draw, s.gpu || null, s.calls, s.doors, s.place, built >= 0 && s.built !== built ? 1 : 0, heap, prevHeap && heap < prevHeap - 5e5 ? 1 : 0];
+      log.push(row); if (log.length > LOG_MAX) log.splice(0, 2000);
+      prevHeap = heap;
       built = s.built;
     },
+    // the log as text: what the device is, then a line a frame
+    logText(about = '') {
+      const n = x => x.toFixed(1);
+      const head = [`SADIE'S CLUBHOUSE FRAME LOG`, about, 'one line a frame: time(ms), frame(ms), our work(ms), drawing(ms), chip(ms, -1 if unknown), calls, doorways, place, room built(1), page memory(MB), memory fell(1)'];
+      return head.filter(Boolean).concat(log.map(r => [n(r[0]), n(r[1]), n(r[2]), n(r[3]), r[4] && r[4].ms >= 0 ? n(r[4].ms) : -1, r[5], r[6], label(r[7]), r[8], (r[9] / 1e6).toFixed(1), r[10]].join(','))).join('\n');
+    },
+    logLength: () => log.length,
     // how long one place's own update took this frame
     place(name, ms) { places.set(name, (places.get(name) || 0) + ms); },
     gaps: () => gaps,
@@ -51,6 +67,7 @@ export function makeLive() {
       return [
         ['FRAME', `${s.fps} A SECOND, ${s.gap.toFixed(1)} MS (THIS SCREEN'S OWN: ${this.guide().toFixed(1)} MS)`],
         ['OUR WORK', `${s.work.toFixed(1)} MS: ${s.update.toFixed(1)} UPDATING, ${s.draw.toFixed(1)} DRAWING`],
+        ['THE CHIP', (c => c.length ? `${(c.reduce((a, b) => a + b, 0) / c.length).toFixed(1)} MS A FRAME ON ITS OWN, ${Math.max(...c).toFixed(1)} AT MOST (OF THE LAST ${c.length})` : "THIS DEVICE WON'T SAY HOW LONG THE CHIP TAKES")(log.slice(-120).map(r => r[4] ? r[4].ms : -1).filter(x => x >= 0))],
         ['DRAW CALLS', `${s.calls} (${s.main} ROOM, ${s.calls - s.main} DOORWAYS), ${s.tris} TRIANGLES`],
         ['DOORWAYS SEEN', String(s.doors)],
         ['IN', label(s.place)],
@@ -61,7 +78,7 @@ export function makeLive() {
         ['LAST HITCH', hitch ? `${Math.round(hitch.gap)} MS IN ${label(hitch.place)}: ${hitch.update.toFixed(0)} UPDATING, ${hitch.draw.toFixed(0)} DRAWING${hitch.built ? ', A ROOM WAS BUILT' : ''}` : 'NONE YET'],
       ].filter(r => r[1] !== '');
     },
-    clear() { gaps = []; win = fresh(); shown = null; hitch = null; built = -1; places.clear(); },
+    clear() { gaps = []; win = fresh(); shown = null; hitch = null; built = -1; places.clear(); log = []; prevHeap = 0; },
   };
 }
 
@@ -92,6 +109,7 @@ export function liveBox({ root, on, store, key, touchy, mode, extra }) {
   return {
     on: () => isOn, set, toggle: () => set(!isOn), onChange: f => listeners.push(f),
     place: (name, ms) => stats.place(name, ms),
+    logText: about => stats.logText(about), logLength: () => stats.logLength(),
     frame(now, sample) {
       if (!isOn) return;
       stats.add(sample);
