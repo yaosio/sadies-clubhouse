@@ -197,7 +197,7 @@ export default async function ({ browser, page, check, outDir }) {
     await stepBack();
     await modeIs('play');
     await p.waitForTimeout(1500);
-    // put away when you're far off (the clubhouse does it after a while three doors away) and built
+    // put away when you're far off (the clubhouse does it after a while more than 30 m of walking away) and built
     // again as you come back: the yarn ball and Sadie leave the hall with it, and come back with it
     await M('faceDoor', 'hall', 'brickbuster', 2.4);   // (out in the hall: a room you're in is never put away)
     await p.waitForTimeout(300);

@@ -46,7 +46,7 @@ before changing the code. Its checks are in `checks.md`.
 
 ## Put away when you're far off
 
-The clubhouse puts the aquarium away when you've been three doors or more from it for a while (see
+The clubhouse puts the aquarium away when you've been more than 30 m of walking from it for a while (see
 `docs/clubhouse/world/building-rooms.md`). It has no `putAway()`: the clubhouse stops its sounds
 (`closeSounds`), and both its scenes (`scenes`: the room and the ocean) go back to the graphics
 card. It's built again from its save (the finds and where the boat was left) as you come back, so

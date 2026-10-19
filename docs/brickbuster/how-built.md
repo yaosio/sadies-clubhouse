@@ -45,7 +45,7 @@ changing the code. Its sounds and music are in `sounds.md`, its checks in `check
 
 ## Put away when you're far off
 
-The clubhouse puts the room away when you've been three doors or more from it for a while (see
+The clubhouse puts the room away when you've been more than 30 m of walking from it for a while (see
 `docs/clubhouse/world/building-rooms.md`), but never mid-game or while the ball's getting out
 (`busy()`, see `docs/clubhouse/rooms/place.md`). `putAway()` saves the game, closes its sounds,
 and takes the yarn ball and Sadie out of the hall; when it's built again from its save, they're

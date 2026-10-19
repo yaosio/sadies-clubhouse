@@ -139,6 +139,15 @@ export default async function ({ browser, page, check, outDir, touched = null })
     check(`${device}: ...walking up to its door builds it again, and the door opens onto it`, rebuilt, rebuilt ? '' : JSON.stringify({ at: await M('where'), looking: await M('looking'), built: (await M('built')).includes('room:' + spare.id) }));
     const k2 = (await M('speed')).kept;
     check(`${device}: ...with nothing piled up`, k2 === k0, `${k0} things kept before, ${k2} after`);
+    // the distance rule (the checks build everything when you stand still; off, a room is built only
+    // once you're within walking distance of its door): from the hall, a door inside it is near
+    await M('everything', false); await M('onlyDoors', false);
+    await M('putAway', 'room:' + spare.id);
+    await M('put', 'hall', 'start');
+    const near = await M('walkAway', 'room:' + spare.id);
+    const nearBuilt = await until(p, n => window.__clubhouse.built().includes(n), 'room:' + spare.id, 5000);
+    await M('everything', true);
+    check(`${device}: a room whose door is a short walk away is built without standing still`, nearBuilt && near < 15, `${near?.toFixed?.(1)} m away`);
     // one place's mistake in a frame doesn't stop the game: it carries on (and says so once, not an error)
     await M('sabotage', 'hall', true);
     const f0 = await M('frames'); await p.waitForTimeout(600);

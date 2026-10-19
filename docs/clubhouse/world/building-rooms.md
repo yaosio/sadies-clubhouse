@@ -7,9 +7,13 @@ when changing any of that. What a room must do to be put away: `docs/clubhouse/r
 - Only the garden, the hall, and the buildings outside you can see from the gate as you start (in
   front of you there) are built before the clubhouse opens (and the room you're coming back to). The
   buildings behind you at the gate are built straight after the first picture, first in line.
-- Each other room is built afterwards, one at a time, nearest door first: while you stand still (or
-  read the letter, or pause), when you're within 7 m of its door, or when you walk up to its door,
-  which stays shut until the room's ready.
+- Each other room is built afterwards, one at a time, nearest door first: once its door is within
+  `BUILD_M` (15 m, about 5 seconds at walking pace; Claude's number) of walking from you, or when you
+  walk up to its door, which stays shut until the room's ready. Distance is how far you'd walk, through
+  doors: to a door in your place, then from where that door lets out to the next one (`walkAway`). A door
+  that leads to another spot in the outside, like the fire hydrant's, counts too: you come out at its
+  other end. Standing still builds nothing more. (The checks, which don't walk, build every room when
+  they stand still: `everything`, on whenever the browser is automated.)
 - A room takes a breath between its big parts (`await m.breathe()`, in the kit): if it's been busy
   more than 6 ms, the game draws a picture before it carries on, so building a room never holds the
   game up for long (the checks fail a bit longer than 200 ms).
@@ -20,7 +24,7 @@ when changing any of that. What a room must do to be put away: `docs/clubhouse/r
   so the first look through a door has nothing left to load.
 
 ## Putting rooms away
-- A room that's three doors or more from you for 20 seconds is put away: it stops its sounds, its own `putAway()` (if it has one)
+- A room that's more than `PUT_M` (30 m, twice the building distance so it isn't built and put away as you hover at the edge) of walking from you for 20 seconds is put away: it stops its sounds, its own `putAway()` (if it has one)
   takes back what it put elsewhere, everything it made that no other place uses goes back to the
   graphics card, and it's built again from its save as you come back.
 - There is no cap on how many rooms stay built (there was one, 16, Claude's number, removed on the

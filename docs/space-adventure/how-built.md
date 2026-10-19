@@ -48,7 +48,7 @@ How its music plays, makes way for the main theme and asks for quiet: see `music
 
 ## Put away when you're far off
 
-The clubhouse puts Space Adventure away when you've been three doors or more from it for a while (see
+The clubhouse puts Space Adventure away when you've been more than 30 m of walking from it for a while (see
 `docs/clubhouse/world/building-rooms.md`): `putAway()` closes its music for good, and Sadie's talk
 box and the black go with its layer of the page (the kit's `overlay`). It's built again from its
 save (whether you've been on the trip) as you come back.

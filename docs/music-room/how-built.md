@@ -28,7 +28,7 @@ Saves (`sadies-clubhouse.music-room.`): `tape` (both tapes, and which is in), `s
 
 ## Put away when you're far off
 
-The clubhouse puts the room away when you've been three doors or more from it for a while, but
+The clubhouse puts the room away when you've been more than 30 m of walking from it for a while, but
 never with a tune or anything else still to happen in it (`busy()`). It needs no `putAway()`: the
 clubhouse stops its sounds, and the tape and the settings are already saved, so it's the same when
 built again.

@@ -59,8 +59,8 @@ stays outside when the room's put away (the clubhouse closes it when it leaves t
 **Far off,** the house is drawn as a plain block the colour of its walls (`house.js` hands the
 clubhouse its `group`, `body` and `farTint`); none of the town is that far yet.
 
-**Put away when you're far off.** The clubhouse puts the room away when you've been three doors or
-more from it for a while, but never while the machine's going or Clyde's talking (`busy()`).
+**Put away when you're far off.** The clubhouse puts the room away when you've been more than 30 m of walking
+from it for a while, but never while the machine's going or Clyde's talking (`busy()`).
 the clubhouse closes its sounds when it puts the room away. The house outside stays (the clubhouse hands it back as `m.house`
 when the room's built again, and keeps it moving meanwhile). Parts put in the machine but not yet
 run are forgotten, just like on a reload.
