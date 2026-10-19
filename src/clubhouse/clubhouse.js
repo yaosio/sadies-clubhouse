@@ -329,6 +329,25 @@ export async function open(cards, enter) {
     try {
       for (const sc of w.scenes || [w.scene]) sc.traverse(o => { for (const m of [].concat(o.material || [])) for (const u of Object.values(m.uniforms || {})) if (u.value?.isTexture && u.value.image) renderer.initTexture(u.value); });
     } catch {}
+    warming.push(w);
+  }
+  // ...and its shapes and drawing programs too: a place is drawn once, out of sight, into a tiny picture (every
+  // object counts as on screen for it), one place a frame once the game is running, so the first time you look at
+  // it (through a door, or walking in) nothing has to be sent to the graphics chip. The hall and outside, built at
+  // the start, go through the same line as every room.
+  const warming = [hall, outside];
+  const warmTarget = new WebGLRenderTarget(4, 4); shared.add(warmTarget.texture);   // (never handed back with a room)
+  function warmOne(w) {
+    if (w !== hall && w !== outside && !slots.some(r => r.place === w)) return;   // (put away since: it would only be sent again)
+    const off = [];
+    try {
+      for (const sc of w.scenes || [w.scene]) {
+        sc.traverse(o => { if (o.frustumCulled) { o.frustumCulled = false; off.push(o); } });
+        light(w.light);
+        renderer.setRenderTarget(warmTarget); renderer.render(sc, cam); renderer.setRenderTarget(null);
+      }
+    } catch (e) { console.warn('warming up a place failed:', e); }
+    for (const o of off) o.frustumCulled = true;
   }
 
   const canvas = $('#view');
@@ -937,6 +956,7 @@ export async function open(cards, enter) {
     farHouses();
     // (a house outside the gate, whether or not its room's built: it's part of outside)
     for (const r of slots) if (r.house) guard(r.name + ' house', () => r.house.update(t, dt, ears()));
+    if (warming.length && frames > 20 && mode === 'play') warmOne(warming.shift());   // (one place a frame, once the game is under way)
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
@@ -970,7 +990,7 @@ export async function open(cards, enter) {
   function close() {
     cancelAnimationFrame(raf); off.abort(); theme.close(); closeSounds();   // (every sound, a house's own too)
     if (document.pointerLockElement) document.exitPointerLock();
-    for (const t of throughs) t.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
+    for (const t of throughs) t.dispose(); warmTarget.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();
     delete window.__clubhouse;
   }
