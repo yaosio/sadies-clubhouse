@@ -14,7 +14,8 @@ when changing any of that. What a room must do to be put away: `docs/clubhouse/r
   more than 6 ms, the game draws a picture before it carries on, so building a room never holds the
   game up for long (the checks fail a bit longer than 200 ms).
 - What it made is noted, and warmed onto the graphics card straight away: its pictures at once, then (one place
-  a frame, once the game is running) it is drawn once out of sight into a tiny picture so its shapes and
+  every `WARM_GAP` (250) ms, only after a few smooth frames and while no room is building, the hall first and
+  then the nearest; every `WARM_MAX` (3 s) on a slow screen; Claude's numbers) it is drawn once out of sight into a tiny picture so its shapes and
   drawing programs are sent too (`warm`/`warmOne`). The hall and outside go through the same line at the start,
   so the first look through a door has nothing left to load.
 

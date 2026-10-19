@@ -335,6 +335,8 @@ export async function open(cards, enter) {
   // it (through a door, or walking in) nothing has to be sent to the graphics chip. The hall and outside, built at
   // the start, go through the same line as every room.
   const warming = [hall, outside];
+  const WARM_GAP = 250, WARM_MAX = 3000;   // (Claude's numbers, changeable)
+  let calm = 0, lastWarm = 0;   // (calm: frames in a row that came on time)
   const warmTarget = new WebGLRenderTarget(4, 4); shared.add(warmTarget.texture);   // (never handed back with a room)
   function warmOne(w) {
     if (w !== hall && w !== outside && !slots.some(r => r.place === w)) return;   // (put away since: it would only be sent again)
@@ -929,7 +931,14 @@ export async function open(cards, enter) {
     farHouses();
     // (a house outside the gate, whether or not its room's built: it's part of outside)
     for (const r of slots) if (r.house) guard(r.name + ' house', () => r.house.update(t, dt, ears()));
-    if (warming.length && frames > 20 && mode === 'play') warmOne(warming.shift());   // (one place a frame, once the game is under way)
+    // (the warm-up goes gently: one place at a time, only after a few smooth frames and while no room is building, at
+    // most one every WARM_GAP ms, the hall first and then whatever is nearest; on a slow screen it still goes, every WARM_MAX ms)
+    if (warming.length && frames > 20 && mode === 'play' && !slots.some(r => r.building)
+        && ((calm >= 4 && now - lastWarm > WARM_GAP) || now - lastWarm > WARM_MAX)) {
+      const away = doorsAway(), rank = w => w === hall ? -2 : w === outside ? -1 : away(slots.find(r => r.place === w) || { place: w, portals: [] });
+      warming.sort((a, b) => rank(a) - rank(b));
+      warmOne(warming.shift()); lastWarm = now;
+    }
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
@@ -954,6 +963,7 @@ export async function open(cards, enter) {
       meter.frame(me.world.name, now - prevTick, work);
       if (now - prevTick < 2000) live.frame(now, { gap: now - prevTick, work, draw: drew.ms, calls: drew.calls, main: drew.main, tris: drew.tris, doors: drew.doors, place: me.world.name, built: slots.filter(r => r.place).length });
     }
+    calm = prevTick && now - prevTick < 20 ? calm + 1 : 0;
     prevTick = now;
     if (++beat % 120 === 0 && performance.memory) meter.note('heap', performance.memory.usedJSHeapSize);
     raf = requestAnimationFrame(tick);
