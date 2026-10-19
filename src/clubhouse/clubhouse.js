@@ -30,7 +30,6 @@ import { buildOutside } from './outside.js';
 import { makeThings } from './things.js';
 import { makeMeter } from './meter.js';
 import { liveBox } from './overlay.js';
-import { makeGpuTimer } from './gpu.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
@@ -357,7 +356,6 @@ export async function open(cards, enter) {
   on(canvas, 'webglcontextlost', e => { e.preventDefault(); oops(STUCK); });
   on(canvas, 'webglcontextrestored', unoops);
   renderer.setPixelRatio(1);
-  const gpu = makeGpuTimer(renderer.getContext());   // (the chip's own time for a frame's drawing, where this device will say: for the live stats log)
   renderer.info.autoReset = false;   // (the live stats count a whole frame, doorway pictures too: draw() clears it each frame)
   renderer.outputColorSpace = LinearSRGBColorSpace;
   // a picture per open doorway in view (the nearest few): each doorway shows its own
@@ -543,10 +541,9 @@ export async function open(cards, enter) {
 
   const PEEK = 0.1, seen = new Frustum(), ball = new Sphere(), proj = new Matrix4();   // (PEEK: how far open a door is before its picture is worth drawing; Claude's number)
   let viewing = null;   // the nearest doorway being looked through this frame
-  const drew = { ms: 0, calls: 0, main: 0, tris: 0, doors: 0, gpu: null };   // (the live stats: what the last draw() cost)
+  const drew = { ms: 0, calls: 0, main: 0, tris: 0, doors: 0 };   // (the live stats: what the last draw() cost)
   function draw() {
     const began = performance.now(); renderer.info.reset();
-    if (live.on()) gpu.begin();
     // how far you can see: a place can say (the open sea, from the aquarium)
     const far = me.world.far || 300;
     if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); }
@@ -596,7 +593,6 @@ export async function open(cards, enter) {
     drew.main = renderer.info.render.calls;
     renderer.render(me.world.scene, cam);
     drew.calls = renderer.info.render.calls; drew.main = drew.calls - drew.main; drew.tris = renderer.info.render.triangles; drew.ms = performance.now() - began;
-    drew.gpu = gpu.end();
   }
 
   // ---------- controls (controls.js) ----------
@@ -730,30 +726,7 @@ export async function open(cards, enter) {
     const mem = performance.memory, info = renderer.info.memory;
     return { heap: mem ? mem.usedJSHeapSize : 0, shapes: info.geometries, pictures: info.textures, rooms: slots.filter(r => r.place).length, slots: slots.length, ticking: places.length };
   } });
-  const showLive = () => { $('#liveBtn').textContent = `LIVE STATS: ${live.on() ? 'ON' : 'OFF'}`; $('#logBtn').hidden = !live.on(); $('#logNote').textContent = ''; };
-  // SAVE LOG: the frames written down since LIVE STATS went on, handed over as a text file (the phone's share sheet,
-  // the Claude app's own way to save a file, or a plain download), to send in to be read
-  on($('#logBtn'), 'click', async () => {
-    const note = t => { $('#logNote').textContent = t; };
-    if (!live.logLength()) { note('NOTHING WRITTEN DOWN YET: PLAY FOR A MINUTE FIRST.'); return; }
-    const ext = renderer.getContext().getExtension('WEBGL_debug_renderer_info'), gl = renderer.getContext();
-    const text = live.logText([new Date().toISOString(), navigator.userAgent, `screen ${screen.width}x${screen.height} at ${devicePixelRatio}x, picture ${drawnAt}`,
-      `graphics: ${ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'unknown'}; chip timing ${gpu.ok ? 'available' : 'not available'}; memory readout ${performance.memory ? 'available' : 'not available'}`].join('\n'));
-    const name = `clubhouse-frame-log-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.txt`;
-    try {
-      const file = new File([text], name, { type: 'text/plain' });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: 'Clubhouse frame log' }); note('LOG SAVED!'); return; }
-    } catch (e) { if (e?.name === 'AbortError') { note('NO LOG SAVED.'); return; } }
-    let files = null;
-    try { files = await window.claude?.use?.('downloads'); } catch {}
-    if (files) {
-      try { await files.save({ filename: name, data: text }); note('LOG SAVED!'); } catch (e) { note(e?.code === 'declined' ? 'NO LOG SAVED.' : "COULDN'T SAVE THE LOG HERE."); }
-      return;
-    }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' })); a.download = name; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10000); note('LOG SAVED!');
-  });
+  const showLive = () => { $('#liveBtn').textContent = `LIVE STATS: ${live.on() ? 'ON' : 'OFF'}` };
   on($('#liveBtn'), 'click', () => { live.toggle(); });
   live.onChange(showLive); showLive();
   const mb = n => (n / 1e6).toFixed(1);
@@ -979,10 +952,9 @@ export async function open(cards, enter) {
     const work = performance.now() - began;
     if (mode !== 'menu' && prevTick) {   // (the speed readout and the live stats: frames behind the pause menu aren't counted)
       meter.frame(me.world.name, now - prevTick, work);
-      if (now - prevTick < 2000) live.frame(now, { t: now, gpu: drew.gpu, heap: performance.memory ? performance.memory.usedJSHeapSize : 0, gap: now - prevTick, work, draw: drew.ms, calls: drew.calls, main: drew.main, tris: drew.tris, doors: drew.doors, place: me.world.name, built: slots.filter(r => r.place).length });
+      if (now - prevTick < 2000) live.frame(now, { gap: now - prevTick, work, draw: drew.ms, calls: drew.calls, main: drew.main, tris: drew.tris, doors: drew.doors, place: me.world.name, built: slots.filter(r => r.place).length });
     }
     prevTick = now;
-    gpu.poll();
     if (++beat % 120 === 0 && performance.memory) meter.note('heap', performance.memory.usedJSHeapSize);
     raf = requestAnimationFrame(tick);
   }

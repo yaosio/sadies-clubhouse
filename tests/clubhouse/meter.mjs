@@ -37,11 +37,6 @@ export function checkMeter(check) {
   frame(120, { built: 5 });
   l.refresh();
   check('a frame over 50 ms is kept as the last hitch, noting a room was built that frame', /120 MS IN CATS ONLY.*A ROOM WAS BUILT/.test(Object.fromEntries(l.rows())['LAST HITCH']), JSON.stringify(Object.fromEntries(l.rows())));
-  const lt = l.logText('A PHONE').split('\n');
-  check('the log says what it is, then has a line a frame, with the chip as -1 when the device will not say', /FRAME LOG/.test(lt[0]) && lt[1] === 'A PHONE' && lt.length === 3 + l.logLength() && /^\d/.test(lt[3]) && lt[3].split(',')[4] === '-1', lt.slice(0, 5).join('|'));
-  const holder = { ms: -1 }; frame(7, { gpu: holder, t: 9 }); holder.ms = 3.5;
-  check('...and fills in the chip time once it arrives, and notes a room built', l.logText().split('\n').pop().split(',')[4] === '3.5');
   l.clear();
-  check('clearing empties the log', l.logLength() === 0);
   check('clearing it starts the strip over', /MEASURING/.test(l.strip()) && l.gaps().length === 0);
 }
