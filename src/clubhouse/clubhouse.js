@@ -29,6 +29,7 @@ import { timers } from './timers.js';
 import { buildOutside } from './outside.js';
 import { makeThings } from './things.js';
 import { makeMeter } from './meter.js';
+import { liveBox } from './overlay.js';
 import { buildHall } from './hall.js';
 import { buildRoom } from './room.js';
 import { kit, wallGeometry, doorway, WALKER } from './build.js';
@@ -336,6 +337,7 @@ export async function open(cards, enter) {
   on(canvas, 'webglcontextlost', e => { e.preventDefault(); oops(STUCK); });
   on(canvas, 'webglcontextrestored', unoops);
   renderer.setPixelRatio(1);
+  renderer.info.autoReset = false;   // (the live stats count a whole frame, doorway pictures too: draw() clears it each frame)
   renderer.outputColorSpace = LinearSRGBColorSpace;
   // a picture per open doorway in view (the nearest few): each doorway shows its own
   const throughs = [0, 1, 2].map(() => new WebGLRenderTarget(320, 240, { minFilter: NearestFilter, magFilter: NearestFilter }));
@@ -519,7 +521,9 @@ export async function open(cards, enter) {
   }
 
   let viewing = null;   // the nearest doorway being looked through this frame
+  const drew = { ms: 0, calls: 0, main: 0, tris: 0, doors: 0 };   // (the live stats: what the last draw() cost)
   function draw() {
+    const began = performance.now(); renderer.info.reset();
     // how far you can see: a place can say (the open sea, from the aquarium)
     const far = me.world.far || 300;
     if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); }
@@ -547,6 +551,7 @@ export async function open(cards, enter) {
     }
     open.sort((a, b) => a[0] - b[0]);
     viewing = open.length ? open[0][1] : null;
+    drew.doors = Math.min(open.length, throughs.length);
     open.slice(0, throughs.length).forEach(([, s], i) => {
       lookThrough(s);
       light(s.tw.light);
@@ -560,7 +565,9 @@ export async function open(cards, enter) {
       s.d.see.material.uniforms.uOn.value = 1;
     });
     light(me.world.light);
+    drew.main = renderer.info.render.calls;
     renderer.render(me.world.scene, cam);
+    drew.calls = renderer.info.render.calls; drew.main = drew.calls - drew.main; drew.tris = renderer.info.render.triangles; drew.ms = performance.now() - began;
   }
 
   // ---------- controls (controls.js) ----------
@@ -689,6 +696,14 @@ export async function open(cards, enter) {
   // SPEED: how fast the game is running here, to read out (meter.js): frames a second now, in this place and in the
   // slowest, and what's held in memory. Hidden until you open it; the numbers are from before you paused.
   const meter = makeMeter();
+  // LIVE STATS: a strip that stays on screen while you play (overlay.js), switched on here or with P
+  const live = liveBox({ root, on, store, key: 'mansion.live', touchy, mode: () => mode, extra: () => {
+    const mem = performance.memory, info = renderer.info.memory;
+    return { heap: mem ? mem.usedJSHeapSize : 0, shapes: info.geometries, pictures: info.textures, rooms: slots.filter(r => r.place).length, slots: slots.length, ticking: places.length };
+  } });
+  const showLive = () => { $('#liveBtn').textContent = `LIVE STATS: ${live.on() ? 'ON' : 'OFF'}`; };
+  on($('#liveBtn'), 'click', () => { live.toggle(); });
+  live.onChange(showLive); showLive();
   const mb = n => (n / 1e6).toFixed(1);
   function speedLines() {
     const gl = renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info'), mem = performance.memory, info = renderer.info.memory;
@@ -880,7 +895,7 @@ export async function open(cards, enter) {
     soundsPaused(mode === 'menu');   // (nothing new sounds behind the pause menu but music)
     weather.update(t, dt, places, skySeen(), ears());
     const heard = ears();   // (a place hears you only while you're in it)
-    for (const w of places) guard(w.name, () => w.update(t, dt, w === me.world ? heard : null));
+    for (const w of places) { const at = live.on() ? performance.now() : 0; guard(w.name, () => w.update(t, dt, w === me.world ? heard : null)); if (at) live.place(w.name, performance.now() - at); }
     // the main theme: it makes way for any other music by itself (the sound system hears it), and
     // for a place that asks for quiet (its `hush`: the Music Room, Space Adventure's cockpit and radio)
     youAreIn(me.world.name, ears());   // (a room's music is only heard in it; sounds fade with how far off they are)
@@ -908,7 +923,11 @@ export async function open(cards, enter) {
       if (!said.has('frame')) { said.add('frame'); console.warn('a frame failed:', e); }
       if (++broken === 60) oops(STUCK);   // (one slip is carried past; a whole second of them means the picture is stuck)
     }
-    if (mode !== 'menu' && prevTick) meter.frame(me.world.name, now - prevTick, performance.now() - began);   // (the speed readout: frames behind the pause menu aren't counted)
+    const work = performance.now() - began;
+    if (mode !== 'menu' && prevTick) {   // (the speed readout and the live stats: frames behind the pause menu aren't counted)
+      meter.frame(me.world.name, now - prevTick, work);
+      if (now - prevTick < 2000) live.frame(now, { gap: now - prevTick, work, draw: drew.ms, calls: drew.calls, main: drew.main, tris: drew.tris, doors: drew.doors, place: me.world.name, built: slots.filter(r => r.place).length });
+    }
     prevTick = now;
     if (++beat % 120 === 0 && performance.memory) meter.note('heap', performance.memory.usedJSHeapSize);
     raf = requestAnimationFrame(tick);

@@ -3,6 +3,7 @@
 // background, never calls a place with a handful of frames the slowest, and can be cleared. No
 // drawing. (What the numbers mean for a phone isn't checked: docs/clubhouse/checks/fatal-only.md.)
 import { makeMeter } from '../../src/clubhouse/meter.js';
+import { makeLive } from '../../src/clubhouse/overlay.js';
 
 export function checkMeter(check) {
   const m = makeMeter();
@@ -21,4 +22,21 @@ export function checkMeter(check) {
   m.clear();
   check('...and clearing forgets it', m.peak('heap') === 0);
   check('clearing starts it over', /NOTHING YET/.test(m.report('outside')[0]));
+
+  // the live stats strip's sums (src/clubhouse/overlay.js)
+  const l = makeLive(), frame = (gap, o = {}) => l.add({ gap, work: 3, draw: 2, calls: 100, main: 80, tris: 5000, doors: 1, place: 'room:cats-only', built: 4, ...o });
+  check('the strip says it is measuring before any frame', /MEASURING/.test(l.strip()));
+  for (let i = 0; i < 60; i++) frame(6.9);   // (about a 144 Hz screen)
+  check("the screen's own frame length comes from the quick frames, not a fixed 16.7 ms", Math.abs(l.guide() - 6.9) < 0.01, String(l.guide()));
+  l.place('room:cats-only', 90); frame(6.9);
+  l.refresh({ heap: 30e6, heapMax: 40e6, rooms: 4, slots: 14, ticking: 6, shapes: 100, pictures: 20 });
+  check('the strip is one line: frames a second, work, calls, doorways, place', /^145 FPS · 3\.0 MS WORK · 100 CALLS · 1 DOORS · CATS ONLY$/.test(l.strip()), l.strip());
+  const rows = Object.fromEntries(l.rows());
+  check('the list splits calls into the room and the doorways, and names the slowest update', /80 ROOM, 20 DOORWAYS/.test(rows['DRAW CALLS']) && /CATS ONLY 1\.5/.test(rows['SLOWEST UPDATES']), JSON.stringify(rows));
+  check('...and has no hitch yet', rows['LAST HITCH'] === 'NONE YET');
+  frame(120, { built: 5 });
+  l.refresh();
+  check('a frame over 50 ms is kept as the last hitch, noting a room was built that frame', /120 MS IN CATS ONLY.*A ROOM WAS BUILT/.test(Object.fromEntries(l.rows())['LAST HITCH']), JSON.stringify(Object.fromEntries(l.rows())));
+  l.clear();
+  check('clearing it starts the strip over', /MEASURING/.test(l.strip()) && l.gaps().length === 0);
 }

@@ -57,7 +57,7 @@
 #clubhouse #resets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 #clubhouse #menu #resets button{font-size:10px;padding:6px 10px;background:#ff8ec8}
 /* CREDITS: what the game uses that someone else made */
-#clubhouse #menu #creditsBtn,#clubhouse #menu #speedBtn,#clubhouse #menu #extrasBtn,#clubhouse #menu #speedClear{font-size:10px;padding:6px 10px;background:#8a78ff;color:#fff;box-shadow:0 3px 0 #4a3aa8}
+#clubhouse #menu #creditsBtn,#clubhouse #menu #liveBtn,#clubhouse #menu #speedBtn,#clubhouse #menu #extrasBtn,#clubhouse #menu #speedClear{font-size:10px;padding:6px 10px;background:#8a78ff;color:#fff;box-shadow:0 3px 0 #4a3aa8}
 #clubhouse #credits,#clubhouse #speed,#clubhouse #extras{width:100%;border-top:2px dashed #8a78ff;padding-top:10px}
 #clubhouse #credits p,#clubhouse #speedLines p{margin:0 0 8px;font-size:10px;line-height:1.7;color:#e8dcff;text-align:left}
 #clubhouse #credits b{color:#ff8ec8}
@@ -68,3 +68,12 @@
 #clubhouse #menu #sure button{font-size:10px;padding:6px 10px}
 #clubhouse #menu #sure #sureYes{background:#ff5a5a;box-shadow:0 3px 0 #8a1a2a}
 #clubhouse [hidden]{display:none!important}
+
+/* the live stats strip (overlay.js): top left, clear of the pause button; a tap opens the list, capped to a third of the screen */
+#clubhouse #live{top:calc(10px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));max-width:min(340px,calc(100% - 70px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  background:#1c1238c0;padding:4px 6px;font-size:8px;line-height:1.5;cursor:pointer;z-index:2}
+#clubhouse #live p{margin:0 0 3px}
+#clubhouse #live canvas{display:block;width:100%;height:12px;image-rendering:pixelated}
+#clubhouse #live dl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:4px 0 0;max-height:33vh;overflow:auto}
+#clubhouse #live dt{color:var(--hi)}
+#clubhouse #live dd{margin:0;text-align:right}

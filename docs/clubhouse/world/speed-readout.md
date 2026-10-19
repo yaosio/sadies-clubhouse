@@ -1,4 +1,4 @@
-# The speed readout
+# The speed readout and the live stats
 
 A button in the pause menu, SPEED, that shows how fast the game is running on this device and how
 much memory it holds, so it can be opened on a phone and read out (the owner asked, 2026-10-10: he
@@ -29,3 +29,30 @@ shows them.
 `tests/clubhouse/meter.mjs` (the arithmetic, with fake frames) and the clubhouse's browser check
 (SPEED opens, says frames a second and memory, starts over and closes). Whether the numbers are good
 isn't checked: that is for a person to read.
+
+## The live stats strip
+A box that stays on screen while you walk about, so the numbers can be watched in the room they're about
+(the pause menu's SPEED can only be read paused). Switched on by LIVE STATS in the pause menu (or P on a
+computer), off until then, remembered (`mansion.live`). `src/clubhouse/overlay.js` (`makeLive` does the
+sums and has no screen, `liveBox` shows them); the clubhouse's frame hands it each frame's numbers.
+- **Compact** (the start on a phone): one line, top left and clear of the pause button: frames a second,
+  our work in ms, draw calls, doorways drawn through, the place; under it a bar graph of the last 100
+  frames. **Tap it for the full list** (the start on a computer), capped at a third of the screen: update
+  against draw time, calls split into the room and the doorways, triangles, rooms built and places
+  running, the three slowest places to update, page memory (Chrome and Android only), shapes and
+  pictures held, and the last hitch (a frame over 50 ms: where, update against draw, and whether a room
+  was built in it). Tapping it doesn't turn the view.
+- **The graph** is each frame's length against this screen's own: the quickest quarter of recent frames
+  (so a 144 Hz phone and a 60 Hz one both read right); a bar is red over 1.5 times that.
+- **Draw calls** are counted over the whole frame, doorway pictures included (`renderer.info` is set
+  to not reset itself; `draw()` resets it once a frame).
+- **What it costs:** while off, a check of one flag a frame. While on, a few `performance.now()` calls a
+  frame, one pair per built place (for the update times), a 100-bar canvas drawn and the words rewritten
+  2 or 3 times a second. A number read with it on is very slightly worse than with it off.
+- **What it can't see:** how long the graphics chip takes (not readable from a page on most phones).
+  Draw calls, doorways drawn through and a small "work" with a big frame length point at it.
+- Claude's numbers (changeable): 100 bars, 1.5 times the screen's own frame for red, 50 ms for a hitch,
+  400 ms between refreshes. SPEED stays as the long view (all together, slowest place, graphics chip).
+- Checks: `tests/clubhouse/meter.mjs` (the sums, with fake frames) and the clubhouse's browser check
+  (off by default, switches on, shows words and calls, clear of the pause button, opens to the list, P,
+  switches off).
