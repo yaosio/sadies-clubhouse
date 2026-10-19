@@ -16,3 +16,9 @@
 #clubhouse #pad svg{width:28px;height:28px;fill:#fff}
 #clubhouse #use.top{right:auto;bottom:auto;left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));
   min-width:0;height:34px;border-radius:4px;font-size:10px;padding:0 10px}
+
+/* the thumb stick (a game with `stick` in its `pad`): a ring on the left with a knob that follows the thumb */
+#clubhouse #pad #padStick{pointer-events:auto;touch-action:none;position:relative;width:116px;height:116px;border-radius:50%;border:3px solid #ffffffa0;background:#ff6fb440}
+#clubhouse #pad #padStick[hidden]{display:none}
+#clubhouse #pad #padStick i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;border:3px solid #ffffffc0;background:#ff6fb4a0}
+#clubhouse #pad #padStick.on i{background:#ff6fb4e0}

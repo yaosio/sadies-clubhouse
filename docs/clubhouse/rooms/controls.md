@@ -25,8 +25,9 @@ A use with `play` is a game (mode `arcade`):
 - `begin`: called on every touch, click or key press while playing: a game that waits for the player (one that holds each new ball on the paddle till then) starts on it.
 - `holdToLeave`: set it and, on a phone, the STEP BACK button has to be held about half a second (a game where a sliding thumb hits it by accident).
 - `key(code, down, repeat)`: a game played with keys (left, right, climb, jump) gets every key and
-  returns true for the ones it used. `pad` (some of 'left', 'right', 'up', 'down', 'jump'): on a phone,
+  returns true for the ones it used. `pad` (some of 'stick', 'left', 'right', 'up', 'down', 'jump'): on a phone,
   picture buttons for those along the bottom, each pressed and let go as its key (the arrows, Space);
+  'stick' is one round thumb stick on the left that holds the arrows it points at, on or off (no partial speed);
   the view lifts to leave them room and STEP BACK moves to the top left (Lily's Big Climb).
 - `over`: set when the game ends; the clubhouse steps you back. Esc, W, S or STEP BACK also glide
   you back to where you stood; the pause menu stops the game too.

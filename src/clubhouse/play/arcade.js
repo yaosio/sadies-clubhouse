@@ -4,7 +4,7 @@
 // with the keys, nudging with the mouse or a finger; or, for a game that wants them (`key`, `touch`:
 // an instrument), every key and every press on the screen. Stepping back (Esc, W, S or STEP BACK):
 // back to where you stood. The game is told when to start and stop. A game can ask for buttons on a
-// phone (`pad`: some of left, right, up, down, jump): pictures along the bottom, each pressed and let
+// phone (`pad`: some of stick, left, right, up, down, jump): pictures along the bottom, each pressed and let
 // go as a key (`key`), with the view lifted to leave them room, and STEP BACK moved to the top left.
 //
 // Any place, inside or out, can have a use with `play`: nothing here knows which game it is.
@@ -29,11 +29,30 @@ export function arcade(you) {
     const up = e => { if (!down.delete(e.pointerId) || down.size) return; b.classList.remove('on'); playing()?.key?.(code, false); };
     for (const ev of ['pointerup', 'pointercancel']) you.on(b, ev, up);
   }
+  // the thumb stick: pushed past a small dead zone it holds down the arrow keys it points at (on or off, not
+  // partial), and letting go lets them all go
+  const stick = $('#padStick'), knob = stick.firstElementChild, SK = { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', down: 'ArrowDown' }, sOn = new Set();
+  let sId = null;
+  const sSet = want => { for (const d in SK) { const on = want.has(d); if (on === sOn.has(d)) continue; on ? sOn.add(d) : sOn.delete(d); playing()?.key?.(SK[d], on, false); } };
+  const sAim = e => {
+    const r = stick.getBoundingClientRect(), R = r.width / 2;
+    let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R); const len = Math.hypot(dx, dy) || 1, k = Math.min(1, R * 0.6 / len);
+    knob.style.transform = `translate(${dx * k}px,${dy * k}px)`;
+    const dead = R * 0.3, want = new Set();
+    if (len > dead) { if (Math.abs(dx) > dead * 0.8) want.add(dx < 0 ? 'left' : 'right'); if (Math.abs(dy) > dead * 0.8) want.add(dy < 0 ? 'up' : 'down'); }
+    sSet(want);
+  };
+  const sEnd = e => { if (e.pointerId !== sId) return; sId = null; stick.classList.remove('on'); knob.style.transform = ''; sSet(new Set()); };
+  you.on(stick, 'pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (sId !== null || !playing()) return; sId = e.pointerId; try { stick.setPointerCapture(e.pointerId); } catch {} stick.classList.add('on'); sAim(e); });
+  you.on(stick, 'pointermove', e => { if (e.pointerId === sId) sAim(e); });
+  for (const ev of ['pointerup', 'pointercancel']) you.on(stick, ev, sEnd);
   function showPad(u) {
     const on = !!u && padOn(u);
     pad.hidden = !on; $('#use').classList.toggle('top', on);
     if (on) for (const b of pad.querySelectorAll('button')) b.hidden = !u.play.pad.includes(b.dataset.b);
+    if (on) stick.hidden = !u.play.pad.includes('stick');
     if (!on) for (const b of pad.querySelectorAll('button.on')) b.classList.remove('on');
+    if (!on && sId !== null) { sId = null; stick.classList.remove('on'); knob.style.transform = ''; sSet(new Set()); }
   }
   let game = null;
   const pressing = new Set();

@@ -1,7 +1,9 @@
 <!-- The game buttons on a phone, for a game that asks for them (a use with `play` and `pad`:
-     src/clubhouse/play/arcade.js puts them in): pictures only, no words. Left and right on the left;
-     up, down and jump on the right. Only the ones a game names are shown. -->
+     src/clubhouse/play/arcade.js puts them in): pictures only, no words. A game that names `stick` gets one
+     round thumb stick on the left (its directions on or off, like the buttons); otherwise left and right on
+     the left; up, down and jump on the right. Only the ones a game names are shown. -->
 <div id="pad" class="hud" hidden>
+  <div id="padStick" hidden><i></i></div>
   <div class="side"><button data-b="left" aria-label="left"><svg viewBox="0 0 10 10"><path d="M7 1 2 5l5 4z"/></svg></button><button data-b="right" aria-label="right"><svg viewBox="0 0 10 10"><path d="M3 1l5 4-5 4z"/></svg></button></div>
   <div class="side"><div class="ud"><button data-b="up" aria-label="up"><svg viewBox="0 0 10 10"><path d="M5 2 9 7H1z"/></svg></button><button data-b="down" aria-label="down"><svg viewBox="0 0 10 10"><path d="M5 8 9 3H1z"/></svg></button></div><button data-b="jump" aria-label="jump"><svg viewBox="0 0 10 10"><path d="M1.5 8.5Q5-2 8.5 8.5" fill="none" stroke="#fff" stroke-width="1.4"/><circle cx="1.5" cy="8.6" r="1.1"/><path d="M6.6 7.6l2.6-.6.4 2.6z"/></svg></button></div>
 </div>

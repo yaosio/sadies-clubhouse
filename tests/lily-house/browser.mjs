@@ -69,8 +69,8 @@ export default async function ({ browser, page, check, outDir }) {
     await use();
     const playing = await modeIs('arcade');
     check(`${device}: ...stepping up starts the game`, playing && (await S()).playing, JSON.stringify((await S()).game));
-    const pad = await p.evaluate(() => ({ pad: !document.querySelector('#clubhouse #pad').hidden, top: document.querySelector('#clubhouse #use').classList.contains('top') }));
-    check(`${device}: ${opts.hasTouch ? 'the picture buttons are up, and STEP BACK moved to the top left' : 'no picture buttons on a computer'}`, opts.hasTouch ? pad.pad && pad.top : !pad.pad && !pad.top, JSON.stringify(pad));
+    const pad = await p.evaluate(() => ({ pad: !document.querySelector('#clubhouse #pad').hidden, top: document.querySelector('#clubhouse #use').classList.contains('top'), stick: (e => (r => r.width > 0 && r.left < innerWidth / 2)(e.getBoundingClientRect()))(document.querySelector('#clubhouse #padStick')) }));
+    check(`${device}: ${opts.hasTouch ? 'the thumb stick and jump button are up, and STEP BACK moved to the top left' : 'no picture buttons on a computer'}`, opts.hasTouch ? pad.pad && pad.top && pad.stick : !pad.pad && !pad.top, JSON.stringify(pad));
     await until(() => window.__lily.state().game.state === 'play', null, 6000);
     check(`${device}: ...with its music playing`, await until(() => window.__lily.state().music.playing, null, 3000), JSON.stringify((await S()).music));
     await shot('4-playing');

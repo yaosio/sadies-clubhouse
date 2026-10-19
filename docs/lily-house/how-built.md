@@ -24,7 +24,7 @@
 
 ## Shared
 The phone's game buttons are the clubhouse's (`src/clubhouse/play/arcade.js`, `pad.html`, `pad.css`),
-for any game that asks with `pad`. Chooter's portrait is copied into Toots' house as
+for any game that asks with `pad`; Lily's game asks for the thumb stick (left) and jump (right). Chooter's portrait is copied into Toots' house as
 `src/activities/toots-house/chooter-pic.js` by `tools/lily-house/chooter-pic.mjs`.
 
 ## Tools (`tools/lily-house/`)

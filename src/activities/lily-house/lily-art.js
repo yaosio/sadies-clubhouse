@@ -318,6 +318,7 @@ export function backLily(o = {}) {
 export function windowLily(o = {}) {
   const W = 56, H = 56, p = new Pix(W, H);
   p.fluff(28, 52, 12, 8, 'A', 12, 1.6); p.curls('A', 'L', 'a', 1);
+  { const q = new Pix(W, H); q.fluff(28, 36, 8.5, 6, 'A', 10, 1.4); q.curls('A', 'L', 'a', 0); p.over(q); }   // her neck, joining her head to her chest
   p.poly([[18, 40], [38, 40], [37, 43], [28, 44.5], [19, 43]], 'R'); p.line(19, 41, 28, 42.5, 'S'); p.line(28, 42.5, 37, 41, 'S');
   for (const s of [-1, 1]) { const q = new Pix(W, H); q.fluff(28 + s * 10, 50, 3.6, 3, 'A', 7, 1.1); q.curls('A', 'L', 'a', 0); q.set(28 + s * 10 - 1, 51, 'a'); q.set(28 + s * 10 + 1, 51, 'a'); p.over(q.outlined()); }
   p.over(head({ ...o, cy: 22 }).outlined());

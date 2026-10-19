@@ -129,6 +129,12 @@ export async function buildRoom(m) {
   const toy = new Mesh(keep(new PlaneGeometry(0.6, 0.3)), psx(A.chicken, { unlit: 0.5, side: DoubleSide })); scene.add(toy);
   const chicken = makeChicken();
   let shown = null;
+  const show = (me, yaw) => {
+    const [name, kind] = pick(me);
+    const pic = poses[bow][name];
+    if (pic !== shown) { lily.material.uniforms.map.value = pic; shown = pic; const im = pic.image; lily.scale.set(im.width * DOT, im.height * DOT, 1); lily.userData.feet = (im.height - FEET[kind]) * DOT; }
+    lily.position.set(L.x, L.h - lily.userData.feet, L.z); lily.rotation.y = yaw;
+  };
   const pick = (me) => {
     // which picture: the way she's heading, against the way you're looking at her
     const vx = L.x - me.x, vz = L.z - me.z, d = Math.hypot(vx, vz) || 1;
@@ -150,7 +156,7 @@ export async function buildRoom(m) {
   let playing = false;
   const play = {
     view: { center: new Vector3(0, SY, GR.z1), normal: new Vector3(0, 0, 1), w: SW + 0.5, h: SH + 0.4 },
-    pad: ['left', 'right', 'up', 'down', 'jump'],
+    pad: ['stick', 'jump'],
     hint: { keys: '<kbd>A D</kbd> MOVE &nbsp; <kbd>W S</kbd> CLIMB &nbsp; <kbd>SPACE</kbd> JUMP &nbsp; <kbd>ESC</kbd> STEP BACK', touch: 'GET HER CHICKEN!' },
     over: false,
     // (called stepping up, and again coming back from the pause menu: a game still going carries on)
@@ -219,10 +225,7 @@ export async function buildRoom(m) {
       if (!e) return;
       chicken.step(Math.min(dt, 0.05));
       L.step(t, Math.min(dt, 0.05), me, chicken);
-      const [name, kind] = pick(me);
-      const pic = poses[bow][name];
-      if (pic !== shown) { lily.material.uniforms.map.value = pic; shown = pic; const im = pic.image; lily.scale.set(im.width * DOT, im.height * DOT, 1); lily.userData.feet = (im.height - FEET[kind]) * DOT; }
-      lily.position.set(L.x, L.h - lily.userData.feet, L.z); lily.rotation.y = e.yaw;
+      show(me, e.yaw);
       // the chicken: pick it up again where she dropped it (once she's back with you)
       if (chicken.where === 'floor' && Math.hypot(me.x - chicken.x, me.z - chicken.z) < 1.3 && L.mode === 'bounce') chicken.where = 'you';
       // in your hand you only see it once you hold it up (high, over her head); thrown, it tumbles
@@ -235,6 +238,9 @@ export async function buildRoom(m) {
     },
   };
   let overFor = 0;
+  // (put up as she is and the game as it stands, before anyone's in: seen from the doorway, or at the threshold, they're already there)
+  drawClimb(ctx2d, game, bow, 0, words); screen.needsUpdate = true;
+  { const me0 = { x: 0, z: LR.d - 1.2, yaw: 0, fx: 0, fz: -1 }; L.step(0, 0.016, me0, chicken); show(me0, 0); }
 
   // ---------- out of the windows: the real town, in pictures taken once as the house is built ----------
   // (as in Toots' house: m.snapshot of the whole outside, bar its sky and her own house, four pictures,
