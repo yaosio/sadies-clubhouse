@@ -30,6 +30,13 @@ anything is drawn. What it should look like: `docs/clubhouse/look/README.md`.
 - The door frame's posts and top start at the wall's face and stand out from it, never back into the
   box.
 
+## Which doorways get a picture
+A doorway is drawn through (a picture of its far side, up to 3 a frame) only when it is open more than
+`PEEK` (0.1: a door swinging shut hides it long before it's closed) and on screen (a sphere round the
+doorway against the camera's view). A closed door costs nothing. Dog City's doors are pairs with both
+ends outside, so without the screen check the far end of a pair, up on its ledge, got a whole extra picture.
+Claude's numbers (changeable).
+
 ## Nothing jumps at a doorway
 Nothing flickers as you go through a doorway, and nothing jumps (the owner saw even a few
 centimetres as a stutter). Standing on a doorway's line, corners of the walls and floor along it sit
