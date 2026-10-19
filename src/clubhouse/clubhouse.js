@@ -176,6 +176,7 @@ export async function open(cards, enter) {
     const w = r.place;
     if (!w || w === me.world || r.building || w.holding || w.busy?.()) return false;
     try { w.putAway?.(); } catch (e) { console.warn(`${r.name}'s putAway failed:`, e); }   // (its mistake mustn't stop the rest being taken back)
+    const at = warming.indexOf(w); if (at >= 0) warming.splice(at, 1);   // (not warmed after all: nothing may hold on to it)
     closeSounds(r.name); dropExtras(r);   // (everything it started stops, whatever it forgot; its boxes on the page and test hooks go)
     for (const p of r.portals) { p.b = p.wb = null; p.open = 0; p.a.setOpen(0); if (lastThrough === p) lastThrough = null; }
     const mine = new Set(r.mine);
