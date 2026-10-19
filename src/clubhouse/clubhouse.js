@@ -176,6 +176,7 @@ export async function open(cards, enter) {
     const w = r.place;
     if (!w || w === me.world || r.building || w.holding || w.busy?.()) return false;
     try { w.putAway?.(); } catch (e) { console.warn(`${r.name}'s putAway failed:`, e); }   // (its mistake mustn't stop the rest being taken back)
+    const at = warming.indexOf(w); if (at >= 0) warming.splice(at, 1);   // (not warmed after all: nothing may hold on to it)
     closeSounds(r.name); dropExtras(r);   // (everything it started stops, whatever it forgot; its boxes on the page and test hooks go)
     for (const p of r.portals) { p.b = p.wb = null; p.open = 0; p.a.setOpen(0); if (lastThrough === p) lastThrough = null; }
     const mine = new Set(r.mine);
@@ -243,24 +244,43 @@ export async function open(cards, enter) {
     }
     return r => (r.place ? d.get(r.place) : Math.min(98, ...r.portals.map(p => d.get(p.wa) ?? 98)) + 1) ?? 99;
   }
-  // every frame: build the nearest room not built yet (while you're still, or as you come up to its
-  // door), and put away rooms three doors off for a while (there's no cap on how many stay built)
-  const FAR_DOORS = 3, FAR_SECS = 20, NEAR_DOOR = 7, BITE = 6, TRIES = 6;
+  // how far you'd walk to each door, through the doors in between: from you to a door in your place,
+  // then from where that door lets out to the next door there, and so on (a door in the outside that
+  // leads to another spot in the outside, like the fire hydrant's, counts: you come out where its other
+  // end is). Returns a function giving a room's distance in metres: to its door if it isn't built, to
+  // the nearest door into it if it is (0 inside it), 999 if there is no way.
+  function walkAway() {
+    const ends = [];
+    for (const p of portals) { ends.push({ w: p.wa, d: p.a, to: p.b, tw: p.wb, reach: 1e9 }); if (p.b) ends.push({ w: p.wb, d: p.b, to: p.a, tw: p.wa, reach: 1e9 }); }
+    const dist = (x, z, d) => Math.hypot(x - d.pos.x, z - d.pos.z);
+    for (const e of ends) if (e.w === me.world) e.reach = dist(me.x, me.z, e.d);
+    for (let again = true, n = 0; again && n < 20; n++) {
+      again = false;
+      for (const e of ends) if (e.reach < 999 && e.to) for (const f of ends) if (f !== e && f.w === e.tw) {
+        const c = e.reach + dist(e.to.pos.x, e.to.pos.z, f.d);
+        if (c < f.reach) { f.reach = c; again = true; }
+      }
+    }
+    return r => r.place === me.world ? 0 : Math.min(999, ...ends.filter(e => r.place ? e.tw === r.place : r.portals.some(p => p.a === e.d)).map(e => e.reach));
+  }
+  // every frame: build the nearest room not built yet (when you're within BUILD_M metres of walking from
+  // its door, or as you come up to it; while you stand still too in the checks, `everything`), and put
+  // away rooms more than PUT_M metres off for a while (there's no cap on how many stay built)
+  const BUILD_M = 15, PUT_M = 30, FAR_SECS = 20, BITE = 6, TRIES = 6;
   let stillFor = 0, onlyDoors = false;   // (onlyDoors: the checks: a room's built only as you walk up to its door, and never put away by itself)
+  let everything = !!navigator.webdriver;   // (the checks: every room is built as soon as you stand still, so they needn't walk to each)
   function tend(dt, doorFor) {
-    const away = doorsAway();
+    const away = walkAway();
     let next = null, best = 1e9;
     for (const r of slots) if (!r.place && !r.building && r.portals.length && again(r)) {
-      const n = away(r); if (n > 2) continue;
-      const dd = Math.min(99, ...r.portals.filter(p => p.wa === me.world).map(p => Math.hypot(me.x - p.a.pos.x, me.z - p.a.pos.z)));
-      const score = n * 100 + dd;
-      if (doorFor === r || (!onlyDoors && (dd < NEAR_DOOR || stillFor > 0.25))) if (score < best) { best = score; next = r; }
+      const m = away(r);
+      if (doorFor === r || (!onlyDoors && (m < BUILD_M || (everything && stillFor > 0.25))) ) if (m < best) { best = m; next = r; }
     }
     // (a building outside the gate that didn't build at the start has no door yet: tried again too)
     next ||= slots.find(r => !r.place && !r.building && !r.portals.length && outdoors(r.card) && again(r));
     if (next && !slots.some(r => r.building)) build(next);
     const built = slots.filter(r => r.place);
-    for (const r of built) r.far = away(r) >= FAR_DOORS ? r.far + dt : 0;
+    for (const r of built) r.far = away(r) > PUT_M ? r.far + dt : 0;
     if (!onlyDoors) for (const r of built) if (r.far > FAR_SECS) putAway(r);
   }
   // A building outside the gate that's far off (FAR_HOUSE metres from where you are, or from the door
@@ -335,6 +355,8 @@ export async function open(cards, enter) {
   // it (through a door, or walking in) nothing has to be sent to the graphics chip. The hall and outside, built at
   // the start, go through the same line as every room.
   const warming = [hall, outside];
+  const WARM_GAP = 250, WARM_MAX = 3000;   // (Claude's numbers, changeable)
+  let calm = 0, lastWarm = 0;   // (calm: frames in a row that came on time)
   const warmTarget = new WebGLRenderTarget(4, 4); shared.add(warmTarget.texture);   // (never handed back with a room)
   function warmOne(w) {
     if (w !== hall && w !== outside && !slots.some(r => r.place === w)) return;   // (put away since: it would only be sent again)
@@ -929,7 +951,14 @@ export async function open(cards, enter) {
     farHouses();
     // (a house outside the gate, whether or not its room's built: it's part of outside)
     for (const r of slots) if (r.house) guard(r.name + ' house', () => r.house.update(t, dt, ears()));
-    if (warming.length && frames > 20 && mode === 'play') warmOne(warming.shift());   // (one place a frame, once the game is under way)
+    // (the warm-up goes gently: one place at a time, only after a few smooth frames and while no room is building, at
+    // most one every WARM_GAP ms, the hall first and then whatever is nearest; on a slow screen it still goes, every WARM_MAX ms)
+    if (warming.length && frames > 20 && mode === 'play' && !slots.some(r => r.building)
+        && ((calm >= 4 && now - lastWarm > WARM_GAP) || now - lastWarm > WARM_MAX)) {
+      const away = doorsAway(), rank = w => w === hall ? -2 : w === outside ? -1 : away(slots.find(r => r.place === w) || { place: w, portals: [] });
+      warming.sort((a, b) => rank(a) - rank(b));
+      warmOne(warming.shift()); lastWarm = now;
+    }
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
@@ -954,6 +983,7 @@ export async function open(cards, enter) {
       meter.frame(me.world.name, now - prevTick, work);
       if (now - prevTick < 2000) live.frame(now, { gap: now - prevTick, work, draw: drew.ms, calls: drew.calls, main: drew.main, tris: drew.tris, doors: drew.doors, place: me.world.name, built: slots.filter(r => r.place).length });
     }
+    calm = prevTick && now - prevTick < 20 ? calm + 1 : 0;
     prevTick = now;
     if (++beat % 120 === 0 && performance.memory) meter.note('heap', performance.memory.usedJSHeapSize);
     raf = requestAnimationFrame(tick);
@@ -998,6 +1028,10 @@ export async function open(cards, enter) {
     build: name => { const r = slots.find(r => r.name === name); return r ? build(r).then(w => !!w) : false; },
     putAway: name => { const r = slots.find(r => r.name === name); return r ? putAway(r) : false; },
     onlyDoors: on => { onlyDoors = on; },
+    // the checks build every room when you stand still (`everything`); turn that off to try the distance rule
+    everything: on => { everything = on; },
+    // how far you'd walk to a room's door, in metres
+    walkAway: name => { const r = slots.find(r => r.name === name); return r ? walkAway()(r) : null; },
     // make a place's update fail every frame (or put it right again), to check one place's mistake can't stop the game
     sabotage(name, on) {
       const w = places.find(p => p.name === name); if (!w) return false;

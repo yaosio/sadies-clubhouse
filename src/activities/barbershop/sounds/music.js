@@ -36,13 +36,23 @@ const PART_A = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G'];
 const PART_B = ['Dm', 'G', 'C', 'Am', 'F', 'G', 'C', 'C'];
 const MEL_A = 'E5:1 G5:0.5 A5:0.5 G5:2  E5:1 C5:1 A4:2  F5:1 A5:1 G5:1 F5:1  E5:1 D5:1 G4:2  E5:1 G5:0.5 A5:0.5 C6:2  B5:1 A5:1 G5:2  A5:1 G5:1 F5:1 E5:1  D5:2 R:2';
 const MEL_B = 'F5:1 A5:1 D6:2  D6:1 B5:1 G5:2  E6:1 C6:1 G5:2  A5:1 C6:1 E6:2  F6:1 E6:1 D6:1 C6:1  B5:1 D6:1 G5:2  C6:1 E6:1 G5:1 E5:1  C5:3 R:1';
-export function shop() {
+// (the tune is made in steps, so the room can make it while it's being built without holding the game up
+// for the ~100 ms it takes in one go; `shop()` runs all the steps at once)
+export function* shopSteps() {
   const beat = 0.6, bars = [...PART_A, ...PART_B], a = blank(bars.length * 4 * beat);
-  bars.forEach((c, i) => { VOICE.bass(a, hz(midi(CHORD[c][0])), i * 4 * beat, 2 * beat); VOICE.bass(a, hz(midi(CHORD[c][1])), (i * 4 + 2) * beat, 2 * beat, 0.7); });
-  line(a, 'flute', beat, MEL_A, 0, 0.9);
-  line(a, 'flute', beat, MEL_B, 32, 0.9);
-  line(a, 'bell', beat, 'C6:2 R:2 A5:2 R:2 A5:2 R:2 B5:2 R:2 C6:2 R:2 C6:2 R:2 A5:2 R:2 B5:2 R:2  E6:2 R:2 D6:2 R:2 C6:2 R:2 C6:2 R:2 A5:2 R:2 B5:2 R:2 G5:2 R:2 C6:2 R:2', 0, 0.7);   // (a quiet bell on top, now and then)
+  for (let h = 0; h < 2; h++) {
+    bars.slice(h * 8, h * 8 + 8).forEach((c, j) => { const i = h * 8 + j; VOICE.bass(a, hz(midi(CHORD[c][0])), i * 4 * beat, 2 * beat); VOICE.bass(a, hz(midi(CHORD[c][1])), (i * 4 + 2) * beat, 2 * beat, 0.7); });
+    yield;
+  }
+  line(a, 'flute', beat, MEL_A, 0, 0.9); yield;
+  line(a, 'flute', beat, MEL_B, 32, 0.9); yield;
+  line(a, 'bell', beat, 'C6:2 R:2 A5:2 R:2 A5:2 R:2 B5:2 R:2 C6:2 R:2 C6:2 R:2 A5:2 R:2 B5:2 R:2', 0, 0.7); yield;   // (a quiet bell on top, now and then)
+  line(a, 'bell', beat, 'E6:2 R:2 D6:2 R:2 C6:2 R:2 C6:2 R:2 A5:2 R:2 B5:2 R:2 G5:2 R:2 C6:2 R:2', 32, 0.7); yield;
   return dry(a, 0.002);
+}
+export function shop() {
+  const it = shopSteps();
+  for (let r = it.next(); ; r = it.next()) if (r.done) return r.value;
 }
 
 // ---------- the shows' songs ----------

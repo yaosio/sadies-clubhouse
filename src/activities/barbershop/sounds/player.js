@@ -4,18 +4,29 @@
 // shop, and it's all stopped when the shop's put away. One song at a time; a new one fades the old
 // one out first.
 import { RATE } from '../../../shared/retro.js';
-import { SONGS } from './music.js';
+import { SONGS, shopSteps } from './music.js';
 
-// `h`: the room's handle (soundsFor). Returns { play(name, { loop, fade }), stop(secs), playing }
+// `h`: the room's handle (soundsFor). Returns { play(name, { loop, fade }), stop(secs), prepare(breathe), playing }
 export function makeMusic(h, volume = 0.6) {
   const line = h.line('music'), ctx = line?.ctx ?? null;
   const made = {};
   let now = null;
+  const rendered = {};
   const buffer = name => made[name] ||= (() => {
-    const a = SONGS[name](), b = ctx.createBuffer(1, a.length, RATE);
+    const a = rendered[name] || SONGS[name](), b = ctx.createBuffer(1, a.length, RATE);
     b.copyToChannel(a, 0);
     return b;
   })();
+  // make the shop's tune ahead of time, a step at a time (`breathe`: the room's, so the game draws between steps),
+  // so the first time you walk in it's ready instead of taking a tenth of a second or more to make
+  async function prepare(breathe) {
+    if (rendered.shop) return;
+    const it = shopSteps();
+    for (let r = it.next(); ; r = it.next()) {
+      if (r.done) { rendered.shop = r.value; return; }
+      await breathe?.();
+    }
+  }
   function stop(secs = 0.5) {
     if (!now) return;
     const { src, gain } = now, t = ctx.currentTime;
@@ -34,5 +45,5 @@ export function makeMusic(h, volume = 0.6) {
     now = { src, gain, name };
     src.onended = () => { if (now && now.src === src) now = null; try { gain.disconnect(); } catch {} };
   }
-  return { play, stop, get playing() { return now ? now.name : null; } };
+  return { play, stop, prepare, get playing() { return now ? now.name : null; } };
 }

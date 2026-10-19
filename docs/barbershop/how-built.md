@@ -25,13 +25,16 @@ its checks. Read before changing its code.
   thud), `index.js` (plays them through the sound system: voices on the voices bus, one sound at
   most every half second, snip every quarter). The music: `music.js` writes the shop's tune and
   each show's song as notes and makes them into samples, `player.js` plays one at a time on the
-  music line (`h.line('music')`: fades, looping for the shop's tune).
+  music line (`h.line('music')`: fades, looping for the shop's tune). The shop's tune takes about a tenth of a
+  second to make, so `shopSteps()` makes it in steps and the room does them at the end of its build
+  (`prepare`, with `breathe` between): the first walk in was a visible hitch when it was made then.
 
 ## How a look is drawn
 Sadie is the kit's flat Sadie picture (`m.sadie`). What she wears is a second see-through picture
 laid over her as a child of her sprite (so it turns to face you with her), redrawn only when a pick
-changes (and once a second for glitter). A tail colour works on the dots of her tail, found once by
-reading her picture when the room is built (`willReadFrequently`). Hats use each hairdo's height.
+changes (and once a second for glitter). A tail colour works on the dots of her tail, written down in
+`room.js` (`TAIL_DOTS`, rows of her picture; reading them off the picture when the room was built stalled it for
+up to 2 seconds, so don't read pixels back at build time). Hats use each hairdo's height.
 
 ## Being put away
 Nothing is saved, so `putAway()` only stops the music; everything else the room made is handed back
