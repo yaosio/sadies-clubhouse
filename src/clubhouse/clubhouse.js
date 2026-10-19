@@ -22,7 +22,7 @@
 // way of playing in a file of its own (src/clubhouse/play/: stepping up to a game, painting), which
 // any place can use; this file only passes it the keys, presses and frames (see "ways of playing").
 import {
-  WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace, Box3, Mesh, BoxGeometry,
+  WebGLRenderer, PerspectiveCamera, WebGLRenderTarget, NearestFilter, Matrix4, Vector3, Vector4, Plane, LinearSRGBColorSpace, Box3, Mesh, BoxGeometry, Frustum, Sphere,
 } from 'three';
 import { res, light, drawTextures, disposeLook, made, handedBack, loadImage, psx, keep, tex, words, C, picture, doorBack, skyMat, sadieSprite } from './look.js';
 import { timers } from './timers.js';
@@ -328,6 +328,25 @@ export async function open(cards, enter) {
     try {
       for (const sc of w.scenes || [w.scene]) sc.traverse(o => { for (const m of [].concat(o.material || [])) for (const u of Object.values(m.uniforms || {})) if (u.value?.isTexture && u.value.image) renderer.initTexture(u.value); });
     } catch {}
+    warming.push(w);
+  }
+  // ...and its shapes and drawing programs too: a place is drawn once, out of sight, into a tiny picture (every
+  // object counts as on screen for it), one place a frame once the game is running, so the first time you look at
+  // it (through a door, or walking in) nothing has to be sent to the graphics chip. The hall and outside, built at
+  // the start, go through the same line as every room.
+  const warming = [hall, outside];
+  const warmTarget = new WebGLRenderTarget(4, 4); shared.add(warmTarget.texture);   // (never handed back with a room)
+  function warmOne(w) {
+    if (w !== hall && w !== outside && !slots.some(r => r.place === w)) return;   // (put away since: it would only be sent again)
+    const off = [];
+    try {
+      for (const sc of w.scenes || [w.scene]) {
+        sc.traverse(o => { if (o.frustumCulled) { o.frustumCulled = false; off.push(o); } });
+        light(w.light);
+        renderer.setRenderTarget(warmTarget); renderer.render(sc, cam); renderer.setRenderTarget(null);
+      }
+    } catch (e) { console.warn('warming up a place failed:', e); }
+    for (const o of off) o.frustumCulled = true;
   }
 
   const canvas = $('#view');
@@ -520,6 +539,7 @@ export async function open(cards, enter) {
     return null;
   }
 
+  const PEEK = 0.1, seen = new Frustum(), ball = new Sphere(), proj = new Matrix4();   // (PEEK: how far open a door is before its picture is worth drawing; Claude's number)
   let viewing = null;   // the nearest doorway being looked through this frame
   const drew = { ms: 0, calls: 0, main: 0, tris: 0, doors: 0 };   // (the live stats: what the last draw() cost)
   function draw() {
@@ -542,12 +562,17 @@ export async function open(cards, enter) {
       if (turn === undefined) f.rotation.y = Math.atan2(cam.position.x - f.position.x, cam.position.z - f.position.z);
       else { const e = f.matrixWorld.elements; f.rotation.y = Math.atan2(cam.position.x - e[12], cam.position.z - e[14]) - turn; }
     }
-    // each open doorway you're in front of (the nearest few) shows its other side, in its own picture
+    // each open doorway you're in front of (the nearest few) shows its other side, in its own picture. Only one that's
+    // open enough to see through (a door swinging shut hides its picture long before it's closed) and on screen: Dog
+    // City's doors are pairs with both ends out here, and the far end of the pair, up on its ledge, was drawn too
+    seen.setFromProjectionMatrix(proj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
     const open = [];
-    for (const s of sides) if (s.w === me.world && s.p.open > 0.02) {
+    for (const s of sides) if (s.w === me.world && s.p.open > PEEK) {
       tmp.copy(cam.position).sub(s.d.pos);
       if (tmp.dot(s.d.normal) < -0.05) continue;
-      const d = tmp.length(); if (d < 25) open.push([d, s]);
+      const d = tmp.length(); if (d >= 25) continue;
+      ball.center.copy(s.d.pos); ball.center.y += s.d.h / 2; ball.radius = Math.hypot(s.d.w, s.d.h) / 2 + 1.5;   // (a bit over: the picture's box reaches back from the hole)
+      if (seen.intersectsSphere(ball)) open.push([d, s]);
     }
     open.sort((a, b) => a[0] - b[0]);
     viewing = open.length ? open[0][1] : null;
@@ -904,6 +929,7 @@ export async function open(cards, enter) {
     farHouses();
     // (a house outside the gate, whether or not its room's built: it's part of outside)
     for (const r of slots) if (r.house) guard(r.name + ' house', () => r.house.update(t, dt, ears()));
+    if (warming.length && frames > 20 && mode === 'play') warmOne(warming.shift());   // (one place a frame, once the game is under way)
     draw();
     const was = target; target = mode === 'play' ? findTarget() : null;   // (nothing to use while playing a game in its room)
     if (was !== target || watching !== !!me.world.watch) { watching = !!me.world.watch; showTarget(); }
@@ -936,7 +962,7 @@ export async function open(cards, enter) {
   function close() {
     cancelAnimationFrame(raf); off.abort(); theme.close(); closeSounds();   // (every sound, a house's own too)
     if (document.pointerLockElement) document.exitPointerLock();
-    for (const t of throughs) t.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
+    for (const t of throughs) t.dispose(); warmTarget.dispose(); disposeLook(); renderer.dispose(); renderer.forceContextLoss();
     root.remove(); style.remove();
     delete window.__clubhouse;
   }

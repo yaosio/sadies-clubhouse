@@ -210,7 +210,10 @@ export async function buildRoom(m) {
       // its music: only while a game's going and you're at it
       if (playing && !m.paused() && (game.state === 'ready' || game.state === 'play')) music.play(); else music.stop();
       music.tick();
-      if (e || playing) { drawClimb(ctx2d, game, bow, t, words); screen.needsUpdate = true; }
+      // (the screen is redrawn every frame while a game's on; waiting, only 6 times a second, which is all its stars and
+      // bobbing chicken need: drawing it and sending it to the graphics chip every frame cost a phone about every other frame)
+      const tick = playing ? -1 : Math.floor(t * 6);
+      if ((e || playing) && (playing || tick !== screenTick)) { drawClimb(ctx2d, game, bow, t, words); screen.needsUpdate = true; screenTick = tick; }
       // what you can use here: PLAY in the game room; in the living room, with the chicken in your hand,
       // HOLD UP (looking down at her) or THROW (looking ahead)
       uses.length = 0;
@@ -237,7 +240,7 @@ export async function buildRoom(m) {
       else if (chicken.where === 'floor') { toy.position.set(chicken.x, 0.16, chicken.z); toy.rotation.set(0, e.yaw, 0); }
     },
   };
-  let overFor = 0;
+  let overFor = 0, screenTick = -2;
   // (put up as she is and the game as it stands, before anyone's in: seen from the doorway, or at the threshold, they're already there)
   drawClimb(ctx2d, game, bow, 0, words); screen.needsUpdate = true;
   { const me0 = { x: 0, z: LR.d - 1.2, yaw: 0, fx: 0, fz: -1 }; L.step(0, 0.016, me0, chicken); show(me0, 0); }

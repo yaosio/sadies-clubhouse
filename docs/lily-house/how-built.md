@@ -14,7 +14,9 @@
 - `music.js`: the game's tune, made up as it plays, through the toolbox's band (`src/shared/band.js`).
 - `climb.js`: the game as plain numbers (no browser): the level, Lily, Marbles, the things, suds,
   hammers, scores. `climb-art.js`: its little pictures. `climb-view.js`: draws a frame onto the wall's
-  canvas (the clubhouse's `words` handed in).
+  canvas (the clubhouse's `words` handed in). The wall is redrawn and sent to the graphics chip every frame
+  only while a game is on; waiting it is 6 times a second (its stars and bobbing chicken), because every frame
+  cost a phone a missed frame.
 - `room.js`: the inside, built from those; the uses (PLAY, HOLD UP THE CHICKEN, THROW THE CHICKEN);
   the game's `play` (with `key` and `pad`, see `docs/clubhouse/rooms/controls.md`) and the fanfare;
   the window views (four `snapshot`s of the town hung 60 m all round, as in Toots' house).
