@@ -312,6 +312,9 @@ export async function buildRoom(m) {
     },
   };
 
+  // (the shop's tune is made now, a bit at a time, so walking in for the first time doesn't hold the game up to make it)
+  await music().prepare(m.breathe);
+
   // for the checks (tests/barbershop/browser.mjs)
   m.checks('__barbershop', {
     state: () => ({ music: madeMusic?.playing ?? null, pick: { ...pick }, show: show ? show.name : null, showT, heard: [...new Set(sounds().log)], played: sounds().played, sadieShown: sadie.visible }),

@@ -25,7 +25,9 @@ its checks. Read before changing its code.
   thud), `index.js` (plays them through the sound system: voices on the voices bus, one sound at
   most every half second, snip every quarter). The music: `music.js` writes the shop's tune and
   each show's song as notes and makes them into samples, `player.js` plays one at a time on the
-  music line (`h.line('music')`: fades, looping for the shop's tune).
+  music line (`h.line('music')`: fades, looping for the shop's tune). The shop's tune takes about a tenth of a
+  second to make, so `shopSteps()` makes it in steps and the room does them at the end of its build
+  (`prepare`, with `breathe` between): the first walk in was a visible hitch when it was made then.
 
 ## How a look is drawn
 Sadie is the kit's flat Sadie picture (`m.sadie`). What she wears is a second see-through picture
